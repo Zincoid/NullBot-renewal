@@ -1,0 +1,17 @@
+# ═══════ NullBot 基础配置文件 ═══════ #
+# 基础固定配置.                        #
+# ══════════════════════════════════ #
+
+spring:
+  application:
+    name: NullBot-renewal
+  profiles:
+    active: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${nullbot.database.url}
+    username: ${nullbot.database.username}
+    password: ${nullbot.database.password}
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
