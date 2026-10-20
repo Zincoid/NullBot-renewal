@@ -8,7 +8,20 @@ CREATE DATABASE IF NOT EXISTS nullbot_renewal DEFAULT CHARACTER SET utf8mb4 COLL
 USE nullbot_renewal;
 
 -- =============================================
--- 1. File Table
+-- 1. Config Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `config` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `key`           VARCHAR(100)    NOT NULL                 COMMENT 'Configuration key',
+    `value`         TEXT            DEFAULT NULL             COMMENT 'Configuration value',
+    `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'Description of the config item',
+    `updated_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Updated at',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Config table';
+
+-- =============================================
+-- 2. File Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `file` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -26,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `file` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File table';
 
 -- =============================================
--- 2. User Table
+-- 3. User Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user` (
     `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform user ID',
@@ -36,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User table';
 
 -- =============================================
--- 3. Group Table
+-- 4. Group Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group` (
     `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform group ID',
@@ -46,15 +59,16 @@ CREATE TABLE IF NOT EXISTS `group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group table';
 
 -- =============================================
--- 4. Message Table
+-- 5. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message ID',
+    `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Chat identifier',
     `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Sender platform user ID',
-    `reply_id`      VARCHAR(64)     DEFAULT NULL             COMMENT 'Replied platform message ID',
     `content`       TEXT            DEFAULT NULL             COMMENT 'Text content (nullable when files present)',
     `files`         TEXT            DEFAULT NULL             COMMENT 'Attached file paths (JSON array)',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
+    `created_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
     PRIMARY KEY (`id`),
+    KEY `idx_chat_created` (`chat_id`, `created_at`),
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat message table';
