@@ -30,3 +30,7 @@ nullbot:
   cmd:
     prefix: /
     ignore-case: true
+
+  # ─── 文件 ─────────── #
+  file:
+    root: ./files

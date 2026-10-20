@@ -30,7 +30,9 @@
 
     <properties>
         <java.version>27</java.version>
+        <springdoc.version>3.1.0</springdoc.version>
         <lombok.version>1.18.48</lombok.version>
+        <commons-io.version>2.22.0</commons-io.version>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <shiro.version>2.5.5</shiro.version>
     </properties>
@@ -50,13 +52,19 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>3.1.0</version>
+            <version>${springdoc.version}</version>
         </dependency>
         <!-- Develop Tool -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+        <!-- Commons -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
         </dependency>
         <!-- Database -->
         <dependency>
