@@ -51,3 +51,6 @@ shiro:
 
 bot:
   adapter: ${nullbot.adapter:stdin}
+  cmd:
+    prefix: ${nullbot.cmd.prefix:/}
+    ignore-case: ${nullbot.cmd.ignore-case:true}

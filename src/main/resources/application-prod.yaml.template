@@ -25,3 +25,8 @@ nullbot:
 
   # ─── 适配器 ───────── #
   adapter: stdin  # type: stdin or shiro
+
+  # ─── 指令 ─────────── #
+  cmd:
+    prefix: /
+    ignore-case: true

@@ -39,7 +39,7 @@ public final class ShiroMapper {
                     .setData(Map.of("id", String.valueOf(s.messageId())));
             case MsgSegment.Face s -> new ArrayMsg().setType(MsgTypeEnum.face)
                     .setData(Map.of("id", String.valueOf(s.id())));
-            case MsgSegment.Raw s -> throw new IllegalArgumentException(
+            case MsgSegment.Raw s -> throw new ShiroException(
                     "Raw message segment is not sendable: " + s.type());
         };
     }
