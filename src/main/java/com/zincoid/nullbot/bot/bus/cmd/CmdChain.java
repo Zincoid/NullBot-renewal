@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.bus;
+package com.zincoid.nullbot.bot.bus.cmd;
 
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 

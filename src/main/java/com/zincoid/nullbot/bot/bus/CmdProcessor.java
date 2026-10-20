@@ -1,5 +1,7 @@
 package com.zincoid.nullbot.bot.bus;
 
+import com.zincoid.nullbot.bot.bus.cmd.CmdChain;
+import com.zincoid.nullbot.bot.bus.cmd.CmdHandler;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;

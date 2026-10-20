@@ -16,13 +16,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BotDispatcher implements BotServer {
 
-    private final CmdProcessor processor;
+    private final PreProcessor preProcessor;
+    private final CmdProcessor cmdProcessor;
 
     @Override
     public void handle(BotClient client, BotEvent event) {
         try {
             log.info("Event dispatched: {}", event.getClass());
-            processor.process(client, event);
+            if (preProcessor.process(client, event)) return;
+            cmdProcessor.process(client, event);
         } catch (Exception e) {
             log.error("Event failed: {}", e.getMessage(), e);
         }
