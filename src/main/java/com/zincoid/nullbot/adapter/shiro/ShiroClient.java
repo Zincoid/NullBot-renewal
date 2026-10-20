@@ -25,48 +25,48 @@ public class ShiroClient implements BotClient {
     // ════ Messaging ═══════════════
 
     @Override
-    public long sendGroupMsg(long groupId, MsgContent content) {
-        ActionData<MsgId> resp = bot.sendGroupMsg(groupId, ShiroMapper.toShiro(content), false);
-        return required(check(resp).getMessageId(), "messageId");
+    public String sendGroupMsg(String groupId, MsgContent content) {
+        ActionData<MsgId> resp = bot.sendGroupMsg(num(groupId), ShiroMapper.toShiro(content), false);
+        return String.valueOf(required(check(resp).getMessageId(), "messageId"));
     }
 
     @Override
-    public long sendPrivateMsg(long userId, MsgContent content) {
-        ActionData<MsgId> resp = bot.sendPrivateMsg(userId, ShiroMapper.toShiro(content), false);
-        return required(check(resp).getMessageId(), "messageId");
+    public String sendPrivateMsg(String userId, MsgContent content) {
+        ActionData<MsgId> resp = bot.sendPrivateMsg(num(userId), ShiroMapper.toShiro(content), false);
+        return String.valueOf(required(check(resp).getMessageId(), "messageId"));
     }
 
     @Override
-    public MsgDetail getMsg(long messageId) {
-        MsgResp resp = check(bot.getMsg((int) messageId));
+    public MsgDetail getMsg(String messageId) {
+        MsgResp resp = check(bot.getMsg((int) num(messageId)));
         return new MsgDetail(
-                messageId, required(resp.getUserId(), "userId"),
+                messageId, String.valueOf(required(resp.getUserId(), "userId")),
                 ShiroMapper.fromShiro(required(resp.getArrayMsg(), "arrayMsg"))
         );
     }
 
     @Override
-    public void recall(long messageId) {
-        check(bot.deleteMsg((int) messageId));
+    public void recall(String messageId) {
+        check(bot.deleteMsg((int) num(messageId)));
     }
 
     // ════ Poke ════════════════════
 
     @Override
-    public void pokeGroup(long groupId, long userId) {
-        check(bot.sendGroupPoke(groupId, userId));
+    public void pokeGroup(String groupId, String userId) {
+        check(bot.sendGroupPoke(num(groupId), num(userId)));
     }
 
     @Override
-    public void pokePrivate(long userId) {
-        check(bot.sendFriendPoke(userId));
+    public void pokePrivate(String userId) {
+        check(bot.sendFriendPoke(num(userId)));
     }
 
     // ════ Mute ════════════════════
 
     @Override
-    public void mute(long groupId, long userId, int seconds) {
-        check(bot.setGroupBan(groupId, userId, seconds));
+    public void mute(String groupId, String userId, int seconds) {
+        check(bot.setGroupBan(num(groupId), num(userId), seconds));
     }
 
     // ════ Info queries ════════════
@@ -75,21 +75,29 @@ public class ShiroClient implements BotClient {
     public UserInfo getLoginInfo() {
         var resp = check(bot.getLoginInfo());
         return new UserInfo(
-                required(resp.getUserId(), "userId"),
+                String.valueOf(required(resp.getUserId(), "userId")),
                 required(resp.getNickname(), "nickname")
         );
     }
 
     @Override
-    public UserInfo getUserInfo(long userId) {
-        var resp = check(bot.getStrangerInfo(userId, true));
+    public UserInfo getUserInfo(String userId) {
+        var resp = check(bot.getStrangerInfo(num(userId), true));
         return new UserInfo(
-                required(resp.getUserId(), "userId"),
+                String.valueOf(required(resp.getUserId(), "userId")),
                 required(resp.getNickname(), "nickname")
         );
     }
 
     // ════ Helpers ═════════════════
+
+    private static long num(String id) {
+        try {
+            return Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new ShiroException("Malformed id: " + id);
+        }
+    }
 
     private static <T> T required(T value, String name) {
         if (value == null) throw new ShiroException("Missing value: " + name);

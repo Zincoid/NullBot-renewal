@@ -17,18 +17,18 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class StdinClient implements BotClient {
 
-    public static final long SELF_ID = 1L;
-    public static final long USER_ID = 2L;
-    public static final long ADMIN_ID = 3L;
-    public static final long GROUP_ID = 100L;
+    public static final String SELF_ID = "1";
+    public static final String USER_ID = "2";
+    public static final String ADMIN_ID = "3";
+    public static final String GROUP_ID = "100";
 
-    private final Map<Long, MsgDetail> messages = new ConcurrentHashMap<>();
+    private final Map<String, MsgDetail> messages = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong(1);
 
     // ════ Ledger ══════════════════
 
-    long record(long userId, MsgContent content) {
-        long id = nextId.getAndIncrement();
+    String record(String userId, MsgContent content) {
+        String id = String.valueOf(nextId.getAndIncrement());
         messages.put(id, new MsgDetail(id, userId, content));
         return id;
     }
@@ -36,26 +36,26 @@ public class StdinClient implements BotClient {
     // ════ Messaging ═══════════════
 
     @Override
-    public long sendGroupMsg(long groupId, MsgContent content) {
+    public String sendGroupMsg(String groupId, MsgContent content) {
         log.info("Send group message to {}: {}", groupId, StdinMapper.toStdin(content));
         return record(SELF_ID, content);
     }
 
     @Override
-    public long sendPrivateMsg(long userId, MsgContent content) {
+    public String sendPrivateMsg(String userId, MsgContent content) {
         log.info("Send private message to {}: {}", userId, StdinMapper.toStdin(content));
         return record(SELF_ID, content);
     }
 
     @Override
-    public MsgDetail getMsg(long messageId) {
+    public MsgDetail getMsg(String messageId) {
         MsgDetail msg = messages.get(messageId);
         if (msg == null) throw new StdinException("Unknown message id: " + messageId);
         return msg;
     }
 
     @Override
-    public void recall(long messageId) {
+    public void recall(String messageId) {
         MsgDetail msg = messages.remove(messageId);
         if (msg == null) throw new StdinException("Unknown message id: " + messageId);
         log.info("Recall message {}", messageId);
@@ -64,19 +64,19 @@ public class StdinClient implements BotClient {
     // ════ Poke ════════════════════
 
     @Override
-    public void pokeGroup(long groupId, long userId) {
+    public void pokeGroup(String groupId, String userId) {
         log.info("Poke {} in group {}", userId, groupId);
     }
 
     @Override
-    public void pokePrivate(long userId) {
+    public void pokePrivate(String userId) {
         log.info("Poke {} in private chat", userId);
     }
 
     // ════ Mute ════════════════════
 
     @Override
-    public void mute(long groupId, long userId, int seconds) {
+    public void mute(String groupId, String userId, int seconds) {
         log.info("Mute {} in group {} for {}s", userId, groupId, seconds);
     }
 
@@ -88,7 +88,7 @@ public class StdinClient implements BotClient {
     }
 
     @Override
-    public UserInfo getUserInfo(long userId) {
+    public UserInfo getUserInfo(String userId) {
         return new UserInfo(userId, "user-" + userId);
     }
 }

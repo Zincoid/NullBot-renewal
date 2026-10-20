@@ -106,7 +106,7 @@ public record MsgContent(List<MsgSegment> segments) {
          *
          * @param userId mentioned user's id
          */
-        public Builder at(long userId) {
+        public Builder at(String userId) {
             segments.add(new MsgSegment.At(userId));
             return this;
         }
@@ -117,7 +117,7 @@ public record MsgContent(List<MsgSegment> segments) {
          *
          * @param messageId the quoted message id
          */
-        public Builder reply(long messageId) {
+        public Builder reply(String messageId) {
             segments.add(new MsgSegment.Reply(messageId));
             return this;
         }
@@ -128,7 +128,7 @@ public record MsgContent(List<MsgSegment> segments) {
          *
          * @param id the face id
          */
-        public Builder face(int id) {
+        public Builder face(String id) {
             segments.add(new MsgSegment.Face(id));
             return this;
         }

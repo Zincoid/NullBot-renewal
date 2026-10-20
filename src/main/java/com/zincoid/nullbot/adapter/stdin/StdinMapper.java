@@ -19,14 +19,14 @@ public final class StdinMapper {
     public static String toStdin(MsgContent content) {
         return content.segments().stream()
                 .map(seg -> switch (seg) {
-                    case MsgSegment.Text s -> s.text();
-                    case MsgSegment.Image s -> "[image " + s.url() + "]";
-                    case MsgSegment.Video s -> "[video " + s.url() + "]";
-                    case MsgSegment.Voice s -> "[voice " + s.url() + "]";
-                    case MsgSegment.At s -> "@" + s.userId();
-                    case MsgSegment.Reply s -> "[reply " + s.messageId() + "]";
-                    case MsgSegment.Face s -> "[face " + s.id() + "]";
-                    case MsgSegment.Raw s -> "[" + s.type() + "]";
+                    case MsgSegment.Text s -> required(s.text(), "text");
+                    case MsgSegment.Image s -> "[image " + required(s.url(), "url") + "]";
+                    case MsgSegment.Video s -> "[video " + required(s.url(), "url") + "]";
+                    case MsgSegment.Voice s -> "[voice " + required(s.url(), "url") + "]";
+                    case MsgSegment.At s -> "@" + required(s.userId(), "userId");
+                    case MsgSegment.Reply s -> "[reply " + required(s.messageId(), "messageId") + "]";
+                    case MsgSegment.Face s -> "[face " + required(s.id(), "id") + "]";
+                    case MsgSegment.Raw s -> "[" + required(s.type(), "type") + "]";
                 })
                 .collect(Collectors.joining());
     }
@@ -35,5 +35,12 @@ public final class StdinMapper {
 
     public static MsgContent fromStdin(String text) {
         return MsgContent.of(text);
+    }
+
+    // ════ Helpers ═════════════════
+
+    private static String required(String value, String key) {
+        if (value == null) throw new StdinException("Null value: " + key);
+        return value;
     }
 }

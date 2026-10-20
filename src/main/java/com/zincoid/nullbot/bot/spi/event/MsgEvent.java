@@ -14,13 +14,13 @@ public sealed interface MsgEvent extends BotEvent permits
      * The sender's id.
      * <p>发送者 ID。</p>
      */
-    long userId();
+    String userId();
 
     /**
      * The message id.
      * <p>消息 ID。</p>
      */
-    long messageId();
+    String messageId();
 
     /**
      * The sender's nickname.

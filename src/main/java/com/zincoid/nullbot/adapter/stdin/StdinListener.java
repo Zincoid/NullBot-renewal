@@ -128,17 +128,12 @@ public class StdinListener {
     }
 
     private BotEvent recall(String scope, String id) {
-        long messageId;
-        try {
-            messageId = Long.parseLong(id);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        if (id.isBlank()) return null;
         return switch (scope) {
             case "g", "ga" -> new GroupRecallEvent(
                     StdinClient.SELF_ID,
                     StdinClient.USER_ID,
-                    messageId,
+                    id,
                     StdinClient.GROUP_ID,
                     "ga".equals(scope)
                             ? StdinClient.ADMIN_ID
@@ -147,7 +142,7 @@ public class StdinListener {
             case "p" -> new PrivateRecallEvent(
                     StdinClient.SELF_ID,
                     StdinClient.USER_ID,
-                    messageId
+                    id
             );
             default -> {
                 log.warn("Unknown scope: {}", scope);

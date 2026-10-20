@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.bot.bus;
 
-import com.zincoid.nullbot.platform.config.CmdProperties;
+import com.zincoid.nullbot.platform.configuration.CmdProperties;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
@@ -56,8 +56,8 @@ public class CmdParser {
         return new CmdRequest(words.getFirst(), words.subList(1, words.size()));
     }
 
-    private static CmdRequest poke(long selfId, long targetId) {
-        return targetId == selfId ? new CmdRequest("Poked", List.of()) : null;
+    private static CmdRequest poke(String selfId, String targetId) {
+        return selfId.equals(targetId) ? new CmdRequest("Poked", List.of()) : null;
     }
 
     private static CmdRequest recall() {

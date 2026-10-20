@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.platform.config;
+package com.zincoid.nullbot.platform.configuration;
 
 import lombok.Getter;
 import lombok.Setter;

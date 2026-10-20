@@ -11,10 +11,10 @@ package com.zincoid.nullbot.bot.spi.event;
  * @param operatorId the id of the user who recalled the message
  */
 public record GroupRecallEvent(
-        long selfId,
-        long userId,
-        long messageId,
-        long groupId,
-        long operatorId
+        String selfId,
+        String userId,
+        String messageId,
+        String groupId,
+        String operatorId
 ) implements RecallEvent {
 }

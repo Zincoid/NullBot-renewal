@@ -7,5 +7,5 @@ package com.zincoid.nullbot.bot.spi.model;
  * @param userId   the user ID
  * @param nickname the display nickname
  */
-public record UserInfo(long userId, String nickname) {
+public record UserInfo(String userId, String nickname) {
 }

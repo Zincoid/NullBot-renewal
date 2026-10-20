@@ -11,10 +11,10 @@ package com.zincoid.nullbot.bot.spi.event;
  * @param kicked     whether the user was kicked
  */
 public record LeaveEvent(
-        long selfId,
-        long groupId,
-        long userId,
-        long operatorId,
+        String selfId,
+        String groupId,
+        String userId,
+        String operatorId,
         boolean kicked
 ) implements BotEvent {
 }

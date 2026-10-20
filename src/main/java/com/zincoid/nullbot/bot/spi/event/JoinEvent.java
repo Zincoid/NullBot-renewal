@@ -10,9 +10,9 @@ package com.zincoid.nullbot.bot.spi.event;
  * @param operatorId the operator who approved the join
  */
 public record JoinEvent(
-        long selfId,
-        long groupId,
-        long userId,
-        long operatorId
+        String selfId,
+        String groupId,
+        String userId,
+        String operatorId
 ) implements BotEvent {
 }

@@ -9,8 +9,8 @@ package com.zincoid.nullbot.bot.spi.event;
  * @param messageId the recalled message id
  */
 public record PrivateRecallEvent(
-        long selfId,
-        long userId,
-        long messageId
+        String selfId,
+        String userId,
+        String messageId
 ) implements RecallEvent {
 }

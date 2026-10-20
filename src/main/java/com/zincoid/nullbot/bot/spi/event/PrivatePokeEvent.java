@@ -9,8 +9,8 @@ package com.zincoid.nullbot.bot.spi.event;
  * @param targetId the poked user's id
  */
 public record PrivatePokeEvent(
-        long selfId,
-        long userId,
-        long targetId
+        String selfId,
+        String userId,
+        String targetId
 ) implements PokeEvent {
 }

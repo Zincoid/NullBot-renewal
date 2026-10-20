@@ -16,7 +16,7 @@ public interface BotClient {
      * Sends a group message, returns the message ID.
      * <p>发送群聊消息，返回消息 ID。</p>
      */
-    default long sendGroupMsg(long groupId, MsgContent content) {
+    default String sendGroupMsg(String groupId, MsgContent content) {
         throw new UnsupportedSpiException("sendGroupMsg");
     }
 
@@ -24,7 +24,7 @@ public interface BotClient {
      * Sends a plain-text group message, returns the message ID.
      * <p>发送纯文本群聊消息，返回消息 ID。</p>
      */
-    default long sendGroupMsg(long groupId, String text) {
+    default String sendGroupMsg(String groupId, String text) {
         return sendGroupMsg(groupId, MsgContent.of(text));
     }
 
@@ -32,7 +32,7 @@ public interface BotClient {
      * Sends a private message, returns the message ID.
      * <p>发送私聊消息，返回消息 ID。</p>
      */
-    default long sendPrivateMsg(long userId, MsgContent content) {
+    default String sendPrivateMsg(String userId, MsgContent content) {
         throw new UnsupportedSpiException("sendPrivateMsg");
     }
 
@@ -40,7 +40,7 @@ public interface BotClient {
      * Sends a plain-text private message, returns the message ID.
      * <p>发送纯文本私聊消息，返回消息 ID。</p>
      */
-    default long sendPrivateMsg(long userId, String text) {
+    default String sendPrivateMsg(String userId, String text) {
         return sendPrivateMsg(userId, MsgContent.of(text));
     }
 
@@ -48,7 +48,7 @@ public interface BotClient {
      * Fetches a message by ID.
      * <p>按 ID 获取消息。</p>
      */
-    default MsgDetail getMsg(long messageId) {
+    default MsgDetail getMsg(String messageId) {
         throw new UnsupportedSpiException("getMsg");
     }
 
@@ -56,7 +56,7 @@ public interface BotClient {
      * Recalls a message.
      * <p>撤回消息。</p>
      */
-    default void recall(long messageId) {
+    default void recall(String messageId) {
         throw new UnsupportedSpiException("recall");
     }
 
@@ -66,7 +66,7 @@ public interface BotClient {
      * Pokes a user in a group chat.
      * <p>群聊戳一戳用户。</p>
      */
-    default void pokeGroup(long groupId, long userId) {
+    default void pokeGroup(String groupId, String userId) {
         throw new UnsupportedSpiException("pokeGroup");
     }
 
@@ -74,7 +74,7 @@ public interface BotClient {
      * Pokes a user in a private chat.
      * <p>私聊戳一戳用户。</p>
      */
-    default void pokePrivate(long userId) {
+    default void pokePrivate(String userId) {
         throw new UnsupportedSpiException("pokePrivate");
     }
 
@@ -84,7 +84,7 @@ public interface BotClient {
      * Mutes a group user, zero lifts the mute.
      * <p>禁言群用户，0 解除禁言。</p>
      */
-    default void mute(long groupId, long userId, int seconds) {
+    default void mute(String groupId, String userId, int seconds) {
         throw new UnsupportedSpiException("mute");
     }
 
@@ -102,7 +102,7 @@ public interface BotClient {
      * User info.
      * <p>用户信息。</p>
      */
-    default UserInfo getUserInfo(long userId) {
+    default UserInfo getUserInfo(String userId) {
         throw new UnsupportedSpiException("getUserInfo");
     }
 }

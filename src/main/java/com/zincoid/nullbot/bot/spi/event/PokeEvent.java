@@ -12,11 +12,11 @@ public sealed interface PokeEvent extends BotEvent permits
      * The poker's id.
      * <p>戳人者 ID。</p>
      */
-    long userId();
+    String userId();
 
     /**
      * The poked user's id.
      * <p>被戳者 ID。</p>
      */
-    long targetId();
+    String targetId();
 }

@@ -8,5 +8,5 @@ package com.zincoid.nullbot.bot.spi.model;
  * @param userId    the sender's id
  * @param content   the message content
  */
-public record MsgDetail(long messageId, long userId, MsgContent content) {
+public record MsgDetail(String messageId, String userId, MsgContent content) {
 }

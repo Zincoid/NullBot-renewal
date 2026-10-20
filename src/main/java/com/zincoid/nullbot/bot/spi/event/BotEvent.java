@@ -15,5 +15,5 @@ public sealed interface BotEvent permits
      * The bot's id.
      * <p>机器人 ID。</p>
      */
-    long selfId();
+    String selfId();
 }

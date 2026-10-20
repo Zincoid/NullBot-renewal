@@ -12,11 +12,11 @@ public sealed interface RecallEvent extends BotEvent permits
      * The recalled message's author id.
      * <p>被撤回消息的发送者 ID。</p>
      */
-    long userId();
+    String userId();
 
     /**
      * The recalled message id.
      * <p>被撤回的消息 ID。</p>
      */
-    long messageId();
+    String messageId();
 }

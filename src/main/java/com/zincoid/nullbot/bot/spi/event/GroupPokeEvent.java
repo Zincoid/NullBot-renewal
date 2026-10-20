@@ -10,9 +10,9 @@ package com.zincoid.nullbot.bot.spi.event;
  * @param groupId  the group id
  */
 public record GroupPokeEvent(
-        long selfId,
-        long userId,
-        long targetId,
-        long groupId
+        String selfId,
+        String userId,
+        String targetId,
+        String groupId
 ) implements PokeEvent {
 }

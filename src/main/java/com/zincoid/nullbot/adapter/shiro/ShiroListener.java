@@ -51,13 +51,13 @@ public class ShiroListener {
     public void onGroupMsg(Bot bot, GroupMessageEvent event) {
         MsgContent content = ShiroMapper.fromShiro(
                 required(event.getArrayMsg(), "arrayMsg"));
-        long selfId = bot.getSelfId();
+        String selfId = String.valueOf(bot.getSelfId());
         var sender = required(event.getSender(), "sender");
         deliver(bot, new GroupMsgEvent(
                 selfId,
-                required(event.getUserId(), "userId"),
-                required(event.getGroupId(), "groupId"),
-                required(event.getMessageId(), "messageId"),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getGroupId(), "groupId")),
+                String.valueOf(required(event.getMessageId(), "messageId")),
                 required(sender.getNickname(), "nickname"),
                 content,
                 at(content, selfId),
@@ -69,12 +69,12 @@ public class ShiroListener {
     public void onPrivateMsg(Bot bot, PrivateMessageEvent event) {
         MsgContent content = ShiroMapper.fromShiro(
                 required(event.getArrayMsg(), "arrayMsg"));
-        long selfId = bot.getSelfId();
+        String selfId = String.valueOf(bot.getSelfId());
         var sender = required(event.getPrivateSender(), "sender");
         deliver(bot, new PrivateMsgEvent(
                 selfId,
-                required(event.getUserId(), "userId"),
-                required(event.getMessageId(), "messageId"),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getMessageId(), "messageId")),
                 required(sender.getNickname(), "nickname"),
                 content,
                 at(content, selfId),
@@ -87,19 +87,19 @@ public class ShiroListener {
     @GroupPokeNoticeHandler
     public void onGroupPoke(Bot bot, PokeNoticeEvent event) {
         deliver(bot, new GroupPokeEvent(
-                bot.getSelfId(),
-                required(event.getUserId(), "userId"),
-                required(event.getTargetId(), "targetId"),
-                required(event.getGroupId(), "groupId")
+                String.valueOf(bot.getSelfId()),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getTargetId(), "targetId")),
+                String.valueOf(required(event.getGroupId(), "groupId"))
         ));
     }
 
     @PrivatePokeNoticeHandler
     public void onPrivatePoke(Bot bot, PokeNoticeEvent event) {
         deliver(bot, new PrivatePokeEvent(
-                bot.getSelfId(),
-                required(event.getUserId(), "userId"),
-                required(event.getTargetId(), "targetId")
+                String.valueOf(bot.getSelfId()),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getTargetId(), "targetId"))
         ));
     }
 
@@ -108,20 +108,20 @@ public class ShiroListener {
     @GroupMsgDeleteNoticeHandler
     public void onGroupRecall(Bot bot, GroupMsgDeleteNoticeEvent event) {
         deliver(bot, new GroupRecallEvent(
-                bot.getSelfId(),
-                required(event.getUserId(), "userId"),
-                required(event.getMessageId(), "messageId"),
-                required(event.getGroupId(), "groupId"),
-                required(event.getOperatorId(), "operatorId")
+                String.valueOf(bot.getSelfId()),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getMessageId(), "messageId")),
+                String.valueOf(required(event.getGroupId(), "groupId")),
+                String.valueOf(required(event.getOperatorId(), "operatorId"))
         ));
     }
 
     @PrivateMsgDeleteNoticeHandler
     public void onPrivateRecall(Bot bot, PrivateMsgDeleteNoticeEvent event) {
         deliver(bot, new PrivateRecallEvent(
-                bot.getSelfId(),
-                required(event.getUserId(), "userId"),
-                required(event.getMessageId(), "messageId")
+                String.valueOf(bot.getSelfId()),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getMessageId(), "messageId"))
         ));
     }
 
@@ -130,20 +130,20 @@ public class ShiroListener {
     @GroupIncreaseHandler
     public void onJoin(Bot bot, GroupIncreaseNoticeEvent event) {
         deliver(bot, new JoinEvent(
-                bot.getSelfId(),
-                required(event.getGroupId(), "groupId"),
-                required(event.getUserId(), "userId"),
-                required(event.getOperatorId(), "operatorId")
+                String.valueOf(bot.getSelfId()),
+                String.valueOf(required(event.getGroupId(), "groupId")),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getOperatorId(), "operatorId"))
         ));
     }
 
     @GroupDecreaseHandler
     public void onLeave(Bot bot, GroupDecreaseNoticeEvent event) {
         deliver(bot, new LeaveEvent(
-                bot.getSelfId(),
-                required(event.getGroupId(), "groupId"),
-                required(event.getUserId(), "userId"),
-                required(event.getOperatorId(), "operatorId"),
+                String.valueOf(bot.getSelfId()),
+                String.valueOf(required(event.getGroupId(), "groupId")),
+                String.valueOf(required(event.getUserId(), "userId")),
+                String.valueOf(required(event.getOperatorId(), "operatorId")),
                 "kick".equals(event.getSubType())
         ));
     }
@@ -160,11 +160,11 @@ public class ShiroListener {
         server.handle(new ShiroClient(bot), event);
     }
 
-    private static boolean at(MsgContent content, long selfId) {
+    private static boolean at(MsgContent content, String selfId) {
         return content.segments().stream()
                 .filter(MsgSegment.At.class::isInstance)
                 .map(MsgSegment.At.class::cast)
-                .anyMatch(at -> at.userId() == selfId);
+                .anyMatch(at -> selfId.equals(at.userId()));
     }
 
     private static boolean reply(MsgContent content) {

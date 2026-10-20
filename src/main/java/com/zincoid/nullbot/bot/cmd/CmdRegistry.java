@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.bot.cmd;
 
-import com.zincoid.nullbot.platform.config.CmdProperties;
+import com.zincoid.nullbot.platform.configuration.CmdProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

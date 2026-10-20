@@ -56,7 +56,7 @@ public sealed interface MsgSegment permits
      *
      * @param userId mentioned user's id
      */
-    record At(long userId) implements MsgSegment {
+    record At(String userId) implements MsgSegment {
     }
 
     /**
@@ -65,7 +65,7 @@ public sealed interface MsgSegment permits
      *
      * @param messageId the quoted message id
      */
-    record Reply(long messageId) implements MsgSegment {
+    record Reply(String messageId) implements MsgSegment {
     }
 
     /**
@@ -74,7 +74,7 @@ public sealed interface MsgSegment permits
      *
      * @param id the face id
      */
-    record Face(int id) implements MsgSegment {
+    record Face(String id) implements MsgSegment {
     }
 
     /**

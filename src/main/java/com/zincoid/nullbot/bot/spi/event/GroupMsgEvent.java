@@ -16,10 +16,10 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
  * @param reply      whether the first segment is a reply quote
  */
 public record GroupMsgEvent(
-        long selfId,
-        long userId,
-        long groupId,
-        long messageId,
+        String selfId,
+        String userId,
+        String groupId,
+        String messageId,
         String nickname,
         MsgContent content,
         boolean at,
