@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.common;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.mapper.MessageMapper;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import lombok.extern.slf4j.Slf4j;
@@ -20,17 +21,21 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ════ Save ════════════════════
 
     @Override
-    public Message save(String id, String chatId, String userId, String content, List<String> files) {
+    public Message save(String id, String chatId, String userId, MessageRole role, String nickname, String content, List<String> files) {
         if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
         if (chatId == null || chatId.isBlank()) throw new CommonException("Missing key: chatId");
         if (userId == null || userId.isBlank()) throw new CommonException("Missing key: userId");
-        boolean noContent = content == null || content.isBlank();
+        if (role == null) throw new CommonException("Missing key: role");
+        if (nickname == null) throw new CommonException("Missing key: nickname");
+        boolean noContent = content == null || content.isEmpty();
         boolean noFiles = files == null || files.isEmpty();
         if (noContent && noFiles) throw new CommonException("Missing content and files");
         Message message = Message.builder()
                 .id(id)
                 .chatId(chatId)
                 .userId(userId)
+                .role(role)
+                .nickname(nickname)
                 .content(noContent ? null : content)
                 .files(noFiles ? null : files)
                 .createdAt(LocalDateTime.now())

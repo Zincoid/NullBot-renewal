@@ -54,7 +54,7 @@ public class QuoteRandCmd implements Cmd {
         return """
                 RandomQuote
                 Sends a random quote.
-                Usage: RandomQuote [user ID | @user]
+                Usage: RandomQuote [user id | @user]
                 Aliases: say/随机语录/语录
                 Access: >=RESTRICTED""";
     }
@@ -64,7 +64,7 @@ public class QuoteRandCmd implements Cmd {
         return """
                 RandomQuote
                 Sends a random quote.
-                Usage: RandomQuote [user ID | @user]""";
+                Usage: RandomQuote [user id | @user]""";
     }
 
     private static String format(Quote quote) {

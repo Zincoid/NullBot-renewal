@@ -29,8 +29,8 @@ public class GroupCmdRateLimiter {
      * 尝试消费一个指令令牌。
      * <p>Tries to consume one command token.</p>
      *
-     * @param groupId group platform ID
-     * @param userId  operator platform user ID
+     * @param groupId group platform id
+     * @param userId  operator platform user id
      * @param cmd     command name
      * @return true when the call is allowed
      */

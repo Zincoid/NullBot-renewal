@@ -6,6 +6,7 @@ import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigException;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,20 +34,28 @@ public class MsgWindowStore {
      * 记录一条消息，并将会话窗口修剪至配置长度。
      * <p>Records a message and trims the chat window to the configured size.</p>
      *
-     * @param id      platform message ID
-     * @param chatId  chat identifier
-     * @param userId  sender platform user ID
-     * @param content text content, may be blank when files present
-     * @param files   attached file paths, may be empty
+     * @param chatId    chat identifier id
+     * @param messageId platform message id
+     * @param userId    sender platform user id
+     * @param role      message role
+     * @param nickname  sender nickname
+     * @param content   text content, may be blank when files present
+     * @param files     attached file paths, may be empty
      * @return the persisted record
      */
-    public Message add(String id, String chatId, String userId, String content, List<String> files) {
-        Message message = messageService.save(id, chatId, userId, content, files);
+    public Message add(String chatId, String messageId,
+                       String userId, MessageRole role, String nickname,
+                       String content, List<String> files) {
+        Message message = messageService.save(
+                messageId, chatId,
+                userId, role, nickname,
+                content, files
+        );
         trim(chatId);
         return message;
     }
 
-    // ════ List ════════════════════
+    // ════ Get ═════════════════════
 
     /**
      * 返回该会话最近的消息，按时间正序。
@@ -55,7 +64,7 @@ public class MsgWindowStore {
      * @param chatId chat identifier
      * @return the chat window, oldest first
      */
-    public List<Message> list(String chatId) {
+    public List<Message> get(String chatId) {
         if (chatId == null || chatId.isBlank()) throw new CommonException("Missing key: chatId");
         List<Message> newest = messageService.lambdaQuery()
                 .eq(Message::getChatId, chatId)
@@ -101,7 +110,7 @@ public class MsgWindowStore {
         if (all.size() <= size) return;
         List<Message> overflow = all.subList(size, all.size());
         messageService.removeByIds(overflow.stream().map(Message::getId).toList());
-        overflow.forEach(this::deleteFiles);
+        overflow.forEach(this::deleteAttachments);
     }
 
     /**
@@ -110,7 +119,7 @@ public class MsgWindowStore {
      *
      * @param message the trimmed message
      */
-    private void deleteFiles(Message message) {
+    private void deleteAttachments(Message message) {
         if (message.getFiles() == null) return;
         for (String fileId : message.getFiles()) {
             try {

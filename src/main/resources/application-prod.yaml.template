@@ -26,11 +26,6 @@ nullbot:
   # ─── 适配 ─────────── #
   adapter: stdin  # type: stdin or shiro
 
-  # ─── 指令 ─────────── #
-  cmd:
-    prefix: /
-    ignore-case: true
-
   # ─── 文件 ─────────── #
   file:
     root: ./files

@@ -63,7 +63,7 @@ public class QuoteSaveCmd implements Cmd {
                 QuoteSave
                 Saves a quote.
                 Usage: [reply] QuoteSave
-                Options: -i,--id=[message ID]
+                Options: -i,--id=[message id]
                 Aliases: 语录保存
                 Access: >=NORMAL""";
     }
@@ -74,7 +74,7 @@ public class QuoteSaveCmd implements Cmd {
                 QuoteSave
                 Saves a quote.
                 Usage: QuoteSave [options]
-                Options: -i,--id=[message ID]
+                Options: -i,--id=[message id]
                 Note: saves funny or remarkable user messages.""";
     }
 

@@ -17,7 +17,7 @@ public interface GroupKeywordService extends IService<GroupKeyword> {
      * 读取群内启用的关键词规则。
      * <p>Returns the enabled keyword rules of the group.</p>
      *
-     * @param groupId platform group ID
+     * @param groupId platform group id
      * @return the enabled rules, oldest first
      */
     List<GroupKeyword> listEnabled(String groupId);
@@ -28,7 +28,7 @@ public interface GroupKeywordService extends IService<GroupKeyword> {
      * 添加一条启用的关键词规则。
      * <p>Adds an enabled keyword rule.</p>
      *
-     * @param groupId platform group ID
+     * @param groupId platform group id
      * @param keyword keyword to match, must not be blank
      * @param cmd     command name to dispatch, must not be blank
      * @param args    command arguments, may be empty

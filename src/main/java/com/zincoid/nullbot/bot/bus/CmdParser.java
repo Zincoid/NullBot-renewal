@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.bot.bus;
 
-import com.zincoid.nullbot.platform.configuration.CmdProperties;
+import com.zincoid.nullbot.module.config.Conf;
+import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
@@ -25,7 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CmdParser {
 
-    private final CmdProperties cmdProperties;
+    public static final String CHAT_CMD_NAME = "Chat";
+
+    private final ConfigService configService;
 
     // ════ Parse ═══════════════════
 
@@ -38,8 +41,18 @@ public class CmdParser {
      */
     public CmdRequest parse(BotEvent event) {
         return switch (event) {
-            case GroupMsgEvent e -> msg(e.content());
-            case PrivateMsgEvent e -> msg(e.content());
+            case GroupMsgEvent e -> {
+                boolean at = e.at();
+                yield at
+                        ? new CmdRequest(CHAT_CMD_NAME, List.of())
+                        : msg(e.content());
+            }
+            case PrivateMsgEvent e -> {
+                CmdRequest req = msg(e.content());
+                yield req == null
+                        ? new CmdRequest(CHAT_CMD_NAME, List.of())
+                        : req;
+            }
             case GroupPokeEvent e -> poke(e.selfId(), e.targetId());
             case PrivatePokeEvent e -> poke(e.selfId(), e.targetId());
             case GroupRecallEvent _, PrivateRecallEvent _ -> recall();
@@ -54,7 +67,7 @@ public class CmdParser {
         List<MsgSegment> segments = content.segments();
         int i = !segments.isEmpty() && segments.getFirst() instanceof MsgSegment.Reply ? 1 : 0;
         if (i >= segments.size() || !(segments.get(i) instanceof MsgSegment.Text(String text))) return null;
-        String prefix = cmdProperties.getPrefix();
+        String prefix = configService.get(Conf.CMD_PREFIX);
         if (!text.startsWith(prefix)) return null;
         List<String> words = List.of(text.substring(prefix.length()).split("\\s+"));
         return new CmdRequest(words.getFirst(), words.subList(1, words.size()));

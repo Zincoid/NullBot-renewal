@@ -34,8 +34,8 @@ public class CmdProcessor {
      * @param event  the inbound event
      */
     public void process(BotClient client, BotEvent event) {
-        CmdRequest request = parser.parse(event);
-        if (request != null) process(client, event, request);
+        CmdRequest req = parser.parse(event);
+        if (req != null) process(client, event, req);
     }
 
     /**
@@ -44,17 +44,17 @@ public class CmdProcessor {
      *
      * @param client  the outbound port
      * @param event   the inbound event
-     * @param request the explicit command request
+     * @param req the explicit command request
      */
-    public void process(BotClient client, BotEvent event, CmdRequest request) {
-        Cmd cmd = registry.get(request.name());
+    public void process(BotClient client, BotEvent event, CmdRequest req) {
+        Cmd cmd = registry.get(req.name());
         if (cmd == null) {
-            log.info("Unknown command: {}", request.name());
+            log.info("Unknown command: {}", req.name());
             return;
         }
-        CmdContext ctx = new CmdContext(client, event, cmd, request.params());
-        log.info("Command start: {}", request.name());
+        CmdContext ctx = new CmdContext(client, event, cmd, req.params());
+        log.info("Command start: {}", req.name());
         new CmdChain(handlers).doHandle(ctx);
-        log.info("Command done: {}", request.name());
+        log.info("Command done: {}", req.name());
     }
 }

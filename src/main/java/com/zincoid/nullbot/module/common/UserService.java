@@ -16,7 +16,7 @@ public interface UserService extends IService<User> {
      * 注册新用户，或刷新已有用户的名称。
      * <p>Registers a new user or refreshes the name of an existing one.</p>
      *
-     * @param id   platform user ID
+     * @param id   platform user id
      * @param name current nickname
      * @return the persisted record
      */
@@ -28,7 +28,7 @@ public interface UserService extends IService<User> {
      * 修改用户名称。
      * <p>Renames the user.</p>
      *
-     * @param id   platform user ID
+     * @param id   platform user id
      * @param name new nickname
      */
     void update(String id, String name);
@@ -39,7 +39,7 @@ public interface UserService extends IService<User> {
      * 返回用户的限权等级。
      * <p>Returns the access level of the user.</p>
      *
-     * @param id platform user ID
+     * @param id platform user id
      * @return the access level
      */
     Access getAccess(String id);
@@ -48,7 +48,7 @@ public interface UserService extends IService<User> {
      * 设置用户的限权等级。
      * <p>Sets the access level of the user.</p>
      *
-     * @param id     platform user ID
+     * @param id     platform user id
      * @param access new access level
      */
     void setAccess(String id, Access access);
@@ -59,7 +59,7 @@ public interface UserService extends IService<User> {
      * 删除用户记录。
      * <p>Deletes the user record.</p>
      *
-     * @param id platform user ID
+     * @param id platform user id
      */
     void delete(String id);
 }

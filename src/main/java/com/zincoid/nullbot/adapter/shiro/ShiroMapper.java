@@ -56,9 +56,9 @@ public final class ShiroMapper {
         try {
             return switch (msg.getType()) {
                 case text -> new MsgSegment.Text(requiredString(msg, "text"));
-                case image -> new MsgSegment.Image(requiredString(msg, "url"));
-                case video -> new MsgSegment.Video(requiredString(msg, "url"));
-                case record -> new MsgSegment.Voice(requiredString(msg, "url"));
+                case image -> new MsgSegment.Image(requiredString(msg, "url"), optionalString(msg, "file"));
+                case video -> new MsgSegment.Video(requiredString(msg, "url"), optionalString(msg, "file"));
+                case record -> new MsgSegment.Voice(requiredString(msg, "url"), optionalString(msg, "file"));
                 case at -> new MsgSegment.At(requiredString(msg, "qq"));
                 case reply -> new MsgSegment.Reply(requiredString(msg, "id"));
                 case face -> new MsgSegment.Face(requiredString(msg, "id"));
@@ -83,6 +83,12 @@ public final class ShiroMapper {
         if (value == null || value.isEmpty())
             throw new ShiroException("Empty value: " + key + " in " + msg.getRawType());
         return value;
+    }
+
+    private static String optionalString(ArrayMsg msg, String key) {
+        if (msg.getData() == null || !msg.getData().has(key)) return null;
+        String value = msg.getStringData(key);
+        return value == null || value.isEmpty() ? null : value;
     }
 
     private static Map<String, String> data(String key, String value) {

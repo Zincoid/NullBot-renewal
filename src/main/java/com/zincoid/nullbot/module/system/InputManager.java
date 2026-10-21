@@ -34,7 +34,7 @@ public class InputManager {
      * <p>Waits for a matching input and returns an empty list on timeout.</p>
      *
      * @param mode     the wait mode
-     * @param targetId the user or group platform ID
+     * @param targetId the user or group platform id
      * @param pattern  the regular expression the message must match
      * @param timeout  the timeout in seconds
      * @return the matched inputs, empty on timeout
@@ -48,7 +48,7 @@ public class InputManager {
      * <p>Waits for a matching input, optionally covering an existing coverable wait.</p>
      *
      * @param mode      the wait mode
-     * @param targetId  the user or group platform ID
+     * @param targetId  the user or group platform id
      * @param pattern   the regular expression the message must match
      * @param timeout   the timeout in seconds
      * @param coverable whether this wait may replace an existing coverable wait
@@ -96,8 +96,8 @@ public class InputManager {
      * 把群消息尝试交付给所有等待中的输入。
      * <p>Attempts to deliver a group message to all pending inputs.</p>
      *
-     * @param groupId group platform ID
-     * @param userId  sender platform user ID
+     * @param groupId group platform id
+     * @param userId  sender platform user id
      * @param message the message text
      * @return true when at least one wait accepted the message
      */
@@ -112,7 +112,7 @@ public class InputManager {
      * 把私聊消息尝试交付给该用户的等待输入。
      * <p>Attempts to deliver a private message to the user's pending input.</p>
      *
-     * @param userId  sender platform user ID
+     * @param userId  sender platform user id
      * @param message the message text
      * @return true when a wait accepted the message
      */
@@ -127,7 +127,7 @@ public class InputManager {
      * <p>Whether a wait is pending for the target.</p>
      *
      * @param mode     the wait mode
-     * @param targetId the user or group platform ID
+     * @param targetId the user or group platform id
      * @return true when a wait is pending
      */
     public boolean isWaiting(InputMode mode, String targetId) {
@@ -140,7 +140,7 @@ public class InputManager {
      * <p>Cancels the wait for the target, making it return an empty list.</p>
      *
      * @param mode     the wait mode
-     * @param targetId the user or group platform ID
+     * @param targetId the user or group platform id
      */
     public void cancelWait(InputMode mode, String targetId) {
         String key = key(mode, targetId);

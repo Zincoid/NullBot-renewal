@@ -16,8 +16,8 @@ public interface UsageMapper extends BaseMapper<Usage> {
      * <p>Increases the usage count for the same day, chat, user, and command.</p>
      *
      * @param time    the statistics date
-     * @param groupId the group platform ID, {@code 0} for private chat
-     * @param userId  the operator platform user ID
+     * @param groupId the group platform id, {@code 0} for private chat
+     * @param userId  the operator platform user id
      * @param cmd     the command name
      */
     @Insert("INSERT INTO `usage` (`time`, `group_id`, `user_id`, `cmd`, `count`) " +

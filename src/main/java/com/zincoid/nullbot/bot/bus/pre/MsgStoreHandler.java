@@ -9,6 +9,8 @@ import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
+import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
+import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +38,9 @@ public class MsgStoreHandler implements PreHandler {
     @Override
     public void handle(BotClient client, BotEvent event, PreChain chain) {
         if (event instanceof GroupMsgEvent e) {
-            record(ChatIds.ofGroup(e.groupId()), e);
+            record(client, ChatIds.ofGroup(e.groupId()), e);
         } else if (event instanceof PrivateMsgEvent e) {
-            record(ChatIds.ofPrivate(e.userId()), e);
+            record(client, ChatIds.ofPrivate(e.userId()), e);
         }
         chain.doHandle(client, event);
     }
@@ -49,10 +51,11 @@ public class MsgStoreHandler implements PreHandler {
      * 记录事件消息并落盘其中的媒体附件。
      * <p>Records the event message and stores its media attachments.</p>
      *
+     * @param client the outbound port
      * @param chatId chat identifier
      * @param event  the message event
      */
-    private void record(String chatId, MsgEvent event) {
+    private void record(BotClient client, String chatId, MsgEvent event) {
         StringBuilder content = new StringBuilder();
         List<String> files = new ArrayList<>();
         for (MsgSegment segment : event.content().segments()) {
@@ -60,44 +63,71 @@ public class MsgStoreHandler implements PreHandler {
                 case MsgSegment.Text s -> content.append(s.text());
                 case MsgSegment.Image s -> {
                     content.append("[Image]");
-                    addFile(files, event.userId(), s.url());
-                }
-                case MsgSegment.Video s -> {
-                    content.append("[Video]");
-                    // addFile(files, event.userId(), s.url());
-                }
-                case MsgSegment.Voice s -> {
-                    content.append("[Voice]");
-                    // addFile(files, event.userId(), s.url());
-                }
-                case MsgSegment.At s -> content.append("@").append(s.userId());
-                case MsgSegment.Reply s -> content.append("[Reply ").append(s.messageId()).append("]");
-                case MsgSegment.Face s -> content.append("[Face ").append(s.id()).append("]");
-                case MsgSegment.Raw s -> content.append("[Unsupported ").append(s.type()).append("]");
+                    String fileId = saveAttachment(event.userId(), s.url(), s.file());
+                    if (fileId != null) files.add(fileId);
+                }  // Only save image files to local
+                case MsgSegment.Video _ -> content.append("[Video]");
+                case MsgSegment.Voice _ -> content.append("[Voice]");
+                case MsgSegment.At s -> content.append(at(client, event.selfId(), s.userId()));
+                case MsgSegment.Reply s -> content.append("[Reply id=").append(s.messageId()).append("]");
+                case MsgSegment.Face s -> content.append("[Face id=").append(s.id()).append("]");
+                case MsgSegment.Raw s -> content.append("[Unsupported type=").append(s.type()).append("]");
             }
         }
-        String text = content.toString();
-        if (text.isBlank() && files.isEmpty()) return;
-        msgWindowStore.add(event.messageId(), chatId, event.userId(), text, files);
+        if (content.isEmpty() && files.isEmpty()) return;
+        msgWindowStore.add(
+                chatId, event.messageId(),
+                event.userId(), MessageRole.USER, event.nickname(),
+                content.toString(), files
+        );
     }
 
     /**
-     * 落盘一个媒体附件，成功时追加其记录 ID。
-     * <p>Stores one media attachment and appends its record id when stored.</p>
+     * 渲染提及段，昵称查询失败时回退为 ID。
+     * <p>Renders a mention segment, falling back to the id when the nickname lookup fails.</p>
      *
-     * @param files  file record id list
-     * @param userId uploader platform user ID
-     * @param url    media source url
+     * @param client the outbound port
+     * @param selfId the bot's platform user id
+     * @param userId the mentioned platform user id
+     * @return the rendered mention
      */
-    private void addFile(List<String> files, String userId, String url) {
-        if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) {
-            log.warn("Skipped non-HTTP attachment: {}", url);
-            return;
-        }
+    private static String at(BotClient client, String selfId, String userId) {
+        if (userId.equals(selfId)) return "@you";
+        return "@" + nickname(client, userId) + "(" + userId + ")";
+    }
+
+    /**
+     * 查询用户昵称，失败时回退为 ID。
+     * <p>Looks up the user nickname, falling back to the id.</p>
+     *
+     * @param client the outbound port
+     * @param userId platform user id
+     * @return the nickname or the id
+     */
+    private static String nickname(BotClient client, String userId) {
         try {
-            files.add(String.valueOf(fileService.save(userId, url, BizType.CHAT, null).getId()));
+            return client.getUserInfo(userId).nickname();
+        } catch (RuntimeException e) {
+            return userId;
+        }
+    }
+
+    /**
+     * 保存一个媒体附件并返回其记录 ID。
+     * <p>Stores one media attachment and returns its record id.</p>
+     *
+     * @param userId uploader platform user id
+     * @param url    media source url
+     * @param file   original filename, nullable
+     * @return the file record id, or null when skipped or failed
+     */
+    private String saveAttachment(String userId, String url, String file) {
+        try {
+            File saved = fileService.save(userId, url, file, BizType.CHAT);
+            return String.valueOf(saved.getId());
         } catch (RuntimeException e) {
             log.warn("Failed to store attachment: {}", url, e);
+            return null;
         }
     }
 }

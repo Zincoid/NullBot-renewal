@@ -13,7 +13,7 @@ public final class ChatIds {
      * 构造群聊的会话标识。
      * <p>Builds the chat identifier of a group chat.</p>
      *
-     * @param groupId platform group ID, must not be blank
+     * @param groupId platform group id, must not be blank
      * @return composite identifier, e.g. {@code g:100}
      */
     public static String ofGroup(String groupId) {
@@ -24,7 +24,7 @@ public final class ChatIds {
      * 构造私聊的会话标识。
      * <p>Builds the chat identifier of a private chat.</p>
      *
-     * @param userId platform user ID, must not be blank
+     * @param userId platform user id, must not be blank
      * @return composite identifier, e.g. {@code p:2}
      */
     public static String ofPrivate(String userId) {

@@ -44,7 +44,7 @@ public class QuoteDelCmd implements Cmd {
         return """
                 QuoteDel
                 Deletes a quote.
-                Usage: QuoteDel [quote ID]
+                Usage: QuoteDel [quote id]
                 Aliases: 删除语录
                 Access: >=MANAGER""";
     }

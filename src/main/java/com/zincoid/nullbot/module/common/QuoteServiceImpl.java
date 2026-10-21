@@ -22,7 +22,7 @@ public class QuoteServiceImpl extends ServiceImpl<QuoteMapper, Quote> implements
     @Override
     public Quote add(String userId, String nickname, String text) {
         if (userId == null || userId.isBlank()) throw new CommonException("Missing key: userId");
-        if (nickname == null || nickname.isBlank()) throw new CommonException("Missing key: nickname");
+        if (nickname == null) throw new CommonException("Missing key: nickname");
         if (text == null || text.isBlank()) throw new CommonException("Missing key: text");
         Quote quote = Quote.builder()
                 .time(LocalDateTime.now())

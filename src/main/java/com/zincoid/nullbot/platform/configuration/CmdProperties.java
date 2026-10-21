@@ -14,12 +14,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CmdProperties {
 
     /**
-     * 指令前缀。
-     * <p>Command prefix.</p>
-     */
-    private String prefix = "/";
-
-    /**
      * 指令名是否忽略大小写。
      * <p>Whether command names match case-insensitively.</p>
      */

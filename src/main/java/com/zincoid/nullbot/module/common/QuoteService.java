@@ -15,7 +15,7 @@ public interface QuoteService extends IService<Quote> {
      * 保存一条语录。
      * <p>Saves a quote.</p>
      *
-     * @param userId   author platform user ID
+     * @param userId   author platform user id
      * @param nickname author nickname
      * @param text     quote content
      * @return the persisted record
@@ -46,7 +46,7 @@ public interface QuoteService extends IService<Quote> {
      * 随机读取指定作者的一条语录。
      * <p>Returns a random quote of the given author.</p>
      *
-     * @param userId author platform user ID
+     * @param userId author platform user id
      * @return the quote, or null when the author has none
      */
     Quote random(String userId);

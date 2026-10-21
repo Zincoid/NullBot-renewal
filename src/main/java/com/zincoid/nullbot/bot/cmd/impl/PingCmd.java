@@ -28,6 +28,7 @@ public class PingCmd implements Cmd {
 
     @Override
     public String getHelp() {
-        return "Ping - connectivity test";
+        return """
+                Ping - connectivity test""";
     }
 }

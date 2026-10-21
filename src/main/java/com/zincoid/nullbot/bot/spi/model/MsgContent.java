@@ -41,9 +41,9 @@ public record MsgContent(List<MsgSegment> segments) {
 
     /**
      * 提取消息内容中所有提及的用户 ID。
-     * <p>Extracts the user IDs of all mention segments.</p>
+     * <p>Extracts the user ids of all mention segments.</p>
      *
-     * @return the mentioned user IDs, in segment order
+     * @return the mentioned user ids, in segment order
      */
     public List<String> atIds() {
         return segments.stream()
@@ -55,9 +55,9 @@ public record MsgContent(List<MsgSegment> segments) {
 
     /**
      * 提取回复引用的消息 ID。
-     * <p>Extracts the quoted message ID of the reply segment.</p>
+     * <p>Extracts the quoted message id of the reply segment.</p>
      *
-     * @return the replied message ID, or null when absent
+     * @return the replied message id, or null when absent
      */
     public String replyId() {
         return segments.stream()

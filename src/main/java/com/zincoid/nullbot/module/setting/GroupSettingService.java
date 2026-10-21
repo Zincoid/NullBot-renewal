@@ -15,7 +15,7 @@ public interface GroupSettingService extends IService<GroupSetting> {
      * 读取群设置，缺失时创建默认设置。
      * <p>Returns the group settings, creating the default row when absent.</p>
      *
-     * @param groupId platform group ID
+     * @param groupId platform group id
      * @return the group settings
      */
     GroupSetting get(String groupId);

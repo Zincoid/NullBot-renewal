@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS `config` (
 CREATE TABLE IF NOT EXISTS `usage` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
     `time`          DATE            NOT NULL                 COMMENT 'Statistics date',
-    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Group platform ID, 0 for private chat',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Operator platform user ID',
+    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Group platform id, 0 for private chat',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Operator platform user id',
     `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name',
     `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Usage count',
     PRIMARY KEY (`id`),
@@ -39,9 +39,9 @@ CREATE TABLE IF NOT EXISTS `usage` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `file` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Uploader platform user ID',
-    `original`      VARCHAR(255)    NOT NULL                 COMMENT 'Original file name',
-    `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat file name',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Uploader platform user id',
+    `original`      VARCHAR(255)    NOT NULL                 COMMENT 'Original filename',
+    `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
     `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'File description',
     `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
     `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMG_COLL, 1=VID_COLL, 2=AUD_COLL, 3=CHAT',
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `file` (
 -- 4. User Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user` (
-    `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform user ID',
+    `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
     `name`        VARCHAR(255) NOT NULL                 COMMENT 'User nickname',
     `access`      TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
     PRIMARY KEY (`id`)
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- 5. Group Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group` (
-    `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform group ID',
+    `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform group id',
     `name`        VARCHAR(255) NOT NULL                 COMMENT 'Group name',
     `access`      TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
     PRIMARY KEY (`id`)
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `group` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_setting` (
     `id`                BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `group_id`          VARCHAR(64) NOT NULL                 COMMENT 'Platform group ID',
+    `group_id`          VARCHAR(64) NOT NULL                 COMMENT 'Platform group id',
     `limit_enabled`     BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Rate limit enabled',
     `limit_scope`       TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=CMD',
     `limit_capacity`    INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_keyword` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Platform group ID',
+    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Platform group id',
     `keyword`       VARCHAR(255)    NOT NULL                 COMMENT 'Keyword to match',
     `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name to dispatch',
     `args`          JSON            DEFAULT NULL             COMMENT 'Command arguments (JSON array)',
@@ -105,11 +105,13 @@ CREATE TABLE IF NOT EXISTS `group_keyword` (
 -- 8. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
-    `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message ID',
+    `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message id',
     `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Chat identifier',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Sender platform user ID',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Sender platform user id',
+    `role`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Message role: 0=USER, 1=ASSISTANT',
+    `nickname`      VARCHAR(255)    NOT NULL                 COMMENT 'Sender nickname',
     `content`       TEXT            DEFAULT NULL             COMMENT 'Text content (nullable when files present)',
-    `files`         JSON            DEFAULT NULL             COMMENT 'Attached file record IDs (JSON array)',
+    `files`         JSON            DEFAULT NULL             COMMENT 'Attached file record ids (JSON array)',
     `created_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
     PRIMARY KEY (`id`),
     KEY `idx_chat_created` (`chat_id`, `created_at`),
@@ -122,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
     `time`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Record time',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Author platform user ID',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Author platform user id',
     `nickname`      VARCHAR(255)    NOT NULL                 COMMENT 'Author nickname',
     `text`          VARCHAR(1000)   NOT NULL                 COMMENT 'Quote content',
     PRIMARY KEY (`id`),

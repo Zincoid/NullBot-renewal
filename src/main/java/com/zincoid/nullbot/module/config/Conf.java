@@ -9,7 +9,14 @@ import lombok.Getter;
 @Getter
 public enum Conf {
 
-    MESSAGE_HISTORY_MAX_LENGTH("message_history_max_length", "64", "Chat history window length");
+    CMD_PREFIX("cmd_prefix", "#", "Command prefix"),
+    MESSAGE_HISTORY_MAX_LENGTH("message_history_max_length", "64", "Chat history window length"),
+    AI_PROVIDER_API_URL("ai_provider_api_url", "", "OpenAI-compatible API base URL"),
+    AI_PROVIDER_API_KEY("ai_provider_api_key", "", "OpenAI-compatible API key"),
+    AI_PROVIDER_MODEL("ai_provider_model", "", "Model name"),
+    AI_MAX_TOKENS("ai_max_tokens", "1024", "Max output tokens per request"),
+    AI_MAX_TOOL_CALLS("ai_max_tool_calls", "5", "Max tool call rounds"),
+    AI_CHAT_PROMPT("ai_chat_prompt", "You are a helpful assistant.", "Chat system prompt");
 
     private final String key;
     private final String defaultValue;

@@ -15,7 +15,7 @@ public interface BotClient {
 
     /**
      * 发送群聊消息，返回消息 ID。
-     * <p>Sends a group message, returns the message ID.</p>
+     * <p>Sends a group message, returns the message id.</p>
      */
     default String sendGroupMsg(String groupId, MsgContent content) {
         throw new UnsupportedSpiException("sendGroupMsg");
@@ -23,7 +23,7 @@ public interface BotClient {
 
     /**
      * 发送纯文本群聊消息，返回消息 ID。
-     * <p>Sends a plain-text group message, returns the message ID.</p>
+     * <p>Sends a plain-text group message, returns the message id.</p>
      */
     default String sendGroupMsg(String groupId, String text) {
         return sendGroupMsg(groupId, MsgContent.of(text));
@@ -31,7 +31,7 @@ public interface BotClient {
 
     /**
      * 发送私聊消息，返回消息 ID。
-     * <p>Sends a private message, returns the message ID.</p>
+     * <p>Sends a private message, returns the message id.</p>
      */
     default String sendPrivateMsg(String userId, MsgContent content) {
         throw new UnsupportedSpiException("sendPrivateMsg");
@@ -39,7 +39,7 @@ public interface BotClient {
 
     /**
      * 发送纯文本私聊消息，返回消息 ID。
-     * <p>Sends a plain-text private message, returns the message ID.</p>
+     * <p>Sends a plain-text private message, returns the message id.</p>
      */
     default String sendPrivateMsg(String userId, String text) {
         return sendPrivateMsg(userId, MsgContent.of(text));
@@ -47,7 +47,7 @@ public interface BotClient {
 
     /**
      * 按 ID 获取消息。
-     * <p>Fetches a message by ID.</p>
+     * <p>Fetches a message by id.</p>
      */
     default MsgDetail getMsg(String messageId) {
         throw new UnsupportedSpiException("getMsg");
@@ -109,7 +109,7 @@ public interface BotClient {
 
     /**
      * 按 ID 获取群信息。
-     * <p>Fetches group info by ID.</p>
+     * <p>Fetches group info by id.</p>
      */
     default GroupInfo getGroupInfo(String groupId) {
         throw new UnsupportedSpiException("getGroupInfo");

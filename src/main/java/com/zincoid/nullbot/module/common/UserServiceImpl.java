@@ -20,7 +20,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User register(String id, String name) {
         if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
-        if (name == null || name.isBlank()) throw new CommonException("Missing key: name");
+        if (name == null) throw new CommonException("Missing key: name");
         User user = getById(id);
         if (user == null) {
             user = new User(id, name);
@@ -40,7 +40,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void update(String id, String name) {
-        if (name == null || name.isBlank())
+        if (name == null)
             throw new CommonException("Missing name: " + id);
         boolean updated = lambdaUpdate()
                 .eq(User::getId, id)

@@ -27,27 +27,42 @@ public sealed interface MsgSegment permits
      * 图片段。
      * <p>Image segment.</p>
      *
-     * @param url the image url
+     * @param url  the image url
+     * @param file original filename, nullable
      */
-    record Image(String url) implements MsgSegment {
+    record Image(String url, String file) implements MsgSegment {
+
+        public Image(String url) {
+            this(url, null);
+        }
     }
 
     /**
      * 视频段。
      * <p>Video segment.</p>
      *
-     * @param url the video url
+     * @param url  the video url
+     * @param file original filename, nullable
      */
-    record Video(String url) implements MsgSegment {
+    record Video(String url, String file) implements MsgSegment {
+
+        public Video(String url) {
+            this(url, null);
+        }
     }
 
     /**
      * 语音段。
      * <p>Voice segment.</p>
      *
-     * @param url the voice url
+     * @param url  the voice url
+     * @param file original filename, nullable
      */
-    record Voice(String url) implements MsgSegment {
+    record Voice(String url, String file) implements MsgSegment {
+
+        public Voice(String url) {
+            this(url, null);
+        }
     }
 
     /**

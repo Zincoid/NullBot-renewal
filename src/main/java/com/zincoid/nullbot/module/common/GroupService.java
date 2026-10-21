@@ -16,7 +16,7 @@ public interface GroupService extends IService<Group> {
      * 注册新群，或刷新已有群的名称。
      * <p>Registers a new group or refreshes the name of an existing one.</p>
      *
-     * @param id   platform group ID
+     * @param id   platform group id
      * @param name current group name
      * @return the persisted record
      */
@@ -28,7 +28,7 @@ public interface GroupService extends IService<Group> {
      * 修改群名称。
      * <p>Renames the group.</p>
      *
-     * @param id   platform group ID
+     * @param id   platform group id
      * @param name new group name
      */
     void update(String id, String name);
@@ -39,7 +39,7 @@ public interface GroupService extends IService<Group> {
      * 返回群的限权等级。
      * <p>Returns the access level of the group.</p>
      *
-     * @param id platform group ID
+     * @param id platform group id
      * @return the access level
      */
     Access getAccess(String id);
@@ -48,7 +48,7 @@ public interface GroupService extends IService<Group> {
      * 设置群的限权等级。
      * <p>Sets the access level of the group.</p>
      *
-     * @param id     platform group ID
+     * @param id     platform group id
      * @param access new access level
      */
     void setAccess(String id, Access access);
@@ -59,7 +59,7 @@ public interface GroupService extends IService<Group> {
      * 删除群记录。
      * <p>Deletes the group record.</p>
      *
-     * @param id platform group ID
+     * @param id platform group id
      */
     void delete(String id);
 }

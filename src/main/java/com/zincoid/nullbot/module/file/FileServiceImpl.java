@@ -15,11 +15,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -43,8 +42,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Save ════════════════════
 
     @Override
-    public File save(String userId, String url, BizType type, String description) {
-        String original = originalFromUrl(url);
+    public File save(String userId, String url, String original, BizType type, String description) {
+        if (original == null || original.isBlank()) original = "unnamed";
         HttpResponse<InputStream> resp = download(url);
         try (InputStream in = resp.body()) {
             return store(userId, original, in, type, description);
@@ -64,12 +63,26 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         }
     }
 
+    // ════ Read ════════════════════
+
+    @Override
+    public byte[] read(Long id) {
+        if (id == null) throw new FileException("Missing key: id");
+        File file = getById(id);
+        if (file == null) throw new FileException("File not found: " + id);
+        try {
+            return Files.readAllBytes(Path.of(fileProperties.getRoot()).resolve(file.getStored()));
+        } catch (IOException e) {
+            throw new FileException("Failed to read file: " + file.getStored(), e);
+        }
+    }
+
     // ════ Update ══════════════════
 
     @Override
     public void update(Long id, String original, String description) {
         if (original == null || original.isBlank())
-            throw new FileException("Missing file name: " + id);
+            throw new FileException("Missing filename: " + id);
         boolean updated = lambdaUpdate()
                 .eq(File::getId, id)
                 .set(File::getOriginal, original)
@@ -94,51 +107,32 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     private File store(String userId, String original, InputStream in, BizType type, String description) {
         if (userId == null || userId.isBlank()) throw new FileException("Missing key: userId");
         if (type == null) throw new FileException("Missing key: type");
-        String stored = FileUtils.stored(original);
-        long size;
+        FileUtils.StoredFile saved;
         try {
-            size = FileUtils.save(Path.of(fileProperties.getRoot()), stored, in);
+            saved = FileUtils.save(Path.of(fileProperties.getRoot()), original, in);
         } catch (IOException e) {
-            deleteQuietly(stored);
-            throw new FileException("Failed to store file: " + stored, e);
+            throw new FileException("Failed to store file: " + original, e);
         }
         File file = File.builder()
                 .userId(userId)
-                .original(original)
-                .stored(stored)
+                .original(saved.original())
+                .stored(saved.stored())
                 .description(description)
-                .size(size)
+                .size(saved.size())
                 .type(type)
                 .createdAt(LocalDateTime.now())
                 .build();
         try {
             save(file);
         } catch (RuntimeException e) {
-            deleteQuietly(stored);
-            throw new FileException("Failed to save file record: " + original, e);
+            deleteQuietly(saved.stored());
+            throw new FileException("Failed to save file record: " + saved.original(), e);
         }
         log.info("File saved: {}", file.getId());
         return file;
     }
 
     // ════ Helpers ═════════════════
-
-    private static String originalFromUrl(String url) {
-        String path;
-        try {
-            path = URI.create(url).getPath();
-        } catch (IllegalArgumentException e) {
-            throw new FileException("Malformed url: " + url, e);
-        }
-        String name = path == null ? "" :
-                path.substring(path.lastIndexOf('/') + 1);
-        try {
-            name = URLDecoder.decode(name, StandardCharsets.UTF_8);
-        } catch (IllegalArgumentException ignored) {
-            // malformed percent-encoding: keep the raw segment
-        }
-        return name.isBlank() ? "unnamed" : name;
-    }
 
     private HttpResponse<InputStream> download(String url) {
         HttpRequest request;

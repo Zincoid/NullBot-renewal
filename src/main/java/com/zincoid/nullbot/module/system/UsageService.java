@@ -15,8 +15,8 @@ public interface UsageService extends IService<Usage> {
      * 增加一次指令使用计数。
      * <p>Increases the command usage count by one.</p>
      *
-     * @param groupId group platform ID, {@code 0} for private chat
-     * @param userId  operator platform user ID
+     * @param groupId group platform id, {@code 0} for private chat
+     * @param userId  operator platform user id
      * @param cmd     command name
      */
     void increase(String groupId, String userId, String cmd);
