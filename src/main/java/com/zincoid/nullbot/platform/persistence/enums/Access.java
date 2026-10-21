@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**
- * Access level of a user or group.
- * <p>用户或群组的限权等级。</p>
+ * 用户或群组的限权等级。
+ * <p>Access level of a user or group.</p>
  */
 @Getter
 public enum Access {

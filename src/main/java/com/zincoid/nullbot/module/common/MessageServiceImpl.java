@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Default implementation of {@link MessageService}.
- * <p>{@link MessageService} 的默认实现。</p>
+ * {@link MessageService} 的默认实现。
+ * <p>Default implementation of {@link MessageService}.</p>
  */
 @Slf4j
 @Service

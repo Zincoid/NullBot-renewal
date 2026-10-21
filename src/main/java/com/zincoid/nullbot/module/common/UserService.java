@@ -5,16 +5,16 @@ import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.po.User;
 
 /**
- * User record service: registration, rename, and access levels.
- * <p>用户记录服务：注册、改名与限权。</p>
+ * 用户记录服务：注册、改名与限权。
+ * <p>User record service: registration, rename, and access levels.</p>
  */
 public interface UserService extends IService<User> {
 
     // ════ Register ════════════════
 
     /**
-     * Registers a new user or refreshes the name of an existing one.
-     * <p>注册新用户，或刷新已有用户的名称。</p>
+     * 注册新用户，或刷新已有用户的名称。
+     * <p>Registers a new user or refreshes the name of an existing one.</p>
      *
      * @param id   platform user ID
      * @param name current nickname
@@ -25,8 +25,8 @@ public interface UserService extends IService<User> {
     // ════ Update ══════════════════
 
     /**
-     * Renames the user.
-     * <p>修改用户名称。</p>
+     * 修改用户名称。
+     * <p>Renames the user.</p>
      *
      * @param id   platform user ID
      * @param name new nickname
@@ -36,8 +36,8 @@ public interface UserService extends IService<User> {
     // ════ Access ══════════════════
 
     /**
-     * Returns the access level of the user.
-     * <p>返回用户的限权等级。</p>
+     * 返回用户的限权等级。
+     * <p>Returns the access level of the user.</p>
      *
      * @param id platform user ID
      * @return the access level
@@ -45,8 +45,8 @@ public interface UserService extends IService<User> {
     Access getAccess(String id);
 
     /**
-     * Sets the access level of the user.
-     * <p>设置用户的限权等级。</p>
+     * 设置用户的限权等级。
+     * <p>Sets the access level of the user.</p>
      *
      * @param id     platform user ID
      * @param access new access level
@@ -56,8 +56,8 @@ public interface UserService extends IService<User> {
     // ════ Delete ══════════════════
 
     /**
-     * Deletes the user record.
-     * <p>删除用户记录。</p>
+     * 删除用户记录。
+     * <p>Deletes the user record.</p>
      *
      * @param id platform user ID
      */

@@ -3,8 +3,8 @@ package com.zincoid.nullbot.bot.spi.event;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 
 /**
- * Group chat message event.
- * <p>群聊消息事件。</p>
+ * 群聊消息事件。
+ * <p>Group chat message event.</p>
  *
  * @param selfId     the bot's id
  * @param userId     the sender's id

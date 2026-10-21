@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.spi.event;
 
 /**
- * Group chat poke event.
- * <p>群聊戳一戳事件。</p>
+ * 群聊戳一戳事件。
+ * <p>Group chat poke event.</p>
  *
  * @param selfId   the bot's id
  * @param userId   the poker's id

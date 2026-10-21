@@ -11,8 +11,8 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
- * Registry of {@link Cmd} beans indexed by command names.
- * <p>按指令名索引 {@link Cmd} 的注册表。</p>
+ * 按指令名索引 {@link Cmd} 的注册表。
+ * <p>Registry of {@link Cmd} beans indexed by command names.</p>
  */
 @Component
 public class CmdRegistry {
@@ -34,8 +34,8 @@ public class CmdRegistry {
     }
 
     /**
-     * Looks up a command by name.
-     * <p>按名称查找指令。</p>
+     * 按名称查找指令。
+     * <p>Looks up a command by name.</p>
      *
      * @param name the command name
      * @return the command, or null when unknown
@@ -45,8 +45,8 @@ public class CmdRegistry {
     }
 
     /**
-     * Collects the AI help docs of the given commands.
-     * <p>汇总指定指令的 AI 帮助文档。</p>
+     * 汇总指定指令的 AI 帮助文档。
+     * <p>Collects the AI help docs of the given commands.</p>
      *
      * @param types the command types to include
      * @return the joined help docs

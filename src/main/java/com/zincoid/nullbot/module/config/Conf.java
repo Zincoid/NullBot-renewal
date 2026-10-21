@@ -3,8 +3,8 @@ package com.zincoid.nullbot.module.config;
 import lombok.Getter;
 
 /**
- * Configuration key dictionary: the database value wins; the default value is the fallback when the entry is missing.
- * <p>配置键字典：数据库值优先，条目缺失时回退默认值。</p>
+ * 配置键字典：数据库值优先，条目缺失时回退默认值。
+ * <p>Configuration key dictionary: the database value wins; the default value is the fallback when the entry is missing.</p>
  */
 @Getter
 public enum Conf {

@@ -14,8 +14,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
- * Stdin inbound adapter: normalizes terminal input into SPI events and hands them to {@link BotServer}.
- * <p>Stdin 入站适配器：归一化终端输入为 SPI 事件并交给 {@link BotServer}。</p>
+ * Stdin 入站适配器：归一化终端输入为 SPI 事件并交给 {@link BotServer}。
+ * <p>Stdin inbound adapter: normalizes terminal input into SPI events and hands them to {@link BotServer}.</p>
  */
 @Slf4j
 @Component

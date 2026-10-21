@@ -3,8 +3,8 @@ package com.zincoid.nullbot.bot.exception;
 import com.zincoid.nullbot.platform.exception.BotException;
 
 /**
- * Abstract base of the command exception family.
- * <p>指令异常抽象基类。</p>
+ * 指令异常抽象基类。
+ * <p>Abstract base of the command exception family.</p>
  */
 public abstract class BotCmdException extends BotException {
 

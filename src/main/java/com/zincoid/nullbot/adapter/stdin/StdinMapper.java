@@ -6,8 +6,8 @@ import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import java.util.stream.Collectors;
 
 /**
- * Converts between terminal text and SPI message content.
- * <p>在终端文本与 SPI 消息内容之间互转。</p>
+ * 在终端文本与 SPI 消息内容之间互转。
+ * <p>Converts between terminal text and SPI message content.</p>
  */
 public final class StdinMapper {
 

@@ -6,16 +6,16 @@ import com.zincoid.nullbot.platform.persistence.po.Message;
 import java.util.List;
 
 /**
- * Chat message record service: record and delete.
- * <p>聊天消息记录服务：记录与删除。</p>
+ * 聊天消息记录服务：记录与删除。
+ * <p>Chat message record service: record and delete.</p>
  */
 public interface MessageService extends IService<Message> {
 
     // ════ Save ════════════════════
 
     /**
-     * Saves a chat message.
-     * <p>保存一条聊天消息。</p>
+     * 保存一条聊天消息。
+     * <p>Saves a chat message.</p>
      *
      * @param id      platform message ID
      * @param chatId  chat identifier
@@ -29,8 +29,8 @@ public interface MessageService extends IService<Message> {
     // ════ Delete ══════════════════
 
     /**
-     * Deletes the message record.
-     * <p>删除消息记录。</p>
+     * 删除消息记录。
+     * <p>Deletes the message record.</p>
      *
      * @param id platform message ID
      */

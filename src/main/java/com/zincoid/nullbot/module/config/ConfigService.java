@@ -4,16 +4,16 @@ import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.po.Config;
 
 /**
- * Configuration store service: read, update and delete configuration entries.
- * <p>配置存储服务：读取、更新与删除配置项。</p>
+ * 配置存储服务：读取、更新与删除配置项。
+ * <p>Configuration store service: read, update and delete configuration entries.</p>
  */
 public interface ConfigService extends IService<Config> {
 
     // ════ Get ═════════════════════
 
     /**
-     * Returns the effective value of the configuration entry.
-     * <p>返回配置项的生效值。</p>
+     * 返回配置项的生效值。
+     * <p>Returns the effective value of the configuration entry.</p>
      *
      * @param conf configuration entry
      * @return the stored value, or the default value of the entry when absent
@@ -23,8 +23,8 @@ public interface ConfigService extends IService<Config> {
     // ════ Update ══════════════════
 
     /**
-     * Updates the value of an existing configuration entry.
-     * <p>更新既有配置项的值。</p>
+     * 更新既有配置项的值。
+     * <p>Updates the value of an existing configuration entry.</p>
      *
      * @param conf  configuration entry
      * @param value new value, null clears the stored value
@@ -34,8 +34,8 @@ public interface ConfigService extends IService<Config> {
     // ════ Delete ══════════════════
 
     /**
-     * Deletes the configuration entry; later reads fall back to the default value.
-     * <p>删除配置项，之后读取回退默认值。</p>
+     * 删除配置项，之后读取回退默认值。
+     * <p>Deletes the configuration entry; later reads fall back to the default value.</p>
      *
      * @param conf configuration entry
      */

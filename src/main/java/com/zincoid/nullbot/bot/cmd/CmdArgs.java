@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Parsed command arguments: options and positional values.
- * <p>指令参数解析结果：选项与位置参数。</p>
+ * 指令参数解析结果：选项与位置参数。
+ * <p>Parsed command arguments: options and positional values.</p>
  */
 @Getter
 @SuppressWarnings("unused")
@@ -29,8 +29,8 @@ public final class CmdArgs {
     }
 
     /**
-     * Parses raw params. Options (--flag, -f, --key=value, -k=v) are extracted and removed from positional.
-     * <p>原始参数解析。选项（--flag、-f、--key=value、-k=v）被提取并从位置参数中删除。</p>
+     * 原始参数解析。选项（--flag、-f、--key=value、-k=v）被提取并从位置参数中删除。
+     * <p>Parses raw params. Options (--flag, -f, --key=value, -k=v) are extracted and removed from positional.</p>
      *
      * @param params the raw parameters
      */

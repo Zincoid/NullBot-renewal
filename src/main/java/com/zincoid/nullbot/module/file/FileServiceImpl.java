@@ -25,8 +25,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
- * Default implementation of {@link FileService}.
- * <p>{@link FileService} 的默认实现。</p>
+ * {@link FileService} 的默认实现。
+ * <p>Default implementation of {@link FileService}.</p>
  */
 @Slf4j
 @Service

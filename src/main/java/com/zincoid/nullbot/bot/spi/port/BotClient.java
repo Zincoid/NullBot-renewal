@@ -5,56 +5,56 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 
 /**
- * Outbound port: bot capabilities available to business code.
- * <p>出站端口：向业务代码暴露的机器人能力。</p>
+ * 出站端口：向业务代码暴露的机器人能力。
+ * <p>Outbound port: bot capabilities available to business code.</p>
  */
 public interface BotClient {
 
     // ════ Messaging ═══════════════
 
     /**
-     * Sends a group message, returns the message ID.
-     * <p>发送群聊消息，返回消息 ID。</p>
+     * 发送群聊消息，返回消息 ID。
+     * <p>Sends a group message, returns the message ID.</p>
      */
     default String sendGroupMsg(String groupId, MsgContent content) {
         throw new UnsupportedSpiException("sendGroupMsg");
     }
 
     /**
-     * Sends a plain-text group message, returns the message ID.
-     * <p>发送纯文本群聊消息，返回消息 ID。</p>
+     * 发送纯文本群聊消息，返回消息 ID。
+     * <p>Sends a plain-text group message, returns the message ID.</p>
      */
     default String sendGroupMsg(String groupId, String text) {
         return sendGroupMsg(groupId, MsgContent.of(text));
     }
 
     /**
-     * Sends a private message, returns the message ID.
-     * <p>发送私聊消息，返回消息 ID。</p>
+     * 发送私聊消息，返回消息 ID。
+     * <p>Sends a private message, returns the message ID.</p>
      */
     default String sendPrivateMsg(String userId, MsgContent content) {
         throw new UnsupportedSpiException("sendPrivateMsg");
     }
 
     /**
-     * Sends a plain-text private message, returns the message ID.
-     * <p>发送纯文本私聊消息，返回消息 ID。</p>
+     * 发送纯文本私聊消息，返回消息 ID。
+     * <p>Sends a plain-text private message, returns the message ID.</p>
      */
     default String sendPrivateMsg(String userId, String text) {
         return sendPrivateMsg(userId, MsgContent.of(text));
     }
 
     /**
-     * Fetches a message by ID.
-     * <p>按 ID 获取消息。</p>
+     * 按 ID 获取消息。
+     * <p>Fetches a message by ID.</p>
      */
     default MsgDetail getMsg(String messageId) {
         throw new UnsupportedSpiException("getMsg");
     }
 
     /**
-     * Recalls a message.
-     * <p>撤回消息。</p>
+     * 撤回消息。
+     * <p>Recalls a message.</p>
      */
     default void recall(String messageId) {
         throw new UnsupportedSpiException("recall");
@@ -63,16 +63,16 @@ public interface BotClient {
     // ════ Poke ════════════════════
 
     /**
-     * Pokes a user in a group chat.
-     * <p>群聊戳一戳用户。</p>
+     * 群聊戳一戳用户。
+     * <p>Pokes a user in a group chat.</p>
      */
     default void pokeGroup(String groupId, String userId) {
         throw new UnsupportedSpiException("pokeGroup");
     }
 
     /**
-     * Pokes a user in a private chat.
-     * <p>私聊戳一戳用户。</p>
+     * 私聊戳一戳用户。
+     * <p>Pokes a user in a private chat.</p>
      */
     default void pokePrivate(String userId) {
         throw new UnsupportedSpiException("pokePrivate");
@@ -81,8 +81,8 @@ public interface BotClient {
     // ════ Mute ════════════════════
 
     /**
-     * Mutes a group user, zero lifts the mute.
-     * <p>禁言群用户，0 解除禁言。</p>
+     * 禁言群用户，0 解除禁言。
+     * <p>Mutes a group user, zero lifts the mute.</p>
      */
     default void mute(String groupId, String userId, int seconds) {
         throw new UnsupportedSpiException("mute");
@@ -91,16 +91,16 @@ public interface BotClient {
     // ════ Info queries ════════════
 
     /**
-     * Login info.
-     * <p>登录信息。</p>
+     * 登录信息。
+     * <p>Login info.</p>
      */
     default UserInfo getLoginInfo() {
         throw new UnsupportedSpiException("getLoginInfo");
     }
 
     /**
-     * User info.
-     * <p>用户信息。</p>
+     * 用户信息。
+     * <p>User info.</p>
      */
     default UserInfo getUserInfo(String userId) {
         throw new UnsupportedSpiException("getUserInfo");

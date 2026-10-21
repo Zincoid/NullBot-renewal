@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Parses inbound events into command requests.
- * <p>把入站事件解析为指令请求。</p>
+ * 把入站事件解析为指令请求。
+ * <p>Parses inbound events into command requests.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -28,8 +28,8 @@ public class CmdParser {
     private final CmdProperties cmdProperties;
 
     /**
-     * Parses an event into a command request.
-     * <p>把事件解析为指令请求。</p>
+     * 把事件解析为指令请求。
+     * <p>Parses an event into a command request.</p>
      *
      * @param event the inbound event
      * @return the command request, or null when the event is not a command

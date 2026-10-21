@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Message content: an ordered list of message segments.
- * <p>消息内容：有序消息段列表。</p>
+ * 消息内容：有序消息段列表。
+ * <p>Message content: an ordered list of message segments.</p>
  *
  * @param segments the ordered message segments
  */
@@ -30,16 +30,16 @@ public record MsgContent(List<MsgSegment> segments) {
     // ════ Builder ═════════════════
 
     /**
-     * Starts a fluent builder.
-     * <p>启动流式构建器。</p>
+     * 启动流式构建器。
+     * <p>Starts a fluent builder.</p>
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * Fluent message builder.
-     * <p>流式消息构建器。</p>
+     * 流式消息构建器。
+     * <p>Fluent message builder.</p>
      */
     public static final class Builder {
 
@@ -49,8 +49,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends a text segment.
-         * <p>追加文本段。</p>
+         * 追加文本段。
+         * <p>Appends a text segment.</p>
          *
          * @param text the text content
          */
@@ -60,8 +60,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends an image segment.
-         * <p>追加图片段。</p>
+         * 追加图片段。
+         * <p>Appends an image segment.</p>
          *
          * @param url the image source:
          *            local file (file:///...),
@@ -74,8 +74,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends a video segment.
-         * <p>追加视频段。</p>
+         * 追加视频段。
+         * <p>Appends a video segment.</p>
          *
          * @param url the video source:
          *            local file (file:///...),
@@ -87,8 +87,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends a voice segment.
-         * <p>追加语音段。</p>
+         * 追加语音段。
+         * <p>Appends a voice segment.</p>
          *
          * @param url the voice source:
          *            local file (file:///...),
@@ -101,8 +101,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends a mention segment.
-         * <p>追加提及段。</p>
+         * 追加提及段。
+         * <p>Appends a mention segment.</p>
          *
          * @param userId mentioned user's id
          */
@@ -112,8 +112,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends a reply segment.
-         * <p>追加回复段。</p>
+         * 追加回复段。
+         * <p>Appends a reply segment.</p>
          *
          * @param messageId the quoted message id
          */
@@ -123,8 +123,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Appends a face segment.
-         * <p>追加表情段。</p>
+         * 追加表情段。
+         * <p>Appends a face segment.</p>
          *
          * @param id the face id
          */
@@ -134,8 +134,8 @@ public record MsgContent(List<MsgSegment> segments) {
         }
 
         /**
-         * Builds the message content.
-         * <p>构建消息内容。</p>
+         * 构建消息内容。
+         * <p>Builds the message content.</p>
          */
         public MsgContent build() {
             return new MsgContent(segments);

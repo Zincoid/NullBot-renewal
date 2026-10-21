@@ -20,8 +20,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * Terminal handler: executes the command and converts flow-control exceptions into replies.
- * <p>末端处理器：执行命令，并将流程控制异常转换为用户回复。</p>
+ * 末端处理器：执行命令，并将流程控制异常转换为用户回复。
+ * <p>Terminal handler: executes the command and converts flow-control exceptions into replies.</p>
  */
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE)

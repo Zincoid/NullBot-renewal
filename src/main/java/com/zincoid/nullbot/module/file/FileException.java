@@ -3,8 +3,8 @@ package com.zincoid.nullbot.module.file;
 import com.zincoid.nullbot.platform.exception.BotException;
 
 /**
- * Thrown when the file service cannot complete a request.
- * <p>文件服务无法完成请求时抛出。</p>
+ * 文件服务无法完成请求时抛出。
+ * <p>Thrown when the file service cannot complete a request.</p>
  */
 public class FileException extends BotException {
 

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Resolves parsed command requests and runs them through the handler chain.
- * <p>解析指令请求并运行处理器链。</p>
+ * 解析指令请求并运行处理器链。
+ * <p>Resolves parsed command requests and runs them through the handler chain.</p>
  */
 @Slf4j
 @Component
@@ -27,8 +27,8 @@ public class CmdProcessor {
     private final List<CmdHandler> handlers;
 
     /**
-     * Processes an inbound event when it parses as a command.
-     * <p>入站事件解析为指令时进行处理。</p>
+     * 入站事件解析为指令时进行处理。
+     * <p>Processes an inbound event when it parses as a command.</p>
      *
      * @param client the outbound port
      * @param event  the inbound event

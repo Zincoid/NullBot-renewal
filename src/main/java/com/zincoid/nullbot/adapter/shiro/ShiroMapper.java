@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Converts between Shiro {@link ArrayMsg} and SPI message segments.
- * <p>在 Shiro {@link ArrayMsg} 与 SPI 消息段之间互转。</p>
+ * 在 Shiro {@link ArrayMsg} 与 SPI 消息段之间互转。
+ * <p>Converts between Shiro {@link ArrayMsg} and SPI message segments.</p>
  */
 @Slf4j
 public final class ShiroMapper {

@@ -5,8 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Adapter selection bound from the {@code bot.*} namespace.
- * <p>绑定自 {@code bot.*} 命名空间的适配器选择配置。</p>
+ * 绑定自 {@code bot.*} 命名空间的适配器选择配置。
+ * <p>Adapter selection bound from the {@code bot.*} namespace.</p>
  */
 @Getter
 @Setter
@@ -14,26 +14,26 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AdapterProperties {
 
     /**
-     * Active bot framework adapter.
-     * <p>当前生效的机器人框架适配器。</p>
+     * 当前生效的机器人框架适配器。
+     * <p>Active bot framework adapter.</p>
      */
     private Adapter adapter = Adapter.SHIRO;
 
     /**
-     * Supported values for bot.adapter.
-     * <p>bot.adapter 的可选值。</p>
+     * bot.adapter 的可选值。
+     * <p>Supported values for bot.adapter.</p>
      */
     public enum Adapter {
 
         /**
-         * Via the terminal.
-         * <p>通过终端。</p>
+         * 通过终端。
+         * <p>Via the terminal.</p>
          */
         STDIN,
 
         /**
-         * Via a framework - Shiro (QQ).
-         * <p>通过机器人框架 - Shiro（QQ）。</p>
+         * 通过机器人框架 - Shiro（QQ）。
+         * <p>Via a framework - Shiro (QQ).</p>
          */
         SHIRO
     }

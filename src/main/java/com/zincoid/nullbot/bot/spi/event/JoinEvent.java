@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.spi.event;
 
 /**
- * Group join event.
- * <p>入群事件。</p>
+ * 入群事件。
+ * <p>Group join event.</p>
  *
  * @param selfId     the bot's id
  * @param groupId    the id of the group where the user joined

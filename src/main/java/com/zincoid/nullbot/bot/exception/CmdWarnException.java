@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.exception;
 
 /**
- * Command flow control: warn the user, then abort the command.
- * <p>指令流程控制：告警用户并中止指令。</p>
+ * 指令流程控制：告警用户并中止指令。
+ * <p>Command flow control: warn the user, then abort the command.</p>
  */
 public class CmdWarnException extends BotCmdException {
 

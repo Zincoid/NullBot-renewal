@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.spi.event;
 
 /**
- * Unified bot event model.
- * <p>统一机器人事件模型。</p>
+ * 统一机器人事件模型。
+ * <p>Unified bot event model.</p>
  */
 public sealed interface BotEvent permits
         MsgEvent,
@@ -12,8 +12,8 @@ public sealed interface BotEvent permits
         LeaveEvent {
 
     /**
-     * The bot's id.
-     * <p>机器人 ID。</p>
+     * 机器人 ID。
+     * <p>The bot's id.</p>
      */
     String selfId();
 }

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 /**
- * Seeds missing configuration entries with their default values at startup.
- * <p>启动时为缺失的配置项写入默认值。</p>
+ * 启动时为缺失的配置项写入默认值。
+ * <p>Seeds missing configuration entries with their default values at startup.</p>
  */
 @Slf4j
 @Component

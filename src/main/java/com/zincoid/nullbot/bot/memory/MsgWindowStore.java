@@ -5,29 +5,33 @@ import com.zincoid.nullbot.module.common.MessageService;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigException;
 import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Per-chat message window over the stored message records: each chat retains the newest N messages, trimmed on write.
- * <p>按会话划分的消息窗口：每个会话仅保留最近 N 条消息记录，写入时修剪。</p>
+ * 按会话划分的消息窗口：每个会话仅保留最近 N 条消息记录，写入时修剪。
+ * <p>Per-chat message window over the stored message records: each chat retains the newest N messages, trimmed on write.</p>
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class MsgWindowMemory {
+public class MsgWindowStore {
 
     private final MessageService messageService;
     private final ConfigService configService;
+    private final FileService fileService;
 
     // ════ Add ═════════════════════
 
     /**
-     * Records a message and trims the chat window to the configured size.
-     * <p>记录一条消息，并将会话窗口修剪至配置长度。</p>
+     * 记录一条消息，并将会话窗口修剪至配置长度。
+     * <p>Records a message and trims the chat window to the configured size.</p>
      *
      * @param id      platform message ID
      * @param chatId  chat identifier
@@ -45,8 +49,8 @@ public class MsgWindowMemory {
     // ════ List ════════════════════
 
     /**
-     * Returns the newest messages of the chat in chronological order.
-     * <p>返回该会话最近的消息，按时间正序。</p>
+     * 返回该会话最近的消息，按时间正序。
+     * <p>Returns the newest messages of the chat in chronological order.</p>
      *
      * @param chatId chat identifier
      * @return the chat window, oldest first
@@ -65,8 +69,8 @@ public class MsgWindowMemory {
     // ════ Helpers ═════════════════
 
     /**
-     * Reads the configured window size.
-     * <p>读取配置的窗口长度。</p>
+     * 读取配置的窗口长度。
+     * <p>Reads the configured window size.</p>
      *
      * @return the window size
      */
@@ -83,8 +87,8 @@ public class MsgWindowMemory {
     }
 
     /**
-     * Trims the chat window to the configured size.
-     * <p>将会话窗口修剪至配置长度。</p>
+     * 将会话窗口修剪至配置长度。
+     * <p>Trims the chat window to the configured size.</p>
      *
      * @param chatId chat identifier
      */
@@ -95,7 +99,25 @@ public class MsgWindowMemory {
                 .orderByDesc(Message::getCreatedAt)
                 .list();
         if (all.size() <= size) return;
-        List<String> overflow = all.subList(size, all.size()).stream().map(Message::getId).toList();
-        messageService.removeByIds(overflow);
+        List<Message> overflow = all.subList(size, all.size());
+        messageService.removeByIds(overflow.stream().map(Message::getId).toList());
+        overflow.forEach(this::deleteFiles);
+    }
+
+    /**
+     * 删除被修剪消息所引用的附件。
+     * <p>Deletes the attachments referenced by a trimmed message.</p>
+     *
+     * @param message the trimmed message
+     */
+    private void deleteFiles(Message message) {
+        if (message.getFiles() == null) return;
+        for (String fileId : message.getFiles()) {
+            try {
+                fileService.delete(Long.valueOf(fileId));
+            } catch (RuntimeException e) {
+                log.warn("Failed to delete attachment: {}", fileId, e);
+            }
+        }
     }
 }

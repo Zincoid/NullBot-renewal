@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.spi.event;
 
 /**
- * Group chat message recall event.
- * <p>群聊消息撤回事件。</p>
+ * 群聊消息撤回事件。
+ * <p>Group chat message recall event.</p>
  *
  * @param selfId     the bot's id
  * @param userId     the recalled message's author id

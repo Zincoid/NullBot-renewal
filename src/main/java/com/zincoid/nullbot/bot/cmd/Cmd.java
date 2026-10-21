@@ -4,14 +4,14 @@ import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.*;
 
 /**
- * A bot command: one run slot per routed event type.
- * <p>机器人指令：每种路由事件一个 run 槽位。</p>
+ * 机器人指令：每种路由事件一个 run 槽位。
+ * <p>A bot command: one run slot per routed event type.</p>
  */
 public interface Cmd {
 
     /**
-     * Runs the command on a group message event.
-     * <p>在群聊消息事件上执行指令。</p>
+     * 在群聊消息事件上执行指令。
+     * <p>Runs the command on a group message event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -22,8 +22,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a private message event.
-     * <p>在私聊消息事件上执行指令。</p>
+     * 在私聊消息事件上执行指令。
+     * <p>Runs the command on a private message event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -34,8 +34,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a group poke event.
-     * <p>在群聊戳一戳事件上执行指令。</p>
+     * 在群聊戳一戳事件上执行指令。
+     * <p>Runs the command on a group poke event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -46,8 +46,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a private poke event.
-     * <p>在私聊戳一戳事件上执行指令。</p>
+     * 在私聊戳一戳事件上执行指令。
+     * <p>Runs the command on a private poke event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -58,8 +58,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a group recall event.
-     * <p>在群聊撤回事件上执行指令。</p>
+     * 在群聊撤回事件上执行指令。
+     * <p>Runs the command on a group recall event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -70,8 +70,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a private recall event.
-     * <p>在私聊撤回事件上执行指令。</p>
+     * 在私聊撤回事件上执行指令。
+     * <p>Runs the command on a private recall event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -82,8 +82,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a group join event.
-     * <p>在入群事件上执行指令。</p>
+     * 在入群事件上执行指令。
+     * <p>Runs the command on a group join event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -94,8 +94,8 @@ public interface Cmd {
     }
 
     /**
-     * Runs the command on a group leave event.
-     * <p>在离群事件上执行指令。</p>
+     * 在离群事件上执行指令。
+     * <p>Runs the command on a group leave event.</p>
      *
      * @param ctx   the command context
      * @param event the triggering event
@@ -106,24 +106,24 @@ public interface Cmd {
     }
 
     /**
-     * Help text shown to users.
-     * <p>展示给用户的帮助文本。</p>
+     * 展示给用户的帮助文本。
+     * <p>Help text shown to users.</p>
      */
     default String getHelp() {
         return "No help available";
     }
 
     /**
-     * Help text exposed to AI documentation.
-     * <p>供 AI 文档使用的帮助文本。</p>
+     * 供 AI 文档使用的帮助文本。
+     * <p>Help text exposed to AI documentation.</p>
      */
     default String getAiHelp() {
         return getHelp();
     }
 
     /**
-     * Required access level of the command.
-     * <p>指令所需限权等级。</p>
+     * 指令所需限权等级。
+     * <p>Required access level of the command.</p>
      */
     default int getAccess() {
         return 0;

@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Default implementation of {@link UserService}.
- * <p>{@link UserService} 的默认实现。</p>
+ * {@link UserService} 的默认实现。
+ * <p>Default implementation of {@link UserService}.</p>
  */
 @Slf4j
 @Service

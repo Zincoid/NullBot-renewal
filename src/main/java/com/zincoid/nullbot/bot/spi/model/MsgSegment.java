@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.spi.model;
 
 /**
- * Message segment model.
- * <p>消息段模型。</p>
+ * 消息段模型。
+ * <p>Message segment model.</p>
  */
 public sealed interface MsgSegment permits
         MsgSegment.Text,
@@ -15,8 +15,8 @@ public sealed interface MsgSegment permits
         MsgSegment.Raw {
 
     /**
-     * Text segment.
-     * <p>文本段。</p>
+     * 文本段。
+     * <p>Text segment.</p>
      *
      * @param text the text content
      */
@@ -24,8 +24,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Image segment.
-     * <p>图片段。</p>
+     * 图片段。
+     * <p>Image segment.</p>
      *
      * @param url the image url
      */
@@ -33,8 +33,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Video segment.
-     * <p>视频段。</p>
+     * 视频段。
+     * <p>Video segment.</p>
      *
      * @param url the video url
      */
@@ -42,8 +42,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Voice segment.
-     * <p>语音段。</p>
+     * 语音段。
+     * <p>Voice segment.</p>
      *
      * @param url the voice url
      */
@@ -51,8 +51,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Mention segment.
-     * <p>提及段。</p>
+     * 提及段。
+     * <p>Mention segment.</p>
      *
      * @param userId mentioned user's id
      */
@@ -60,8 +60,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Reply segment.
-     * <p>回复段。</p>
+     * 回复段。
+     * <p>Reply segment.</p>
      *
      * @param messageId the quoted message id
      */
@@ -69,8 +69,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Face segment.
-     * <p>表情段。</p>
+     * 表情段。
+     * <p>Face segment.</p>
      *
      * @param id the face id
      */
@@ -78,8 +78,8 @@ public sealed interface MsgSegment permits
     }
 
     /**
-     * Unmodeled segment fallback.
-     * <p>未建模段回退。</p>
+     * 未建模段回退。
+     * <p>Unmodeled segment fallback.</p>
      *
      * @param type the original type
      * @param cq   the raw CQ code

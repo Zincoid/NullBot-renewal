@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.exception;
 
 /**
- * Thrown to report a command error.
- * <p>抛出以报告指令错误。</p>
+ * 抛出以报告指令错误。
+ * <p>Thrown to report a command error.</p>
  */
 public class CmdErrorException extends BotCmdException {
 

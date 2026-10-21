@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Outputs command help on {@code --help} / {@code -H}.
- * <p>收到 {@code --help} / {@code -H} 时输出指令帮助。</p>
+ * 收到 {@code --help} / {@code -H} 时输出指令帮助。
+ * <p>Outputs command help on {@code --help} / {@code -H}.</p>
  */
 @Order(1)
 @Component

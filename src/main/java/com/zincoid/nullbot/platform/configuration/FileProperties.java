@@ -5,8 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * File storage configuration bound from the {@code bot.file.*} namespace.
- * <p>绑定自 {@code bot.file.*} 命名空间的文件存储配置。</p>
+ * 绑定自 {@code bot.file.*} 命名空间的文件存储配置。
+ * <p>File storage configuration bound from the {@code bot.file.*} namespace.</p>
  */
 @Getter
 @Setter
@@ -14,8 +14,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FileProperties {
 
     /**
-     * Storage root directory for flat file storage.
-     * <p>平铺文件存储的根目录。</p>
+     * 平铺文件存储的根目录。
+     * <p>Storage root directory for flat file storage.</p>
      */
     private String root = "./files";
 }

@@ -11,8 +11,8 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * Flat-storage disk helpers: generated stored names and raw byte IO.
- * <p>平铺存储磁盘工具：生成存储名与原始字节读写。</p>
+ * 平铺存储磁盘工具：生成存储名与原始字节读写。
+ * <p>Flat-storage disk helpers: generated stored names and raw byte IO.</p>
  */
 public final class FileUtils {
 
@@ -20,8 +20,8 @@ public final class FileUtils {
     }
 
     /**
-     * Builds a random stored file name from the original name.
-     * <p>根据原始文件名生成随机存储文件名。</p>
+     * 根据原始文件名生成随机存储文件名。
+     * <p>Builds a random stored file name from the original name.</p>
      *
      * @param original original file name, may be blank
      * @return UUID-based stored name, with lower-cased extension when derivable, otherwise bare UUID
@@ -33,8 +33,8 @@ public final class FileUtils {
     }
 
     /**
-     * Writes the stream to {@code root/stored} and returns the byte count.
-     * <p>将流写入 {@code root/stored} 并返回字节数。</p>
+     * 将流写入 {@code root/stored} 并返回字节数。
+     * <p>Writes the stream to {@code root/stored} and returns the byte count.</p>
      *
      * @param root   storage root directory, created when absent
      * @param stored stored file name produced by {@link #stored}
@@ -48,8 +48,8 @@ public final class FileUtils {
     }
 
     /**
-     * Removes the stored file when present.
-     * <p>删除已存储的文件（若存在）。</p>
+     * 删除已存储的文件（若存在）。
+     * <p>Removes the stored file when present.</p>
      *
      * @param root   storage root directory
      * @param stored stored file name

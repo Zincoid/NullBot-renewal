@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Runs the event pre-processing chain ahead of command dispatch.
- * <p>在指令分发之前运行事件预处理链。</p>
+ * 在指令分发之前运行事件预处理链。
+ * <p>Runs the event pre-processing chain ahead of command dispatch.</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -20,8 +20,8 @@ public class PreProcessor {
     private final List<PreHandler> handlers;
 
     /**
-     * Processes an inbound event through the pre-handler chain.
-     * <p>通过预处理链处理入站事件。</p>
+     * 通过预处理链处理入站事件。
+     * <p>Processes an inbound event through the pre-handler chain.</p>
      *
      * @param client the outbound port
      * @param event  the inbound event

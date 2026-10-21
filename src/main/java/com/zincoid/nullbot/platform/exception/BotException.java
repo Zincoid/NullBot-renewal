@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.platform.exception;
 
 /**
- * Bot-global base of the exception family.
- * <p>机器人全局异常基类。</p>
+ * 机器人全局异常基类。
+ * <p>Bot-global base of the exception family.</p>
  */
 public abstract class BotException extends RuntimeException {
 

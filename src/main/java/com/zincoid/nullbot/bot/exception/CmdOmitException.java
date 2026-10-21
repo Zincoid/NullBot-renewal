@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.exception;
 
 /**
- * Command flow control: abort the command silently.
- * <p>指令流程控制：静默中止指令。</p>
+ * 指令流程控制：静默中止指令。
+ * <p>Command flow control: abort the command silently.</p>
  */
 public class CmdOmitException extends BotCmdException {
 

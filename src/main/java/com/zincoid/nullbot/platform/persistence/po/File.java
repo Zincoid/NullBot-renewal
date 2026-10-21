@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.platform.persistence.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
@@ -22,6 +23,7 @@ public class File {
     private Long id;
     private String userId;
     private String original;
+    @TableField("`stored`")
     private String stored;
     private String description;
     private Long size;

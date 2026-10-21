@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.spi.model;
 
 /**
- * Message detail.
- * <p>消息详情。</p>
+ * 消息详情。
+ * <p>Message detail.</p>
  *
  * @param messageId the message id
  * @param userId    the sender's id

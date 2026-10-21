@@ -34,8 +34,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Shiro inbound adapter: normalizes framework events into SPI events and hands them to {@link BotServer}.
- * <p>Shiro 入站适配器：归一化框架事件为 SPI 事件并交给 {@link BotServer}。</p>
+ * Shiro 入站适配器：归一化框架事件为 SPI 事件并交给 {@link BotServer}。
+ * <p>Shiro inbound adapter: normalizes framework events into SPI events and hands them to {@link BotServer}.</p>
  */
 @Shiro
 @Component

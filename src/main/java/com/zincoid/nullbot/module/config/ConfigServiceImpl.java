@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Default implementation of {@link ConfigService}.
- * <p>{@link ConfigService} 的默认实现。</p>
+ * {@link ConfigService} 的默认实现。
+ * <p>Default implementation of {@link ConfigService}.</p>
  */
 @Slf4j
 @Service

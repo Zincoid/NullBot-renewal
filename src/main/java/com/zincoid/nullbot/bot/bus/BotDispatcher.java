@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Inbound event dispatch entry point.
- * <p>入站事件分发入口。</p>
+ * 入站事件分发入口。
+ * <p>Inbound event dispatch entry point.</p>
  */
 @Slf4j
 @Component

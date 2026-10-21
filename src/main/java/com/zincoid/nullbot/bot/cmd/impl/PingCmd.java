@@ -9,8 +9,8 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import org.springframework.stereotype.Component;
 
 /**
- * Ping command for connectivity smoke tests.
- * <p>连通性冒烟测试用 Ping 指令。</p>
+ * 连通性冒烟测试用 Ping 指令。
+ * <p>Ping command for connectivity smoke tests.</p>
  */
 @CmdMapping("Ping")
 @Component

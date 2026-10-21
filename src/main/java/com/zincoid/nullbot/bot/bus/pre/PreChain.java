@@ -7,8 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Iterator-based chain of responsibility over {@link PreHandler} stages.
- * <p>基于迭代器的 {@link PreHandler} 责任链。</p>
+ * 基于迭代器的 {@link PreHandler} 责任链。
+ * <p>Iterator-based chain of responsibility over {@link PreHandler} stages.</p>
  */
 public class PreChain {
 
@@ -20,8 +20,8 @@ public class PreChain {
     }
 
     /**
-     * Runs the next handler of the chain.
-     * <p>执行链条中的下一个处理器。</p>
+     * 执行链条中的下一个处理器。
+     * <p>Runs the next handler of the chain.</p>
      *
      * @param client the outbound port
      * @param event  the inbound event
@@ -34,16 +34,16 @@ public class PreChain {
     }
 
     /**
-     * Marks the event as consumed and stops the chain.
-     * <p>标记事件已消费并中断链条。</p>
+     * 标记事件已消费并中断链条。
+     * <p>Marks the event as consumed and stops the chain.</p>
      */
     public void consume() {
         this.consumed = true;
     }
 
     /**
-     * Whether the event was consumed.
-     * <p>事件是否已被消费。</p>
+     * 事件是否已被消费。
+     * <p>Whether the event was consumed.</p>
      *
      * @return true when a handler consumed the event
      */

@@ -3,8 +3,8 @@ package com.zincoid.nullbot.adapter.stdin;
 import com.zincoid.nullbot.bot.spi.port.BotSpiException;
 
 /**
- * Thrown when the Stdin adapter cannot serve the request.
- * <p>Stdin 适配器无法完成请求时抛出。</p>
+ * Stdin 适配器无法完成请求时抛出。
+ * <p>Thrown when the Stdin adapter cannot serve the request.</p>
  */
 public class StdinException extends BotSpiException {
 

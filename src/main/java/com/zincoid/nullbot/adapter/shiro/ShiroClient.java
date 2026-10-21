@@ -11,8 +11,8 @@ import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 
 /**
- * Shiro outbound adapter: over the Shiro {@link Bot}.
- * <p>Shiro 出站适配器：基于 Shiro {@link Bot}。</p>
+ * Shiro 出站适配器：基于 Shiro {@link Bot}。
+ * <p>Shiro outbound adapter: over the Shiro {@link Bot}.</p>
  */
 public class ShiroClient implements BotClient {
 

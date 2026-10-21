@@ -15,8 +15,8 @@ import com.zincoid.nullbot.bot.spi.port.BotClient;
 import java.util.List;
 
 /**
- * Command execution context: the triggering event, the bound command and the outbound port.
- * <p>指令执行上下文：触发事件、绑定指令与出站端口。</p>
+ * 指令执行上下文：触发事件、绑定指令与出站端口。
+ * <p>Command execution context: the triggering event, the bound command and the outbound port.</p>
  *
  * @param client the outbound port
  * @param event  the triggering event
@@ -35,8 +35,8 @@ public record CmdContext(
     }
 
     /**
-     * Sends plain text to the chat the command came from.
-     * <p>以纯文本发送到指令来源会话。</p>
+     * 以纯文本发送到指令来源会话。
+     * <p>Sends plain text to the chat the command came from.</p>
      *
      * @param text the message text
      */
@@ -45,8 +45,8 @@ public record CmdContext(
     }
 
     /**
-     * Sends message content to the chat the command came from.
-     * <p>以消息内容发送到指令来源会话。</p>
+     * 以消息内容发送到指令来源会话。
+     * <p>Sends message content to the chat the command came from.</p>
      *
      * @param content the message content
      */

@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Stdin outbound adapter: prints bot actions to the terminal, fakes the rest.
- * <p>Stdin 出站适配器：把机器人动作打印到终端，其余伪造。</p>
+ * Stdin 出站适配器：把机器人动作打印到终端，其余伪造。
+ * <p>Stdin outbound adapter: prints bot actions to the terminal, fakes the rest.</p>
  */
 @Slf4j
 public class StdinClient implements BotClient {

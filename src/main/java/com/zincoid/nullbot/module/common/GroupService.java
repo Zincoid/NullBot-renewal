@@ -5,16 +5,16 @@ import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.po.Group;
 
 /**
- * Group record service: registration, rename, and access levels.
- * <p>群记录服务：注册、改名与限权。</p>
+ * 群记录服务：注册、改名与限权。
+ * <p>Group record service: registration, rename, and access levels.</p>
  */
 public interface GroupService extends IService<Group> {
 
     // ════ Register ════════════════
 
     /**
-     * Registers a new group or refreshes the name of an existing one.
-     * <p>注册新群，或刷新已有群的名称。</p>
+     * 注册新群，或刷新已有群的名称。
+     * <p>Registers a new group or refreshes the name of an existing one.</p>
      *
      * @param id   platform group ID
      * @param name current group name
@@ -25,8 +25,8 @@ public interface GroupService extends IService<Group> {
     // ════ Update ══════════════════
 
     /**
-     * Renames the group.
-     * <p>修改群名称。</p>
+     * 修改群名称。
+     * <p>Renames the group.</p>
      *
      * @param id   platform group ID
      * @param name new group name
@@ -36,8 +36,8 @@ public interface GroupService extends IService<Group> {
     // ════ Access ══════════════════
 
     /**
-     * Returns the access level of the group.
-     * <p>返回群的限权等级。</p>
+     * 返回群的限权等级。
+     * <p>Returns the access level of the group.</p>
      *
      * @param id platform group ID
      * @return the access level
@@ -45,8 +45,8 @@ public interface GroupService extends IService<Group> {
     Access getAccess(String id);
 
     /**
-     * Sets the access level of the group.
-     * <p>设置群的限权等级。</p>
+     * 设置群的限权等级。
+     * <p>Sets the access level of the group.</p>
      *
      * @param id     platform group ID
      * @param access new access level
@@ -56,8 +56,8 @@ public interface GroupService extends IService<Group> {
     // ════ Delete ══════════════════
 
     /**
-     * Deletes the group record.
-     * <p>删除群记录。</p>
+     * 删除群记录。
+     * <p>Deletes the group record.</p>
      *
      * @param id platform group ID
      */
