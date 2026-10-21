@@ -35,7 +35,18 @@ public class CmdProcessor {
      */
     public void process(BotClient client, BotEvent event) {
         CmdRequest request = parser.parse(event);
-        if (request == null) return;
+        if (request != null) process(client, event, request);
+    }
+
+    /**
+     * 按显式请求执行指令处理链。
+     * <p>Runs the command handler chain for an explicit request.</p>
+     *
+     * @param client  the outbound port
+     * @param event   the inbound event
+     * @param request the explicit command request
+     */
+    public void process(BotClient client, BotEvent event, CmdRequest request) {
         Cmd cmd = registry.get(request.name());
         if (cmd == null) {
             log.info("Unknown command: {}", request.name());

@@ -88,7 +88,21 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group setting table';
 
 -- =============================================
--- 7. Message Table
+-- 7. Group Keyword Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `group_keyword` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Platform group ID',
+    `keyword`       VARCHAR(255)    NOT NULL                 COMMENT 'Keyword to match',
+    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name to dispatch',
+    `args`          JSON            DEFAULT NULL             COMMENT 'Command arguments (JSON array)',
+    `enabled`       BOOLEAN         NOT NULL DEFAULT TRUE    COMMENT 'Rule enabled',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_group_keyword` (`group_id`, `keyword`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group keyword rule table';
+
+-- =============================================
+-- 8. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message ID',
