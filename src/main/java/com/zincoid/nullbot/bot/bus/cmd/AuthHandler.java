@@ -30,6 +30,8 @@ public class AuthHandler implements CmdHandler {
     private final GroupService groupService;
     private final UserService userService;
 
+    // ════ Handle ══════════════════
+
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
         Access required = ctx.cmd().getAccess();
@@ -45,6 +47,8 @@ public class AuthHandler implements CmdHandler {
         };
         if (allowed) chain.doHandle(ctx);
     }
+
+    // ════ Helpers ═════════════════
 
     private boolean checkGroup(CmdContext ctx, Access required, String groupId, String userId) {
         Access groupAccess = groupService.getAccess(groupId);

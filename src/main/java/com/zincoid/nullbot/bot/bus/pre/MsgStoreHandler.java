@@ -29,6 +29,8 @@ public class MsgStoreHandler implements PreHandler {
     private final MsgWindowStore msgWindowStore;
     private final FileService fileService;
 
+    // ════ Handle ══════════════════
+
     @Override
     public void handle(BotClient client, BotEvent event, PreChain chain) {
         if (event instanceof GroupMsgEvent e) {
@@ -38,6 +40,8 @@ public class MsgStoreHandler implements PreHandler {
         }
         chain.doHandle(client, event);
     }
+
+    // ════ Helpers ═════════════════
 
     /**
      * 记录事件消息并落盘其中的媒体附件。

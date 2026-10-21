@@ -33,6 +33,8 @@ public class CmdRegistry {
         }
     }
 
+    // ════ Get ═════════════════════
+
     /**
      * 按名称查找指令。
      * <p>Looks up a command by name.</p>
@@ -43,6 +45,8 @@ public class CmdRegistry {
     public Cmd get(String name) {
         return cmdMap.get(name);
     }
+
+    // ════ Help ════════════════════
 
     /**
      * 汇总指定指令的 AI 帮助文档。

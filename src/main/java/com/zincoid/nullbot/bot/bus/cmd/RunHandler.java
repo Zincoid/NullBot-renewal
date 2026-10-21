@@ -28,6 +28,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class RunHandler implements CmdHandler {
 
+    // ════ Handle ══════════════════
+
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
         CmdArgs args = CmdArgs.of(ctx.params());
@@ -51,6 +53,8 @@ public class RunHandler implements CmdHandler {
             throw e;
         }
     }
+
+    // ════ Helpers ═════════════════
 
     private void dispatch(CmdContext ctx, CmdArgs args) {
         switch (ctx.event()) {

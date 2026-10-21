@@ -28,6 +28,8 @@ public class RegisterHandler implements CmdHandler {
     private final GroupService groupService;
     private final UserService userService;
 
+    // ════ Handle ══════════════════
+
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
         BotClient client = ctx.client();
@@ -58,6 +60,8 @@ public class RegisterHandler implements CmdHandler {
         }
         chain.doHandle(ctx);
     }
+
+    // ════ Helpers ═════════════════
 
     private void registerGroup(BotClient client, String groupId) {
         groupService.register(groupId, client.getGroupInfo(groupId).groupName());

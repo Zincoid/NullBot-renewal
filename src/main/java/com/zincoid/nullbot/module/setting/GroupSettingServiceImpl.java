@@ -44,7 +44,9 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
             updateById(setting);
             log.info("Group setting updated: {}", groupId);
         }
-        cache.put(groupId, setting);
+        GroupSetting stored = getById(setting.getId());
+        if (stored == null) throw new SettingException("Group setting not found: " + groupId);
+        cache.put(groupId, stored);
     }
 
     // ════ Helpers ═════════════════

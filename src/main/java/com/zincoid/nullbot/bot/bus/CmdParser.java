@@ -27,6 +27,8 @@ public class CmdParser {
 
     private final CmdProperties cmdProperties;
 
+    // ════ Parse ═══════════════════
+
     /**
      * 把事件解析为指令请求。
      * <p>Parses an event into a command request.</p>
@@ -45,6 +47,8 @@ public class CmdParser {
             case LeaveEvent _ -> left();
         };
     }
+
+    // ════ Helpers ═════════════════
 
     private CmdRequest msg(MsgContent content) {
         List<MsgSegment> segments = content.segments();
