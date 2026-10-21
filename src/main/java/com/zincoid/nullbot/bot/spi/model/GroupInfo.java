@@ -5,7 +5,7 @@ package com.zincoid.nullbot.bot.spi.model;
  * <p>Group info.</p>
  *
  * @param groupId   the group ID
- * @param groupName the display name
+ * @param name the display name
  */
-public record GroupInfo(String groupId, String groupName) {
+public record GroupInfo(String groupId, String name) {
 }

@@ -27,6 +27,47 @@ public record MsgContent(List<MsgSegment> segments) {
         return new MsgContent(segments);
     }
 
+    // ════ Get ═════════════════════
+
+    /**
+     * 是否包含未建模的原始段。
+     * <p>Whether the content contains an unmodeled raw segment.</p>
+     *
+     * @return true when any raw segment is present
+     */
+    public boolean hasRaw() {
+        return segments.stream().anyMatch(MsgSegment.Raw.class::isInstance);
+    }
+
+    /**
+     * 提取消息内容中所有提及的用户 ID。
+     * <p>Extracts the user IDs of all mention segments.</p>
+     *
+     * @return the mentioned user IDs, in segment order
+     */
+    public List<String> atIds() {
+        return segments.stream()
+                .filter(MsgSegment.At.class::isInstance)
+                .map(MsgSegment.At.class::cast)
+                .map(MsgSegment.At::userId)
+                .toList();
+    }
+
+    /**
+     * 提取回复引用的消息 ID。
+     * <p>Extracts the quoted message ID of the reply segment.</p>
+     *
+     * @return the replied message ID, or null when absent
+     */
+    public String replyId() {
+        return segments.stream()
+                .filter(MsgSegment.Reply.class::isInstance)
+                .map(MsgSegment.Reply.class::cast)
+                .map(MsgSegment.Reply::messageId)
+                .findFirst()
+                .orElse(null);
+    }
+
     // ════ Builder ═════════════════
 
     /**

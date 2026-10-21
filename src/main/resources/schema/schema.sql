@@ -115,3 +115,17 @@ CREATE TABLE IF NOT EXISTS `message` (
     KEY `idx_chat_created` (`chat_id`, `created_at`),
     KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat message table';
+
+-- =============================================
+-- 9. Quote Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `quote` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `time`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Record time',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Author platform user ID',
+    `nickname`      VARCHAR(255)    NOT NULL                 COMMENT 'Author nickname',
+    `text`          VARCHAR(1000)   NOT NULL                 COMMENT 'Quote content',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_time` (`time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quote table';

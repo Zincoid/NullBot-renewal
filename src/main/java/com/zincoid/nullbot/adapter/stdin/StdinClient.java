@@ -30,7 +30,7 @@ public class StdinClient implements BotClient {
 
     String record(String userId, MsgContent content) {
         String id = String.valueOf(nextId.getAndIncrement());
-        messages.put(id, new MsgDetail(id, userId, content));
+        messages.put(id, new MsgDetail(id, userId, nickname(userId), content));
         return id;
     }
 
@@ -90,11 +90,17 @@ public class StdinClient implements BotClient {
 
     @Override
     public UserInfo getUserInfo(String userId) {
-        return new UserInfo(userId, "user-" + userId);
+        return new UserInfo(userId, nickname(userId));
     }
 
     @Override
     public GroupInfo getGroupInfo(String groupId) {
         return new GroupInfo(groupId, "group-" + groupId);
+    }
+
+    // ════ Helpers ═════════════════
+
+    private static String nickname(String userId) {
+        return SELF_ID.equals(userId) ? "stdin-bot" : "user-" + userId;
     }
 }

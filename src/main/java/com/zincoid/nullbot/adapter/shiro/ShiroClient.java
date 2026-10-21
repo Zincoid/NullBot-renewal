@@ -40,8 +40,11 @@ public class ShiroClient implements BotClient {
     @Override
     public MsgDetail getMsg(String messageId) {
         MsgResp resp = check(bot.getMsg((int) num(messageId)));
+        var sender = required(resp.getSender(), "sender");
         return new MsgDetail(
-                messageId, String.valueOf(required(resp.getUserId(), "userId")),
+                messageId,
+                String.valueOf(required(resp.getUserId(), "userId")),
+                required(sender.getNickname(), "nickname"),
                 ShiroMapper.fromShiro(required(resp.getArrayMsg(), "arrayMsg"))
         );
     }

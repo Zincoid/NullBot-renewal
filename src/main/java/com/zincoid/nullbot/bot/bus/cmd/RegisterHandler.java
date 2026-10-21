@@ -64,7 +64,7 @@ public class RegisterHandler implements CmdHandler {
     // ════ Helpers ═════════════════
 
     private void registerGroup(BotClient client, String groupId) {
-        groupService.register(groupId, client.getGroupInfo(groupId).groupName());
+        groupService.register(groupId, client.getGroupInfo(groupId).name());
     }
 
     private void registerUser(BotClient client, String userId) {
