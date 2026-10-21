@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.platform.configuration;
 
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -24,7 +25,7 @@ public class WebConfiguration implements WebMvcConfigurer {
      * @param registry resource handler registry
      */
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         String root = Path.of(fileProperties.getRoot()).toAbsolutePath().normalize().toUri().toString();
         if (!root.endsWith("/")) root += "/";
         registry.addResourceHandler("/files/**")

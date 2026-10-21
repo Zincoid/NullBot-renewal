@@ -2,6 +2,7 @@ package com.zincoid.nullbot.bot.cmd;
 
 import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.*;
+import com.zincoid.nullbot.platform.persistence.enums.Access;
 
 /**
  * 机器人指令：每种路由事件一个 run 槽位。
@@ -124,8 +125,10 @@ public interface Cmd {
     /**
      * 指令所需限权等级。
      * <p>Required access level of the command.</p>
+     *
+     * @return the required access level
      */
-    default int getAccess() {
-        return 0;
+    default Access getAccess() {
+        return Access.NORMAL;
     }
 }
