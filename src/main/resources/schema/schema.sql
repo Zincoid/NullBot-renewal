@@ -21,7 +21,21 @@ CREATE TABLE IF NOT EXISTS `config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Config table';
 
 -- =============================================
--- 2. File Table
+-- 2. Usage Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `usage` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `time`          DATE            NOT NULL                 COMMENT 'Statistics date',
+    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Group platform ID, 0 for private chat',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Operator platform user ID',
+    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name',
+    `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Usage count',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_time_group_user_cmd` (`time`, `group_id`, `user_id`, `cmd`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily command usage table';
+
+-- =============================================
+-- 3. File Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `file` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -39,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `file` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File table';
 
 -- =============================================
--- 3. User Table
+-- 4. User Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user` (
     `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform user ID',
@@ -49,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User table';
 
 -- =============================================
--- 4. Group Table
+-- 5. Group Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group` (
     `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform group ID',
@@ -59,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group table';
 
 -- =============================================
--- 5. Message Table
+-- 6. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message ID',
