@@ -12,6 +12,7 @@ import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.List;
  * <p>Pre-handler that records message events into the chat window, storing their media attachments.</p>
  */
 @Slf4j
+@Order(0)
 @Component
 @RequiredArgsConstructor
 public class MsgStoreHandler implements PreHandler {
