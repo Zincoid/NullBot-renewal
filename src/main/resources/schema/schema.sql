@@ -73,7 +73,22 @@ CREATE TABLE IF NOT EXISTS `group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group table';
 
 -- =============================================
--- 6. Message Table
+-- 6. Group Setting Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `group_setting` (
+    `id`                BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `group_id`          VARCHAR(64) NOT NULL                 COMMENT 'Platform group ID',
+    `limit_enabled`     BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Rate limit enabled',
+    `limit_scope`       TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=CMD',
+    `limit_capacity`    INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',
+    `limit_refill`      INT         NOT NULL DEFAULT 2       COMMENT 'Rate limit refill amount',
+    `limit_interval`    INT         NOT NULL DEFAULT 1       COMMENT 'Rate limit refill interval in minutes',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_group_id` (`group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group setting table';
+
+-- =============================================
+-- 7. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message ID',
