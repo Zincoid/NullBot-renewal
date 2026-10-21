@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.bot.spi.port;
 
+import com.zincoid.nullbot.bot.spi.model.GroupInfo;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
@@ -104,5 +105,13 @@ public interface BotClient {
      */
     default UserInfo getUserInfo(String userId) {
         throw new UnsupportedSpiException("getUserInfo");
+    }
+
+    /**
+     * 按 ID 获取群信息。
+     * <p>Fetches group info by ID.</p>
+     */
+    default GroupInfo getGroupInfo(String groupId) {
+        throw new UnsupportedSpiException("getGroupInfo");
     }
 }

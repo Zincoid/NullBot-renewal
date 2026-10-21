@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.adapter.stdin;
 
+import com.zincoid.nullbot.bot.spi.model.GroupInfo;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
@@ -90,5 +91,10 @@ public class StdinClient implements BotClient {
     @Override
     public UserInfo getUserInfo(String userId) {
         return new UserInfo(userId, "user-" + userId);
+    }
+
+    @Override
+    public GroupInfo getGroupInfo(String groupId) {
+        return new GroupInfo(groupId, "group-" + groupId);
     }
 }

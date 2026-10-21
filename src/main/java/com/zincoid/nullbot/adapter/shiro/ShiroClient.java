@@ -5,6 +5,7 @@ import com.mikuac.shiro.dto.action.common.ActionData;
 import com.mikuac.shiro.dto.action.common.ActionRaw;
 import com.mikuac.shiro.dto.action.common.MsgId;
 import com.mikuac.shiro.dto.action.response.MsgResp;
+import com.zincoid.nullbot.bot.spi.model.GroupInfo;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
@@ -86,6 +87,15 @@ public class ShiroClient implements BotClient {
         return new UserInfo(
                 String.valueOf(required(resp.getUserId(), "userId")),
                 required(resp.getNickname(), "nickname")
+        );
+    }
+
+    @Override
+    public GroupInfo getGroupInfo(String groupId) {
+        var resp = check(bot.getGroupInfo(num(groupId), true));
+        return new GroupInfo(
+                groupId,
+                required(resp.getGroupName(), "groupName")
         );
     }
 
