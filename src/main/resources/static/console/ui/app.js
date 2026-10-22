@@ -1004,7 +1004,7 @@
         });
         document.querySelectorAll('#nav a').forEach(link =>
             link.classList.toggle('active', link.dataset.view === view));
-        document.title = 'NullBot Console · ' + t('view.' + view);
+        document.title = t('app.title') + ' · ' + t('view.' + view);
         if (view === 'accounts' && lastView !== 'accounts') showAccountsTab('groups');
         lastView = view;
         loaders[view]();
@@ -1259,6 +1259,7 @@
 
     function init() {
         window.ConsoleUI.apply();
+        $('footer-year').textContent = new Date().getFullYear();
         populateSelects();
         bindDialogs();
         bindEvents();

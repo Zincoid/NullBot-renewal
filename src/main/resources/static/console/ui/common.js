@@ -6,6 +6,8 @@
 
     const MESSAGES = {
         zh: {
+            'app.title': 'NullBot 控制台',
+
             'common.refresh': '刷新',
             'common.search': '搜索',
             'common.reset': '重置',
@@ -211,7 +213,7 @@
             'pager.perPage': '每页条数',
             'pager.perPageOption': '{n} 条/页',
 
-            'login.title': 'NullBot Console · 登录',
+            'login.title': 'NullBot 控制台 · 登录',
             'login.tab': '控制台登录',
             'login.heading': '欢迎回来',
             'login.desc': '输入控制台 token 以继续',
@@ -225,6 +227,8 @@
             'login.required': '请输入 token'
         },
         en: {
+            'app.title': 'NullBot Console',
+
             'common.refresh': 'Refresh',
             'common.search': 'Search',
             'common.reset': 'Reset',
@@ -445,14 +449,29 @@
         }
     };
 
-    const savedLocale = localStorage.getItem(LOCALE_KEY);
+    function readStore(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function writeStore(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            // Storage may be unavailable; the choice just won't persist.
+        }
+    }
+
+    const savedLocale = readStore(LOCALE_KEY);
     let locale = savedLocale === 'en' ? 'en' : 'zh';
 
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    let theme = savedTheme === 'light' || savedTheme === 'dark'
-        ? savedTheme
-        : (systemDark ? 'dark' : 'light');
+    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const savedTheme = readStore(THEME_KEY);
+    let themeOverride = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null;
+    let theme = themeOverride || (darkQuery.matches ? 'dark' : 'light');
 
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
     document.documentElement.dataset.theme = theme;
@@ -502,7 +521,7 @@
 
     function setLocale(next) {
         locale = next === 'en' ? 'en' : 'zh';
-        localStorage.setItem(LOCALE_KEY, locale);
+        writeStore(LOCALE_KEY, locale);
         document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
         apply();
         updateLocaleButton();
@@ -516,9 +535,25 @@
 
     function applyTheme(next) {
         theme = next === 'dark' ? 'dark' : 'light';
-        localStorage.setItem(THEME_KEY, theme);
+        themeOverride = theme;
+        writeStore(THEME_KEY, theme);
         document.documentElement.dataset.theme = theme;
         notify('console:themechange', {theme});
+    }
+
+    function followSystem() {
+        if (themeOverride) return;
+        const next = darkQuery.matches ? 'dark' : 'light';
+        if (next === theme) return;
+        theme = next;
+        document.documentElement.dataset.theme = theme;
+        notify('console:themechange', {theme});
+    }
+
+    if (typeof darkQuery.addEventListener === 'function') {
+        darkQuery.addEventListener('change', followSystem);
+    } else if (typeof darkQuery.addListener === 'function') {
+        darkQuery.addListener(followSystem);
     }
 
     function toggleTheme(event) {
