@@ -1,12 +1,10 @@
 package com.zincoid.nullbot.bot.spi.port;
 
-import com.zincoid.nullbot.platform.exception.BotException;
-
 /**
  * SPI 异常：适配器能力未实现或调用失败。
  * <p>SPI exception: an adapter capability is unsupported or a call fails.</p>
  */
-public class SpiException extends BotException {
+public class SpiException extends RuntimeException {
 
     public SpiException(String message) {
         super(message);

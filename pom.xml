@@ -16,7 +16,9 @@
     <description>NullBot multi-module parent</description>
 
     <modules>
+        <module>spi</module>
         <module>core</module>
+        <module>launcher</module>
         <module>hello-plugin</module>
     </modules>
 

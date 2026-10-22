@@ -2,7 +2,9 @@
 
 多模块 Maven 工程：
 
-- `core`：Spring Boot 主应用
+- `spi`：框架无关的事件与端口 SPI
+- `core`：核心应用，普通 JAR
+- `launcher`：Spring Boot 启动与打包
 - `hello-plugin`：示例外部插件
 
 `application-dev.yaml` / `application-prod.yaml` 将运行数据指向 `workspace/files`、`workspace/logs`、`workspace/plugins`、`workspace/data`；基础默认值仍是根目录下的 `files/`、`logs/`、`plugins/` 和 `./data/sqlite.db`。
@@ -15,8 +17,8 @@
 
 产物：
 
-- `core/target/core-0.0.1-SNAPSHOT-exec.jar`：可执行 JAR
-- `core/target/core-0.0.1-SNAPSHOT.jar`：普通 JAR，供插件编译
+- `launcher/target/launcher-0.0.1-SNAPSHOT.jar`：可执行 JAR
+- `core/target/core-0.0.1-SNAPSHOT.jar`：核心 JAR，供插件编译
 - `hello-plugin/target/hello-plugin-0.0.1-SNAPSHOT.jar`
 - 插件 JAR 会自动复制到 `workspace/plugins/`
 
@@ -25,13 +27,14 @@
 从仓库根目录：
 
 ```bash
-java -jar core/target/core-0.0.1-SNAPSHOT-exec.jar
+java -jar launcher/target/launcher-0.0.1-SNAPSHOT.jar
 ```
 
-或：
+或先把模块安装到本地仓库，再运行：
 
 ```bash
-./mvnw -pl core spring-boot:run
+./mvnw -DskipTests install
+./mvnw -pl launcher spring-boot:run
 ```
 
 `spring-boot:run` 的工作目录已配置为仓库根目录，`data/`、`plugins/` 等相对路径与单模块时一致。
