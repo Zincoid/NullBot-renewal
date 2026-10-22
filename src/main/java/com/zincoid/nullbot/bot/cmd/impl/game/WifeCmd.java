@@ -157,16 +157,6 @@ public class WifeCmd implements Cmd {
                 权限：>=0(normal)""";
     }
 
-    @Override
-    public String getAiHelp() {
-        return """
-                Wife
-                Picks today's wife.
-                Usage: Wife [keyword]
-                Options: -m=<user id>, -a=<keyword> (manager only)
-                Note: keyword is matched against ACG file tag.""";
-    }
-
     // ════ Helpers ═════════════════
 
     private void requireManager(CmdContext ctx, String userId) {

@@ -95,6 +95,21 @@ public enum Text {
     WIFE_NO_MEMBERS("群成员不足", "Not enough group members"),
     WIFE_NOT_ALLOWED("你不能用。", "You cannot use this option"),
 
+    // ════ Guess ══════════════════
+
+    GUESS_START("✨猜图题目如下！", "✨Guess the image!"),
+    GUESS_HINT("注: 请发送\"%s答案\"，发送\"%s%s\"放弃",
+            "Note: send \"%sanswer\"; send \"%s%s\" to give up."),
+    GUESS_END("游戏结束啦💦\n答案是...%s！", "Game over💦\nThe answer is... %s!"),
+    GUESS_FAIL("已经错%d次啦💦\n答案是...%s！", "Wrong %d times💦\nThe answer is... %s!"),
+    GUESS_CORRECT("%s 猜对啦✨\n答案是...%s！\n一共猜了%s次",
+            "%s guessed right✨\nThe answer is... %s!\nGuessed %s times"),
+    GUESS_WRONG(" 猜错啦！", " Wrong guess!"),
+    GUESS_ALREADY_PLAYING("已在游戏中", "Game already in progress"),
+    GUESS_NOT_PLAYING("未在游戏中", "Not in a game"),
+    GUESS_NO_IMAGES("暂无可用图片", "No images available"),
+    GUESS_CROP_FAILED("图片裁剪失败", "Failed to crop image"),
+
     // ════ Media ══════════════════
 
     IMAGE_SAVED_ONE("💾 图片已保存：id=%d", "💾 Image saved: id=%d"),

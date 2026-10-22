@@ -640,7 +640,7 @@ code {
 .search-mode {
     position: absolute;
     top: 50%;
-    right: 5px;
+    right: 7px;
     display: flex;
     width: 108px;
     padding: 2px;
@@ -1252,6 +1252,17 @@ tr:last-child td {
     border-bottom: none;
 }
 
+.check-col {
+    width: 36px;
+    padding-right: 4px;
+    text-align: center;
+}
+
+.check-col input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
 td.actions {
     white-space: nowrap;
 }
@@ -1744,6 +1755,11 @@ button.file-pick svg {
 
 .upload-line {
     color: var(--color-text-secondary);
+    transition: opacity 0.25s ease;
+}
+
+.upload-line.fade-out {
+    opacity: 0;
 }
 
 .upload-line.ok {

@@ -235,12 +235,15 @@
             </div>
             <button id="file-search" class="primary btn-search" data-i18n="common.search">搜索</button>
             <button id="file-reset" class="btn-reset" data-i18n="common.reset">重置</button>
+            <button id="files-batch-delete" class="danger btn-delete" disabled>批量删除</button>
             <span id="files-total" class="muted"></span>
         </div>
         <div class="table-wrap">
             <table>
                 <thead>
                 <tr>
+                    <th class="check-col"><input type="checkbox" id="files-select-all"
+                                                 data-i18n-aria-label="files.selectAll" aria-label="全选"></th>
                     <th data-i18n="common.id">ID</th>
                     <th data-i18n="files.name">文件名</th>
                     <th data-i18n="files.tag">标签</th>

@@ -22,6 +22,7 @@
 
     const PAGE_SIZE = 20;
     const MAX_UPLOAD = 64 * 1024 * 1024;
+    const UPLOAD_LINE_TTL = 4000;
     const BIZ_TYPES = [0, 1, 2, 3, 4, 5];
     const ACCESS_LEVELS = [-2, -1, 0, 1, 2];
 
@@ -365,8 +366,10 @@
     // ═══ Files ═══════════════════════
 
     const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', field: 'original', items: []};
+    const fileSelection = new Set();
     let editingFile = null;
     let uploading = false;
+    let deletingFiles = false;
 
     function setFileSearchField(field, reload = true) {
         if (field !== 'tag') field = 'original';
@@ -383,7 +386,22 @@
         loadFiles();
     }
 
+    function updateFileSelection() {
+        const selectAll = $('files-select-all');
+        const batch = $('files-batch-delete');
+        const total = fileState.items.length;
+        const selectedOnPage = fileState.items.filter(file => fileSelection.has(file.id)).length;
+        selectAll.disabled = total === 0;
+        selectAll.checked = total > 0 && selectedOnPage === total;
+        selectAll.indeterminate = selectedOnPage > 0 && selectedOnPage < total;
+        batch.disabled = fileSelection.size === 0 || deletingFiles;
+        batch.textContent = fileSelection.size
+            ? t('files.batchDeleteCount', {n: fileSelection.size})
+            : t('files.batchDelete');
+    }
+
     async function loadFiles() {
+        fileSelection.clear();
         const params = new URLSearchParams({
             page: String(fileState.page),
             size: String(fileState.size)
@@ -395,9 +413,11 @@
             fileState.items = data.items;
             renderFiles(data);
         } catch (e) {
-            $('files-body').innerHTML = emptyRow(8, t('common.loadError', {msg: e.message}));
+            fileState.items = [];
+            $('files-body').innerHTML = emptyRow(9, t('common.loadError', {msg: e.message}));
             $('files-total').textContent = '';
             $('files-pager').innerHTML = '';
+            updateFileSelection();
             toast(t('files.loadFailed', {msg: e.message}), 'error');
         }
     }
@@ -406,10 +426,13 @@
         $('files-total').textContent = t('files.total', {n: data.total});
         const body = $('files-body');
         if (!data.items.length) {
-            body.innerHTML = emptyRow(8, t('files.empty'));
+            body.innerHTML = emptyRow(9, t('files.empty'));
         } else {
             body.innerHTML = data.items.map(file => `
                 <tr>
+                    <td class="check-col"><input type="checkbox" class="file-select" data-id="${file.id}"
+                                                 aria-label="${escapeHtml(t('files.select'))}"
+                                                 ${fileSelection.has(file.id) ? 'checked' : ''}></td>
                     <td>${file.id}</td>
                     <td><span class="file-name" title="${escapeHtml(file.original || '')}">${escapeHtml(file.original || '-')}</span></td>
                     <td><span class="file-tag" title="${escapeHtml(file.tag || '')}">${escapeHtml(file.tag || '-')}</span></td>
@@ -432,6 +455,7 @@
             fileState.page = 1;
             loadFiles();
         });
+        updateFileSelection();
     }
 
     function openFileDialog(file) {
@@ -495,11 +519,38 @@
         }
     }
 
+    async function deleteSelectedFiles() {
+        if (deletingFiles || fileSelection.size === 0) return;
+        const ids = Array.from(fileSelection);
+        if (!await confirmAction(t('files.batchDeleteConfirm', {n: ids.length}))) return;
+        deletingFiles = true;
+        updateFileSelection();
+        try {
+            const results = await Promise.allSettled(ids.map(id =>
+                api('/files/' + id, {method: 'DELETE'})));
+            const deleted = results.filter(result => result.status === 'fulfilled').length;
+            const failed = results.length - deleted;
+            if (fileState.page > 1 && deleted >= fileState.items.length) fileState.page--;
+            toast(t('files.batchDeleteDone', {ok: deleted, fail: failed}),
+                failed ? 'error' : 'ok');
+        } finally {
+            deletingFiles = false;
+            loadFiles();
+        }
+    }
+
     function updateUploadLabel() {
         const count = ($('upload-files').files || []).length;
         $('upload-files-label').textContent = count
             ? t('files.selectedCount', {n: count})
             : t('files.noFiles');
+    }
+
+    function dismissUploadLine(line, delay = UPLOAD_LINE_TTL) {
+        setTimeout(() => {
+            line.classList.add('fade-out');
+            setTimeout(() => line.remove(), 250);
+        }, delay);
     }
 
     async function uploadFiles() {
@@ -537,6 +588,7 @@
                     failed++;
                     line.textContent = t('files.tooLarge', {name: file.name});
                     line.className = 'upload-line error';
+                    dismissUploadLine(line);
                     continue;
                 }
                 line.textContent = t('files.uploading', {name: file.name});
@@ -550,10 +602,12 @@
                     success++;
                     line.textContent = t('files.uploaded', {name: file.name});
                     line.className = 'upload-line ok';
+                    dismissUploadLine(line);
                 } catch (e) {
                     failed++;
                     line.textContent = t('files.uploadFailed', {name: file.name, msg: e.message});
                     line.className = 'upload-line error';
+                    dismissUploadLine(line);
                 }
             }
         }
@@ -1180,6 +1234,26 @@
             else if (button.dataset.action === 'download') downloadFile(file);
             else if (button.dataset.action === 'delete') deleteFile(file);
         });
+        $('files-body').addEventListener('change', event => {
+            const input = event.target.closest('input.file-select');
+            if (!input) return;
+            const id = Number(input.dataset.id);
+            if (input.checked) fileSelection.add(id);
+            else fileSelection.delete(id);
+            updateFileSelection();
+        });
+        $('files-select-all').addEventListener('change', event => {
+            const checked = event.target.checked;
+            fileState.items.forEach(file => {
+                if (checked) fileSelection.add(file.id);
+                else fileSelection.delete(file.id);
+            });
+            document.querySelectorAll('#files-body input.file-select').forEach(input => {
+                input.checked = checked;
+            });
+            updateFileSelection();
+        });
+        $('files-batch-delete').onclick = deleteSelectedFiles;
 
         $('accounts-refresh').onclick = loadAccounts;
         document.querySelectorAll('[data-tab]').forEach(button =>
