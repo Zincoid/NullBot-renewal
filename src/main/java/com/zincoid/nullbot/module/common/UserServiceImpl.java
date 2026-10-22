@@ -18,7 +18,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     // ════ Register ════════════════
 
     @Override
-    public User register(String id, String name) {
+    public void register(String id, String name) {
         if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
         if (name == null) throw new CommonException("Missing key: name");
         User user = getById(id);
@@ -33,7 +33,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     .update();
             user.setName(name);
         }
-        return user;
     }
 
     // ════ Update ══════════════════

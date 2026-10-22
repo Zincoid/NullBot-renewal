@@ -18,9 +18,8 @@ public interface GroupService extends IService<Group> {
      *
      * @param id   platform group id
      * @param name current group name
-     * @return the persisted record
      */
-    Group register(String id, String name);
+    void register(String id, String name);
 
     // ════ Update ══════════════════
 

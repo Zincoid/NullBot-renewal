@@ -53,7 +53,7 @@ public class AuthHandler implements CmdHandler {
     private boolean checkGroup(CmdContext ctx, Access required, String groupId, String userId) {
         Access groupAccess = groupService.getAccess(groupId);
         if (groupAccess.getValue() < required.getValue()) {
-            log.info("Group access denied: required={}, actual={}", required, groupAccess);
+            log.info("Group access denied: required={}, actual={}", required.getLabel(), groupAccess.getLabel());
             return false;
         }
         return checkUser(ctx, required, userId);
@@ -62,9 +62,9 @@ public class AuthHandler implements CmdHandler {
     private boolean checkUser(CmdContext ctx, Access required, String userId) {
         Access userAccess = userService.getAccess(userId);
         if (userAccess.getValue() < required.getValue()) {
-            log.info("User access denied: required={}, actual={}", required, userAccess);
-            ctx.send("🚫 Access denied: required %d, yours %d"
-                    .formatted(required.getValue(), userAccess.getValue()));
+            log.info("User access denied: required={}, actual={}", required.getLabel(), userAccess.getLabel());
+            ctx.send("🚫 Access denied: required %s, yours %s"
+                    .formatted(required.getLabel(), userAccess.getLabel()));
             return false;
         }
         return true;

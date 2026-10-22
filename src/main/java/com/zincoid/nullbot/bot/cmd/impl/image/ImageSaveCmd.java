@@ -85,7 +85,7 @@ public class ImageSaveCmd implements Cmd {
         saved.forEach(file -> log.info("Image saved: {}", file.getId()));
         MsgContent.Builder builder = MsgContent.builder()
                 .text(saved.size() == 1
-                        ? "💾 Image saved: no." + saved.getFirst().getId()
+                        ? "💾 Image saved: id=" + saved.getFirst().getId()
                         : "💾 Images saved: " + saved.size());
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());

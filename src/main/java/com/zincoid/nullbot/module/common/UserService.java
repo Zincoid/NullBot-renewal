@@ -18,9 +18,8 @@ public interface UserService extends IService<User> {
      *
      * @param id   platform user id
      * @param name current nickname
-     * @return the persisted record
      */
-    User register(String id, String name);
+    void register(String id, String name);
 
     // ════ Update ══════════════════
 

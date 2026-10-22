@@ -85,7 +85,7 @@ public class VideoSaveCmd implements Cmd {
         saved.forEach(file -> log.info("Video saved: {}", file.getId()));
         MsgContent.Builder builder = MsgContent.builder()
                 .text(saved.size() == 1
-                        ? "🎥 Video saved: no." + saved.getFirst().getId()
+                        ? "🎥 Video saved: id=" + saved.getFirst().getId()
                         : "🎥 Videos saved: " + saved.size());
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());

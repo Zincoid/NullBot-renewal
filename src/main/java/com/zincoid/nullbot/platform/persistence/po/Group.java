@@ -21,6 +21,6 @@ public class Group {
     public Group(String id, String name) {
         this.id = id;
         this.name = name;
-        this.access = Access.NORMAL;
+        this.access = Access.ADMIN;
     }
 }

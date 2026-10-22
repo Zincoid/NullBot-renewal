@@ -18,7 +18,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     // ════ Register ════════════════
 
     @Override
-    public Group register(String id, String name) {
+    public void register(String id, String name) {
         if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
         if (name == null || name.isBlank()) throw new CommonException("Missing key: name");
         Group group = getById(id);
@@ -33,7 +33,6 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
                     .update();
             group.setName(name);
         }
-        return group;
     }
 
     // ════ Update ══════════════════
