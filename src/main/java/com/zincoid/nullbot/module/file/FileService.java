@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.file;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.po.File;
@@ -54,19 +55,6 @@ public interface FileService extends IService<File> {
      */
     File save(String userId, MultipartFile file, BizType type, String description);
 
-    /**
-     * 保存上传的 multipart 文件并写入新记录，不附带描述。
-     * <p>Stores an uploaded multipart file with a new record, without a description.</p>
-     *
-     * @param userId uploader platform user id
-     * @param file   uploaded file
-     * @param type   business type
-     * @return the persisted record with generated id
-     */
-    default File save(String userId, MultipartFile file, BizType type) {
-        return save(userId, file, type, null);
-    }
-
     // ════ Read ════════════════════
 
     /**
@@ -97,6 +85,18 @@ public interface FileService extends IService<File> {
      * @return the matching files, newest first
      */
     List<File> search(BizType type, String keyword, int limit);
+
+    /**
+     * 按业务类型与关键词分页查询文件。
+     * <p>Pages files by business type and keyword.</p>
+     *
+     * @param type    business type, nullable to include all types
+     * @param keyword keyword matched against description or original filename, nullable
+     * @param page    one-based page number
+     * @param size    page size
+     * @return the file page, newest first
+     */
+    Page<File> page(BizType type, String keyword, long page, long size);
 
     // ════ Random ══════════════════
 

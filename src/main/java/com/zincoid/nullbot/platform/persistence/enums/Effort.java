@@ -1,12 +1,13 @@
 package com.zincoid.nullbot.platform.persistence.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * 推理强度，持久化为数字，序列化为小写字符串：minimal、low、medium、high、xhigh、max、ultra。
- * <p>Reasoning effort persisted as a number and serialized as a lowercase string: minimal, low, medium, high, xhigh, max, or ultra.</p>
+ * 推理强度，持久化与序列化均为数字：0=MINIMAL 到 6=ULTRA。
+ * <p>Reasoning effort persisted and serialized as a number: 0=MINIMAL through 6=ULTRA.</p>
  */
 @Getter
 public enum Effort {
@@ -21,11 +22,30 @@ public enum Effort {
 
     @EnumValue
     private final Integer value;
-    @JsonValue
     private final String label;
 
     Effort(Integer value, String label) {
         this.value = value;
         this.label = label;
+    }
+
+    @JsonValue
+    public Integer getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static Effort fromValue(Integer value) {
+        if (value == null) return null;
+        for (Effort effort : values())
+            if (effort.value.equals(value)) return effort;
+        return null;
+    }
+
+    public static Effort fromLabel(String label) {
+        if (label == null) return null;
+        for (Effort effort : values())
+            if (effort.label.equalsIgnoreCase(label.trim())) return effort;
+        return null;
     }
 }

@@ -179,15 +179,17 @@ public class GroupSetCmd implements Cmd {
     }
 
     private static LimitScope scope(CmdContext ctx, String raw) {
-        for (LimitScope scope : LimitScope.values())
-            if (scope.getLabel().equalsIgnoreCase(raw)) return scope;
-        throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_SCOPE, raw));
+        LimitScope scope = LimitScope.fromLabel(raw);
+        if (scope == null)
+            throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_SCOPE, raw));
+        return scope;
     }
 
     private static Effort effort(CmdContext ctx, String raw) {
-        for (Effort effort : Effort.values())
-            if (effort.getLabel().equalsIgnoreCase(raw)) return effort;
-        throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_EFFORT, raw));
+        Effort effort = Effort.fromLabel(raw);
+        if (effort == null)
+            throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_EFFORT, raw));
+        return effort;
     }
 
     // ════ Cmd ═════════════════════

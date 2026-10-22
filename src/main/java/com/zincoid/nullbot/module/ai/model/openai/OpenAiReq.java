@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
-import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import lombok.Builder;
 import lombok.Data;
@@ -29,7 +28,7 @@ public class OpenAiReq {
     private boolean stream;
     private double temperature;
     @JsonProperty("reasoning_effort")
-    private Effort effort;
+    private String effort;
     @JsonProperty("max_tokens")
     private int maxTokens;
 
@@ -63,7 +62,7 @@ public class OpenAiReq {
                 .messages(req.getMessages().stream().map(AiMessage::toMap).toList())
                 .stream(false)
                 .temperature(1.0)
-                .effort(req.getEffort())
+                .effort(req.getEffort() == null ? null : req.getEffort().getLabel())
                 .maxTokens(req.getMaxTokens());
 
         List<ToolDefinition> toolDefinitions = req.getTools();

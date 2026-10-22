@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.common;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 
@@ -50,4 +51,17 @@ public interface QuoteService extends IService<Quote> {
      * @return the quote, or null when the author has none
      */
     Quote random(String userId);
+
+    // ════ Page ════════════════════
+
+    /**
+     * 按关键词分页查询语录。
+     * <p>Pages quotes by keyword.</p>
+     *
+     * @param keyword keyword matched against text, nickname, or user id, nullable
+     * @param page    one-based page number
+     * @param size    page size
+     * @return the quote page, newest first
+     */
+    Page<Quote> page(String keyword, long page, long size);
 }

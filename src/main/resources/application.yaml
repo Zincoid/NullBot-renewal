@@ -2,6 +2,9 @@
 # 基础固定配置.                        #
 # ══════════════════════════════════ #
 
+server:
+  port: ${nullbot.port:0}
+
 spring:
   application:
     name: NullBot-renewal
@@ -15,10 +18,15 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      resolve-lazily: true
+      max-file-size: ${nullbot.upload.max-file-size:64MB}
+      max-request-size: ${nullbot.upload.max-request-size:128MB}
 
 springdoc:
   api-docs:
-    enabled: ${nullbot.doc.enabled:false}
+    enabled: ${nullbot.docs.enabled:false}
 
 logging:
   file:
@@ -54,7 +62,7 @@ shiro:
 
 bot:
   console:
-    token: ${nullbot.console.token}
+    token: ${nullbot.console.token:}
   adapter: ${nullbot.adapter:shiro}
   cmd:
     ignore-case: true

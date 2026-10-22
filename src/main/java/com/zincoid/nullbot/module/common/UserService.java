@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.common;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.po.User;
@@ -61,4 +62,17 @@ public interface UserService extends IService<User> {
      * @param id platform user id
      */
     void delete(String id);
+
+    // ════ Page ════════════════════
+
+    /**
+     * 按关键词分页查询用户。
+     * <p>Pages users by keyword.</p>
+     *
+     * @param keyword keyword matched against id or name, nullable
+     * @param page    one-based page number
+     * @param size    page size
+     * @return the user page
+     */
+    Page<User> page(String keyword, long page, long size);
 }

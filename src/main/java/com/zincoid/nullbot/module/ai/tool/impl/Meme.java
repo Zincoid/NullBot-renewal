@@ -43,9 +43,9 @@ public class Meme implements Tool {
         if (memes.isEmpty()) return ToolRes.of("No memes found");
         StringBuilder text = new StringBuilder("Memes:");
         for (File meme : memes) {
-            String label = meme.getDescription();
-            if (label == null || label.isBlank()) continue;
-            text.append("\n- file id=").append(meme.getId()).append(": ").append(label);
+            text.append("\n- file id=").append(meme.getId())
+                    .append(" ,name=").append(meme.getOriginal())
+                    .append(": ").append(meme.getDescription());
         }
         return ToolRes.of(text.toString());
     }

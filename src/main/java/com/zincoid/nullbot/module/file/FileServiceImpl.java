@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.file;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.configuration.FileProperties;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
@@ -102,6 +103,19 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .orderByDesc(File::getId)
                 .last("LIMIT " + size)
                 .list();
+    }
+
+    @Override
+    public Page<File> page(BizType type, String keyword, long page, long size) {
+        long current = Math.max(1, page);
+        long limit = Math.clamp(size, 1, 100);
+        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        return lambdaQuery()
+                .eq(type != null, File::getType, type)
+                .and(key != null, q -> q.like(File::getDescription, key)
+                        .or().like(File::getOriginal, key))
+                .orderByDesc(File::getId)
+                .page(new Page<>(current, limit));
     }
 
     // ════ Random ══════════════════

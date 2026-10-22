@@ -1,12 +1,13 @@
 package com.zincoid.nullbot.platform.persistence.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * 回复语言，持久化为数字，序列化为小写字符串：auto、zh、en。
- * <p>Reply language persisted as a number and serialized as a lowercase string: auto, zh, or en.</p>
+ * 回复语言，持久化与序列化均为数字：0=AUTO、1=ZH、2=EN。
+ * <p>Reply language persisted and serialized as a number: 0=AUTO, 1=ZH, 2=EN.</p>
  */
 @Getter
 public enum Language {
@@ -17,7 +18,6 @@ public enum Language {
 
     @EnumValue
     private final Integer value;
-    @JsonValue
     private final String label;
 
     Language(Integer value, String label) {
@@ -25,13 +25,19 @@ public enum Language {
         this.label = label;
     }
 
-    /**
-     * 按标签查找语言，忽略大小写。
-     * <p>Finds a language by its label, ignoring case.</p>
-     *
-     * @param label the language label
-     * @return the matching language, or null when unknown
-     */
+    @JsonValue
+    public Integer getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static Language fromValue(Integer value) {
+        if (value == null) return null;
+        for (Language language : values())
+            if (language.value.equals(value)) return language;
+        return null;
+    }
+
     public static Language fromLabel(String label) {
         if (label == null) return null;
         for (Language language : values())

@@ -1,6 +1,8 @@
 package com.zincoid.nullbot.platform.persistence.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -21,5 +23,25 @@ public enum LimitScope {
     LimitScope(Integer value, String label) {
         this.value = value;
         this.label = label;
+    }
+
+    @JsonValue
+    public Integer getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static LimitScope fromValue(Integer value) {
+        if (value == null) return null;
+        for (LimitScope scope : values())
+            if (scope.value.equals(value)) return scope;
+        return null;
+    }
+
+    public static LimitScope fromLabel(String label) {
+        if (label == null) return null;
+        for (LimitScope scope : values())
+            if (scope.label.equalsIgnoreCase(label.trim())) return scope;
+        return null;
     }
 }

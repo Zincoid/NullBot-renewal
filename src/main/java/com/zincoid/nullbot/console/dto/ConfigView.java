@@ -14,6 +14,7 @@ import java.util.Objects;
  * @param value        the effective value
  * @param defaultValue the default value
  * @param description  the description
+ * @param secret       whether the entry is marked as secret
  * @param customized   whether the effective value differs from the default
  * @param updatedAt    the last update time, nullable when not stored
  */
@@ -22,6 +23,7 @@ public record ConfigView(
         String value,
         String defaultValue,
         String description,
+        boolean secret,
         boolean customized,
         LocalDateTime updatedAt
 ) {
@@ -42,6 +44,7 @@ public record ConfigView(
                 value,
                 conf.getDefaultValue(),
                 conf.getDescription(),
+                conf.isSecret(),
                 !Objects.equals(value, conf.getDefaultValue()),
                 stored ? config.getUpdatedAt() : null);
     }

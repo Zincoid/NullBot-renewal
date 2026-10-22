@@ -28,6 +28,15 @@ public class GroupKeywordServiceImpl extends ServiceImpl<GroupKeywordMapper, Gro
                 .list();
     }
 
+    @Override
+    public List<GroupKeyword> listAll(String groupId) {
+        if (groupId == null || groupId.isBlank()) throw new SettingException("Missing key: groupId");
+        return lambdaQuery()
+                .eq(GroupKeyword::getGroupId, groupId)
+                .orderByAsc(GroupKeyword::getId)
+                .list();
+    }
+
     // ════ Add ═════════════════════
 
     @Override
@@ -50,6 +59,32 @@ public class GroupKeywordServiceImpl extends ServiceImpl<GroupKeywordMapper, Gro
         save(rule);
         log.info("Keyword added: group={}, keyword={}", groupId, keyword);
         return rule;
+    }
+
+    // ════ Update ══════════════════
+
+    @Override
+    public GroupKeyword update(Long id, String keyword, String cmd, List<String> args) {
+        if (id == null) throw new SettingException("Missing key: id");
+        if (keyword == null || keyword.isBlank()) throw new SettingException("Missing key: keyword");
+        if (cmd == null || cmd.isBlank()) throw new SettingException("Missing key: cmd");
+        GroupKeyword rule = getById(id);
+        if (rule == null) throw new SettingException("Keyword not found: " + id);
+        boolean exists = lambdaQuery()
+                .eq(GroupKeyword::getGroupId, rule.getGroupId())
+                .eq(GroupKeyword::getKeyword, keyword)
+                .ne(GroupKeyword::getId, id)
+                .exists();
+        if (exists) throw new SettingException("Keyword exists: " + keyword);
+        GroupKeyword update = GroupKeyword.builder()
+                .id(id)
+                .keyword(keyword)
+                .cmd(cmd)
+                .args(args == null || args.isEmpty() ? List.of() : args)
+                .build();
+        if (!updateById(update)) throw new SettingException("Keyword not found: " + id);
+        log.info("Keyword updated: {}", id);
+        return getById(id);
     }
 
     // ════ Delete ══════════════════

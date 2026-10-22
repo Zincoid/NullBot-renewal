@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.common;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.mapper.UserMapper;
@@ -73,5 +74,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void delete(String id) {
         if (!removeById(id)) throw new CommonException("User not found: " + id);
         log.info("User deleted: {}", id);
+    }
+
+    // ════ Page ════════════════════
+
+    @Override
+    public Page<User> page(String keyword, long page, long size) {
+        long current = Math.max(1, page);
+        long limit = Math.clamp(size, 1, 100);
+        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        return lambdaQuery()
+                .and(key != null, q -> q.like(User::getId, key).or().like(User::getName, key))
+                .orderByAsc(User::getId)
+                .page(new Page<>(current, limit));
     }
 }

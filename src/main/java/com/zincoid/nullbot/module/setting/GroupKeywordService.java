@@ -22,6 +22,15 @@ public interface GroupKeywordService extends IService<GroupKeyword> {
      */
     List<GroupKeyword> listEnabled(String groupId);
 
+    /**
+     * 读取群内全部关键词规则。
+     * <p>Returns all keyword rules of the group.</p>
+     *
+     * @param groupId platform group id
+     * @return all rules, oldest first
+     */
+    List<GroupKeyword> listAll(String groupId);
+
     // ════ Add ═════════════════════
 
     /**
@@ -35,6 +44,20 @@ public interface GroupKeywordService extends IService<GroupKeyword> {
      * @return the persisted rule
      */
     GroupKeyword add(String groupId, String keyword, String cmd, List<String> args);
+
+    // ════ Update ══════════════════
+
+    /**
+     * 修改关键词规则。
+     * <p>Updates a keyword rule.</p>
+     *
+     * @param id      rule id
+     * @param keyword new keyword to match, must not be blank
+     * @param cmd     new command name to dispatch, must not be blank
+     * @param args    new command arguments, may be empty
+     * @return the updated rule
+     */
+    GroupKeyword update(Long id, String keyword, String cmd, List<String> args);
 
     // ════ Delete ══════════════════
 

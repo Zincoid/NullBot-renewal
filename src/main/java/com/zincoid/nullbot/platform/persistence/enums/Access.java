@@ -1,6 +1,8 @@
 package com.zincoid.nullbot.platform.persistence.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
@@ -23,5 +25,18 @@ public enum Access {
     Access(Integer value, String label) {
         this.value = value;
         this.label = label;
+    }
+
+    @JsonValue
+    public Integer getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static Access fromValue(Integer value) {
+        if (value == null) return null;
+        for (Access access : values())
+            if (access.value.equals(value)) return access;
+        return null;
     }
 }

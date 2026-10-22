@@ -8,6 +8,7 @@ import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Config;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,7 +77,7 @@ public class ConfigController {
      * @return the updated configuration entry
      */
     @PutMapping("/{key}")
-    public ConfigView update(@PathVariable String key, @RequestBody ConfigUpdate body) {
+    public ConfigView update(@PathVariable String key, @Valid @RequestBody ConfigUpdate body) {
         Conf conf = conf(key);
         configService.update(conf, validate(conf, body.value()));
         return view(conf);
@@ -110,8 +111,6 @@ public class ConfigController {
     }
 
     private static String validate(Conf conf, String value) {
-        if (value == null)
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Missing value");
         if (conf == Conf.DEFAULT_LANGUAGE) {
             Language language = Language.fromLabel(value);
             if (language != Language.ZH && language != Language.EN)

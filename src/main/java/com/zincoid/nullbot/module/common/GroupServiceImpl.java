@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.common;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.mapper.GroupMapper;
@@ -73,5 +74,18 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     public void delete(String id) {
         if (!removeById(id)) throw new CommonException("Group not found: " + id);
         log.info("Group deleted: {}", id);
+    }
+
+    // ════ Page ════════════════════
+
+    @Override
+    public Page<Group> page(String keyword, long page, long size) {
+        long current = Math.max(1, page);
+        long limit = Math.clamp(size, 1, 100);
+        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        return lambdaQuery()
+                .and(key != null, q -> q.like(Group::getId, key).or().like(Group::getName, key))
+                .orderByAsc(Group::getId)
+                .page(new Page<>(current, limit));
     }
 }

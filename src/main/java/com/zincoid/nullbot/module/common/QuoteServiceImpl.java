@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.common;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.mapper.QuoteMapper;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
@@ -64,5 +65,21 @@ public class QuoteServiceImpl extends ServiceImpl<QuoteMapper, Quote> implements
                 .eq(Quote::getUserId, userId)
                 .last("LIMIT 1 OFFSET " + offset)
                 .one();
+    }
+
+    // ════ Page ════════════════════
+
+    @Override
+    public Page<Quote> page(String keyword, long page, long size) {
+        long current = Math.max(1, page);
+        long limit = Math.clamp(size, 1, 100);
+        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        return lambdaQuery()
+                .and(key != null, q -> q.like(Quote::getText, key)
+                        .or().like(Quote::getNickname, key)
+                        .or().like(Quote::getUserId, key))
+                .orderByDesc(Quote::getTime)
+                .orderByDesc(Quote::getId)
+                .page(new Page<>(current, limit));
     }
 }
