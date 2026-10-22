@@ -13,7 +13,8 @@ public enum BizType {
     IMG_COLL(0, "img_coll"),
     VID_COLL(1, "vid_coll"),
     AUD_COLL(2, "aud_coll"),
-    CHAT(3, "chat");
+    CHAT(3, "chat"),
+    MEME(4, "meme");
 
     @EnumValue
     private final Integer value;

@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 public class Call implements Tool {
 
     private static final Set<String> COMMANDS = Set.of(
-            "QuoteRand", "QuoteGet", "QuoteSave",
-            "ImageRand", "ImageGet", "ImageSave",
-            "VideoRand", "VideoGet", "VideoSave");
+            "QuoteRand", "QuoteSave",
+            "ImageRand", "ImageSave",
+            "VideoRand", "VideoSave");
 
     private final CmdRegistry registry;
     private final ToolDefinition definition;

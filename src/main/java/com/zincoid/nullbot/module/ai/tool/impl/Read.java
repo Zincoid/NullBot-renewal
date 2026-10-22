@@ -61,8 +61,8 @@ public class Read implements Tool {
     private String attachment(String id) {
         File file = fileService.getById(Long.parseLong(id));
         return file == null
-                ? "- file " + id + ": not found"
-                : "- file " + id + ": " + file.getOriginal();
+                ? "- file id=" + id + ": not found"
+                : "- file id=" + id + ": " + file.getOriginal();
     }
 
     private record Args(String id) {

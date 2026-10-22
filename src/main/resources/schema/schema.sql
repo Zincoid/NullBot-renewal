@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `file` (
     `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
     `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'File description',
     `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
-    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMG_COLL, 1=VID_COLL, 2=AUD_COLL, 3=CHAT',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMG_COLL, 1=VID_COLL, 2=AUD_COLL, 3=CHAT, 4=MEME',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),

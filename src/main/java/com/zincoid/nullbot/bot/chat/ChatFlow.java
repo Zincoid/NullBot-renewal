@@ -1,7 +1,6 @@
 package com.zincoid.nullbot.bot.chat;
 
 import com.zincoid.nullbot.bot.bus.CmdProcessor;
-import com.zincoid.nullbot.bot.bus.CmdRequest;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
@@ -14,10 +13,9 @@ import com.zincoid.nullbot.module.ai.client.BotAiClient;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
-import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
@@ -27,8 +25,6 @@ import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +61,7 @@ public class ChatFlow {
     private final GroupSettingService groupSettingService;
     private final CmdProcessor cmdProcessor;
     private final ChatGuard chatGuard;
+    private final FileService fileService;
     private final ReentrantLock[] locks = stripes();
 
     // ════ Reply ═══════════════════
@@ -153,10 +150,10 @@ public class ChatFlow {
                 return;
             }
             String selfName = selfName(client, selfId);
-            ToolContext toolContext = new BotToolCtx(
-                    client, chatId, selfId, selfName, targetId, group, memory, event, cmdProcessor);
+            ChatContext chatContext = new ChatContext(
+                    client, targetId, group, event, cmdProcessor, fileService);
             ModelRes reply = botAiClient.invoke(memory.get(chatId),
-                    prompt(promptBase(setting), trigger), effort(setting), toolContext);
+                    prompt(promptBase(setting), trigger), effort(setting), chatContext);
             String content = reply.getContent();
             String replyId = send(client, targetId, group,
                     MsgContent.builder().text(content).build());
@@ -288,26 +285,5 @@ public class ChatFlow {
         ReentrantLock[] locks = new ReentrantLock[LOCK_STRIPES];
         for (int i = 0; i < locks.length; i++) locks[i] = new ReentrantLock();
         return locks;
-    }
-
-    private record BotToolCtx(BotClient client, String chatId, String selfId, String selfName,
-                              String targetId, boolean group, Memory memory, BotEvent event,
-                              CmdProcessor cmdProcessor)
-            implements ToolContext {
-
-        @Override
-        public String send(String text, String replyId) {
-            MsgContent.Builder builder = MsgContent.builder().text(text);
-            if (replyId != null && !replyId.isBlank()) builder.reply(replyId);
-            String messageId = ChatFlow.send(client, targetId, group, builder.build());
-            memory.add(chatId, messageId, selfId, selfName, AiMessage.assistant(text));
-            return messageId;
-        }
-
-        @Override
-        public ToolRes command(String name, List<String> params) {
-            cmdProcessor.process(client, event, new CmdRequest(name, params));
-            return ToolRes.of("Command executed: " + name);
-        }
     }
 }

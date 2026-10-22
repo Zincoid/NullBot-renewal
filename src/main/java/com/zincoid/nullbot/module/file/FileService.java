@@ -5,6 +5,8 @@ import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * 基于平铺磁盘存储与 {@code file} 表的文件管理。
  * <p>File management over flat disk storage and the {@code file} table.</p>
@@ -84,6 +86,17 @@ public interface FileService extends IService<File> {
      * @return the file URI
      */
     String uri(File file);
+
+    /**
+     * 按业务类型与关键词查询文件。
+     * <p>Queries files by business type and keyword.</p>
+     *
+     * @param type    business type
+     * @param keyword keyword matched against description or original filename, nullable
+     * @param limit   maximum number of results
+     * @return the matching files, newest first
+     */
+    List<File> search(BizType type, String keyword, int limit);
 
     // ════ Random ══════════════════
 

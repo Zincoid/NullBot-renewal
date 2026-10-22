@@ -12,11 +12,12 @@ public interface ToolContext {
      * 向当前会话发送一条消息。
      * <p>Sends one message to the current chat.</p>
      *
-     * @param text    the message text
+     * @param text    the message text, may be blank when files are present
+     * @param fileIds the file ids to attach as images
      * @param replyId the platform message id to quote, nullable
-     * @return the sent platform message id
+     * @return the tool result
      */
-    String send(String text, String replyId);
+    ToolRes send(String text, List<Long> fileIds, String replyId);
 
     /**
      * 执行机器人指令。

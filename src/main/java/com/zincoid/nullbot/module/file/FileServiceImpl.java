@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -87,6 +88,20 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .normalize()
                 .toUri()
                 .toString();
+    }
+
+    @Override
+    public List<File> search(BizType type, String keyword, int limit) {
+        if (type == null) throw new FileException("Missing key: type");
+        int size = Math.clamp(limit, 1, 50);
+        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        return lambdaQuery()
+                .eq(File::getType, type)
+                .and(key != null, q -> q.like(File::getDescription, key)
+                        .or().like(File::getOriginal, key))
+                .orderByDesc(File::getId)
+                .last("LIMIT " + size)
+                .list();
     }
 
     // ════ Random ══════════════════
