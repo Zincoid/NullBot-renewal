@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class PingCmd implements Cmd {
 
+    // ════ Run ═════════════════════
+
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         ctx.send("pong");
@@ -25,6 +27,8 @@ public class PingCmd implements Cmd {
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
         ctx.send("pong");
     }
+
+    // ════ Cmd ═════════════════════
 
     @Override
     public String getHelp() {

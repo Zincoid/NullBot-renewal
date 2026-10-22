@@ -16,7 +16,7 @@ public enum Conf {
     AI_PROVIDER_MODEL("ai_provider_model", "", "Model name"),
     AI_MAX_TOKENS("ai_max_tokens", "1024", "Max output tokens per request"),
     AI_MAX_TOOL_CALLS("ai_max_tool_calls", "5", "Max tool call rounds"),
-    AI_CHAT_PROMPT("ai_chat_prompt", "You are a helpful assistant.", "Chat system prompt");
+    AI_CHAT_DEFAULT_PROMPT("ai_chat_prompt", "You are a helpful assistant.", "Chat system prompt");
 
     private final String key;
     private final String defaultValue;

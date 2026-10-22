@@ -20,6 +20,16 @@ public interface ConfigService extends IService<Config> {
      */
     String get(Conf conf);
 
+    /**
+     * 返回配置项的生效值并转换为整数。
+     * <p>Returns the effective value of the configuration entry as an integer.</p>
+     *
+     * @param conf configuration entry
+     * @return the stored value as an integer, or the converted default value when absent
+     * @throws ConfigException when the value is not a valid integer
+     */
+    int getInt(Conf conf);
+
     // ════ Update ══════════════════
 
     /**

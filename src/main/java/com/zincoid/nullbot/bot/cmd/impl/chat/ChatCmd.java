@@ -21,6 +21,8 @@ public class ChatCmd implements Cmd {
 
     private final ChatFlow chatFlow;
 
+    // ════ Run ═════════════════════
+
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         chatFlow.chatGroup(
@@ -40,6 +42,8 @@ public class ChatCmd implements Cmd {
                 event.messageId()
         );
     }
+
+    // ════ Cmd ═════════════════════
 
     @Override
     public String getHelp() {

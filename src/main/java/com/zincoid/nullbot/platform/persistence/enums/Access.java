@@ -10,18 +10,18 @@ import lombok.Getter;
 @Getter
 public enum Access {
 
-    BANNED(-2, "Banned"),
-    RESTRICTED(-1, "Restricted"),
-    NORMAL(0, "Normal"),
-    MANAGER(1, "Manager"),
-    ADMIN(2, "Admin");
+    BANNED(-2, "banned"),
+    RESTRICTED(-1, "restricted"),
+    NORMAL(0, "normal"),
+    MANAGER(1, "manager"),
+    ADMIN(2, "admin");
 
     @EnumValue
     private final Integer value;
-    private final String description;
+    private final String label;
 
-    Access(Integer value, String description) {
+    Access(Integer value, String label) {
         this.value = value;
-        this.description = description;
+        this.label = label;
     }
 }

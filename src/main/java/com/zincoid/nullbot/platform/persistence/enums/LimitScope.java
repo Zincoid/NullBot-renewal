@@ -10,16 +10,16 @@ import lombok.Getter;
 @Getter
 public enum LimitScope {
 
-    USER(0, "Per user"),
-    GROUP(1, "Per group"),
-    CMD(2, "Per command");
+    USER(0, "user"),
+    GROUP(1, "group"),
+    CMD(2, "cmd");
 
     @EnumValue
     private final Integer value;
-    private final String description;
+    private final String label;
 
-    LimitScope(Integer value, String description) {
+    LimitScope(Integer value, String label) {
         this.value = value;
-        this.description = description;
+        this.label = label;
     }
 }

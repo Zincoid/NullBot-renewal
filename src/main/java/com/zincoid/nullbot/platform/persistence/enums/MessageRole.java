@@ -10,15 +10,15 @@ import lombok.Getter;
 @Getter
 public enum MessageRole {
 
-    USER(0, "User"),
-    ASSISTANT(1, "Assistant");
+    USER(0, "user"),
+    ASSISTANT(1, "assistant");
 
     @EnumValue
     private final Integer value;
-    private final String description;
+    private final String label;
 
-    MessageRole(Integer value, String description) {
+    MessageRole(Integer value, String label) {
         this.value = value;
-        this.description = description;
+        this.label = label;
     }
 }

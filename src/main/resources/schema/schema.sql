@@ -76,13 +76,16 @@ CREATE TABLE IF NOT EXISTS `group` (
 -- 6. Group Setting Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_setting` (
-    `id`                BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `group_id`          VARCHAR(64) NOT NULL                 COMMENT 'Platform group id',
-    `limit_enabled`     BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Rate limit enabled',
-    `limit_scope`       TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=CMD',
-    `limit_capacity`    INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',
-    `limit_refill`      INT         NOT NULL DEFAULT 2       COMMENT 'Rate limit refill amount',
-    `limit_interval`    INT         NOT NULL DEFAULT 1       COMMENT 'Rate limit refill interval in minutes',
+    `id`                 BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `group_id`           VARCHAR(64) NOT NULL                 COMMENT 'Platform group id',
+    `limit_enabled`      BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Rate limit enabled',
+    `limit_scope`        TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=CMD',
+    `limit_capacity`     INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',
+    `limit_refill`       INT         NOT NULL DEFAULT 2       COMMENT 'Rate limit refill amount',
+    `limit_interval`     INT         NOT NULL DEFAULT 1       COMMENT 'Rate limit refill interval in minutes',
+    `ai_effort`          TINYINT     NOT NULL DEFAULT 3       COMMENT 'AI reasoning effort: 0=MINIMAL, 1=LOW, 2=MEDIUM, 3=HIGH, 4=XHIGH, 5=MAX, 6=ULTRA',
+    `ai_prompt`          TEXT        DEFAULT NULL             COMMENT 'Group system prompt, blank uses the global prompt',
+    `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Anti prompt injection',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_group_id` (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group setting table';

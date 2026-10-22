@@ -5,7 +5,7 @@ import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
-import com.zincoid.nullbot.module.ai.model.Effort;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
@@ -116,24 +116,14 @@ public class BotAiClient {
     }
 
     private int maxTokens() {
-        String raw = configService.get(Conf.AI_MAX_TOKENS);
-        int value = parseInt(raw);
-        if (value <= 0) throw new AiException("Malformed value: " + raw);
+        int value = configService.getInt(Conf.AI_MAX_TOKENS);
+        if (value <= 0) throw new AiException("Malformed value: " + value);
         return value;
     }
 
     private int maxToolCalls() {
-        String raw = configService.get(Conf.AI_MAX_TOOL_CALLS);
-        int value = parseInt(raw);
-        if (value < 0) throw new AiException("Malformed value: " + raw);
+        int value = configService.getInt(Conf.AI_MAX_TOOL_CALLS);
+        if (value < 0) throw new AiException("Malformed value: " + value);
         return value;
-    }
-
-    private static int parseInt(String raw) {
-        try {
-            return Integer.parseInt(raw);
-        } catch (NumberFormatException e) {
-            throw new AiException("Malformed value: " + raw, e);
-        }
     }
 }

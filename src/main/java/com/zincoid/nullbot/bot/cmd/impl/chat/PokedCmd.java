@@ -21,6 +21,8 @@ public class PokedCmd implements Cmd {
 
     private final ChatFlow chatFlow;
 
+    // ════ Run ═════════════════════
+
     @Override
     public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
         chatFlow.pokeGroup(
@@ -39,6 +41,8 @@ public class PokedCmd implements Cmd {
                 event.selfId()
         );
     }
+
+    // ════ Cmd ═════════════════════
 
     @Override
     public String getHelp() {

@@ -45,6 +45,20 @@ public class GroupCmdRateLimiter {
         return resolveBucket(key, setting).tryConsume(1);
     }
 
+    // ════ Reset ═══════════════════
+
+    /**
+     * 清除该群缓存的令牌桶与防抖时间。
+     * <p>Clears the cached buckets and the spam timestamp of the group.</p>
+     *
+     * @param groupId group platform id
+     */
+    public void reset(String groupId) {
+        String prefix = "[" + groupId + "]";
+        buckets.keySet().removeIf(key -> key.startsWith(prefix));
+        lastProcess.remove(groupId);
+    }
+
     // ════ Helpers ═════════════════
 
     private boolean isSpam(String groupId) {

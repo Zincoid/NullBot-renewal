@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.setting;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.LimitScope;
 import com.zincoid.nullbot.platform.persistence.mapper.GroupSettingMapper;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
@@ -61,6 +62,8 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
                 .limitCapacity(5)
                 .limitRefill(2)
                 .limitInterval(1)
+                .aiEffort(Effort.HIGH)
+                .aiInjectionGuard(true)
                 .build();
         save(setting);
         log.info("Group setting created: {}", groupId);

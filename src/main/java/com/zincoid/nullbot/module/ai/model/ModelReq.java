@@ -2,6 +2,7 @@ package com.zincoid.nullbot.module.ai.model;
 
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

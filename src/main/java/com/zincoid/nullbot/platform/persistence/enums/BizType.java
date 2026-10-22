@@ -10,17 +10,17 @@ import lombok.Getter;
 @Getter
 public enum BizType {
 
-    IMG_COLL(0, "Image collection"),
-    VID_COLL(1, "Video collection"),
-    AUD_COLL(2, "Audio collection"),
-    CHAT(3, "Chat attachment");
+    IMG_COLL(0, "img_coll"),
+    VID_COLL(1, "vid_coll"),
+    AUD_COLL(2, "aud_coll"),
+    CHAT(3, "chat");
 
     @EnumValue
     private final Integer value;
-    private final String description;
+    private final String label;
 
-    BizType(Integer value, String description) {
+    BizType(Integer value, String label) {
         this.value = value;
-        this.description = description;
+        this.label = label;
     }
 }

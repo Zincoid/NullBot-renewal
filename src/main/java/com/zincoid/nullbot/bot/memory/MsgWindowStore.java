@@ -84,14 +84,8 @@ public class MsgWindowStore {
      * @return the window size
      */
     private int size() {
-        String raw = configService.get(Conf.MESSAGE_HISTORY_MAX_LENGTH);
-        int size;
-        try {
-            size = Integer.parseInt(raw);
-        } catch (NumberFormatException e) {
-            throw new ConfigException("Malformed value: " + raw, e);
-        }
-        if (size <= 0) throw new ConfigException("Malformed value: " + raw);
+        int size = configService.getInt(Conf.MESSAGE_HISTORY_MAX_LENGTH);
+        if (size <= 0) throw new ConfigException("Malformed value: " + size);
         return size;
     }
 

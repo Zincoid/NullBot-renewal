@@ -29,6 +29,8 @@ public class QuoteRandCmd implements Cmd {
 
     private final QuoteService quoteService;
 
+    // ════ Run ═════════════════════
+
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         String userId = event.content().atIds()
@@ -43,6 +45,8 @@ public class QuoteRandCmd implements Cmd {
         ctx.send(format(quote));
         log.info("Quote sent: {}", quote.getId());
     }
+
+    // ════ Cmd ═════════════════════
 
     @Override
     public Access getAccess() {
@@ -66,6 +70,8 @@ public class QuoteRandCmd implements Cmd {
                 Sends a random quote.
                 Usage: RandomQuote [user id | @user]""";
     }
+
+    // ════ Helpers ═════════════════
 
     private static String format(Quote quote) {
         String time = quote.getTime() == null ? "" : quote.getTime().format(FORMATTER);

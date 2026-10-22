@@ -31,6 +31,8 @@ public class QuoteSaveCmd implements Cmd {
 
     private final QuoteService quoteService;
 
+    // ════ Run ═════════════════════
+
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         boolean replied = args.hasOpt("id", "i");
@@ -57,6 +59,8 @@ public class QuoteSaveCmd implements Cmd {
         ctx.send(builder.build());
     }
 
+    // ════ Cmd ═════════════════════
+
     @Override
     public String getHelp() {
         return """
@@ -77,6 +81,8 @@ public class QuoteSaveCmd implements Cmd {
                 Options: -i,--id=[message id]
                 Note: saves funny or remarkable user messages.""";
     }
+
+    // ════ Helpers ═════════════════
 
     private static String text(MsgContent content, BotClient client) {
         StringBuilder text = new StringBuilder();

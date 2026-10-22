@@ -3,6 +3,7 @@ package com.zincoid.nullbot.platform.persistence.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.LimitScope;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,4 +25,7 @@ public class GroupSetting {
     private Integer limitCapacity;
     private Integer limitRefill;
     private Integer limitInterval;
+    private Effort aiEffort;
+    private String aiPrompt;
+    private Boolean aiInjectionGuard;
 }

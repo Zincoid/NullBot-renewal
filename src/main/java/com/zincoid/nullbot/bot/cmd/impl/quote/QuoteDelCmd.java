@@ -23,6 +23,8 @@ public class QuoteDelCmd implements Cmd {
 
     private final QuoteService quoteService;
 
+    // ════ Run ═════════════════════
+
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         long id = args.nextLong();
@@ -33,6 +35,8 @@ public class QuoteDelCmd implements Cmd {
         }
         ctx.send("⚠️ Quote No.%d deleted".formatted(id));
     }
+
+    // ════ Cmd ═════════════════════
 
     @Override
     public Access getAccess() {

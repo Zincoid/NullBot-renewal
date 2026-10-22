@@ -5,10 +5,12 @@ import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.client.BotAiClient;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
-import com.zincoid.nullbot.module.ai.model.Effort;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.setting.GroupSettingService;
+import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -45,6 +47,7 @@ public class ChatFlow {
     private final BotAiClient botAiClient;
     private final Memory memory;
     private final ConfigService configService;
+    private final GroupSettingService groupSettingService;
     private final ReentrantLock[] locks = stripes();
 
     // ════ Reply ═══════════════════
@@ -123,9 +126,11 @@ public class ChatFlow {
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
+            GroupSetting setting = group ? groupSettingService.get(targetId) : null;
             String selfName = selfName(client, selfId);
             ToolContext toolContext = new BotToolCtx(client, chatId, selfId, selfName, targetId, group, memory);
-            String reply = botAiClient.invoke(memory.get(chatId), prompt(trigger), Effort.HIGH, toolContext);
+            String reply = botAiClient.invoke(memory.get(chatId),
+                    prompt(promptBase(setting), trigger), effort(setting), toolContext);
             String replyId = send(client, targetId, group, MsgContent.builder().text(reply).build());
             memory.add(chatId, replyId, selfId, selfName, AiMessage.assistant(reply));
         } finally {
@@ -139,14 +144,38 @@ public class ChatFlow {
      * 拼接系统提示词。
      * <p>Builds the system prompt.</p>
      *
+     * @param base    the base prompt
      * @param trigger the trigger note, nullable
      * @return the system prompt
      */
-    private String prompt(String trigger) {
-        String base = configService.get(Conf.AI_CHAT_PROMPT);
+    private static String prompt(String base, String trigger) {
         return Stream.of(base, FORMAT_PROMPT, trigger)
                 .filter(text -> text != null && !text.isBlank())
                 .collect(Collectors.joining("\n\n"));
+    }
+
+    /**
+     * 选择会话的提示词基底：群设置优先，否则使用全局配置。
+     * <p>Selects the prompt base of the chat: the group setting wins, otherwise the global configuration.</p>
+     *
+     * @param setting group settings, null for private chats
+     * @return the prompt base
+     */
+    private String promptBase(GroupSetting setting) {
+        if (setting != null && setting.getAiPrompt() != null && !setting.getAiPrompt().isBlank())
+            return setting.getAiPrompt();
+        return configService.get(Conf.AI_CHAT_DEFAULT_PROMPT);
+    }
+
+    /**
+     * 选择推理强度，未设置时使用 HIGH。
+     * <p>Selects the reasoning effort, falling back to HIGH when unset.</p>
+     *
+     * @param setting group settings, null for private chats
+     * @return the reasoning effort
+     */
+    private static Effort effort(GroupSetting setting) {
+        return setting == null || setting.getAiEffort() == null ? Effort.HIGH : setting.getAiEffort();
     }
 
     /**

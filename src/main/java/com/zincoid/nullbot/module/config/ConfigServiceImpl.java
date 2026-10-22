@@ -28,6 +28,16 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
                 : config.getValue();
     }
 
+    @Override
+    public int getInt(Conf conf) {
+        String raw = get(conf);
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            throw new ConfigException("Malformed value: " + raw, e);
+        }
+    }
+
     // ════ Update ══════════════════
 
     @Override
