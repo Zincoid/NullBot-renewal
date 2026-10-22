@@ -43,9 +43,9 @@ public class BotAiClient {
      * @param prompt  the system prompt, may be blank
      * @param effort  the reasoning effort
      * @param ctx     the tool context
-     * @return the final reply content
+     * @return the final model response
      */
-    public String invoke(List<AiMessage> history, String prompt, Effort effort, ToolContext ctx) {
+    public ModelRes invoke(List<AiMessage> history, String prompt, Effort effort, ToolContext ctx) {
         int maxTcs = maxToolCalls();
         int maxTokens = maxTokens();
         List<AiMessage> work = new ArrayList<>();
@@ -61,8 +61,7 @@ public class BotAiClient {
                     effort,
                     maxTokens
             ));
-            if (!res.hasTcs())
-                return ensureContent(res.getContent());
+            if (!res.hasTcs()) return requireContent(res);
             log.info("Tool round {}: {} call(s)", i + 1, res.getTcs().size());
             work.add(AiMessage.assistant(res.getTcs())
                     .withReasoning(res.getReasoning()));
@@ -91,14 +90,14 @@ public class BotAiClient {
 
     // ════ Helpers ═════════════════
 
-    private String replyFinal(List<AiMessage> work, Effort effort, int maxTokens) {
-        ModelRes res = model.invoke(ModelReq.of(work, effort, maxTokens));
-        return ensureContent(res.getContent());
+    private ModelRes replyFinal(List<AiMessage> work, Effort effort, int maxTokens) {
+        return requireContent(model.invoke(ModelReq.of(work, effort, maxTokens)));
     }
 
-    private static String ensureContent(String content) {
-        if (content != null && !content.isBlank()) return content;
-        return "(AI is temporarily unable to answer)";
+    private static ModelRes requireContent(ModelRes res) {
+        if (res.getContent() == null || res.getContent().isBlank())
+            throw new AiException("Empty AI response");
+        return res;
     }
 
     private ToolRes runTool(ToolCall tc, ToolContext ctx) {

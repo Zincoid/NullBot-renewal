@@ -57,9 +57,9 @@ public class VideoGetCmd implements Cmd {
         long id = args.nextLong();
         File file = fileService.getById(id);
         if (file == null)
-            throw new CmdWarnException(ctx.text(Text.FILE_NOT_FOUND, id));
+            throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
         if (file.getType() != BizType.VID_COLL)
-            throw new CmdWarnException(ctx.text(Text.NOT_VIDEO, id));
+            throw new CmdWarnException(ctx.render(Text.NOT_VIDEO, id));
         ctx.send(MsgContent.builder().video(fileService.uri(file)).build());
         log.info("Video sent: {}", id);
     }

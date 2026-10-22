@@ -21,7 +21,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_GROUP_MSG));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_GROUP_MSG));
     }
 
     /**
@@ -33,7 +33,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_PRIVATE_MSG));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_MSG));
     }
 
     /**
@@ -45,7 +45,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_GROUP_POKE));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_GROUP_POKE));
     }
 
     /**
@@ -57,7 +57,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_PRIVATE_POKE));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_POKE));
     }
 
     /**
@@ -69,7 +69,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupRecallEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_GROUP_RECALL));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_GROUP_RECALL));
     }
 
     /**
@@ -81,7 +81,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivateRecallEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_PRIVATE_RECALL));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_RECALL));
     }
 
     /**
@@ -93,7 +93,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, JoinEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_JOIN));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_JOIN));
     }
 
     /**
@@ -105,7 +105,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, LeaveEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_LEAVE));
+        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_LEAVE));
     }
 
     /**

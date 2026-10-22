@@ -78,7 +78,7 @@ public class MsgStoreHandler implements PreHandler {
         msgWindowStore.add(
                 chatId, event.messageId(),
                 event.userId(), MessageRole.USER, event.nickname(),
-                content.toString(), files
+                content.toString(), null, files
         );
     }
 

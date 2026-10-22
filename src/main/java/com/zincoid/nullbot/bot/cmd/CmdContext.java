@@ -47,7 +47,7 @@ public record CmdContext(
      * @param args the format arguments
      * @return the rendered text
      */
-    public String text(Text text, Object... args) {
+    public String render(Text text, Object... args) {
         return text.of(language, args);
     }
 

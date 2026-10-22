@@ -22,12 +22,14 @@ public interface MessageService extends IService<Message> {
      * @param chatId   chat identifier
      * @param userId   sender platform user id
      * @param role     message role
-     * @param nickname sender nickname
-     * @param content  text content, may be blank when files present
-     * @param files    attached file paths, may be empty
+     * @param nickname  sender nickname
+     * @param content   text content, may be blank when files present
+     * @param reasoning assistant reasoning content, may be null
+     * @param files     attached file paths, may be empty
      * @return the persisted record
      */
-    Message save(String id, String chatId, String userId, MessageRole role, String nickname, String content, List<String> files);
+    Message save(String id, String chatId, String userId, MessageRole role, String nickname,
+                 String content, String reasoning, List<String> files);
 
     // ════ Delete ══════════════════
 

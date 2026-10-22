@@ -55,7 +55,7 @@ public class GroupSetCmd implements Cmd {
             ctx.send(view(ctx, groupId));
             return;
         }
-        throw new CmdWarnException(ctx.text(Text.GROUPSET_UNKNOWN_OPTION));
+        throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_OPTION));
     }
 
     // ════ Update ══════════════════
@@ -68,29 +68,29 @@ public class GroupSetCmd implements Cmd {
             case "enabled" -> {
                 boolean enabled = bool(ctx, args.next());
                 update.setLimitEnabled(enabled);
-                message = ctx.text(Text.GROUPSET_LIMIT_ENABLED, enabled);
+                message = ctx.render(Text.GROUPSET_LIMIT_ENABLED, enabled);
             }
             case "scope" -> {
                 LimitScope scope = scope(ctx, args.next());
                 update.setLimitScope(scope);
-                message = ctx.text(Text.GROUPSET_LIMIT_SCOPE, scope.getLabel());
+                message = ctx.render(Text.GROUPSET_LIMIT_SCOPE, scope.getLabel());
             }
             case "capacity" -> {
                 int value = positive(ctx, args.nextInt());
                 update.setLimitCapacity(value);
-                message = ctx.text(Text.GROUPSET_LIMIT_CAPACITY, value);
+                message = ctx.render(Text.GROUPSET_LIMIT_CAPACITY, value);
             }
             case "refill" -> {
                 int value = positive(ctx, args.nextInt());
                 update.setLimitRefill(value);
-                message = ctx.text(Text.GROUPSET_LIMIT_REFILL, value);
+                message = ctx.render(Text.GROUPSET_LIMIT_REFILL, value);
             }
             case "interval" -> {
                 int value = positive(ctx, args.nextInt());
                 update.setLimitInterval(value);
-                message = ctx.text(Text.GROUPSET_LIMIT_INTERVAL, value);
+                message = ctx.render(Text.GROUPSET_LIMIT_INTERVAL, value);
             }
-            default -> throw new CmdWarnException(ctx.text(Text.GROUPSET_UNKNOWN_LIMIT, name));
+            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_LIMIT, name));
         }
         save(update);
         groupCmdRateLimiter.reset(groupId);
@@ -105,21 +105,21 @@ public class GroupSetCmd implements Cmd {
             case "effort" -> {
                 Effort effort = effort(ctx, args.next());
                 update.setAiEffort(effort);
-                message = ctx.text(Text.GROUPSET_AI_EFFORT, effort.getLabel());
+                message = ctx.render(Text.GROUPSET_AI_EFFORT, effort.getLabel());
             }
             case "prompt" -> {
                 String text = args.rest("").trim();
-                if (text.isEmpty()) throw new CmdWarnException(ctx.text(Text.GROUPSET_MISSING_PROMPT));
+                if (text.isEmpty()) throw new CmdWarnException(ctx.render(Text.GROUPSET_MISSING_PROMPT));
                 boolean reset = "reset".equalsIgnoreCase(text);
                 update.setAiPrompt(reset ? "" : text);
-                message = ctx.text(reset ? Text.GROUPSET_AI_PROMPT_RESET : Text.GROUPSET_AI_PROMPT_UPDATED);
+                message = ctx.render(reset ? Text.GROUPSET_AI_PROMPT_RESET : Text.GROUPSET_AI_PROMPT_UPDATED);
             }
             case "guard" -> {
                 boolean enabled = bool(ctx, args.next());
                 update.setAiInjectionGuard(enabled);
-                message = ctx.text(Text.GROUPSET_AI_GUARD, enabled);
+                message = ctx.render(Text.GROUPSET_AI_GUARD, enabled);
             }
-            default -> throw new CmdWarnException(ctx.text(Text.GROUPSET_UNKNOWN_AI, name));
+            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_AI, name));
         }
         save(update);
         ctx.send(Text.GROUPSET_UPDATED, message);
@@ -130,9 +130,9 @@ public class GroupSetCmd implements Cmd {
         if (raw.isEmpty() || "true".equals(raw)) raw = args.next();
         Language language = Language.fromLabel(raw);
         if (language == null)
-            throw new CmdWarnException(ctx.text(Text.GROUPSET_UNKNOWN_LANGUAGE, raw));
+            throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_LANGUAGE, raw));
         save(GroupSetting.builder().groupId(groupId).language(language).build());
-        ctx.send(Text.GROUPSET_UPDATED, ctx.text(Text.GROUPSET_LANGUAGE, language.getLabel()));
+        ctx.send(Text.GROUPSET_UPDATED, ctx.render(Text.GROUPSET_LANGUAGE, language.getLabel()));
     }
 
     // ════ View ════════════════════
@@ -143,12 +143,12 @@ public class GroupSetCmd implements Cmd {
         Effort effort = setting.getAiEffort() == null ? Effort.HIGH : setting.getAiEffort();
         Language language = setting.getLanguage() == null ? Language.AUTO : setting.getLanguage();
         String languageText = language == Language.AUTO
-                ? ctx.text(Text.GROUPSET_LANG_AUTO, languageService.defaultLanguage().getLabel())
+                ? ctx.render(Text.GROUPSET_LANG_AUTO, languageService.defaultLanguage().getLabel())
                 : language.getLabel();
         String prompt = setting.getAiPrompt() == null || setting.getAiPrompt().isBlank()
-                ? ctx.text(Text.GROUPSET_DEFAULT)
+                ? ctx.render(Text.GROUPSET_DEFAULT)
                 : setting.getAiPrompt();
-        return ctx.text(Text.GROUPSET_VIEW,
+        return ctx.render(Text.GROUPSET_VIEW,
                 groupId, languageText,
                 setting.getLimitEnabled(), scope.getLabel(),
                 setting.getLimitCapacity(), setting.getLimitRefill(), setting.getLimitInterval(),
@@ -169,25 +169,25 @@ public class GroupSetCmd implements Cmd {
         return switch (raw.toLowerCase(Locale.ROOT)) {
             case "on", "true", "1" -> true;
             case "off", "false", "0" -> false;
-            default -> throw new CmdWarnException(ctx.text(Text.GROUPSET_MALFORMED_BOOLEAN, raw));
+            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_MALFORMED_BOOLEAN, raw));
         };
     }
 
     private static int positive(CmdContext ctx, int value) {
-        if (value <= 0) throw new CmdWarnException(ctx.text(Text.GROUPSET_VALUE_POSITIVE, value));
+        if (value <= 0) throw new CmdWarnException(ctx.render(Text.GROUPSET_VALUE_POSITIVE, value));
         return value;
     }
 
     private static LimitScope scope(CmdContext ctx, String raw) {
         for (LimitScope scope : LimitScope.values())
             if (scope.getLabel().equalsIgnoreCase(raw)) return scope;
-        throw new CmdWarnException(ctx.text(Text.GROUPSET_UNKNOWN_SCOPE, raw));
+        throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_SCOPE, raw));
     }
 
     private static Effort effort(CmdContext ctx, String raw) {
         for (Effort effort : Effort.values())
             if (effort.getLabel().equalsIgnoreCase(raw)) return effort;
-        throw new CmdWarnException(ctx.text(Text.GROUPSET_UNKNOWN_EFFORT, raw));
+        throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_EFFORT, raw));
     }
 
     // ════ Cmd ═════════════════════

@@ -13,6 +13,7 @@ import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.client.BotAiClient;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.config.Conf;
@@ -154,10 +155,13 @@ public class ChatFlow {
             String selfName = selfName(client, selfId);
             ToolContext toolContext = new BotToolCtx(
                     client, chatId, selfId, selfName, targetId, group, memory, event, cmdProcessor);
-            String reply = botAiClient.invoke(memory.get(chatId),
+            ModelRes reply = botAiClient.invoke(memory.get(chatId),
                     prompt(promptBase(setting), trigger), effort(setting), toolContext);
-            String replyId = send(client, targetId, group, MsgContent.builder().text(reply).build());
-            memory.add(chatId, replyId, selfId, selfName, AiMessage.assistant(reply));
+            String content = reply.getContent();
+            String replyId = send(client, targetId, group,
+                    MsgContent.builder().text(content).build());
+            memory.add(chatId, replyId, selfId, selfName,
+                    AiMessage.assistant(content).withReasoning(reply.getReasoning()));
         } finally {
             lock.unlock();
         }

@@ -61,12 +61,14 @@ public enum Text {
     QUIZ_ALREADY_IN_GAME("你已经在问答中了", "You are already in a quiz"),
     QUIZ_GENERATING("⏳ 正在生成问题...", "⏳ Generating question..."),
     QUIZ_QUESTION("""
-            回答这个问题！！！
+            请回答问题：
+            
             %s
 
             发送选项字母。
             时限：%d 秒。""", """
-            Answer the question!!!
+            Answer the question:
+            
             %s
 
             Send the option letter.

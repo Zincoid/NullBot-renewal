@@ -46,7 +46,8 @@ public class BotAiMemory implements Memory {
             case ASSISTANT -> MessageRole.ASSISTANT;
             default -> throw new AiException("Unsupported role: " + message.getRole());
         };
-        msgWindowStore.add(chatId, messageId, userId, role, nickname, content, List.of());
+        msgWindowStore.add(chatId, messageId, userId, role, nickname,
+                content, message.getReasoning(), List.of());
     }
 
     // ════ Helpers ═════════════════
@@ -56,7 +57,7 @@ public class BotAiMemory implements Memory {
                 ? "(No content)"
                 : message.getContent();
         if (message.getRole() == MessageRole.ASSISTANT)
-            return AiMessage.assistant(content);
+            return AiMessage.assistant(content).withReasoning(message.getReasoning());
         String name = message.getNickname() == null ? message.getUserId() : message.getNickname();
         return AiMessage.user(name, "[id=" + message.getId() + "] " + content, List.of());
     }

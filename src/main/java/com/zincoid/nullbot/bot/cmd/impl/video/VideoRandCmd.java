@@ -57,7 +57,7 @@ public class VideoRandCmd implements Cmd {
     private void handle(CmdContext ctx) {
         File file = fileService.random(BizType.VID_COLL);
         if (file == null)
-            throw new CmdInfoException(ctx.text(Text.NO_VIDEOS));
+            throw new CmdInfoException(ctx.render(Text.NO_VIDEOS));
         ctx.send(MsgContent.builder().video(fileService.uri(file)).build());
         log.info("Video sent: {}", file.getId());
     }

@@ -57,7 +57,7 @@ public class ImageRandCmd implements Cmd {
     private void handle(CmdContext ctx) {
         File file = fileService.random(BizType.IMG_COLL);
         if (file == null)
-            throw new CmdInfoException(ctx.text(Text.NO_IMAGES));
+            throw new CmdInfoException(ctx.render(Text.NO_IMAGES));
         ctx.send(MsgContent.builder().image(fileService.uri(file)).build());
         log.info("Image sent: {}", file.getId());
     }

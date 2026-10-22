@@ -21,7 +21,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ════ Save ════════════════════
 
     @Override
-    public Message save(String id, String chatId, String userId, MessageRole role, String nickname, String content, List<String> files) {
+    public Message save(String id, String chatId, String userId, MessageRole role, String nickname,
+                        String content, String reasoning, List<String> files) {
         if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
         if (chatId == null || chatId.isBlank()) throw new CommonException("Missing key: chatId");
         if (userId == null || userId.isBlank()) throw new CommonException("Missing key: userId");
@@ -37,6 +38,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .role(role)
                 .nickname(nickname)
                 .content(noContent ? null : content)
+                .reasoning(reasoning == null || reasoning.isEmpty() ? null : reasoning)
                 .files(noFiles ? null : files)
                 .createdAt(LocalDateTime.now())
                 .build();

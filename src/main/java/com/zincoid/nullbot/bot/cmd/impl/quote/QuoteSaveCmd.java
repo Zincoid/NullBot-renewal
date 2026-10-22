@@ -64,21 +64,21 @@ public class QuoteSaveCmd implements Cmd {
                 ? args.getOpt("id", "i")
                 : replyId;
         if (messageId == null)
-            throw new CmdWarnException(ctx.text(Text.MISSING_REPLY));
+            throw new CmdWarnException(ctx.render(Text.MISSING_REPLY));
         if ("true".equals(messageId))
-            throw new CmdWarnException(ctx.text(Text.MALFORMED_OPTION_ID));
+            throw new CmdWarnException(ctx.render(Text.MALFORMED_OPTION_ID));
         MsgDetail detail = ctx.client().getMsg(messageId);
         if (detail.content().hasRaw())
-            throw new CmdWarnException(ctx.text(Text.UNSUPPORTED_CONTENT));
+            throw new CmdWarnException(ctx.render(Text.UNSUPPORTED_CONTENT));
         String text = text(detail.content(), ctx.client());
         if (text.isBlank())
-            throw new CmdWarnException(ctx.text(Text.NO_TEXT_CONTENT));
+            throw new CmdWarnException(ctx.render(Text.NO_TEXT_CONTENT));
         if (QUOTE_PATTERN.matcher(text).matches())
-            throw new CmdWarnException(ctx.text(Text.QUOTE_ALREADY_SAVED));
+            throw new CmdWarnException(ctx.render(Text.QUOTE_ALREADY_SAVED));
         Quote quote = quoteService.add(
                 detail.userId(), detail.nickname(), text);
         MsgContent.Builder builder = MsgContent.builder()
-                .text(ctx.text(Text.QUOTE_SAVED, quote.getId()));
+                .text(ctx.render(Text.QUOTE_SAVED, quote.getId()));
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());
     }

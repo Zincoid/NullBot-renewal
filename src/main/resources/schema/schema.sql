@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `message` (
     `role`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Message role: 0=USER, 1=ASSISTANT',
     `nickname`      VARCHAR(255)    NOT NULL                 COMMENT 'Sender nickname',
     `content`       TEXT            DEFAULT NULL             COMMENT 'Text content (nullable when files present)',
+    `reasoning`     TEXT            DEFAULT NULL             COMMENT 'Assistant reasoning content for thinking models',
     `files`         JSON            DEFAULT NULL             COMMENT 'Attached file record ids (JSON array)',
     `created_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
     PRIMARY KEY (`id`),

@@ -28,6 +28,7 @@ public class Message {
     private MessageRole role;
     private String nickname;
     private String content;
+    private String reasoning;
     @TableField(typeHandler = JacksonTypeHandler.class)
     private List<String> files;
     private LocalDateTime createdAt;

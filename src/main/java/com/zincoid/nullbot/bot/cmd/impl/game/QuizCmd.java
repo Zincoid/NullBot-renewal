@@ -44,20 +44,20 @@ public class QuizCmd implements Cmd {
     private static final int MAX_TIMEOUT = 120;
 
     private static final String PROMPT = """
-            Create a multiple-choice question with exactly one correct answer. Topic: %s.
+            Create a multiple-choice question with exactly one correct answer.
+            Topic: %s.
             Reply strictly in the following JSON format and nothing else:
             ```
             {
               "answer": "A",
               "timeout": 30,
-              "question": "Question text?\\nA. option one\\nB. option two"
+              "question": "Question text..."
             }
             ```
             Notes:
-            1. Set timeout by difficulty: easy 15-30s, medium 45-60s, hard 90-120s.
+            1. Set timeout by difficulty: easy 30s, medium 60s, hard 120s.
             2. Do not use LaTeX for formulas.
-            3. Write the question and options in the same language as the topic.
-            4. Do not generate questions about Chinese domestic political events or figures.""";
+            3. Write the question and options in %s.""";
 
     private final Model model;
     private final InputManager inputManager;
@@ -69,24 +69,22 @@ public class QuizCmd implements Cmd {
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         String userId = event.userId();
         if (!inGame.add(userId))
-            throw new CmdInfoException(ctx.text(Text.QUIZ_ALREADY_IN_GAME));
+            throw new CmdInfoException(ctx.render(Text.QUIZ_ALREADY_IN_GAME));
         try {
-            String topic = args.rest(ctx.text(Text.QUIZ_DEFAULT_TOPIC)).trim();
+            String topic = args.rest(ctx.render(Text.QUIZ_DEFAULT_TOPIC)).trim();
             ctx.send(Text.QUIZ_GENERATING);
             QuizData data = generate(ctx, topic);
-            ctx.send(MsgContent.builder()
-                    .at(userId)
-                    .text(ctx.text(Text.QUIZ_QUESTION, data.question(), data.timeout()))
-                    .build());
+            String question = ctx.render(Text.QUIZ_QUESTION, data.question(), data.timeout());
+            ctx.send(MsgContent.builder().at(userId).text(question).build());
             List<InputResult> inputs = inputManager.request(
                     InputMode.PS, userId, "[A-Za-z]", data.timeout());
             if (inputs.isEmpty()) {
                 ctx.send(Text.QUIZ_TIMEOUT, event.nickname(), data.answer());
-            } else if (data.answer().equalsIgnoreCase(inputs.getFirst().message())) {
-                ctx.send(Text.QUIZ_CORRECT, event.nickname());
-            } else {
-                ctx.send(Text.QUIZ_WRONG, event.nickname(), data.answer());
+                return;
             }
+            if (data.answer().equalsIgnoreCase(inputs.getFirst().message()))
+                ctx.send(Text.QUIZ_CORRECT, event.nickname());
+            else ctx.send(Text.QUIZ_WRONG, event.nickname(), data.answer());
         } finally {
             inGame.remove(userId);
         }
@@ -95,40 +93,38 @@ public class QuizCmd implements Cmd {
     // ════ Helpers ═════════════════
 
     private QuizData generate(CmdContext ctx, String topic) {
+        String language = ctx.language() == Language.EN ? "English" : "Chinese";
         ModelRes res;
         try {
             res = model.invoke(ModelReq.of(
-                    List.of(AiMessage.system(PROMPT.formatted(topic))),
+                    List.of(AiMessage.system(PROMPT.formatted(topic, language))),
                     Effort.HIGH,
                     MAX_TOKENS));
         } catch (RuntimeException e) {
             log.warn("Quiz generation failed: {}", e.getMessage());
-            throw new CmdWarnException(ctx.text(Text.QUIZ_GENERATE_FAILED));
+            throw new CmdWarnException(ctx.render(Text.QUIZ_GENERATE_FAILED));
         }
         String raw = res.getContent();
         if (raw == null || raw.isBlank())
-            throw new CmdWarnException(ctx.text(Text.QUIZ_EMPTY_RESPONSE));
+            throw new CmdWarnException(ctx.render(Text.QUIZ_EMPTY_RESPONSE));
         try {
-            QuizData data = JsonUtils.parse(json(ctx, raw), QuizData.class);
+            QuizData data = JsonUtils.parse(extractJson(ctx, raw), QuizData.class);
             String answer = data.answer() == null
-                    ? ""
-                    : data.answer().trim().toUpperCase(Locale.ROOT);
+                    ? "" : data.answer().trim().toUpperCase(Locale.ROOT);
             String question = data.question() == null ? "" : data.question().trim();
             if (!answer.matches("[A-Z]") || question.isEmpty())
-                throw new CmdWarnException(ctx.text(Text.QUIZ_MALFORMED_RESPONSE));
+                throw new CmdWarnException(ctx.render(Text.QUIZ_MALFORMED_RESPONSE));
             int timeout = Math.clamp(data.timeout(), MIN_TIMEOUT, MAX_TIMEOUT);
             return new QuizData(answer, timeout, question);
         } catch (PlatformException e) {
-            throw new CmdWarnException(ctx.text(Text.QUIZ_MALFORMED_RESPONSE));
+            throw new CmdWarnException(ctx.render(Text.QUIZ_MALFORMED_RESPONSE));
         }
     }
 
-    private static String json(CmdContext ctx, String raw) {
+    private static String extractJson(CmdContext ctx, String raw) {
         int start = raw.indexOf('{');
-        int end = raw.lastIndexOf('}');
-        if (start < 0 || end <= start)
-            throw new CmdWarnException(ctx.text(Text.QUIZ_MALFORMED_RESPONSE));
-        return raw.substring(start, end + 1);
+        if (start < 0) throw new CmdWarnException(ctx.render(Text.QUIZ_MALFORMED_RESPONSE));
+        return raw.substring(start);
     }
 
     // ════ Cmd ═════════════════════

@@ -40,16 +40,17 @@ public class MsgWindowStore {
      * @param role      message role
      * @param nickname  sender nickname
      * @param content   text content, may be blank when files present
+     * @param reasoning assistant reasoning content, may be null
      * @param files     attached file paths, may be empty
      * @return the persisted record
      */
     public Message add(String chatId, String messageId,
                        String userId, MessageRole role, String nickname,
-                       String content, List<String> files) {
+                       String content, String reasoning, List<String> files) {
         Message message = messageService.save(
                 messageId, chatId,
                 userId, role, nickname,
-                content, files
+                content, reasoning, files
         );
         trim(chatId);
         return message;

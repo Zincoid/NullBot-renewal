@@ -68,7 +68,7 @@ public class ConfigCmd implements Cmd {
     // ════ Helpers ═════════════════
 
     private String list(CmdContext ctx) {
-        StringBuilder text = new StringBuilder(ctx.text(Text.CONFIG_HEADER));
+        StringBuilder text = new StringBuilder(ctx.render(Text.CONFIG_HEADER));
         for (Conf conf : Conf.values())
             text.append("\n").append(conf.getKey()).append(" = ")
                     .append(display(ctx, conf, configService.get(conf)));
@@ -91,20 +91,20 @@ public class ConfigCmd implements Cmd {
         for (Conf conf : Conf.values())
             if (conf.getKey().equalsIgnoreCase(raw) || conf.name().equalsIgnoreCase(raw))
                 return conf;
-        throw new CmdWarnException(ctx.text(Text.CONFIG_UNKNOWN_KEY, raw));
+        throw new CmdWarnException(ctx.render(Text.CONFIG_UNKNOWN_KEY, raw));
     }
 
     private static String validate(CmdContext ctx, Conf conf, String value) {
         if (conf != Conf.DEFAULT_LANGUAGE) return value;
         Language language = Language.fromLabel(value);
         if (language != Language.ZH && language != Language.EN)
-            throw new CmdWarnException(ctx.text(Text.CONFIG_INVALID_LANGUAGE, value));
+            throw new CmdWarnException(ctx.render(Text.CONFIG_INVALID_LANGUAGE, value));
         return language.getLabel();
     }
 
     private static String display(CmdContext ctx, Conf conf, String value) {
         if (conf == Conf.AI_PROVIDER_API_KEY && value != null && !value.isBlank()) return "****";
-        return value == null || value.isEmpty() ? ctx.text(Text.CONFIG_EMPTY) : value;
+        return value == null || value.isEmpty() ? ctx.render(Text.CONFIG_EMPTY) : value;
     }
 
     // ════ Cmd ═════════════════════

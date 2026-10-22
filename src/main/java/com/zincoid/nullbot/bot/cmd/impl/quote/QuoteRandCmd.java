@@ -66,7 +66,7 @@ public class QuoteRandCmd implements Cmd {
                 ? quoteService.random()
                 : quoteService.random(userId);
         if (quote == null)
-            throw new CmdInfoException(ctx.text(Text.NO_QUOTES));
+            throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
         ctx.send(format(quote));
         log.info("Quote sent: {}", quote.getId());
     }

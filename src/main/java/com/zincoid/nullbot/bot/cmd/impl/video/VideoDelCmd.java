@@ -36,9 +36,9 @@ public class VideoDelCmd implements Cmd {
         long id = args.nextLong();
         File file = fileService.getById(id);
         if (file == null)
-            throw new CmdWarnException(ctx.text(Text.FILE_NOT_FOUND, id));
+            throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
         if (file.getType() != BizType.VID_COLL)
-            throw new CmdWarnException(ctx.text(Text.NOT_VIDEO, id));
+            throw new CmdWarnException(ctx.render(Text.NOT_VIDEO, id));
         try {
             fileService.delete(id);
         } catch (FileException e) {

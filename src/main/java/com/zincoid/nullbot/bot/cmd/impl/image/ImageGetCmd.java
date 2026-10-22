@@ -57,9 +57,9 @@ public class ImageGetCmd implements Cmd {
         long id = args.nextLong();
         File file = fileService.getById(id);
         if (file == null)
-            throw new CmdWarnException(ctx.text(Text.FILE_NOT_FOUND, id));
+            throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
         if (file.getType() != BizType.IMG_COLL)
-            throw new CmdWarnException(ctx.text(Text.NOT_IMAGE, id));
+            throw new CmdWarnException(ctx.render(Text.NOT_IMAGE, id));
         ctx.send(MsgContent.builder().image(fileService.uri(file)).build());
         log.info("Image sent: {}", id);
     }

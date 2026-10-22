@@ -65,16 +65,16 @@ public class VideoSaveCmd implements Cmd {
                 ? args.getOpt("id", "i")
                 : replyId;
         if (messageId == null)
-            throw new CmdWarnException(ctx.text(Text.MISSING_REPLY));
+            throw new CmdWarnException(ctx.render(Text.MISSING_REPLY));
         if ("true".equals(messageId))
-            throw new CmdWarnException(ctx.text(Text.MALFORMED_OPTION_ID));
+            throw new CmdWarnException(ctx.render(Text.MALFORMED_OPTION_ID));
         MsgDetail detail = ctx.client().getMsg(messageId);
         List<MsgSegment.Video> videos = detail.content().segments().stream()
                 .filter(MsgSegment.Video.class::isInstance)
                 .map(MsgSegment.Video.class::cast)
                 .toList();
         if (videos.isEmpty())
-            throw new CmdWarnException(ctx.text(Text.NO_VIDEOS_IN_REPLY));
+            throw new CmdWarnException(ctx.render(Text.NO_VIDEOS_IN_REPLY));
         List<File> saved = new ArrayList<>();
         for (MsgSegment.Video video : videos) {
             try {
@@ -87,8 +87,8 @@ public class VideoSaveCmd implements Cmd {
         saved.forEach(file -> log.info("Video saved: {}", file.getId()));
         MsgContent.Builder builder = MsgContent.builder()
                 .text(saved.size() == 1
-                        ? ctx.text(Text.VIDEO_SAVED_ONE, saved.getFirst().getId())
-                        : ctx.text(Text.VIDEO_SAVED_MANY, saved.size()));
+                        ? ctx.render(Text.VIDEO_SAVED_ONE, saved.getFirst().getId())
+                        : ctx.render(Text.VIDEO_SAVED_MANY, saved.size()));
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());
     }

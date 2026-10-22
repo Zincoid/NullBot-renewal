@@ -59,7 +59,7 @@ public class QuoteGetCmd implements Cmd {
         long id = args.nextLong();
         Quote quote = quoteService.getById(id);
         if (quote == null)
-            throw new CmdWarnException(ctx.text(Text.QUOTE_NOT_FOUND, id));
+            throw new CmdWarnException(ctx.render(Text.QUOTE_NOT_FOUND, id));
         ctx.send(format(quote));
         log.info("Quote sent: {}", id);
     }
