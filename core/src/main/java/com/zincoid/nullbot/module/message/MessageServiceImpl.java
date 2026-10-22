@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.common;
+package com.zincoid.nullbot.module.message;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
@@ -23,14 +23,14 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Override
     public Message save(String id, String chatId, String userId, MessageRole role, String nickname,
                         String content, String reasoning, List<String> files) {
-        if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
-        if (chatId == null || chatId.isBlank()) throw new CommonException("Missing key: chatId");
-        if (userId == null || userId.isBlank()) throw new CommonException("Missing key: userId");
-        if (role == null) throw new CommonException("Missing key: role");
-        if (nickname == null) throw new CommonException("Missing key: nickname");
+        if (id == null || id.isBlank()) throw new MessageException("Missing key: id");
+        if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
+        if (userId == null || userId.isBlank()) throw new MessageException("Missing key: userId");
+        if (role == null) throw new MessageException("Missing key: role");
+        if (nickname == null) throw new MessageException("Missing key: nickname");
         boolean noContent = content == null || content.isEmpty();
         boolean noFiles = files == null || files.isEmpty();
-        if (noContent && noFiles) throw new CommonException("Missing content and files");
+        if (noContent && noFiles) throw new MessageException("Missing content and files");
         Message message = Message.builder()
                 .id(id)
                 .chatId(chatId)
@@ -51,7 +51,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     public void delete(String id) {
-        if (!removeById(id)) throw new CommonException("Message not found: " + id);
+        if (!removeById(id)) throw new MessageException("Message not found: " + id);
         log.info("Message deleted: {}", id);
     }
 }

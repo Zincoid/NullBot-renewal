@@ -4,7 +4,7 @@ import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
-import com.zincoid.nullbot.module.common.MessageService;
+import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;

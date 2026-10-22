@@ -1,6 +1,5 @@
-package com.zincoid.nullbot.bot.memory;
+package com.zincoid.nullbot.module.message;
 
-import com.zincoid.nullbot.module.common.MessageService;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
@@ -20,7 +19,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MsgWindowStore {
+public class MessageWindowStore {
 
     private final MessageService messageService;
     private final ConfigService configService;
@@ -64,7 +63,7 @@ public class MsgWindowStore {
      * @return the chat window, oldest first
      */
     public List<Message> get(String chatId) {
-        if (chatId == null || chatId.isBlank()) throw new MemoryException("Missing key: chatId");
+        if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
         List<Message> newest = messageService.lambdaQuery()
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
@@ -84,7 +83,7 @@ public class MsgWindowStore {
      */
     private int size() {
         int size = configService.getInt(Conf.MESSAGE_HISTORY_MAX_LENGTH);
-        if (size <= 0) throw new MemoryException("Malformed value: " + size);
+        if (size <= 0) throw new MessageException("Malformed value: " + size);
         return size;
     }
 

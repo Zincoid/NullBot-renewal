@@ -1,6 +1,5 @@
 package com.zincoid.nullbot.bot.bus.pre;
 
-import com.zincoid.nullbot.bot.memory.MsgWindowStore;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
@@ -8,6 +7,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.message.MessageWindowStore;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.File;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MsgStoreHandler implements PreHandler {
 
-    private final MsgWindowStore msgWindowStore;
+    private final MessageWindowStore messageWindowStore;
     private final FileService fileService;
 
     // ════ Handle ══════════════════
@@ -75,7 +75,7 @@ public class MsgStoreHandler implements PreHandler {
             }
         }
         if (content.isEmpty() && files.isEmpty()) return;
-        msgWindowStore.add(
+        messageWindowStore.add(
                 chatId, event.messageId(),
                 event.userId(), MessageRole.USER, event.nickname(),
                 content.toString(), null, files

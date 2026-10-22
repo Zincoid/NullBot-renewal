@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.common;
+package com.zincoid.nullbot.module.message;
 
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
