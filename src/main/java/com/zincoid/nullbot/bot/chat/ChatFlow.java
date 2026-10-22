@@ -18,6 +18,7 @@ import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
+import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
@@ -59,6 +60,7 @@ public class ChatFlow {
     private final Memory memory;
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
+    private final UserSettingService userSettingService;
     private final CmdProcessor cmdProcessor;
     private final ChatGuard chatGuard;
     private final FileService fileService;
@@ -149,11 +151,14 @@ public class ChatFlow {
                 log.info("Injection blocked: chat={}", chatId);
                 return;
             }
+            String base = group
+                    ? promptBase(setting.getAiPrompt())
+                    : promptBase(userSettingService.get(targetId).getAiPrompt());
             String selfName = selfName(client, selfId);
             ChatContext chatContext = new ChatContext(
                     client, targetId, group, event, cmdProcessor, fileService);
             ModelRes reply = botAiClient.invoke(memory.get(chatId),
-                    prompt(promptBase(setting), trigger), effort(setting), chatContext);
+                    prompt(base, trigger), effort(setting), chatContext);
             String content = reply.getContent();
             String replyId = send(client, targetId, group,
                     MsgContent.builder().text(content).build());
@@ -195,15 +200,14 @@ public class ChatFlow {
     }
 
     /**
-     * 选择会话的提示词基底：群设置优先，否则使用全局配置。
-     * <p>Selects the prompt base of the chat: the group setting wins, otherwise the global configuration.</p>
+     * 选择会话的提示词基底：群设置或用户设置优先，否则使用全局配置。
+     * <p>Selects the prompt base of the chat: the group or user setting wins, otherwise the global configuration.</p>
      *
-     * @param setting group settings, null for private chats
+     * @param prompt the per-chat prompt, nullable
      * @return the prompt base
      */
-    private String promptBase(GroupSetting setting) {
-        if (setting != null && setting.getAiPrompt() != null && !setting.getAiPrompt().isBlank())
-            return setting.getAiPrompt();
+    private String promptBase(String prompt) {
+        if (prompt != null && !prompt.isBlank()) return prompt;
         return configService.getString(Conf.AI_DEFAULT_PROMPT);
     }
 

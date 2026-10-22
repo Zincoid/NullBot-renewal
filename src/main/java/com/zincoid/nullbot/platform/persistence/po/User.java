@@ -17,6 +17,8 @@ public class User {
     private String id;
     private String name;
     private Access access;
+    @Builder.Default
+    private Boolean allowPrivateChat = false;
 
     public User(String id, String name) {
         this.id = id;

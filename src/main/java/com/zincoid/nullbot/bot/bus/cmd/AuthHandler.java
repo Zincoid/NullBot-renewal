@@ -19,8 +19,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * 鉴权处理器：在指令执行前校验群与用户的限权等级。
- * <p>Authorization handler: checks group and user access levels before command execution.</p>
+ * 鉴权处理器：在指令执行前校验群与用户的限权等级，并拦截不允许私聊的用户。
+ * <p>Authorization handler: checks group and user access levels and rejects private chat from disallowed users.</p>
  */
 @Slf4j
 @Order(0)
@@ -38,11 +38,11 @@ public class AuthHandler implements CmdHandler {
         Access required = ctx.cmd().getAccess();
         boolean allowed = switch (ctx.event()) {
             case GroupMsgEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case PrivateMsgEvent e -> checkUser(ctx, required, e.userId());
+            case PrivateMsgEvent e -> checkPrivate(ctx, required, e.userId());
             case GroupPokeEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case PrivatePokeEvent e -> checkUser(ctx, required, e.userId());
+            case PrivatePokeEvent e -> checkPrivate(ctx, required, e.userId());
             case GroupRecallEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case PrivateRecallEvent e -> checkUser(ctx, required, e.userId());
+            case PrivateRecallEvent e -> checkPrivate(ctx, required, e.userId());
             case JoinEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
             case LeaveEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
         };
@@ -50,6 +50,14 @@ public class AuthHandler implements CmdHandler {
     }
 
     // ════ Helpers ═════════════════
+
+    private boolean checkPrivate(CmdContext ctx, Access required, String userId) {
+        if (!userService.isPrivateChatAllowed(userId)) {
+            log.info("Private chat denied: user={}", userId);
+            return false;
+        }
+        return checkUser(ctx, required, userId);
+    }
 
     private boolean checkGroup(CmdContext ctx, Access required, String groupId, String userId) {
         Access groupAccess = groupService.getAccess(groupId);

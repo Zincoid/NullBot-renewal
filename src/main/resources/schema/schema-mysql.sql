@@ -56,14 +56,26 @@ CREATE TABLE IF NOT EXISTS `file` (
 -- 4. User Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user` (
-    `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
-    `name`        VARCHAR(255) NOT NULL                 COMMENT 'User nickname',
-    `access`      TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
+    `id`                 VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
+    `name`               VARCHAR(255) NOT NULL                 COMMENT 'User nickname',
+    `access`             TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
+    `allow_private_chat` BOOLEAN      NOT NULL DEFAULT FALSE   COMMENT 'Whether private chat is allowed',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User table';
 
 -- =============================================
--- 5. Group Table
+-- 5. User Setting Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `user_setting` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Platform user id',
+    `ai_prompt`     TEXT            DEFAULT NULL             COMMENT 'Private chat system prompt, blank uses the global prompt',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User setting table';
+
+-- =============================================
+-- 6. Group Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group` (
     `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform group id',
@@ -73,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group table';
 
 -- =============================================
--- 6. Group Setting Table
+-- 7. Group Setting Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_setting` (
     `id`                 BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -92,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group setting table';
 
 -- =============================================
--- 7. Group Keyword Table
+-- 8. Group Keyword Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_keyword` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -106,7 +118,7 @@ CREATE TABLE IF NOT EXISTS `group_keyword` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group keyword rule table';
 
 -- =============================================
--- 8. Message Table
+-- 9. Message Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            VARCHAR(64)     NOT NULL                 COMMENT 'Platform message id',
@@ -124,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat message table';
 
 -- =============================================
--- 9. Quote Table
+-- 10. Quote Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',

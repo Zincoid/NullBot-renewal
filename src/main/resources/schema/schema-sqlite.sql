@@ -41,19 +41,28 @@ CREATE INDEX IF NOT EXISTS `idx_file_created_at` ON `file` (`created_at`);
 
 -- 4. User
 CREATE TABLE IF NOT EXISTS `user` (
-    `id`            VARCHAR(64)     NOT NULL PRIMARY KEY,
-    `name`          VARCHAR(255)    NOT NULL,
-    `access`        TINYINT         NOT NULL DEFAULT 0
+    `id`                 VARCHAR(64)  NOT NULL PRIMARY KEY,
+    `name`               VARCHAR(255) NOT NULL,
+    `access`             TINYINT      NOT NULL DEFAULT 0,
+    `allow_private_chat` BOOLEAN      NOT NULL DEFAULT 0
 );
 
--- 5. Group
+-- 5. User Setting
+CREATE TABLE IF NOT EXISTS `user_setting` (
+    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `user_id`       VARCHAR(64)     NOT NULL,
+    `ai_prompt`     TEXT            DEFAULT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_user_setting_user_id` ON `user_setting` (`user_id`);
+
+-- 6. Group
 CREATE TABLE IF NOT EXISTS `group` (
     `id`            VARCHAR(64)     NOT NULL PRIMARY KEY,
     `name`          VARCHAR(255)    NOT NULL,
     `access`        TINYINT         NOT NULL DEFAULT 0
 );
 
--- 6. Group Setting
+-- 7. Group Setting
 CREATE TABLE IF NOT EXISTS `group_setting` (
     `id`                 INTEGER    PRIMARY KEY AUTOINCREMENT,
     `group_id`           VARCHAR(64) NOT NULL,
@@ -69,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_setting_group_id` ON `group_setting` (`group_id`);
 
--- 7. Group Keyword
+-- 8. Group Keyword
 CREATE TABLE IF NOT EXISTS `group_keyword` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `group_id`      VARCHAR(64)     NOT NULL,
@@ -80,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `group_keyword` (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_keyword` ON `group_keyword` (`group_id`, `keyword`);
 
--- 8. Message
+-- 9. Message
 CREATE TABLE IF NOT EXISTS `message` (
     `id`            VARCHAR(64)     NOT NULL PRIMARY KEY,
     `chat_id`       VARCHAR(64)     NOT NULL,
@@ -95,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 CREATE INDEX IF NOT EXISTS `idx_message_chat_created` ON `message` (`chat_id`, `created_at`);
 CREATE INDEX IF NOT EXISTS `idx_message_created_at` ON `message` (`created_at`);
 
--- 9. Quote
+-- 10. Quote
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,

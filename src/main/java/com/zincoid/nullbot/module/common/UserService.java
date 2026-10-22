@@ -53,6 +53,17 @@ public interface UserService extends IService<User> {
      */
     void setAccess(String id, Access access);
 
+    // ════ Private chat ════════════
+
+    /**
+     * 返回用户是否允许私聊，未设置时视为不允许。
+     * <p>Returns whether the user may chat privately, treating unset as disallowed.</p>
+     *
+     * @param id platform user id
+     * @return true when private chat is allowed
+     */
+    boolean isPrivateChatAllowed(String id);
+
     // ════ Delete ══════════════════
 
     /**

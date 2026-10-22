@@ -45,18 +45,18 @@ public class DataSourceConfiguration {
         if (!url.isBlank() && !username.isBlank()) {
             HikariDataSource mysql = mysql(url, username, password, driver);
             try {
-                log.info("MySQL connected: {}", probe(mysql));
+                log.info("MySQL connected.");
                 return mysql;
             } catch (Exception exception) {
                 mysql.close();
                 if (!properties.isFallback()) throw new PlatformException("MySQL connection failed and SQLite fallback is disabled", exception);
-                log.warn("MySQL unavailable ({}), using SQLite at {}", rootMessage(exception), properties.getPath());
+                log.warn("MySQL unavailable , using SQLite at {}", properties.getPath());
             }
         } else {
             if (!properties.isFallback()) throw new PlatformException("MySQL is not configured and SQLite fallback is disabled");
             log.warn("MySQL is not configured, using SQLite at {}", properties.getPath());
         }
-        return sqlite(sqliteUrl(properties.getPath()));
+        return sqlite(properties.getPath());
     }
 
     /**
@@ -81,30 +81,23 @@ public class DataSourceConfiguration {
     }
 
     /**
-     * 验证 MySQL 连接并返回当前数据库名。
-     * <p>Validates the MySQL connection and returns the selected database name.</p>
+     * 创建 SQLite 连接池并初始化表结构：建好父目录，拼装 WAL 与锁等待参数，单连接避免写锁竞争。
+     * <p>Creates the SQLite connection pool and initializes the schema: creates the parent directory,
+     * builds the URL with WAL and lock timeout, and uses one connection to avoid write-lock contention.</p>
      *
-     * @param dataSource the data source
-     * @return the selected database name
-     * @throws SQLException when the connection is invalid or no database is selected
-     */
-    private static String probe(DataSource dataSource) throws SQLException {
-        try (Connection connection = dataSource.getConnection()) {
-            if (!connection.isValid(5)) throw new SQLException("Connection is not valid");
-            String catalog = connection.getCatalog();
-            if (catalog == null || catalog.isBlank()) throw new SQLException("No database selected");
-            return catalog;
-        }
-    }
-
-    /**
-     * 创建 SQLite 连接池并初始化表结构，单连接避免写锁竞争。
-     * <p>Creates the SQLite connection pool and initializes the schema; one connection avoids write-lock contention.</p>
-     *
-     * @param url the JDBC URL
+     * @param path the database file path
      * @return the SQLite data source
      */
-    private static HikariDataSource sqlite(String url) {
+    private static HikariDataSource sqlite(String path) {
+        Path file = Path.of(path).toAbsolutePath().normalize();
+        Path parent = file.getParent();
+        if (parent != null)
+            try {
+                Files.createDirectories(parent);
+            } catch (IOException exception) {
+                throw new PlatformException("Cannot create SQLite directory: " + parent, exception);
+            }
+        String url = "jdbc:sqlite:" + file.toString().replace('\\', '/') + "?journal_mode=WAL&busy_timeout=5000";
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setPoolName("nullbot-sqlite");
         dataSource.setDriverClassName(SQLITE_DRIVER);
@@ -118,38 +111,5 @@ public class DataSourceConfiguration {
             throw new PlatformException("Failed to initialize SQLite schema", exception);
         }
         return dataSource;
-    }
-
-    /**
-     * 把文件路径转换成带 WAL 与锁等待的 SQLite JDBC 地址。
-     * <p>Converts a file path to a SQLite JDBC URL with WAL and lock timeout enabled.</p>
-     *
-     * @param path the database file path
-     * @return the SQLite JDBC URL
-     */
-    private static String sqliteUrl(String path) {
-        Path file = Path.of(path).toAbsolutePath().normalize();
-        Path parent = file.getParent();
-        if (parent != null) {
-            try {
-                Files.createDirectories(parent);
-            } catch (IOException exception) {
-                throw new PlatformException("Cannot create SQLite directory: " + parent, exception);
-            }
-        }
-        return "jdbc:sqlite:" + file.toString().replace('\\', '/') + "?journal_mode=WAL&busy_timeout=5000";
-    }
-
-    /**
-     * 取最内层异常的消息用于日志。
-     * <p>Returns the innermost exception message for logging.</p>
-     *
-     * @param throwable the exception
-     * @return the innermost message
-     */
-    private static String rootMessage(Throwable throwable) {
-        Throwable cause = throwable;
-        while (cause.getCause() != null) cause = cause.getCause();
-        return cause.getMessage() == null ? cause.getClass().getSimpleName() : cause.getMessage();
     }
 }

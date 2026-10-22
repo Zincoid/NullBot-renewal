@@ -68,6 +68,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!updated) throw new CommonException("User not found: " + id);
     }
 
+    // ════ Private chat ════════════
+
+    @Override
+    public boolean isPrivateChatAllowed(String id) {
+        User user = getById(id);
+        if (user == null) throw new CommonException("User not found: " + id);
+        return Boolean.TRUE.equals(user.getAllowPrivateChat());
+    }
+
     // ════ Delete ══════════════════
 
     @Override
