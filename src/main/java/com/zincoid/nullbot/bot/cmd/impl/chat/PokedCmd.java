@@ -27,12 +27,12 @@ public class PokedCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        chatFlow.getObject().poke(ctx.client(), event);
+        chatFlow.getObject().poke(ctx.client(), event, ctx.language());
     }
 
     @Override
     public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        chatFlow.getObject().poke(ctx.client(), event);
+        chatFlow.getObject().poke(ctx.client(), event, ctx.language());
     }
 
     // ════ Cmd ═════════════════════

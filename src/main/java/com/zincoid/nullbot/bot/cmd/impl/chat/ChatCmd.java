@@ -27,12 +27,12 @@ public class ChatCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        chatFlow.getObject().chat(ctx.client(), event);
+        chatFlow.getObject().chat(ctx.client(), event, ctx.language());
     }
 
     @Override
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        chatFlow.getObject().chat(ctx.client(), event);
+        chatFlow.getObject().chat(ctx.client(), event, ctx.language());
     }
 
     // ════ Cmd ═════════════════════

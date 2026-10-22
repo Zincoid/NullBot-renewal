@@ -26,6 +26,7 @@ public enum Text {
     QUOTE_NOT_FOUND("语录不存在：%d", "Quote not found: %d"),
     NO_QUOTES("没有语录", "No quotes"),
     QUOTE_ALREADY_SAVED("语录已保存", "Quote already saved"),
+    AI_GUARD_REFUSED("⚠️ 对话被拒绝", "⚠️ Conversation refused"),
 
     // ════ Arguments ══════════════
 
