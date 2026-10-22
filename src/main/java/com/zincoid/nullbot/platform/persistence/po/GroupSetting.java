@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.LimitScope;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,6 +21,7 @@ public class GroupSetting {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     private String groupId;
+    private Language language;
     private Boolean limitEnabled;
     private LimitScope limitScope;
     private Integer limitCapacity;

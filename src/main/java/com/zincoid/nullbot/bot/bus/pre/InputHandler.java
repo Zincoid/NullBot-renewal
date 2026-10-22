@@ -6,7 +6,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.system.InputManager;
+import com.zincoid.nullbot.bot.input.InputManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;

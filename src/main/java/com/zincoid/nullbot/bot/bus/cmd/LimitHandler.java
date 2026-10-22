@@ -9,6 +9,7 @@ import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupCmdRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
@@ -53,7 +54,7 @@ public class LimitHandler implements CmdHandler {
         String cmd = ctx.cmd().getClass().getSimpleName().replace("Cmd", "");
         if (groupCmdRateLimiter.tryConsume(groupId, userId, cmd)) return true;
         log.info("Rate limit exceeded: group={}, user={}, cmd={}", groupId, userId, cmd);
-        if (ctx.event() instanceof GroupMsgEvent) ctx.send("⚠️ Too many requests");
+        if (ctx.event() instanceof GroupMsgEvent) ctx.send(Text.TOO_MANY_REQUESTS);
         return false;
     }
 }

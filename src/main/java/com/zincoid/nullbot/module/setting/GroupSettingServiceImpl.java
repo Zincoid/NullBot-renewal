@@ -2,6 +2,7 @@ package com.zincoid.nullbot.module.setting;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.LimitScope;
 import com.zincoid.nullbot.platform.persistence.mapper.GroupSettingMapper;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
@@ -57,6 +58,7 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
         if (setting != null) return setting;
         setting = GroupSetting.builder()
                 .groupId(groupId)
+                .language(Language.AUTO)
                 .limitEnabled(true)
                 .limitScope(LimitScope.USER)
                 .limitCapacity(5)

@@ -14,7 +14,9 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.module.file.FileException;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,16 +65,16 @@ public class ImageSaveCmd implements Cmd {
                 ? args.getOpt("id", "i")
                 : replyId;
         if (messageId == null)
-            throw new CmdWarnException("Missing reply");
+            throw new CmdWarnException(ctx.text(Text.MISSING_REPLY));
         if ("true".equals(messageId))
-            throw new CmdWarnException("Malformed option: id");
+            throw new CmdWarnException(ctx.text(Text.MALFORMED_OPTION_ID));
         MsgDetail detail = ctx.client().getMsg(messageId);
         List<MsgSegment.Image> images = detail.content().segments().stream()
                 .filter(MsgSegment.Image.class::isInstance)
                 .map(MsgSegment.Image.class::cast)
                 .toList();
         if (images.isEmpty())
-            throw new CmdWarnException("No images in reply");
+            throw new CmdWarnException(ctx.text(Text.NO_IMAGES_IN_REPLY));
         List<File> saved = new ArrayList<>();
         for (MsgSegment.Image image : images) {
             try {
@@ -85,8 +87,8 @@ public class ImageSaveCmd implements Cmd {
         saved.forEach(file -> log.info("Image saved: {}", file.getId()));
         MsgContent.Builder builder = MsgContent.builder()
                 .text(saved.size() == 1
-                        ? "💾 Image saved: id=" + saved.getFirst().getId()
-                        : "💾 Images saved: " + saved.size());
+                        ? ctx.text(Text.IMAGE_SAVED_ONE, saved.getFirst().getId())
+                        : ctx.text(Text.IMAGE_SAVED_MANY, saved.size()));
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());
     }
@@ -94,13 +96,18 @@ public class ImageSaveCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 ImageSave
                 Saves images from a replied message.
                 Usage: [reply] ImageSave
                 Aliases: 保存图片
-                Access: >=0(normal)""";
+                Access: >=0(normal)""" : """
+                ImageSave
+                保存引用消息中的图片。
+                用法：[回复] ImageSave
+                别名：保存图片
+                权限：>=0(normal)""";
     }
 
     @Override

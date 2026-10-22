@@ -11,7 +11,9 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +57,9 @@ public class ImageGetCmd implements Cmd {
         long id = args.nextLong();
         File file = fileService.getById(id);
         if (file == null)
-            throw new CmdWarnException("File not found: " + id);
+            throw new CmdWarnException(ctx.text(Text.FILE_NOT_FOUND, id));
         if (file.getType() != BizType.IMG_COLL)
-            throw new CmdWarnException("Not an image: " + id);
+            throw new CmdWarnException(ctx.text(Text.NOT_IMAGE, id));
         ctx.send(MsgContent.builder().image(fileService.uri(file)).build());
         log.info("Image sent: {}", id);
     }
@@ -65,13 +67,18 @@ public class ImageGetCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 ImageGet
                 Sends a collected image by file id.
                 Usage: ImageGet [file id]
                 Aliases: 获取图片
-                Access: >=0(normal)""";
+                Access: >=0(normal)""" : """
+                ImageGet
+                按文件 id 发送已收藏的图片。
+                用法：ImageGet [file id]
+                别名：获取图片
+                权限：>=0(normal)""";
     }
 
     @Override

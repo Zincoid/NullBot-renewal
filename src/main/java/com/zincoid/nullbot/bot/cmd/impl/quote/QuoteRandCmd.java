@@ -11,7 +11,9 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.common.QuoteService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +66,7 @@ public class QuoteRandCmd implements Cmd {
                 ? quoteService.random()
                 : quoteService.random(userId);
         if (quote == null)
-            throw new CmdInfoException("No quotes");
+            throw new CmdInfoException(ctx.text(Text.NO_QUOTES));
         ctx.send(format(quote));
         log.info("Quote sent: {}", quote.getId());
     }
@@ -77,13 +79,18 @@ public class QuoteRandCmd implements Cmd {
     }
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 QuoteRand
                 Sends a random quote.
                 Usage: QuoteRand [user id | @user]
                 Aliases: quote/随机语录/语录
-                Access: >=-1(restricted)""";
+                Access: >=-1(restricted)""" : """
+                QuoteRand
+                随机发送一条语录。
+                用法：QuoteRand [user id | @user]
+                别名：quote/随机语录/语录
+                权限：>=-1(restricted)""";
     }
 
     @Override

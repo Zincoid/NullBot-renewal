@@ -3,6 +3,7 @@ package com.zincoid.nullbot.bot.bus.cmd;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.module.i18n.Text;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -21,9 +22,9 @@ public class HelpHandler implements CmdHandler {
         List<String> params = ctx.params();
         if (!params.isEmpty() && ("--help".equals(params.getFirst()) || "-H".equals(params.getFirst()))) {
             if (ctx.event() instanceof GroupMsgEvent) {
-                ctx.send(ctx.cmd().getHelp());
+                ctx.send(ctx.cmd().getHelp(ctx.language()));
             } else if (ctx.event() instanceof PrivateMsgEvent) {
-                ctx.send("⚠️ Help is unavailable in private chat");
+                ctx.send(Text.HELP_PRIVATE_UNAVAILABLE);
             }
             return;
         }

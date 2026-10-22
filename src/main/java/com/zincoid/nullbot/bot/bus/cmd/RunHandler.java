@@ -14,6 +14,7 @@ import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.module.i18n.Text;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -32,7 +33,7 @@ public class RunHandler implements CmdHandler {
 
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
-        CmdArgs args = CmdArgs.of(ctx.params());
+        CmdArgs args = CmdArgs.of(ctx.params(), ctx.language());
         try {
             dispatch(ctx, args);
         } catch (CmdOmitException e) {
@@ -43,13 +44,13 @@ public class RunHandler implements CmdHandler {
             ctx.send(e.getMessage());
         } catch (CmdWarnException e) {
             log.warn("Command warning: {}", e.getMessage());
-            ctx.send("⚠️ Warn: " + e.getMessage());
+            ctx.send(Text.CMD_WARN, e.getMessage());
         } catch (CmdErrorException e) {
             log.error("Command error: {}", e.getMessage());
-            ctx.send("❌ Error: " + e.getMessage());
+            ctx.send(Text.CMD_ERROR, e.getMessage());
         } catch (Exception e) {
             log.error("Command fatal: {}", e.getMessage());
-            ctx.send("❌ Fatal: " + e.getMessage());
+            ctx.send(Text.CMD_FATAL, e.getMessage());
             throw e;
         }
     }

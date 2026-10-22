@@ -14,6 +14,8 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.common.QuoteService;
+import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -62,21 +64,21 @@ public class QuoteSaveCmd implements Cmd {
                 ? args.getOpt("id", "i")
                 : replyId;
         if (messageId == null)
-            throw new CmdWarnException("Missing reply");
+            throw new CmdWarnException(ctx.text(Text.MISSING_REPLY));
         if ("true".equals(messageId))
-            throw new CmdWarnException("Malformed option: id");
+            throw new CmdWarnException(ctx.text(Text.MALFORMED_OPTION_ID));
         MsgDetail detail = ctx.client().getMsg(messageId);
         if (detail.content().hasRaw())
-            throw new CmdWarnException("Unsupported content");
+            throw new CmdWarnException(ctx.text(Text.UNSUPPORTED_CONTENT));
         String text = text(detail.content(), ctx.client());
         if (text.isBlank())
-            throw new CmdWarnException("No text content");
+            throw new CmdWarnException(ctx.text(Text.NO_TEXT_CONTENT));
         if (QUOTE_PATTERN.matcher(text).matches())
-            throw new CmdWarnException("Quote already saved");
+            throw new CmdWarnException(ctx.text(Text.QUOTE_ALREADY_SAVED));
         Quote quote = quoteService.add(
                 detail.userId(), detail.nickname(), text);
         MsgContent.Builder builder = MsgContent.builder()
-                .text("💾 Quote saved: no." + quote.getId());
+                .text(ctx.text(Text.QUOTE_SAVED, quote.getId()));
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());
     }
@@ -84,13 +86,18 @@ public class QuoteSaveCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 QuoteSave
                 Saves a quote.
                 Usage: [reply] QuoteSave
-                Aliases: 语录保存
-                Access: >=0(normal)""";
+                Aliases: 保存语录
+                Access: >=0(normal)""" : """
+                QuoteSave
+                保存引用消息的文本为语录。
+                用法：[回复] QuoteSave
+                别名：保存语录
+                权限：>=0(normal)""";
     }
 
     @Override

@@ -11,8 +11,10 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +57,7 @@ public class VideoRandCmd implements Cmd {
     private void handle(CmdContext ctx) {
         File file = fileService.random(BizType.VID_COLL);
         if (file == null)
-            throw new CmdInfoException("No videos");
+            throw new CmdInfoException(ctx.text(Text.NO_VIDEOS));
         ctx.send(MsgContent.builder().video(fileService.uri(file)).build());
         log.info("Video sent: {}", file.getId());
     }
@@ -68,13 +70,18 @@ public class VideoRandCmd implements Cmd {
     }
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 VideoRand
                 Sends a random collected video.
                 Usage: VideoRand
                 Aliases: video/随机视频/视频
-                Access: >=-1(restricted)""";
+                Access: >=-1(restricted)""" : """
+                VideoRand
+                随机发送一个已收藏的视频。
+                用法：VideoRand
+                别名：video/随机视频/视频
+                权限：>=-1(restricted)""";
     }
 
     @Override

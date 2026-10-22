@@ -1,5 +1,6 @@
-package com.zincoid.nullbot.module.system;
+package com.zincoid.nullbot.bot.input;
 
+import com.zincoid.nullbot.module.system.SystemException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

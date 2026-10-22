@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `group` (
 CREATE TABLE IF NOT EXISTS `group_setting` (
     `id`                 BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
     `group_id`           VARCHAR(64) NOT NULL                 COMMENT 'Platform group id',
+    `language`           TINYINT     NOT NULL DEFAULT 0       COMMENT 'Reply language: 0=AUTO, 1=ZH, 2=EN',
     `limit_enabled`      BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Rate limit enabled',
     `limit_scope`        TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=CMD',
     `limit_capacity`     INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',

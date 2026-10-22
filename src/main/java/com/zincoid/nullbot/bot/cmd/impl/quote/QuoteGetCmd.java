@@ -10,6 +10,8 @@ import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.module.common.QuoteService;
+import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +59,7 @@ public class QuoteGetCmd implements Cmd {
         long id = args.nextLong();
         Quote quote = quoteService.getById(id);
         if (quote == null)
-            throw new CmdWarnException("Quote not found: " + id);
+            throw new CmdWarnException(ctx.text(Text.QUOTE_NOT_FOUND, id));
         ctx.send(format(quote));
         log.info("Quote sent: {}", id);
     }
@@ -76,13 +78,18 @@ public class QuoteGetCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 QuoteGet
                 Sends a quote by id.
                 Usage: QuoteGet [quote id]
                 Aliases: 获取语录
-                Access: >=0(normal)""";
+                Access: >=0(normal)""" : """
+                QuoteGet
+                按语录 id 发送语录。
+                用法：QuoteGet [quote id]
+                别名：获取语录
+                权限：>=0(normal)""";
     }
 
     @Override

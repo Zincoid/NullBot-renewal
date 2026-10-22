@@ -7,6 +7,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
@@ -37,12 +38,17 @@ public class ChatCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 Chat
                 Talks with the AI.
                 Usage: Chat [content]
                 Aliases: 对话
-                Access: >=0(normal)""";
+                Access: >=0(normal)""" : """
+                Chat
+                与 AI 对话。
+                用法：Chat [content]
+                别名：对话
+                权限：>=0(normal)""";
     }
 }

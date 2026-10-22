@@ -6,6 +6,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,8 +32,9 @@ public class PingCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
-                Ping - connectivity test""";
+    public String getHelp(Language language) {
+        return language == Language.EN
+                ? "Ping - connectivity test"
+                : "Ping - 连通性测试";
     }
 }

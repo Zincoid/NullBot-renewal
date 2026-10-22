@@ -2,7 +2,9 @@ package com.zincoid.nullbot.bot.cmd;
 
 import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.*;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 
 /**
  * 机器人指令：每种路由事件一个 run 槽位。
@@ -19,7 +21,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support group message events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_GROUP_MSG));
     }
 
     /**
@@ -31,7 +33,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support private message events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_PRIVATE_MSG));
     }
 
     /**
@@ -43,7 +45,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support group poke events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_GROUP_POKE));
     }
 
     /**
@@ -55,7 +57,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support private poke events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_PRIVATE_POKE));
     }
 
     /**
@@ -67,7 +69,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupRecallEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support group recall events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_GROUP_RECALL));
     }
 
     /**
@@ -79,7 +81,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivateRecallEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support private recall events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_PRIVATE_RECALL));
     }
 
     /**
@@ -91,7 +93,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, JoinEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support group join events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_JOIN));
     }
 
     /**
@@ -103,15 +105,18 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, LeaveEvent event, CmdArgs args) {
-        throw new CmdWarnException("Command does not support group leave events");
+        throw new CmdWarnException(ctx.text(Text.CMD_UNSUPPORTED_LEAVE));
     }
 
     /**
      * 展示给用户的帮助文本。
      * <p>Help text shown to users.</p>
+     *
+     * @param language the reply language
+     * @return the localized help text
      */
-    default String getHelp() {
-        return "No help available";
+    default String getHelp(Language language) {
+        return Text.HELP_UNAVAILABLE.of(language);
     }
 
     /**

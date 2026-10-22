@@ -8,7 +8,9 @@ import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.module.common.CommonException;
 import com.zincoid.nullbot.module.common.QuoteService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +35,7 @@ public class QuoteDelCmd implements Cmd {
         } catch (CommonException e) {
             throw new CmdWarnException(e.getMessage());
         }
-        ctx.send("⚠️ Quote No.%d deleted".formatted(id));
+        ctx.send(Text.QUOTE_DELETED, id);
     }
 
     // ════ Cmd ═════════════════════
@@ -44,12 +46,17 @@ public class QuoteDelCmd implements Cmd {
     }
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 QuoteDel
                 Deletes a quote.
                 Usage: QuoteDel [quote id]
                 Aliases: 删除语录
-                Access: >=1(manager)""";
+                Access: >=1(manager)""" : """
+                QuoteDel
+                删除一条语录。
+                用法：QuoteDel [quote id]
+                别名：删除语录
+                权限：>=1(manager)""";
     }
 }

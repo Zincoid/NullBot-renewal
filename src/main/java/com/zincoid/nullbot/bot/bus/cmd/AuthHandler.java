@@ -11,6 +11,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.UserService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +64,7 @@ public class AuthHandler implements CmdHandler {
         Access userAccess = userService.getAccess(userId);
         if (userAccess.getValue() < required.getValue()) {
             log.info("User access denied: required={}, actual={}", required.getLabel(), userAccess.getLabel());
-            ctx.send("🚫 Access denied: required %s, yours %s"
-                    .formatted(required.getLabel(), userAccess.getLabel()));
+            ctx.send(Text.ACCESS_DENIED, required.getLabel(), userAccess.getLabel());
             return false;
         }
         return true;

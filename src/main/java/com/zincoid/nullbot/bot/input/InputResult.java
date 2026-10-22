@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.system;
+package com.zincoid.nullbot.bot.input;
 
 /**
  * 一次匹配到的输入：发送者与消息文本。

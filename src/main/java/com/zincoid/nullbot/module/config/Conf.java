@@ -10,13 +10,14 @@ import lombok.Getter;
 public enum Conf {
 
     CMD_PREFIX("cmd_prefix", "#", "Command prefix"),
+    DEFAULT_LANGUAGE("default_language", "zh", "Default reply language (zh/en)"),
     MESSAGE_HISTORY_MAX_LENGTH("message_history_max_length", "64", "Chat history window length"),
     AI_PROVIDER_API_URL("ai_provider_api_url", "", "OpenAI-compatible API base URL"),
     AI_PROVIDER_API_KEY("ai_provider_api_key", "", "OpenAI-compatible API key"),
     AI_PROVIDER_MODEL("ai_provider_model", "", "Model name"),
     AI_MAX_TOKENS("ai_max_tokens", "1024", "Max output tokens per request"),
     AI_MAX_TOOL_CALLS("ai_max_tool_calls", "5", "Max tool call rounds"),
-    AI_CHAT_DEFAULT_PROMPT("ai_chat_prompt", "You are a helpful assistant.", "Chat system prompt");
+    AI_DEFAULT_PROMPT("ai_default_prompt", "You are a helpful assistant.", "Default chat system prompt");
 
     private final String key;
     private final String defaultValue;

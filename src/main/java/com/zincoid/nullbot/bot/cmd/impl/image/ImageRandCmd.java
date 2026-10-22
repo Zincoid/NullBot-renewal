@@ -11,8 +11,10 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +57,7 @@ public class ImageRandCmd implements Cmd {
     private void handle(CmdContext ctx) {
         File file = fileService.random(BizType.IMG_COLL);
         if (file == null)
-            throw new CmdInfoException("No images");
+            throw new CmdInfoException(ctx.text(Text.NO_IMAGES));
         ctx.send(MsgContent.builder().image(fileService.uri(file)).build());
         log.info("Image sent: {}", file.getId());
     }
@@ -68,13 +70,18 @@ public class ImageRandCmd implements Cmd {
     }
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 ImageRand
                 Sends a random collected image.
                 Usage: ImageRand
                 Aliases: image/随机图片/图片
-                Access: >=-1(restricted)""";
+                Access: >=-1(restricted)""" : """
+                ImageRand
+                随机发送一张已收藏的图片。
+                用法：ImageRand
+                别名：image/随机图片/图片
+                权限：>=-1(restricted)""";
     }
 
     @Override

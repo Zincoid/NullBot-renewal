@@ -10,9 +10,14 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigException;
 import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * 配置指令：查看或修改机器人配置。
@@ -41,31 +46,32 @@ public class ConfigCmd implements Cmd {
 
     private void handle(CmdContext ctx, CmdArgs args) {
         if (args.isEmpty()) {
-            ctx.send(list());
+            ctx.send(list(ctx));
             return;
         }
-        Conf conf = conf(args.next());
+        Conf conf = conf(ctx, args.next());
         if (!args.hasNext()) {
-            ctx.send(conf.getKey() + " = " + display(conf, configService.get(conf)));
+            ctx.send(conf.getKey() + " = " + display(ctx, conf, configService.get(conf)));
             return;
         }
         String value = args.rest();
         if ("reset".equalsIgnoreCase(value)) {
             reset(conf);
-            ctx.send("✅ Config reset: " + conf.getKey());
+            ctx.send(Text.CONFIG_RESET, conf.getKey());
             return;
         }
+        value = validate(ctx, conf, value);
         save(conf, value);
-        ctx.send("✅ Config updated: " + conf.getKey() + " = " + display(conf, value));
+        ctx.send(Text.CONFIG_UPDATED, conf.getKey(), display(ctx, conf, value));
     }
 
     // ════ Helpers ═════════════════
 
-    private String list() {
-        StringBuilder text = new StringBuilder("Config:");
+    private String list(CmdContext ctx) {
+        StringBuilder text = new StringBuilder(ctx.text(Text.CONFIG_HEADER));
         for (Conf conf : Conf.values())
             text.append("\n").append(conf.getKey()).append(" = ")
-                    .append(display(conf, configService.get(conf)));
+                    .append(display(ctx, conf, configService.get(conf)));
         return text.toString();
     }
 
@@ -81,16 +87,24 @@ public class ConfigCmd implements Cmd {
         save(conf, conf.getDefaultValue());
     }
 
-    private static Conf conf(String raw) {
+    private static Conf conf(CmdContext ctx, String raw) {
         for (Conf conf : Conf.values())
             if (conf.getKey().equalsIgnoreCase(raw) || conf.name().equalsIgnoreCase(raw))
                 return conf;
-        throw new CmdWarnException("Unknown config key: " + raw);
+        throw new CmdWarnException(ctx.text(Text.CONFIG_UNKNOWN_KEY, raw));
     }
 
-    private static String display(Conf conf, String value) {
+    private static String validate(CmdContext ctx, Conf conf, String value) {
+        if (conf != Conf.DEFAULT_LANGUAGE) return value;
+        Language language = Language.fromLabel(value);
+        if (language != Language.ZH && language != Language.EN)
+            throw new CmdWarnException(ctx.text(Text.CONFIG_INVALID_LANGUAGE, value));
+        return language.getLabel();
+    }
+
+    private static String display(CmdContext ctx, Conf conf, String value) {
         if (conf == Conf.AI_PROVIDER_API_KEY && value != null && !value.isBlank()) return "****";
-        return value == null || value.isEmpty() ? "(empty)" : value;
+        return value == null || value.isEmpty() ? ctx.text(Text.CONFIG_EMPTY) : value;
     }
 
     // ════ Cmd ═════════════════════
@@ -101,18 +115,28 @@ public class ConfigCmd implements Cmd {
     }
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        String keys = Arrays.stream(Conf.values())
+                .map(Conf::getKey)
+                .collect(Collectors.joining(", "));
+        return language == Language.EN ? """
                 Config
                 Views or updates bot configuration.
                 Usage: Config
                        Config <key>
                        Config <key> <value>
                        Config <key> reset
-                Keys: cmd_prefix, message_history_max_length, ai_provider_api_url,
-                      ai_provider_api_key, ai_provider_model, ai_max_tokens,
-                      ai_max_tool_calls, ai_chat_prompt
+                Keys: %s
                 Aliases: 配置
-                Access: >=2(admin)""";
+                Access: >=2(admin)""".formatted(keys) : """
+                Config
+                查看或修改机器人配置。
+                用法：Config
+                      Config <key>
+                      Config <key> <value>
+                      Config <key> reset
+                配置项：%s
+                别名：配置
+                权限：>=2(admin)""".formatted(keys);
     }
 }

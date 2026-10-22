@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.system;
+package com.zincoid.nullbot.bot.input;
 
 /**
  * 输入等待模式：PS 按用户单值、GS 按群单值、GM 按群多值。

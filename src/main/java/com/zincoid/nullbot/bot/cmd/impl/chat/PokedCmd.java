@@ -7,6 +7,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
@@ -37,8 +38,9 @@ public class PokedCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public String getHelp() {
-        return """
-                Poked - used for poke event""";
+    public String getHelp(Language language) {
+        return language == Language.EN
+                ? "Poked - used for poke event"
+                : "Poked - 用于戳一戳事件";
     }
 }

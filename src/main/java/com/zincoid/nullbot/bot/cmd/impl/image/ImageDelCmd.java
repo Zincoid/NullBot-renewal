@@ -8,8 +8,10 @@ import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.module.file.FileException;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,16 +36,16 @@ public class ImageDelCmd implements Cmd {
         long id = args.nextLong();
         File file = fileService.getById(id);
         if (file == null)
-            throw new CmdWarnException("File not found: " + id);
+            throw new CmdWarnException(ctx.text(Text.FILE_NOT_FOUND, id));
         if (file.getType() != BizType.IMG_COLL)
-            throw new CmdWarnException("Not an image: " + id);
+            throw new CmdWarnException(ctx.text(Text.NOT_IMAGE, id));
         try {
             fileService.delete(id);
         } catch (FileException e) {
             throw new CmdWarnException(e.getMessage());
         }
         log.info("Image deleted: {}", id);
-        ctx.send("⚠️ Image deleted: " + id);
+        ctx.send(Text.IMAGE_DELETED, id);
     }
 
     // ════ Cmd ═════════════════════
@@ -54,12 +56,17 @@ public class ImageDelCmd implements Cmd {
     }
 
     @Override
-    public String getHelp() {
-        return """
+    public String getHelp(Language language) {
+        return language == Language.EN ? """
                 ImageDel
                 Deletes a collected image.
                 Usage: ImageDel [file id]
                 Aliases: 删除图片
-                Access: >=1(manager)""";
+                Access: >=1(manager)""" : """
+                ImageDel
+                按文件 id 删除已收藏的图片。
+                用法：ImageDel [file id]
+                别名：删除图片
+                权限：>=1(manager)""";
     }
 }

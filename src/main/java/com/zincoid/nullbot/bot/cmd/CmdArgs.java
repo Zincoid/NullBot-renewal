@@ -1,6 +1,8 @@
 package com.zincoid.nullbot.bot.cmd;
 
 import com.zincoid.nullbot.bot.exception.CmdWarnException;
+import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -20,12 +22,14 @@ public final class CmdArgs {
     private final List<String> raw;
     private final Map<String, String> opt;
     private final List<String> pos;
+    private final Language language;
     private int cursor;
 
-    private CmdArgs(List<String> raw, Map<String, String> opt, List<String> pos) {
+    private CmdArgs(List<String> raw, Map<String, String> opt, List<String> pos, Language language) {
         this.raw = List.copyOf(raw);
         this.opt = Collections.unmodifiableMap(opt);
         this.pos = Collections.unmodifiableList(pos);
+        this.language = language == null ? Language.ZH : language;
     }
 
     /**
@@ -35,12 +39,23 @@ public final class CmdArgs {
      * @param params the raw parameters
      */
     public static CmdArgs of(List<String> params) {
+        return of(params, Language.ZH);
+    }
+
+    /**
+     * 原始参数解析，并绑定错误提示使用的语言。
+     * <p>Parses raw params and binds the language used by error messages.</p>
+     *
+     * @param params   the raw parameters
+     * @param language the reply language
+     */
+    public static CmdArgs of(List<String> params, Language language) {
         if (params.isEmpty())
-            return new CmdArgs(List.of(), Map.of(), List.of());
+            return new CmdArgs(List.of(), Map.of(), List.of(), language);
         Map<String, String> opt = new LinkedHashMap<>();
         List<String> pos = new ArrayList<>();
         for (String p : params) if (!tryParseOpt(p, opt)) pos.add(p);
-        return new CmdArgs(params, opt, pos);
+        return new CmdArgs(params, opt, pos, language);
     }
 
     // ════ Option access ═══════════
@@ -300,23 +315,23 @@ public final class CmdArgs {
             for (Map.Entry<String, String> e : vars.entrySet())
                 s = s.replace("{" + e.getKey() + "}", e.getValue());
             return s;
-        }).toList());
+        }).toList(), language);
     }
 
     // ════ Helpers ═════════════════
 
-    private static CmdWarnException missingArg() {
-        return new CmdWarnException("Missing argument");
+    private CmdWarnException missingArg() {
+        return new CmdWarnException(Text.ARG_MISSING.of(language));
     }
 
-    private static CmdWarnException formatError() {
-        return new CmdWarnException("Malformed argument");
+    private CmdWarnException formatError() {
+        return new CmdWarnException(Text.ARG_MALFORMED.of(language));
     }
 
-    private static CmdWarnException missingOpt(String name, String alias) {
-        return alias != null
-                ? new CmdWarnException("Missing option: --%s / -%s".formatted(name, alias))
-                : new CmdWarnException("Missing option: --%s".formatted(name));
+    private CmdWarnException missingOpt(String name, String alias) {
+        return new CmdWarnException(alias != null
+                ? Text.ARG_MISSING_OPTION.of(language, name, alias)
+                : Text.ARG_MISSING_OPTION_ALIAS.of(language, name));
     }
 
     private static boolean tryParseOpt(String p, Map<String, String> opt) {
