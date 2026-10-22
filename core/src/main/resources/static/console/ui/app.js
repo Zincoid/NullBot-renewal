@@ -83,6 +83,18 @@
         element.className = 'status' + (kind ? ' ' + kind : '');
     }
 
+    function setRowStatus(element, text, kind = '', autoHide = false) {
+        clearTimeout(element._statusTimer);
+        element.textContent = text;
+        element.className = 'row-status' + (kind ? ' ' + kind : '');
+        if (autoHide) {
+            element._statusTimer = setTimeout(() => {
+                element.textContent = '';
+                element.className = 'row-status';
+            }, 3000);
+        }
+    }
+
     function toast(message, kind = '') {
         const box = $('toast');
         const item = document.createElement('div');
@@ -308,15 +320,15 @@
             const defaultText = t('config.default') + defaultValue;
             card.innerHTML = `
                 <div class="config-head">
+                    <span class="badge"${item.customized ? '' : ' hidden'}>${escapeHtml(t('config.modified'))}</span>
                     <code>${escapeHtml(item.key)}</code>
                     <span class="desc" title="${escapeHtml(description)} · ${escapeHtml(defaultText)}">${escapeHtml(description)}<span class="default"> · ${escapeHtml(t('config.default'))}<code>${escapeHtml(defaultValue)}</code></span></span>
-                    <span class="badge"${item.customized ? '' : ' hidden'}>${escapeHtml(t('config.modified'))}</span>
                 </div>
                 <textarea class="value" rows="2" spellcheck="false"></textarea>
                 <div class="actions">
+                    <span class="row-status"></span>
                     <button class="save small btn-save">${escapeHtml(t('common.save'))}</button>
                     <button class="reset small btn-reset">${escapeHtml(t('config.reset'))}</button>
-                    <span class="row-status"></span>
                 </div>`;
             const input = card.querySelector('.value');
             const rowStatus = card.querySelector('.row-status');
@@ -328,8 +340,7 @@
     }
 
     async function saveConfig(card, item, input, rowStatus) {
-        rowStatus.textContent = t('config.saving');
-        rowStatus.className = 'row-status';
+        setRowStatus(rowStatus, t('config.saving'));
         try {
             const view = await api('/config/' + encodeURIComponent(item.key), {
                 method: 'PUT',
@@ -338,28 +349,23 @@
             item.value = view.value ?? '';
             input.value = item.value;
             card.querySelector('.badge').hidden = !view.customized;
-            rowStatus.textContent = t('config.saved');
-            rowStatus.className = 'row-status ok';
+            setRowStatus(rowStatus, t('config.saved'), 'ok', true);
         } catch (e) {
-            rowStatus.textContent = e.message;
-            rowStatus.className = 'row-status error';
+            setRowStatus(rowStatus, e.message, 'error');
         }
     }
 
     async function resetConfig(card, item, input, rowStatus) {
         if (!await confirmAction(t('config.resetConfirm', {key: item.key}))) return;
-        rowStatus.textContent = t('config.resetting');
-        rowStatus.className = 'row-status';
+        setRowStatus(rowStatus, t('config.resetting'));
         try {
             const view = await api('/config/' + encodeURIComponent(item.key) + '/reset', {method: 'POST'});
             item.value = view.value ?? '';
             input.value = item.value;
             card.querySelector('.badge').hidden = !view.customized;
-            rowStatus.textContent = t('config.resetDone');
-            rowStatus.className = 'row-status ok';
+            setRowStatus(rowStatus, t('config.resetDone'), 'ok', true);
         } catch (e) {
-            rowStatus.textContent = e.message;
-            rowStatus.className = 'row-status error';
+            setRowStatus(rowStatus, e.message, 'error');
         }
     }
 
@@ -624,10 +630,11 @@
 
     // ═══ Accounts ════════════════════
 
-    const userState = {page: 1, size: PAGE_SIZE, keyword: ''};
+    const userState = {page: 1, size: PAGE_SIZE, keyword: '', items: []};
     const groupState = {page: 1, size: PAGE_SIZE, keyword: '', items: []};
     let accountsTab = 'groups';
     let currentGroup = null;
+    let currentUser = null;
     let currentKeywords = [];
     let editingKeyword = null;
 
@@ -657,9 +664,10 @@
         if (userState.keyword) params.set('keyword', userState.keyword);
         try {
             const data = await api('/users?' + params.toString());
+            userState.items = data.items;
             renderUsers(data);
         } catch (e) {
-            $('users-body').innerHTML = emptyRow(4, t('common.loadError', {msg: e.message}));
+            $('users-body').innerHTML = emptyRow(5, t('common.loadError', {msg: e.message}));
             $('users-total').textContent = '';
             $('users-pager').innerHTML = '';
             toast(t('accounts.loadUsersFailed', {msg: e.message}), 'error');
@@ -670,16 +678,23 @@
         $('users-total').textContent = t('accounts.usersTotal', {n: data.total});
         const body = $('users-body');
         if (!data.items.length) {
-            body.innerHTML = emptyRow(4, t('accounts.usersEmpty'));
+            body.innerHTML = emptyRow(5, t('accounts.usersEmpty'));
         } else {
             body.innerHTML = data.items.map(user => `
                 <tr data-id="${escapeHtml(user.id)}">
                     <td><code>${escapeHtml(user.id)}</code></td>
                     <td><span class="name-text">${escapeHtml(user.name || '-')}</span></td>
                     <td><select class="access-select">${accessOptions(user.access)}</select></td>
+                    <td class="private-chat-cell">
+                        <div class="checks"><label><input type="checkbox" class="private-chat-toggle"
+                            aria-label="${escapeHtml(t('accounts.privateChat'))}"
+                            ${user.allowPrivateChat ? 'checked' : ''}></label></div>
+                    </td>
                     <td class="actions">
                         <button class="small primary btn-save" data-save-user>${escapeHtml(t('common.save'))}</button>
                         <button class="small danger btn-delete" data-delete-user>${escapeHtml(t('common.delete'))}</button>
+                        <span class="actions-divider" aria-hidden="true"></span>
+                        <button class="small btn-settings" data-user-settings>${escapeHtml(t('accounts.settings'))}</button>
                     </td>
                 </tr>`).join('');
         }
@@ -724,8 +739,9 @@
                     <td><select class="access-select">${accessOptions(group.access)}</select></td>
                     <td class="actions">
                         <button class="small primary btn-save" data-save-group>${escapeHtml(t('common.save'))}</button>
-                        <button class="small btn-settings" data-group-settings>${escapeHtml(t('accounts.settings'))}</button>
                         <button class="small danger btn-delete" data-delete-group>${escapeHtml(t('common.delete'))}</button>
+                        <span class="actions-divider" aria-hidden="true"></span>
+                        <button class="small btn-settings" data-group-settings>${escapeHtml(t('accounts.settings'))}</button>
                     </td>
                 </tr>`).join('');
         }
@@ -743,11 +759,12 @@
         const row = button.closest('tr');
         const id = row.dataset.id;
         const access = Number(row.querySelector('.access-select').value);
+        const allowPrivateChat = row.querySelector('.private-chat-toggle').checked;
         button.disabled = true;
         try {
             await api('/users/' + encodeURIComponent(id), {
                 method: 'PUT',
-                body: JSON.stringify({access})
+                body: JSON.stringify({access, allowPrivateChat})
             });
             toast(t('accounts.userSaved'), 'ok');
         } catch (e) {
@@ -806,6 +823,44 @@
         } catch (e) {
             toast(t('accounts.deleteFailed', {msg: e.message}), 'error');
             button.disabled = false;
+        }
+    }
+
+    function openUserDialog(user) {
+        currentUser = user;
+        $('user-dialog-subtitle').textContent = user.name ? user.name + ' · ' + user.id : user.id;
+        setStatus($('us-status'), '');
+        $('us-prompt').value = '';
+        $('user-dialog').showModal();
+        loadUserSetting();
+    }
+
+    async function loadUserSetting() {
+        if (!currentUser) return;
+        try {
+            const setting = await api('/users/' + encodeURIComponent(currentUser.id) + '/setting');
+            $('us-prompt').value = setting.aiPrompt || '';
+            setStatus($('us-status'), '');
+        } catch (e) {
+            setStatus($('us-status'), e.message, 'error');
+        }
+    }
+
+    async function saveUserSetting(event) {
+        event.preventDefault();
+        if (!currentUser) return;
+        setStatus($('us-status'), t('accounts.saving'));
+        try {
+            await api('/users/' + encodeURIComponent(currentUser.id) + '/setting', {
+                method: 'PUT',
+                body: JSON.stringify({
+                    aiPrompt: $('us-prompt').value
+                })
+            });
+            $('user-dialog').close();
+            toast(t('accounts.userSettingSaved'), 'ok');
+        } catch (e) {
+            setStatus($('us-status'), e.message, 'error');
         }
     }
 
@@ -909,7 +964,7 @@
                 <td><span class="badge${rule.enabled ? '' : ' off'}">${escapeHtml(rule.enabled ? t('group.enabled') : t('group.disabled'))}</span></td>
                 <td class="actions">
                     <button class="small btn-edit" data-kw-action="edit" data-id="${rule.id}">${escapeHtml(t('common.edit'))}</button>
-                    <button class="small" data-kw-action="toggle" data-id="${rule.id}">${escapeHtml(rule.enabled ? t('group.disabled') : t('group.enabled'))}</button>
+                    <button class="small btn-toggle ${rule.enabled ? 'btn-disable' : 'btn-enable'}" data-kw-action="toggle" data-id="${rule.id}">${escapeHtml(rule.enabled ? t('group.disabled') : t('group.enabled'))}</button>
                     <button class="small danger btn-delete" data-kw-action="delete" data-id="${rule.id}">${escapeHtml(t('common.delete'))}</button>
                 </td>
             </tr>`).join('');
@@ -1133,6 +1188,7 @@
             });
             dialog.addEventListener('close', () => {
                 if (dialog.id === 'file-dialog') editingFile = null;
+                if (dialog.id === 'user-dialog') currentUser = null;
                 if (dialog.id === 'group-dialog') {
                     currentGroup = null;
                     currentKeywords = [];
@@ -1293,6 +1349,13 @@
                 saveUser(save);
                 return;
             }
+            const settings = event.target.closest('[data-user-settings]');
+            if (settings) {
+                const row = settings.closest('tr');
+                const user = userState.items.find(item => item.id === row.dataset.id);
+                if (user) openUserDialog(user);
+                return;
+            }
             const del = event.target.closest('[data-delete-user]');
             if (del) deleteUser(del);
         });
@@ -1316,6 +1379,7 @@
         document.querySelectorAll('[data-group-tab]').forEach(button =>
             button.addEventListener('click', () => switchGroupTab(button.dataset.groupTab)));
         $('group-setting-form').addEventListener('submit', saveGroupSetting);
+        $('user-setting-form').addEventListener('submit', saveUserSetting);
         $('kw-save').onclick = saveKeyword;
         $('kw-cancel').onclick = resetKeywordForm;
         $('kw-body').addEventListener('click', event => {

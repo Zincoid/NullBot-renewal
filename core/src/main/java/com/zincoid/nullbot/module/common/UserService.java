@@ -64,6 +64,15 @@ public interface UserService extends IService<User> {
      */
     boolean isPrivateChatAllowed(String id);
 
+    /**
+     * 设置用户是否允许私聊。
+     * <p>Sets whether the user may chat privately.</p>
+     *
+     * @param id      platform user id
+     * @param allowed whether private chat is allowed
+     */
+    void setPrivateChatAllowed(String id, boolean allowed);
+
     // ════ Delete ══════════════════
 
     /**

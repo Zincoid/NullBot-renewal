@@ -1,12 +1,16 @@
 package com.zincoid.nullbot.console.controller;
 
 import com.zincoid.nullbot.console.dto.PageView;
+import com.zincoid.nullbot.console.dto.UserSettingUpdate;
+import com.zincoid.nullbot.console.dto.UserSettingView;
 import com.zincoid.nullbot.console.dto.UserUpdate;
 import com.zincoid.nullbot.console.dto.UserView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.console.util.ConsoleValidation;
 import com.zincoid.nullbot.module.common.UserService;
+import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.platform.persistence.po.User;
+import com.zincoid.nullbot.platform.persistence.po.UserSetting;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 控制台用户接口：分页查询、权限修改与删除。
- * <p>Console user API: paged queries, access updates, and deletion.</p>
+ * 控制台用户接口：分页查询、权限与用户设置修改、删除。
+ * <p>Console user API: paged queries, access and user-setting updates, and deletion.</p>
  */
 @RestController
 @RequestMapping("/console/users")
@@ -32,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final UserSettingService userSettingService;
 
     // ════ Query ══════════════════
 
@@ -56,11 +61,11 @@ public class UserController {
     // ════ Update ═════════════════
 
     /**
-     * 修改用户权限。
-     * <p>Updates the user access level.</p>
+     * 修改用户权限与私聊开关。
+     * <p>Updates the user access level and private-chat flag.</p>
      *
      * @param id   platform user id
-     * @param body the new access level
+     * @param body the new access level and private-chat flag
      * @return the updated user
      */
     @PutMapping("/{id}")
@@ -68,7 +73,43 @@ public class UserController {
         User user = userService.getById(id);
         if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
         userService.setAccess(id, body.access());
+        if (body.allowPrivateChat() != null) {
+            userService.setPrivateChatAllowed(id, body.allowPrivateChat());
+        }
         return UserView.of(userService.getById(id));
+    }
+
+    // ════ Setting ════════════════
+
+    /**
+     * 查询用户设置。
+     * <p>Returns the settings of a user.</p>
+     *
+     * @param id platform user id
+     * @return the user settings
+     */
+    @GetMapping("/{id}/setting")
+    public UserSettingView getSetting(@PathVariable String id) {
+        User user = userService.getById(id);
+        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        return UserSettingView.of(id, userSettingService.get(id));
+    }
+
+    /**
+     * 更新用户私聊提示词。
+     * <p>Updates the user's private-chat prompt.</p>
+     *
+     * @param id   platform user id
+     * @param body the new settings
+     * @return the updated user settings
+     */
+    @PutMapping("/{id}/setting")
+    public UserSettingView updateSetting(@PathVariable String id, @Valid @RequestBody UserSettingUpdate body) {
+        User user = userService.getById(id);
+        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        String prompt = body.aiPrompt() == null ? "" : body.aiPrompt().trim();
+        userSettingService.update(UserSetting.builder().userId(id).aiPrompt(prompt).build());
+        return UserSettingView.of(id, userSettingService.get(id));
     }
 
     // ════ Delete ═════════════════

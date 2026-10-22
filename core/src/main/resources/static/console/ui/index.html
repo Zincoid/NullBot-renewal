@@ -298,6 +298,7 @@
                         <th data-i18n="common.id">ID</th>
                         <th data-i18n="accounts.nickname">昵称</th>
                         <th data-i18n="accounts.access">权限</th>
+                        <th data-i18n="accounts.privateChat">私聊</th>
                         <th data-i18n="common.actions">操作</th>
                     </tr>
                     </thead>
@@ -421,7 +422,7 @@
             </label>
             <p id="file-form-status" class="status"></p>
             <div class="dialog-foot">
-                <button type="button" class="small" data-close data-i18n="common.cancel">取消</button>
+                <button type="button" data-close data-i18n="common.cancel">取消</button>
                 <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
             </div>
         </form>
@@ -490,9 +491,10 @@
                               data-i18n-placeholder="group.promptPlaceholder"
                               placeholder="留空使用全局提示词"></textarea>
                 </label>
-                <div class="form-actions">
-                    <button type="submit" class="primary btn-save" data-i18n="group.save">保存群设置</button>
-                    <span id="gs-status" class="status"></span>
+                <p id="gs-status" class="status"></p>
+                <div class="dialog-foot">
+                    <button type="button" data-close data-i18n="common.cancel">取消</button>
+                    <button type="submit" class="primary btn-save" data-i18n="group.save">保存</button>
                 </div>
             </form>
         </div>
@@ -505,7 +507,7 @@
                 <input id="kw-args" class="grow"
                        data-i18n-placeholder="group.keywordArgs" placeholder="参数（空格分隔）">
                 <button id="kw-save" class="primary btn-save" data-i18n="group.keywordAdd">添加</button>
-                <button id="kw-cancel" class="small" data-i18n="group.keywordCancel" hidden>取消编辑</button>
+                <button id="kw-cancel" data-i18n="group.keywordCancel" hidden>取消</button>
                 <span class="keyword-hint" data-i18n="group.keywordPlaceholders">占位符：{userId} = 发送者 ID，{groupId} = 群号</span>
             </div>
             <p id="kw-status" class="status"></p>
@@ -525,6 +527,32 @@
                 </table>
             </div>
         </div>
+    </div>
+</dialog>
+
+<!-- ═══ User dialog ═══════════════ -->
+<dialog id="user-dialog">
+    <div class="dialog-head">
+        <div>
+            <h2 data-i18n="accounts.userSettingTitle">用户设置</h2>
+            <p class="muted" id="user-dialog-subtitle"></p>
+        </div>
+        <button type="button" class="dialog-close" data-close
+                data-i18n-aria-label="common.close" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+        <form id="user-setting-form" class="form">
+            <label class="field"><span data-i18n="accounts.aiPrompt">私聊提示词</span>
+                <textarea id="us-prompt" rows="5"
+                          data-i18n-placeholder="accounts.aiPromptPlaceholder"
+                          placeholder="留空使用默认提示词"></textarea>
+            </label>
+            <p id="us-status" class="status"></p>
+            <div class="dialog-foot">
+                <button type="button" data-close data-i18n="common.cancel">取消</button>
+                <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
+            </div>
+        </form>
     </div>
 </dialog>
 

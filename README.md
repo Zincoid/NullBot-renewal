@@ -67,4 +67,4 @@ bot:
     dir: ./plugins
 ```
 
-启用后，`workspace/plugins/` 下的 JAR 会在启动时通过 `ServiceLoader` 加载。示例插件见 `hello-plugin`，指令为 `Hello` / `你好插件`。
+启用后，`workspace/plugins/` 下的 JAR 会在启动时通过 `ServiceLoader` 加载。示例插件见 `hello-plugin`，指令为 `Hello` / `你好`。

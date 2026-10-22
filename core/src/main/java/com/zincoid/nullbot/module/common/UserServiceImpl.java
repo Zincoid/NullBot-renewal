@@ -77,6 +77,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Boolean.TRUE.equals(user.getAllowPrivateChat());
     }
 
+    @Override
+    public void setPrivateChatAllowed(String id, boolean allowed) {
+        boolean updated = lambdaUpdate()
+                .eq(User::getId, id)
+                .set(User::getAllowPrivateChat, allowed)
+                .update();
+        if (!updated) throw new CommonException("User not found: " + id);
+    }
+
     // ════ Delete ══════════════════
 
     @Override

@@ -7,11 +7,12 @@ import com.zincoid.nullbot.platform.persistence.po.User;
  * 控制台用户视图。
  * <p>Console view of a user.</p>
  *
- * @param id     the platform user id
- * @param name   the nickname
- * @param access the access level
+ * @param id               the platform user id
+ * @param name             the nickname
+ * @param access           the access level
+ * @param allowPrivateChat whether private chat is allowed
  */
-public record UserView(String id, String name, Access access) {
+public record UserView(String id, String name, Access access, boolean allowPrivateChat) {
 
     /**
      * 由用户记录构建视图。
@@ -21,6 +22,7 @@ public record UserView(String id, String name, Access access) {
      * @return the view
      */
     public static UserView of(User user) {
-        return new UserView(user.getId(), user.getName(), user.getAccess());
+        return new UserView(user.getId(), user.getName(), user.getAccess(),
+                Boolean.TRUE.equals(user.getAllowPrivateChat()));
     }
 }
