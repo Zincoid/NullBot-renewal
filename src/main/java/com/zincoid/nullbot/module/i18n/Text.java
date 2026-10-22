@@ -81,6 +81,20 @@ public enum Text {
     QUIZ_MALFORMED_RESPONSE("AI 返回格式错误", "Malformed response"),
     QUIZ_DEFAULT_TOPIC("二次元", "anime"),
 
+    // ════ Wife ═══════════════════
+
+    WIFE_MEMBER_ALREADY("\n今天已经选过了哦💦...\n你的群友老婆是\n%s(%s)",
+            "\nAlready picked today💦...\nYour group wife is\n%s(%s)"),
+    WIFE_MEMBER_PICKED("\n你的今日群友老婆是✨\n%s(%s)",
+            "\nYour group wife of the day is✨\n%s(%s)"),
+    WIFE_ANIME_ALREADY("\n今天已经选过了哦💦...\n你的二次元老婆是\n%s",
+            "\nAlready picked today💦...\nYour anime wife is\n%s"),
+    WIFE_ANIME_PICKED("\n你的今日二次元老婆是✨\n%s",
+            "\nYour anime wife of the day is✨\n%s"),
+    WIFE_NO_RESULT("暂无角色", "No character found"),
+    WIFE_NO_MEMBERS("群成员不足", "Not enough group members"),
+    WIFE_NOT_ALLOWED("你不能用。", "You cannot use this option"),
+
     // ════ Media ══════════════════
 
     IMAGE_SAVED_ONE("💾 图片已保存：id=%d", "💾 Image saved: id=%d"),

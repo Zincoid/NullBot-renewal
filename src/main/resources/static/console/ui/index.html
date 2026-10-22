@@ -194,10 +194,10 @@
                 <label class="field"><span data-i18n="files.bizType">业务类型</span>
                     <select id="upload-type"></select>
                 </label>
-                <label class="field grow"><span data-i18n="files.descriptionOptional">描述（可选）</span>
-                    <input id="upload-description" maxlength="255"
-                           data-i18n-placeholder="files.descriptionPlaceholder"
-                           placeholder="同一批文件使用相同描述">
+                <label class="field grow"><span data-i18n="files.tagOptional">标签（可选）</span>
+                    <input id="upload-tag" maxlength="255"
+                           data-i18n-placeholder="files.tagPlaceholder"
+                           placeholder="同一批文件使用相同标签">
                 </label>
                 <div class="upload-pick">
                     <span id="upload-files-label" class="upload-files-label" data-i18n="files.noFiles">未选择文件</span>
@@ -220,9 +220,19 @@
             <label class="field inline">
                 <select id="file-filter-type" data-i18n-aria-label="files.type" aria-label="类型"></select>
             </label>
-            <input id="file-keyword" class="search"
-                   data-i18n-placeholder="files.searchPlaceholder"
-                   placeholder="搜索文件名或描述">
+            <div class="search-box">
+                <input id="file-keyword" class="search"
+                       data-i18n-placeholder="files.searchPlaceholder"
+                       placeholder="搜索关键词">
+                <div id="file-search-mode" class="search-mode" data-field="original"
+                     role="group" data-i18n-aria-label="files.searchField" aria-label="搜索范围">
+                    <span class="search-mode__indicator" aria-hidden="true"></span>
+                    <button type="button" class="search-mode__btn active" data-field="original"
+                            data-i18n="files.searchByName">文件名</button>
+                    <button type="button" class="search-mode__btn" data-field="tag"
+                            data-i18n="files.searchByTag">标签</button>
+                </div>
+            </div>
             <button id="file-search" class="primary btn-search" data-i18n="common.search">搜索</button>
             <button id="file-reset" class="btn-reset" data-i18n="common.reset">重置</button>
             <span id="files-total" class="muted"></span>
@@ -233,7 +243,7 @@
                 <tr>
                     <th data-i18n="common.id">ID</th>
                     <th data-i18n="files.name">文件名</th>
-                    <th data-i18n="files.description">描述</th>
+                    <th data-i18n="files.tag">标签</th>
                     <th data-i18n="files.type">类型</th>
                     <th data-i18n="files.size">大小</th>
                     <th data-i18n="files.uploader">上传者</th>
@@ -403,8 +413,8 @@
             <label class="field"><span data-i18n="files.original">原始文件名</span>
                 <input id="file-original" maxlength="255" required>
             </label>
-            <label class="field"><span data-i18n="files.description">描述</span>
-                <textarea id="file-description" rows="3" maxlength="255"></textarea>
+            <label class="field"><span data-i18n="files.tag">标签</span>
+                <textarea id="file-tag" rows="3" maxlength="255"></textarea>
             </label>
             <p id="file-form-status" class="status"></p>
             <div class="dialog-foot">

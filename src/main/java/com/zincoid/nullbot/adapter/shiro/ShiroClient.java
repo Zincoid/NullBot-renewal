@@ -1,9 +1,12 @@
 package com.zincoid.nullbot.adapter.shiro;
 
+import com.mikuac.shiro.common.utils.ShiroUtils;
 import com.mikuac.shiro.core.Bot;
 import com.mikuac.shiro.dto.action.common.ActionData;
+import com.mikuac.shiro.dto.action.common.ActionList;
 import com.mikuac.shiro.dto.action.common.ActionRaw;
 import com.mikuac.shiro.dto.action.common.MsgId;
+import com.mikuac.shiro.dto.action.response.GroupMemberInfoResp;
 import com.mikuac.shiro.dto.action.response.MsgResp;
 import com.zincoid.nullbot.bot.spi.model.GroupInfo;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -11,11 +14,15 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 
+import java.util.List;
+
 /**
  * Shiro 出站适配器：基于 Shiro {@link Bot}。
  * <p>Shiro outbound adapter: over the Shiro {@link Bot}.</p>
  */
 public class ShiroClient implements BotClient {
+
+    private static final int AVATAR_SIZE = 640;
 
     private final Bot bot;
 
@@ -78,18 +85,22 @@ public class ShiroClient implements BotClient {
     @Override
     public UserInfo getLoginInfo() {
         var resp = check(bot.getLoginInfo());
+        long userId = required(resp.getUserId(), "userId");
         return new UserInfo(
-                String.valueOf(required(resp.getUserId(), "userId")),
-                required(resp.getNickname(), "nickname")
+                String.valueOf(userId),
+                required(resp.getNickname(), "nickname"),
+                ShiroUtils.getUserAvatar(userId, AVATAR_SIZE)
         );
     }
 
     @Override
     public UserInfo getUserInfo(String userId) {
         var resp = check(bot.getStrangerInfo(num(userId), true));
+        long id = required(resp.getUserId(), "userId");
         return new UserInfo(
-                String.valueOf(required(resp.getUserId(), "userId")),
-                required(resp.getNickname(), "nickname")
+                String.valueOf(id),
+                required(resp.getNickname(), "nickname"),
+                ShiroUtils.getUserAvatar(id, AVATAR_SIZE)
         );
     }
 
@@ -100,6 +111,22 @@ public class ShiroClient implements BotClient {
                 groupId,
                 required(resp.getGroupName(), "groupName")
         );
+    }
+
+    @Override
+    public List<UserInfo> getGroupMembers(String groupId) {
+        ActionList<GroupMemberInfoResp> resp = bot.getGroupMemberList(num(groupId));
+        checkCode(resp == null ? null : resp.getRetCode());
+        return required(resp.getData(), "data").stream()
+                .map(member -> {
+                    long userId = required(member.getUserId(), "userId");
+                    return new UserInfo(
+                            String.valueOf(userId),
+                            required(member.getNickname(), "nickname"),
+                            ShiroUtils.getUserAvatar(userId, AVATAR_SIZE)
+                    );
+                })
+                .toList();
     }
 
     // ════ Helpers ═════════════════

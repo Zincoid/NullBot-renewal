@@ -80,12 +80,4 @@ public class ImageGetCmd implements Cmd {
                 别名：获取图片
                 权限：>=0(normal)""";
     }
-
-    @Override
-    public String getAiHelp() {
-        return """
-                ImageGet
-                Sends a collected image by file id.
-                Usage: ImageGet [file id]""";
-    }
 }

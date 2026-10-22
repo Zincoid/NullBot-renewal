@@ -80,12 +80,4 @@ public class VideoGetCmd implements Cmd {
                 别名：获取视频
                 权限：>=0(normal)""";
     }
-
-    @Override
-    public String getAiHelp() {
-        return """
-                VideoGet
-                Sends a collected video by file id.
-                Usage: VideoGet [file id]""";
-    }
 }

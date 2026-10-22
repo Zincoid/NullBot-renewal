@@ -45,22 +45,22 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Save ════════════════════
 
     @Override
-    public File save(String userId, String url, String original, BizType type, String description) {
+    public File save(String userId, String url, String original, BizType type, String tag) {
         if (original == null || original.isBlank()) original = "unnamed";
         HttpResponse<InputStream> resp = download(url);
         try (InputStream in = resp.body()) {
-            return store(userId, original, in, type, description);
+            return store(userId, original, in, type, tag);
         } catch (IOException e) {
             throw new FileException("Failed to read download body: " + url, e);
         }
     }
 
     @Override
-    public File save(String userId, MultipartFile file, BizType type, String description) {
+    public File save(String userId, MultipartFile file, BizType type, String tag) {
         String original = file.getOriginalFilename();
         if (original == null || original.isBlank()) original = "unnamed";
         try (InputStream in = file.getInputStream()) {
-            return store(userId, original, in, type, description);
+            return store(userId, original, in, type, tag);
         } catch (IOException e) {
             throw new FileException("Failed to read upload: " + original, e);
         }
@@ -92,28 +92,30 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
-    public List<File> search(BizType type, String keyword, int limit) {
+    public List<File> search(BizType type, String tag, String original, int limit) {
         if (type == null) throw new FileException("Missing key: type");
         int size = Math.clamp(limit, 1, 50);
-        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        String tagKey = normalize(tag);
+        String originalKey = normalize(original);
         return lambdaQuery()
                 .eq(File::getType, type)
-                .and(key != null, q -> q.like(File::getDescription, key)
-                        .or().like(File::getOriginal, key))
+                .like(tagKey != null, File::getTag, tagKey)
+                .like(originalKey != null, File::getOriginal, originalKey)
                 .orderByDesc(File::getId)
                 .last("LIMIT " + size)
                 .list();
     }
 
     @Override
-    public Page<File> page(BizType type, String keyword, long page, long size) {
+    public Page<File> page(BizType type, String tag, String original, long page, long size) {
         long current = Math.max(1, page);
         long limit = Math.clamp(size, 1, 100);
-        String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        String tagKey = normalize(tag);
+        String originalKey = normalize(original);
         return lambdaQuery()
                 .eq(type != null, File::getType, type)
-                .and(key != null, q -> q.like(File::getDescription, key)
-                        .or().like(File::getOriginal, key))
+                .like(tagKey != null, File::getTag, tagKey)
+                .like(originalKey != null, File::getOriginal, originalKey)
                 .orderByDesc(File::getId)
                 .page(new Page<>(current, limit));
     }
@@ -135,13 +137,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Update ══════════════════
 
     @Override
-    public void update(Long id, String original, String description) {
+    public void update(Long id, String original, String tag) {
         if (original == null || original.isBlank())
             throw new FileException("Missing filename: " + id);
         boolean updated = lambdaUpdate()
                 .eq(File::getId, id)
                 .set(File::getOriginal, original)
-                .set(File::getDescription, description)
+                .set(File::getTag, tag)
                 .update();
         if (!updated) throw new FileException("File not found: " + id);
     }
@@ -159,7 +161,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     // ════ Core ════════════════════
 
-    private File store(String userId, String original, InputStream in, BizType type, String description) {
+    private File store(String userId, String original, InputStream in, BizType type, String tag) {
         if (userId == null || userId.isBlank()) throw new FileException("Missing key: userId");
         if (type == null) throw new FileException("Missing key: type");
         FileUtils.StoredFile saved;
@@ -172,7 +174,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .userId(userId)
                 .original(saved.original())
                 .stored(saved.stored())
-                .description(description)
+                .tag(tag)
                 .size(saved.size())
                 .type(type)
                 .createdAt(LocalDateTime.now())
@@ -188,6 +190,10 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     // ════ Helpers ═════════════════
+
+    private static String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
 
     private HttpResponse<InputStream> download(String url) {
         HttpRequest request;

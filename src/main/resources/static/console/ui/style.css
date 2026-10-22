@@ -626,6 +626,74 @@ code {
     width: min(340px, 100%);
 }
 
+.search-box {
+    position: relative;
+    display: inline-flex;
+    width: min(340px, 100%);
+}
+
+.search-box .search {
+    width: 100%;
+    padding-right: 118px;
+}
+
+.search-mode {
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    display: flex;
+    width: 108px;
+    padding: 2px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-md);
+    background: var(--color-surface);
+    transform: translateY(-50%);
+    overflow: hidden;
+}
+
+.search-mode__indicator {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc((100% - 4px) / 2);
+    height: calc(100% - 4px);
+    border-radius: calc(var(--rounded-md) - 2px);
+    background: var(--color-primary-light);
+    transition: transform var(--transition-fast);
+    pointer-events: none;
+}
+
+.search-mode[data-field="tag"] .search-mode__indicator {
+    transform: translateX(100%);
+}
+
+.search-mode__btn {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+}
+
+.search-mode__btn:hover {
+    color: var(--color-primary);
+}
+
+.search-mode__btn.active {
+    color: var(--color-primary);
+}
+
+.search-mode__btn:active {
+    transform: none;
+}
+
 #group-tab-keywords .toolbar input {
     width: auto;
     min-width: 0;
@@ -1271,7 +1339,7 @@ td.actions {
 }
 
 .file-name,
-.file-description {
+.file-tag {
     display: inline-block;
     max-width: 100%;
     overflow: hidden;
@@ -1284,7 +1352,7 @@ td.actions {
     max-width: 220px;
 }
 
-.file-description {
+.file-tag {
     max-width: 160px;
 }
 

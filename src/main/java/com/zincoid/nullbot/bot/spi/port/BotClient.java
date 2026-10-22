@@ -5,6 +5,8 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 
+import java.util.List;
+
 /**
  * 出站端口：向业务代码暴露的机器人能力。
  * <p>Outbound port: bot capabilities available to business code.</p>
@@ -113,5 +115,13 @@ public interface BotClient {
      */
     default GroupInfo getGroupInfo(String groupId) {
         throw new UnsupportedSpiException("getGroupInfo");
+    }
+
+    /**
+     * 群成员列表。
+     * <p>Group member list.</p>
+     */
+    default List<UserInfo> getGroupMembers(String groupId) {
+        throw new UnsupportedSpiException("getGroupMembers");
     }
 }

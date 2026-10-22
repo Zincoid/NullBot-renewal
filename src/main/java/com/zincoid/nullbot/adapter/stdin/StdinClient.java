@@ -7,6 +7,7 @@ import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -85,17 +86,26 @@ public class StdinClient implements BotClient {
 
     @Override
     public UserInfo getLoginInfo() {
-        return new UserInfo(SELF_ID, "stdin-bot");
+        return new UserInfo(SELF_ID, "stdin-bot", null);
     }
 
     @Override
     public UserInfo getUserInfo(String userId) {
-        return new UserInfo(userId, nickname(userId));
+        return new UserInfo(userId, nickname(userId), null);
     }
 
     @Override
     public GroupInfo getGroupInfo(String groupId) {
         return new GroupInfo(groupId, "group-" + groupId);
+    }
+
+    @Override
+    public List<UserInfo> getGroupMembers(String groupId) {
+        return List.of(
+                getLoginInfo(),
+                getUserInfo(USER_ID),
+                getUserInfo(ADMIN_ID)
+        );
     }
 
     // ════ Helpers ═════════════════

@@ -24,14 +24,14 @@ public interface FileService extends IService<File> {
      * @param url         source URL
      * @param original    original filename, null falls back to unnamed
      * @param type        business type
-     * @param description optional description
+     * @param tag         optional tag
      * @return the persisted record with generated id
      */
-    File save(String userId, String url, String original, BizType type, String description);
+    File save(String userId, String url, String original, BizType type, String tag);
 
     /**
-     * 从 URL 下载文件并保存新记录，不附带描述。
-     * <p>Downloads a file from a URL and stores it with a new record, without a description.</p>
+     * 从 URL 下载文件并保存新记录，不附带标签。
+     * <p>Downloads a file from a URL and stores it with a new record, without a tag.</p>
      *
      * @param userId   uploader platform user id
      * @param url      source URL
@@ -50,10 +50,10 @@ public interface FileService extends IService<File> {
      * @param userId      uploader platform user id
      * @param file        uploaded file
      * @param type        business type
-     * @param description optional description
+     * @param tag         optional tag
      * @return the persisted record with generated id
      */
-    File save(String userId, MultipartFile file, BizType type, String description);
+    File save(String userId, MultipartFile file, BizType type, String tag);
 
     // ════ Read ════════════════════
 
@@ -76,27 +76,29 @@ public interface FileService extends IService<File> {
     String uri(File file);
 
     /**
-     * 按业务类型与关键词查询文件。
-     * <p>Queries files by business type and keyword.</p>
+     * 按业务类型、标签与原始文件名查询文件，多个条件按与组合。
+     * <p>Queries files by business type, tag, and original filename; conditions are combined with AND.</p>
      *
-     * @param type    business type
-     * @param keyword keyword matched against description or original filename, nullable
-     * @param limit   maximum number of results
+     * @param type     business type
+     * @param tag      keyword matched against the tag, nullable
+     * @param original keyword matched against the original filename, nullable
+     * @param limit    maximum number of results
      * @return the matching files, newest first
      */
-    List<File> search(BizType type, String keyword, int limit);
+    List<File> search(BizType type, String tag, String original, int limit);
 
     /**
-     * 按业务类型与关键词分页查询文件。
-     * <p>Pages files by business type and keyword.</p>
+     * 按业务类型、标签与原始文件名分页查询文件，多个条件按与组合。
+     * <p>Pages files by business type, tag, and original filename; conditions are combined with AND.</p>
      *
-     * @param type    business type, nullable to include all types
-     * @param keyword keyword matched against description or original filename, nullable
-     * @param page    one-based page number
-     * @param size    page size
+     * @param type     business type, nullable to include all types
+     * @param tag      keyword matched against the tag, nullable
+     * @param original keyword matched against the original filename, nullable
+     * @param page     one-based page number
+     * @param size     page size
      * @return the file page, newest first
      */
-    Page<File> page(BizType type, String keyword, long page, long size);
+    Page<File> page(BizType type, String tag, String original, long page, long size);
 
     // ════ Random ══════════════════
 
@@ -112,14 +114,14 @@ public interface FileService extends IService<File> {
     // ════ Update ══════════════════
 
     /**
-     * 修改原始文件名与描述。
-     * <p>Renames the original filename and updates the description.</p>
+     * 修改原始文件名与标签。
+     * <p>Renames the original filename and updates the tag.</p>
      *
-     * @param id          record id
-     * @param original    new original filename
-     * @param description new description, {@code null} clears it
+     * @param id       record id
+     * @param original new original filename
+     * @param tag      new tag, {@code null} clears it
      */
-    void update(Long id, String original, String description);
+    void update(Long id, String original, String tag);
 
     // ════ Delete ══════════════════
 

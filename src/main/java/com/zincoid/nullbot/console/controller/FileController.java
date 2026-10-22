@@ -50,20 +50,22 @@ public class FileController {
      * 分页查询文件。
      * <p>Pages stored files.</p>
      *
-     * @param type    business type value, nullable for all types
-     * @param keyword keyword matched against description or original filename
-     * @param page    one-based page number
-     * @param size    page size
+     * @param type     business type value, nullable for all types
+     * @param tag      keyword matched against the tag, nullable
+     * @param original keyword matched against the original filename, nullable
+     * @param page     one-based page number
+     * @param size     page size
      * @return the file page
      */
     @GetMapping
     public PageView<FileView> list(
             @RequestParam(required = false) Integer type,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) String original,
             @RequestParam(defaultValue = "1") long page,
             @RequestParam(defaultValue = "20") long size) {
         BizType bizType = type == null ? null : bizType(type);
-        return PageView.of(fileService.page(bizType, keyword,
+        return PageView.of(fileService.page(bizType, tag, original,
                 ConsoleValidation.page(page), ConsoleValidation.size(size)), FileView::of);
     }
 
@@ -73,20 +75,20 @@ public class FileController {
      * 上传单个文件。
      * <p>Uploads a single file.</p>
      *
-     * @param type        business type value
-     * @param description optional description
-     * @param file        uploaded file
+     * @param type business type value
+     * @param tag  optional tag
+     * @param file uploaded file
      * @return the created file
      */
     @PostMapping
     public ResponseEntity<FileView> upload(
             @RequestParam Integer type,
-            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String tag,
             @RequestParam("file") MultipartFile file) {
         BizType bizType = bizType(type);
         if (file.isEmpty()) throw new ConsoleException(HttpStatus.BAD_REQUEST, "Empty file");
-        String desc = ConsoleValidation.text(description, 255, "description");
-        File saved = fileService.save(UPLOADER, file, bizType, desc);
+        String text = ConsoleValidation.text(tag, 255, "tag");
+        File saved = fileService.save(UPLOADER, file, bizType, text);
         return ResponseEntity.status(HttpStatus.CREATED).body(FileView.of(saved));
     }
 
@@ -94,7 +96,7 @@ public class FileController {
 
     /**
      * 修改文件的原始文件名与描述。
-     * <p>Updates the original filename and description of a file.</p>
+     * <p>Updates the original filename and tag of a file.</p>
      *
      * @param id   record id
      * @param body the new file information
@@ -104,8 +106,8 @@ public class FileController {
     public FileView update(@PathVariable Long id, @Valid @RequestBody FileUpdate body) {
         file(id);
         String original = body.original().trim();
-        String description = ConsoleValidation.text(body.description(), 255, "description");
-        fileService.update(id, original, description);
+        String tag = ConsoleValidation.text(body.tag(), 255, "tag");
+        fileService.update(id, original, tag);
         return FileView.of(fileService.getById(id));
     }
 

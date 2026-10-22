@@ -22,7 +22,7 @@
 
     const PAGE_SIZE = 20;
     const MAX_UPLOAD = 64 * 1024 * 1024;
-    const BIZ_TYPES = [0, 1, 2, 3, 4];
+    const BIZ_TYPES = [0, 1, 2, 3, 4, 5];
     const ACCESS_LEVELS = [-2, -1, 0, 1, 2];
 
     function bizLabel(value) {
@@ -364,9 +364,24 @@
 
     // ═══ Files ═══════════════════════
 
-    const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', items: []};
+    const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', field: 'original', items: []};
     let editingFile = null;
     let uploading = false;
+
+    function setFileSearchField(field, reload = true) {
+        if (field !== 'tag') field = 'original';
+        if (fileState.field === field && reload) return;
+        fileState.field = field;
+        const mode = $('file-search-mode');
+        mode.dataset.field = field;
+        mode.querySelectorAll('button[data-field]').forEach(button => {
+            button.classList.toggle('active', button.dataset.field === field);
+        });
+        if (!reload) return;
+        fileState.keyword = $('file-keyword').value.trim();
+        fileState.page = 1;
+        loadFiles();
+    }
 
     async function loadFiles() {
         const params = new URLSearchParams({
@@ -374,7 +389,7 @@
             size: String(fileState.size)
         });
         if (fileState.type) params.set('type', fileState.type);
-        if (fileState.keyword) params.set('keyword', fileState.keyword);
+        if (fileState.keyword) params.set(fileState.field, fileState.keyword);
         try {
             const data = await api('/files?' + params.toString());
             fileState.items = data.items;
@@ -397,7 +412,7 @@
                 <tr>
                     <td>${file.id}</td>
                     <td><span class="file-name" title="${escapeHtml(file.original || '')}">${escapeHtml(file.original || '-')}</span></td>
-                    <td><span class="file-description" title="${escapeHtml(file.description || '')}">${escapeHtml(file.description || '-')}</span></td>
+                    <td><span class="file-tag" title="${escapeHtml(file.tag || '')}">${escapeHtml(file.tag || '-')}</span></td>
                     <td class="nowrap">${escapeHtml(bizLabel(file.type) || file.type || '-')}</td>
                     <td class="nowrap">${formatBytes(file.size)}</td>
                     <td class="nowrap"><code>${escapeHtml(file.userId || '-')}</code></td>
@@ -422,7 +437,7 @@
     function openFileDialog(file) {
         editingFile = file;
         $('file-original').value = file.original || '';
-        $('file-description').value = file.description || '';
+        $('file-tag').value = file.tag || '';
         setStatus($('file-form-status'), '');
         $('file-dialog').showModal();
     }
@@ -441,7 +456,7 @@
                 method: 'PUT',
                 body: JSON.stringify({
                     original,
-                    description: $('file-description').value
+                    tag: $('file-tag').value
                 })
             });
             $('file-dialog').close();
@@ -495,7 +510,7 @@
             return;
         }
         const type = $('upload-type').value;
-        const description = $('upload-description').value.trim();
+        const tag = $('upload-tag').value.trim();
         const statusBox = $('upload-status');
         statusBox.innerHTML = '';
         const lines = files.map(file => {
@@ -529,7 +544,7 @@
                 try {
                     const form = new FormData();
                     form.append('type', type);
-                    if (description) form.append('description', description);
+                    if (tag) form.append('tag', tag);
                     form.append('file', file);
                     await api('/files', {method: 'POST', body: form});
                     success++;
@@ -1136,8 +1151,13 @@
             fileState.page = 1;
             $('file-keyword').value = '';
             $('file-filter-type').value = '';
+            setFileSearchField('original', false);
             loadFiles();
         };
+        $('file-search-mode').addEventListener('click', event => {
+            const button = event.target.closest('button[data-field]');
+            if (button) setFileSearchField(button.dataset.field);
+        });
         $('file-filter-type').onchange = () => {
             fileState.type = $('file-filter-type').value;
             fileState.page = 1;

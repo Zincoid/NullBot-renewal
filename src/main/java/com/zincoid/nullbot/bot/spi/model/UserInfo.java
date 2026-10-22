@@ -6,6 +6,7 @@ package com.zincoid.nullbot.bot.spi.model;
  *
  * @param userId   the user id
  * @param nickname the display nickname
+ * @param avatar   the avatar url, nullable
  */
-public record UserInfo(String userId, String nickname) {
+public record UserInfo(String userId, String nickname, String avatar) {
 }

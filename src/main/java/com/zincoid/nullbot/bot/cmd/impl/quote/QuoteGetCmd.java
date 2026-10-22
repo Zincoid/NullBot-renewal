@@ -91,12 +91,4 @@ public class QuoteGetCmd implements Cmd {
                 别名：获取语录
                 权限：>=0(normal)""";
     }
-
-    @Override
-    public String getAiHelp() {
-        return """
-                QuoteGet
-                Sends a quote by id.
-                Usage: QuoteGet [quote id]""";
-    }
 }

@@ -30,7 +30,7 @@ public class Meme implements Tool {
         return ToolDefinition.builder("meme", """
                         Searches available memes by keyword.
                         Returns file ids; use send with file=<id> to send one.""")
-                .addString("keyword", "keyword matched against description or filename, optional")
+                .addString("keyword", "keyword matched against tag, optional")
                 .addInteger("limit", "max results, default 20, max 50")
                 .build();
     }
@@ -39,13 +39,13 @@ public class Meme implements Tool {
     public ToolRes run(ToolContext ctx, String args) {
         Args _args = JsonUtils.parse(args, Args.class);
         int limit = _args.limit == null ? DEFAULT_LIMIT : _args.limit;
-        List<File> memes = fileService.search(BizType.MEME, _args.keyword, limit);
+        List<File> memes = fileService.search(BizType.MEME, _args.keyword, null, limit);
         if (memes.isEmpty()) return ToolRes.of("No memes found");
         StringBuilder text = new StringBuilder("Memes:");
         for (File meme : memes) {
             text.append("\n- file id=").append(meme.getId())
                     .append(" ,name=").append(meme.getOriginal())
-                    .append(": ").append(meme.getDescription());
+                    .append(": ").append(meme.getTag());
         }
         return ToolRes.of(text.toString());
     }
