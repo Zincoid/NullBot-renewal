@@ -1089,6 +1089,32 @@
             finishConfirm(false);
         });
 
+        const nav = document.querySelector('.nav');
+        const navToggle = $('nav-toggle');
+        const closeNav = () => {
+            nav.classList.remove('nav-open');
+            navToggle.classList.remove('nav-toggle--open');
+            navToggle.setAttribute('aria-expanded', 'false');
+        };
+        navToggle.onclick = event => {
+            event.stopPropagation();
+            const open = !nav.classList.contains('nav-open');
+            nav.classList.toggle('nav-open', open);
+            navToggle.classList.toggle('nav-toggle--open', open);
+            navToggle.setAttribute('aria-expanded', String(open));
+        };
+        document.addEventListener('click', event => {
+            if (!nav.contains(event.target) && !navToggle.contains(event.target)) closeNav();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeNav();
+        });
+        window.addEventListener('hashchange', closeNav);
+        window.matchMedia('(min-width: 1001px)').addEventListener('change', event => {
+            if (event.matches) closeNav();
+        });
+        nav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
+
         $('usage-refresh').onclick = loadUsage;
         $('usage-days').onchange = () => {
             usageState.days = Number($('usage-days').value) || 14;

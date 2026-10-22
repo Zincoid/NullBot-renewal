@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 指令限速器：按群设置对指令消费做令牌桶限速。
@@ -63,10 +64,15 @@ public class GroupCmdRateLimiter {
 
     private boolean isSpam(String groupId) {
         long now = System.currentTimeMillis();
-        long last = lastProcess.getOrDefault(groupId, 0L);
-        if (now - last < SPAM_INTERVAL) return true;
-        lastProcess.put(groupId, now);
-        return false;
+        AtomicBoolean spam = new AtomicBoolean();
+        lastProcess.compute(groupId, (_, last) -> {
+            if (last != null && now - last < SPAM_INTERVAL) {
+                spam.set(true);
+                return last;
+            }
+            return now;
+        });
+        return spam.get();
     }
 
     private Bucket resolveBucket(String key, GroupSetting setting) {

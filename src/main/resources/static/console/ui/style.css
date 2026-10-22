@@ -380,6 +380,49 @@ code {
     height: 100%;
 }
 
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-text);
+}
+
+.nav-toggle:hover {
+    border-color: transparent;
+    background: rgba(128, 128, 128, 0.15);
+    color: var(--color-text-heading);
+}
+
+.nav-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: currentColor;
+    border-radius: var(--rounded-full);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+    transform-origin: center;
+}
+
+.nav-toggle--open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle--open span:nth-child(2) {
+    opacity: 0;
+}
+
+.nav-toggle--open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
 .icon-btn {
     display: inline-flex;
     align-items: center;
@@ -1094,6 +1137,32 @@ td.actions {
 #view-quotes thead th:nth-child(5),
 #view-quotes tbody td:nth-child(5) {
     text-align: center;
+}
+
+/* Keep the user table columns aligned with the group table. */
+#tab-users table,
+#tab-groups table {
+    table-layout: fixed;
+}
+
+#tab-users thead th:nth-child(1),
+#tab-groups thead th:nth-child(1) {
+    width: 16%;
+}
+
+#tab-users thead th:nth-child(2),
+#tab-groups thead th:nth-child(2) {
+    width: 24%;
+}
+
+#tab-users thead th:nth-child(3),
+#tab-groups thead th:nth-child(3) {
+    width: 32%;
+}
+
+#tab-users thead th:nth-child(4),
+#tab-groups thead th:nth-child(4) {
+    width: 28%;
 }
 
 .table-wrap tbody tr:hover td.actions:last-child {
@@ -2162,31 +2231,16 @@ dialog::backdrop {
 /* ═══ Responsive ═══════════════════ */
 
 @media (max-width: 1000px) {
-    .cards {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .rank-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
-@media (max-width: 857px) {
     :root {
         --navbar-height: 56px;
     }
 
-    h1 {
-        font-size: var(--text-2xl);
-    }
-
     .topbar {
-        flex-wrap: wrap;
-        height: auto;
+        flex-wrap: nowrap;
+        height: var(--navbar-height);
     }
 
     .brand {
-        order: 1;
         height: var(--navbar-height);
         padding: 0 var(--spacing-md) 0 var(--spacing-lg);
         border-bottom: none;
@@ -2198,28 +2252,84 @@ dialog::backdrop {
     }
 
     .topbar-actions {
-        order: 2;
         height: var(--navbar-height);
         margin-left: auto;
     }
 
     .nav {
-        order: 3;
-        flex-basis: 100%;
-        width: 100%;
-        height: 40px;
+        position: absolute;
+        top: var(--navbar-height);
+        right: var(--spacing-lg);
+        display: none;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        width: min(260px, calc(100vw - 32px));
+        height: auto;
         min-width: 0;
-        border-top: 1px solid var(--color-border);
+        padding: var(--spacing-sm);
+        overflow: visible;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--rounded-lg);
+        box-shadow: var(--shadow-lg);
+        z-index: 120;
+    }
+
+    .nav.nav-open {
+        display: flex;
+        animation: nav-drop 0.15s ease;
+    }
+
+    @keyframes nav-drop {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .nav a {
+        width: 100%;
         height: 40px;
-        gap: var(--spacing-xs);
-        padding: 0 var(--spacing-md);
+        justify-content: flex-start;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-bottom: none;
+        border-radius: var(--rounded-md);
+    }
+
+    .nav a.active {
+        border-bottom-color: transparent;
+        box-shadow: inset 4px 0 0 currentColor;
+    }
+
+    .nav a::after {
+        display: none;
+    }
+
+    .nav-toggle {
+        display: inline-flex;
     }
 
     .topbar-actions .icon-btn {
         width: 42px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rank-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 857px) {
+    h1 {
+        font-size: var(--text-2xl);
     }
 
     .app-main {
@@ -2232,11 +2342,6 @@ dialog::backdrop {
 
     .form-grid {
         grid-template-columns: minmax(0, 1fr);
-    }
-
-    .view-head {
-        flex-direction: column;
-        gap: var(--spacing-md);
     }
 
     .auth-split {
@@ -2275,6 +2380,10 @@ dialog::backdrop {
     }
 
     .topbar-actions .icon-btn {
+        width: 38px;
+    }
+
+    .nav-toggle {
         width: 38px;
     }
 
