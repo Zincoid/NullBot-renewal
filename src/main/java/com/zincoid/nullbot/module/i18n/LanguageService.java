@@ -27,7 +27,7 @@ public class LanguageService {
      * @return the concrete default language
      */
     public Language defaultLanguage() {
-        Language language = Language.fromLabel(configService.get(Conf.DEFAULT_LANGUAGE));
+        Language language = Language.fromLabel(configService.getString(Conf.DEFAULT_LANGUAGE));
         return language == Language.EN ? Language.EN : Language.ZH;
     }
 

@@ -67,7 +67,7 @@ public class CmdParser {
         List<MsgSegment> segments = content.segments();
         int i = !segments.isEmpty() && segments.getFirst() instanceof MsgSegment.Reply ? 1 : 0;
         if (i >= segments.size() || !(segments.get(i) instanceof MsgSegment.Text(String text))) return null;
-        String prefix = configService.get(Conf.CMD_PREFIX);
+        String prefix = configService.getString(Conf.CMD_PREFIX);
         if (!text.startsWith(prefix)) return null;
         List<String> words = List.of(text.substring(prefix.length()).split("\\s+"));
         return new CmdRequest(words.getFirst(), words.subList(1, words.size()));

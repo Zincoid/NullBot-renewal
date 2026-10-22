@@ -20,9 +20,14 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
     // ════ Get ═════════════════════
 
     @Override
-    public String get(Conf conf) {
+    public Config get(Conf conf) {
         if (conf == null) throw new ConfigException("Missing key: conf");
-        Config config = lambdaQuery().eq(Config::getKey, conf.getKey()).one();
+        return lambdaQuery().eq(Config::getKey, conf.getKey()).one();
+    }
+
+    @Override
+    public String getString(Conf conf) {
+        Config config = get(conf);
         return config == null || config.getValue() == null
                 ? conf.getDefaultValue()
                 : config.getValue();
@@ -30,7 +35,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
 
     @Override
     public int getInt(Conf conf) {
-        String raw = get(conf);
+        String raw = getString(conf);
         try {
             return Integer.parseInt(raw);
         } catch (NumberFormatException e) {
@@ -42,8 +47,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
 
     @Override
     public void update(Conf conf, String value) {
-        if (conf == null) throw new ConfigException("Missing key: conf");
-        Config config = lambdaQuery().eq(Config::getKey, conf.getKey()).one();
+        Config config = get(conf);
         if (config == null) throw new ConfigException("Config not found: " + conf.getKey());
         if (Objects.equals(value, config.getValue())) return;
         lambdaUpdate()
@@ -58,8 +62,7 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
 
     @Override
     public void delete(Conf conf) {
-        if (conf == null) throw new ConfigException("Missing key: conf");
-        Config config = lambdaQuery().eq(Config::getKey, conf.getKey()).one();
+        Config config = get(conf);
         if (config == null) throw new ConfigException("Config not found: " + conf.getKey());
         removeById(config.getId());
         log.info("Config deleted: {}", conf.getKey());

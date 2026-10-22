@@ -3,9 +3,9 @@
 # ══════════════════════════════════ #
 
 nullbot:
-  # ─── 文档 ─────────── #
-  doc:
-    enabled: false
+  # ─── 管理 ─────────── #
+  console:
+    token:
 
   # ─── 日志 ─────────── #
   log:
@@ -18,14 +18,14 @@ nullbot:
     username:
     password:
 
-  # ─── 连接 ─────────── #
-  shiro:
-    url: /ws  # ws endpoint
-    token:
-
-  # ─── 适配 ─────────── #
-  adapter: stdin  # type: stdin or shiro
-
   # ─── 文件 ─────────── #
   file:
     root: ./files
+
+  # ─── 连接 ─────────── #
+  shiro:
+    url: /ws
+    token:
+
+  # ─── 适配 ─────────── #
+  adapter: shiro

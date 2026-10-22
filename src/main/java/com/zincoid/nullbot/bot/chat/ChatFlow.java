@@ -204,7 +204,7 @@ public class ChatFlow {
     private String promptBase(GroupSetting setting) {
         if (setting != null && setting.getAiPrompt() != null && !setting.getAiPrompt().isBlank())
             return setting.getAiPrompt();
-        return configService.get(Conf.AI_DEFAULT_PROMPT);
+        return configService.getString(Conf.AI_DEFAULT_PROMPT);
     }
 
     /**

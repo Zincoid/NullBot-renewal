@@ -12,13 +12,22 @@ public interface ConfigService extends IService<Config> {
     // ════ Get ═════════════════════
 
     /**
+     * 返回配置项的原始存储记录。
+     * <p>Returns the raw stored entry of the configuration.</p>
+     *
+     * @param conf configuration entry
+     * @return the stored entry, or null when absent
+     */
+    Config get(Conf conf);
+
+    /**
      * 返回配置项的生效值。
      * <p>Returns the effective value of the configuration entry.</p>
      *
      * @param conf configuration entry
      * @return the stored value, or the default value of the entry when absent
      */
-    String get(Conf conf);
+    String getString(Conf conf);
 
     /**
      * 返回配置项的生效值并转换为整数。

@@ -23,9 +23,9 @@ public class OpenAiProvider {
      * @return the provider configuration
      */
     public Provider current() {
-        String apiUrl = configService.get(Conf.AI_PROVIDER_API_URL);
-        String apiKey = configService.get(Conf.AI_PROVIDER_API_KEY);
-        String model = configService.get(Conf.AI_PROVIDER_MODEL);
+        String apiUrl = configService.getString(Conf.AI_PROVIDER_API_URL);
+        String apiKey = configService.getString(Conf.AI_PROVIDER_API_KEY);
+        String model = configService.getString(Conf.AI_PROVIDER_MODEL);
         if (blank(apiUrl) || blank(apiKey) || blank(model))
             throw new AiException("AI provider not configured");
         return new Provider(apiUrl, apiKey, model);

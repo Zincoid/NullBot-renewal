@@ -51,7 +51,7 @@ public class ConfigCmd implements Cmd {
         }
         Conf conf = conf(ctx, args.next());
         if (!args.hasNext()) {
-            ctx.send(conf.getKey() + " = " + display(ctx, conf, configService.get(conf)));
+            ctx.send(conf.getKey() + " = " + display(ctx, conf, configService.getString(conf)));
             return;
         }
         String value = args.rest();
@@ -71,7 +71,7 @@ public class ConfigCmd implements Cmd {
         StringBuilder text = new StringBuilder(ctx.render(Text.CONFIG_HEADER));
         for (Conf conf : Conf.values())
             text.append("\n").append(conf.getKey()).append(" = ")
-                    .append(display(ctx, conf, configService.get(conf)));
+                    .append(display(ctx, conf, configService.getString(conf)));
         return text.toString();
     }
 
