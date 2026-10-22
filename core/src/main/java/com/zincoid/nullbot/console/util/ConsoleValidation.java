@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.console.util;
 
 import com.zincoid.nullbot.console.exception.ConsoleException;
+import com.zincoid.nullbot.platform.util.PageUtils;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -53,7 +54,7 @@ public final class ConsoleValidation {
      * @return the clamped page number
      */
     public static long page(long page) {
-        return Math.max(1, page);
+        return PageUtils.page(page);
     }
 
     /**
@@ -64,6 +65,6 @@ public final class ConsoleValidation {
      * @return the clamped page size
      */
     public static long size(long size) {
-        return Math.clamp(size, 1, 100);
+        return PageUtils.size(size);
     }
 }

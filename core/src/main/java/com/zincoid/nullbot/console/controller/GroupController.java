@@ -68,7 +68,8 @@ public class GroupController {
         Group group = groupService.getById(id);
         if (group == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "Group not found: " + id);
         groupService.setAccess(id, body.access());
-        return GroupView.of(groupService.getById(id));
+        group.setAccess(body.access());
+        return GroupView.of(group);
     }
 
     // ════ Delete ═════════════════

@@ -2,6 +2,7 @@ package com.zincoid.nullbot.platform.configuration;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.zincoid.nullbot.platform.util.PageUtils;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +28,7 @@ public class MybatisPlusConfiguration {
     public PaginationInnerInterceptor paginationInnerInterceptor(DbProperties properties) {
         DbType dbType = properties.getType() == DbProperties.DbType.SQLITE ? DbType.SQLITE : DbType.MYSQL;
         PaginationInnerInterceptor interceptor = new PaginationInnerInterceptor(dbType);
-        interceptor.setMaxLimit(100L);
+        interceptor.setMaxLimit(PageUtils.MAX_SIZE);
         return interceptor;
     }
 

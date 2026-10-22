@@ -104,11 +104,13 @@ public class FileController {
      */
     @PutMapping("/{id}")
     public FileView update(@PathVariable Long id, @Valid @RequestBody FileUpdate body) {
-        file(id);
+        File file = file(id);
         String original = body.original().trim();
         String tag = ConsoleValidation.text(body.tag(), 255, "tag");
         fileService.update(id, original, tag);
-        return FileView.of(fileService.getById(id));
+        file.setOriginal(original);
+        file.setTag(tag);
+        return FileView.of(file);
     }
 
     // ════ Content ════════════════
@@ -150,8 +152,8 @@ public class FileController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        file(id);
-        fileService.delete(id);
+        if (!fileService.delete(id))
+            throw new ConsoleException(HttpStatus.NOT_FOUND, "File not found: " + id);
         return ResponseEntity.noContent().build();
     }
 

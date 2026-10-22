@@ -73,10 +73,12 @@ public class UserController {
         User user = userService.getById(id);
         if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
         userService.setAccess(id, body.access());
+        user.setAccess(body.access());
         if (body.allowPrivateChat() != null) {
             userService.setPrivateChatAllowed(id, body.allowPrivateChat());
+            user.setAllowPrivateChat(body.allowPrivateChat());
         }
-        return UserView.of(userService.getById(id));
+        return UserView.of(user);
     }
 
     // ════ Setting ════════════════

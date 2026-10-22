@@ -6,7 +6,6 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.module.file.FileException;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
@@ -39,11 +38,8 @@ public class ImageDelCmd implements Cmd {
             throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
         if (file.getType() != BizType.IMG_COLL)
             throw new CmdWarnException(ctx.render(Text.NOT_IMAGE, id));
-        try {
-            fileService.delete(id);
-        } catch (FileException e) {
-            throw new CmdWarnException(e.getMessage());
-        }
+        if (!fileService.delete(id))
+            throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
         log.info("Image deleted: {}", id);
         ctx.send(Text.IMAGE_DELETED, id);
     }

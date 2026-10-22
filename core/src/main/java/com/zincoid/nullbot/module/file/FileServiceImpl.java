@@ -7,6 +7,7 @@ import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.mapper.FileMapper;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.FileUtils;
+import com.zincoid.nullbot.platform.util.PageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -108,8 +109,6 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     public Page<File> page(BizType type, String tag, String original, long page, long size) {
-        long current = Math.max(1, page);
-        long limit = Math.clamp(size, 1, 100);
         String tagKey = normalize(tag);
         String originalKey = normalize(original);
         return lambdaQuery()
@@ -117,7 +116,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .like(tagKey != null, File::getTag, tagKey)
                 .like(originalKey != null, File::getOriginal, originalKey)
                 .orderByDesc(File::getId)
-                .page(new Page<>(current, limit));
+                .page(PageUtils.of(page, size));
     }
 
     // ════ Random ══════════════════
@@ -151,12 +150,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Delete ══════════════════
 
     @Override
-    public void delete(Long id) {
+    public boolean delete(Long id) {
         File file = getById(id);
-        if (file == null) throw new FileException("File not found: " + id);
-        if (!removeById(id)) throw new FileException("File not found: " + id);
+        if (file == null) return false;
+        if (!removeById(id)) return false;
         deleteQuietly(file.getStored());
         log.info("File deleted: {}", id);
+        return true;
     }
 
     // ════ Core ════════════════════

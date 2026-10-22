@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.mapper.UserMapper;
 import com.zincoid.nullbot.platform.persistence.po.User;
+import com.zincoid.nullbot.platform.util.PageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -98,12 +99,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Page<User> page(String keyword, long page, long size) {
-        long current = Math.max(1, page);
-        long limit = Math.clamp(size, 1, 100);
         String key = keyword == null || keyword.isBlank() ? null : keyword.trim();
         return lambdaQuery()
                 .and(key != null, q -> q.like(User::getId, key).or().like(User::getName, key))
                 .orderByAsc(User::getId)
-                .page(new Page<>(current, limit));
+                .page(PageUtils.of(page, size));
     }
 }
