@@ -1,6 +1,5 @@
 package com.zincoid.nullbot.bot.input;
 
-import com.zincoid.nullbot.module.system.SystemException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -56,13 +55,13 @@ public class InputManager {
      * @return the matched inputs, empty on timeout
      */
     public List<InputResult> request(InputMode mode, String targetId, String pattern, long timeout, boolean coverable) {
-        if (mode == null) throw new SystemException("Missing key: mode");
-        if (targetId == null || targetId.isBlank()) throw new SystemException("Missing key: targetId");
-        if (pattern == null) throw new SystemException("Missing key: pattern");
+        if (mode == null) throw new InputException("Missing key: mode");
+        if (targetId == null || targetId.isBlank()) throw new InputException("Missing key: targetId");
+        if (pattern == null) throw new InputException("Missing key: pattern");
         String key = key(mode, targetId);
         InputEntry previous = entries.get(key);
         if (previous != null) {
-            if (!previous.coverable()) throw new SystemException("Input conflict: " + mode + " " + targetId);
+            if (!previous.coverable()) throw new InputException("Input conflict: " + mode + " " + targetId);
             cancelWait(mode, targetId);
             log.info("Input wait covered: mode={}, target={}", mode, targetId);
         }
@@ -82,9 +81,9 @@ public class InputManager {
                     .get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new SystemException("Input wait interrupted", e);
+            throw new InputException("Input wait interrupted", e);
         } catch (ExecutionException e) {
-            throw new SystemException("Input wait failed", e);
+            throw new InputException("Input wait failed", e);
         } finally {
             entries.remove(key);
             if (mode == InputMode.GM) caches.remove(key);

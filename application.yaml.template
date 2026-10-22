@@ -39,3 +39,8 @@ nullbot:
 
   # ─── 适配 ─────────── #
   adapter: shiro
+
+  # ─── 插件 ─────────── #
+  plugin:
+    enabled: false
+    dir: ./plugins

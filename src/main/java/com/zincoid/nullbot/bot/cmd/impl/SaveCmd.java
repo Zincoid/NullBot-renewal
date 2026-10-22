@@ -7,7 +7,7 @@ import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.impl.image.ImageSaveCmd;
 import com.zincoid.nullbot.bot.cmd.impl.quote.QuoteSaveCmd;
 import com.zincoid.nullbot.bot.cmd.impl.video.VideoSaveCmd;
-import com.zincoid.nullbot.bot.exception.CmdWarnException;
+import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;

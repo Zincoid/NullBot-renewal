@@ -20,7 +20,7 @@ public interface BotClient {
      * <p>Sends a group message, returns the message id.</p>
      */
     default String sendGroupMsg(String groupId, MsgContent content) {
-        throw new UnsupportedSpiException("sendGroupMsg");
+        throw SpiException.unsupported("sendGroupMsg");
     }
 
     /**
@@ -36,7 +36,7 @@ public interface BotClient {
      * <p>Sends a private message, returns the message id.</p>
      */
     default String sendPrivateMsg(String userId, MsgContent content) {
-        throw new UnsupportedSpiException("sendPrivateMsg");
+        throw SpiException.unsupported("sendPrivateMsg");
     }
 
     /**
@@ -52,7 +52,7 @@ public interface BotClient {
      * <p>Fetches a message by id.</p>
      */
     default MsgDetail getMsg(String messageId) {
-        throw new UnsupportedSpiException("getMsg");
+        throw SpiException.unsupported("getMsg");
     }
 
     /**
@@ -60,7 +60,7 @@ public interface BotClient {
      * <p>Recalls a message.</p>
      */
     default void recall(String messageId) {
-        throw new UnsupportedSpiException("recall");
+        throw SpiException.unsupported("recall");
     }
 
     // ════ Poke ════════════════════
@@ -70,7 +70,7 @@ public interface BotClient {
      * <p>Pokes a user in a group chat.</p>
      */
     default void pokeGroup(String groupId, String userId) {
-        throw new UnsupportedSpiException("pokeGroup");
+        throw SpiException.unsupported("pokeGroup");
     }
 
     /**
@@ -78,7 +78,7 @@ public interface BotClient {
      * <p>Pokes a user in a private chat.</p>
      */
     default void pokePrivate(String userId) {
-        throw new UnsupportedSpiException("pokePrivate");
+        throw SpiException.unsupported("pokePrivate");
     }
 
     // ════ Mute ════════════════════
@@ -88,7 +88,7 @@ public interface BotClient {
      * <p>Mutes a group user, zero lifts the mute.</p>
      */
     default void mute(String groupId, String userId, int seconds) {
-        throw new UnsupportedSpiException("mute");
+        throw SpiException.unsupported("mute");
     }
 
     // ════ Info queries ════════════
@@ -98,7 +98,7 @@ public interface BotClient {
      * <p>Login info.</p>
      */
     default UserInfo getLoginInfo() {
-        throw new UnsupportedSpiException("getLoginInfo");
+        throw SpiException.unsupported("getLoginInfo");
     }
 
     /**
@@ -106,7 +106,7 @@ public interface BotClient {
      * <p>User info.</p>
      */
     default UserInfo getUserInfo(String userId) {
-        throw new UnsupportedSpiException("getUserInfo");
+        throw SpiException.unsupported("getUserInfo");
     }
 
     /**
@@ -114,7 +114,7 @@ public interface BotClient {
      * <p>Fetches group info by id.</p>
      */
     default GroupInfo getGroupInfo(String groupId) {
-        throw new UnsupportedSpiException("getGroupInfo");
+        throw SpiException.unsupported("getGroupInfo");
     }
 
     /**
@@ -122,6 +122,6 @@ public interface BotClient {
      * <p>Group member list.</p>
      */
     default List<UserInfo> getGroupMembers(String groupId) {
-        throw new UnsupportedSpiException("getGroupMembers");
+        throw SpiException.unsupported("getGroupMembers");
     }
 }

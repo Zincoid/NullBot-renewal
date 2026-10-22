@@ -1,36 +1,32 @@
 package com.zincoid.nullbot.bot.cmd;
 
 import com.zincoid.nullbot.platform.configuration.CmdProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 按指令名索引 {@link Cmd} 的注册表。
  * <p>Registry of {@link Cmd} beans indexed by command names.</p>
  */
+@Slf4j
 @Component
 public class CmdRegistry {
 
-    private final List<Cmd> cmds;
-    private final Map<String, Cmd> cmdMap;
+    private final Map<String, Cmd> cmdMap = new ConcurrentHashMap<>();
+    private final CmdProperties cmdProperties;
 
     public CmdRegistry(CmdProperties cmdProperties, List<Cmd> cmds) {
-        this.cmds = cmds;
-        this.cmdMap = cmdProperties.isIgnoreCase()
-                ? new TreeMap<>(String.CASE_INSENSITIVE_ORDER)
-                : new HashMap<>();
-        for (Cmd cmd : cmds) {
-            CmdMapping mapping = cmd.getClass().getAnnotation(CmdMapping.class);
-            if (mapping == null) continue;
-            for (String cmdName : mapping.value())
-                cmdMap.put(cmdName, cmd);
-        }
+        this.cmdProperties = cmdProperties;
+        if (!register(cmds))
+            throw new CmdException("Built-in command registration failed");
+        log.info("Commands registered: {}", cmdMap.size());
     }
 
     // ════ Get ═════════════════════
@@ -43,24 +39,37 @@ public class CmdRegistry {
      * @return the command, or null when unknown
      */
     public Cmd get(String name) {
-        return cmdMap.get(name);
+        return name == null ? null : cmdMap.get(key(name));
     }
 
-    // ════ Help ════════════════════
+    // ════ Register ════════════════
 
     /**
-     * 汇总指定指令的 AI 帮助文档。
-     * <p>Collects the AI help docs of the given commands.</p>
+     * 原子注册一组指令，任一名称冲突时整组不注册。
+     * <p>Registers a group of cmds atomically; the whole group is rejected when any name conflicts.</p>
      *
-     * @param types the command types to include
-     * @return the joined help docs
+     * @param cmds the cmds to register
+     * @return true when all cmds were registered
      */
-    public String getAiDoc(Set<Class<? extends Cmd>> types) {
-        String body = cmds.stream()
-                .filter(cmd -> types.stream().anyMatch(t -> t.isInstance(cmd)))
-                .map(Cmd::getAiHelp)
-                .collect(Collectors.joining("\n\n"))
-                .trim();
-        return body.isEmpty() ? "No Cmd Docs." : "Cmd Docs:\n\n" + body;
+    public synchronized boolean register(Collection<Cmd> cmds) {
+        if (cmds == null || cmds.isEmpty()) return true;
+        Map<String, Cmd> pending = new LinkedHashMap<>();
+        for (Cmd cmd : cmds) {
+            if (cmd == null) return false;
+            CmdMapping mapping = cmd.getClass().getAnnotation(CmdMapping.class);
+            if (mapping == null || mapping.value().length == 0) return false;
+            for (String name : mapping.value()) {
+                if (name == null || name.isBlank()) return false;
+                String key = key(name);
+                if (cmdMap.containsKey(key) || pending.containsKey(key)) return false;
+                pending.put(key, cmd);
+            }
+        }
+        cmdMap.putAll(pending);
+        return true;
+    }
+
+    private String key(String name) {
+        return cmdProperties.isIgnoreCase() ? name.toLowerCase(Locale.ROOT) : name;
     }
 }

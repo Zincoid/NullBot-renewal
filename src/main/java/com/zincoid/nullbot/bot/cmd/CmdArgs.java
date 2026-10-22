@@ -1,6 +1,5 @@
 package com.zincoid.nullbot.bot.cmd;
 
-import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.Getter;

@@ -34,5 +34,6 @@ build/
 /logs/
 /files/
 /data/
+/plugins/
 /application-dev.yaml
 /application-prod.yaml

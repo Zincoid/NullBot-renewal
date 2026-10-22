@@ -2,10 +2,8 @@ package com.zincoid.nullbot.bot.bus.cmd;
 
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.exception.CmdErrorException;
-import com.zincoid.nullbot.bot.exception.CmdInfoException;
-import com.zincoid.nullbot.bot.exception.CmdOmitException;
-import com.zincoid.nullbot.bot.exception.CmdWarnException;
+import com.zincoid.nullbot.bot.cmd.CmdInfoException;
+import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
@@ -36,21 +34,15 @@ public class RunHandler implements CmdHandler {
         CmdArgs args = CmdArgs.of(ctx.params(), ctx.language());
         try {
             dispatch(ctx, args);
-        } catch (CmdOmitException e) {
-            log.info("Command omitted: {}", e.getMessage());
-            // this exception has no notification
         } catch (CmdInfoException e) {
             log.info("Command info: {}", e.getMessage());
             ctx.send(e.getMessage());
         } catch (CmdWarnException e) {
             log.warn("Command warning: {}", e.getMessage());
             ctx.send(Text.CMD_WARN, e.getMessage());
-        } catch (CmdErrorException e) {
-            log.error("Command error: {}", e.getMessage());
-            ctx.send(Text.CMD_ERROR, e.getMessage());
         } catch (Exception e) {
             log.error("Command fatal: {}", e.getMessage());
-            ctx.send(Text.CMD_FATAL, e.getMessage());
+            ctx.send(Text.CMD_ERROR, e.getMessage());
             throw e;
         }
     }

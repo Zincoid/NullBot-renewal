@@ -64,6 +64,9 @@ bot:
   console:
     token: ${nullbot.console.token:}
   adapter: ${nullbot.adapter:shiro}
+  plugin:
+    enabled: ${nullbot.plugin.enabled:false}
+    dir: ${nullbot.plugin.dir:./plugins}
   cmd:
     ignore-case: true
   file:

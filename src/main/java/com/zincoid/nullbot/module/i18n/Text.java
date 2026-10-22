@@ -43,7 +43,6 @@ public enum Text {
     HELP_UNAVAILABLE("暂无帮助", "No help available"),
     CMD_WARN("⚠️ 警告：%s", "⚠️ Warn: %s"),
     CMD_ERROR("❌ 错误：%s", "❌ Error: %s"),
-    CMD_FATAL("❌ 严重错误：%s", "❌ Fatal: %s"),
 
     // ════ Unsupported events ═════
 

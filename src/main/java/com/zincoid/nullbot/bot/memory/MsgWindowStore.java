@@ -1,9 +1,7 @@
 package com.zincoid.nullbot.bot.memory;
 
-import com.zincoid.nullbot.module.common.CommonException;
 import com.zincoid.nullbot.module.common.MessageService;
 import com.zincoid.nullbot.module.config.Conf;
-import com.zincoid.nullbot.module.config.ConfigException;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
@@ -66,7 +64,7 @@ public class MsgWindowStore {
      * @return the chat window, oldest first
      */
     public List<Message> get(String chatId) {
-        if (chatId == null || chatId.isBlank()) throw new CommonException("Missing key: chatId");
+        if (chatId == null || chatId.isBlank()) throw new MemoryException("Missing key: chatId");
         List<Message> newest = messageService.lambdaQuery()
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
@@ -86,7 +84,7 @@ public class MsgWindowStore {
      */
     private int size() {
         int size = configService.getInt(Conf.MESSAGE_HISTORY_MAX_LENGTH);
-        if (size <= 0) throw new ConfigException("Malformed value: " + size);
+        if (size <= 0) throw new MemoryException("Malformed value: " + size);
         return size;
     }
 
