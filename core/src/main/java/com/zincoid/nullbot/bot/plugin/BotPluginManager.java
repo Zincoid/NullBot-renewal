@@ -49,13 +49,7 @@ public class BotPluginManager {
 
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9._-]{1,64}");
 
-    private static final List<String> HOST_PREFIXES = List.of(
-            "com/zincoid/nullbot/bot/cmd/",
-            "com/zincoid/nullbot/bot/plugin/",
-            "com/zincoid/nullbot/bot/spi/",
-            "com/zincoid/nullbot/bot/exception/",
-            "com/zincoid/nullbot/platform/persistence/enums/"
-    );
+    private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
 
     private final CmdRegistry registry;
     private final PluginProperties properties;
@@ -184,9 +178,8 @@ public class BotPluginManager {
             Enumeration<JarEntry> entries = file.entries();
             while (entries.hasMoreElements()) {
                 String name = entries.nextElement().getName();
-                for (String prefix : HOST_PREFIXES)
-                    if (name.startsWith(prefix) && !name.endsWith("/"))
-                        throw new PluginException("Plugin bundles host API: " + name);
+                if (name.startsWith(HOST_PACKAGE) && !name.endsWith("/"))
+                    throw new PluginException("Plugin bundles host API: " + name);
             }
         }
     }
