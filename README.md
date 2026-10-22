@@ -4,8 +4,11 @@
 
 - `spi`：框架无关的事件与端口 SPI
 - `core`：核心应用，普通 JAR
+- `adapters/`：机器人框架适配器
+  - `adapter-shiro`：Shiro（QQ）
+  - `adapter-stdin`：终端调试
 - `launcher`：Spring Boot 启动与打包
-- `hello-plugin`：示例外部插件
+- `plugins/`：外部插件，示例为 `hello-plugin`
 
 `application-dev.yaml` / `application-prod.yaml` 将运行数据指向 `workspace/files`、`workspace/logs`、`workspace/plugins`、`workspace/data`；基础默认值仍是根目录下的 `files/`、`logs/`、`plugins/` 和 `./data/sqlite.db`。
 
@@ -19,7 +22,7 @@
 
 - `launcher/target/launcher-0.0.1-SNAPSHOT.jar`：可执行 JAR
 - `core/target/core-0.0.1-SNAPSHOT.jar`：核心 JAR，供插件编译
-- `hello-plugin/target/hello-plugin-0.0.1-SNAPSHOT.jar`
+- `plugins/hello-plugin/target/hello-plugin-0.0.1-SNAPSHOT.jar`
 - 插件 JAR 会自动复制到 `workspace/plugins/`
 
 ## 运行
@@ -38,6 +41,14 @@ java -jar launcher/target/launcher-0.0.1-SNAPSHOT.jar
 ```
 
 `spring-boot:run` 的工作目录已配置为仓库根目录，`data/`、`plugins/` 等相对路径与单模块时一致。
+
+## 适配器
+
+`launcher` 包含 Shiro 和 stdin 两个适配器，通过 `bot.adapter` 选择，默认 `shiro`：
+
+```bash
+java -jar launcher/target/launcher-0.0.1-SNAPSHOT.jar --bot.adapter=stdin
+```
 
 ## 数据库
 
@@ -70,4 +81,4 @@ bot:
     dir: ./plugins
 ```
 
-启用后，`workspace/plugins/` 下的 JAR 会在启动时通过 `ServiceLoader` 加载。示例插件见 `hello-plugin`，指令为 `Hello` / `你好`。
+启用后，`workspace/plugins/` 下的 JAR 会在启动时通过 `ServiceLoader` 加载。示例插件见 `plugins/hello-plugin`，指令为 `Hello` / `你好`。

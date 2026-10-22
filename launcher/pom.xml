@@ -17,6 +17,16 @@
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.zincoid</groupId>
+            <artifactId>adapter-shiro</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zincoid</groupId>
+            <artifactId>adapter-stdin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

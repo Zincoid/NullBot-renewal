@@ -71,11 +71,6 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser</artifactId>
         </dependency>
-        <!-- QQBot Core -->
-        <dependency>
-            <groupId>com.mikuac</groupId>
-            <artifactId>shiro</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

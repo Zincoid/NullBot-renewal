@@ -6,6 +6,7 @@
         <groupId>com.zincoid</groupId>
         <artifactId>nullbot-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>hello-plugin</artifactId>
     <name>NullBot Hello Plugin</name>
@@ -34,9 +35,9 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.basedir}/../workspace/plugins"/>
+                                <mkdir dir="${project.basedir}/../../workspace/plugins"/>
                                 <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${project.basedir}/../workspace/plugins/${project.build.finalName}.jar"/>
+                                      tofile="${project.basedir}/../../workspace/plugins/${project.build.finalName}.jar"/>
                             </target>
                         </configuration>
                     </execution>
