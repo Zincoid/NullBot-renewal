@@ -5,7 +5,6 @@ import com.zincoid.nullbot.platform.persistence.po.Usage;
 import com.zincoid.nullbot.platform.persistence.row.UsageDailyRow;
 import com.zincoid.nullbot.platform.persistence.row.UsageRankRow;
 import com.zincoid.nullbot.platform.persistence.row.UsageSummaryRow;
-import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -25,9 +24,6 @@ public interface UsageMapper extends BaseMapper<Usage> {
      * @param userId  the operator platform user id
      * @param cmd     the command name
      */
-    @Insert("INSERT INTO `usage` (`time`, `group_id`, `user_id`, `cmd`, `count`) " +
-            "VALUES (#{time}, #{groupId}, #{userId}, #{cmd}, 1) " +
-            "ON DUPLICATE KEY UPDATE `count` = `count` + 1")
     void increase(@Param("time") LocalDate time,
                   @Param("groupId") String groupId,
                   @Param("userId") String userId,

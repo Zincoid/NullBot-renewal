@@ -12,17 +12,17 @@ spring:
     active: prod
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/${nullbot.mysql.database}
-    username: ${nullbot.mysql.username}
-    password: ${nullbot.mysql.password}
+    url: jdbc:mysql://localhost:3306/${nullbot.mysql.database:}
+    username: ${nullbot.mysql.username:}
+    password: ${nullbot.mysql.password:}
   mvc:
     problemdetails:
       enabled: true
   servlet:
     multipart:
       resolve-lazily: true
-      max-file-size: ${nullbot.upload.max-file-size:64MB}
-      max-request-size: ${nullbot.upload.max-request-size:128MB}
+      max-file-size: 256MB
+      max-request-size: 512MB
 
 springdoc:
   api-docs:
@@ -30,7 +30,7 @@ springdoc:
 
 logging:
   file:
-    name: ${nullbot.log.path:./output.log}
+    name: ${nullbot.log.path:./logs/output.log}
   level:
     root: INFO
     com.zincoid: ${nullbot.log.level:INFO}
@@ -57,8 +57,8 @@ shiro:
   ws:
     server:
       enable: true
-      url: ${nullbot.shiro.url}
-    access-token: ${nullbot.shiro.token}
+      url: ${nullbot.shiro.url:/ws}
+    access-token: ${nullbot.shiro.token:}
 
 bot:
   console:
@@ -68,3 +68,6 @@ bot:
     ignore-case: true
   file:
     root: ${nullbot.file.root:./files}
+  sqlite:
+    fallback: true
+    path: ./data/sqlite.db
