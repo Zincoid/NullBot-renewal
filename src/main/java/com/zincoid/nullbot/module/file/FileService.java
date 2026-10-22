@@ -76,6 +76,26 @@ public interface FileService extends IService<File> {
      */
     byte[] read(Long id);
 
+    /**
+     * 返回已存储文件的本地 file URI。
+     * <p>Returns the local file URI of a stored file.</p>
+     *
+     * @param file file record
+     * @return the file URI
+     */
+    String uri(File file);
+
+    // ════ Random ══════════════════
+
+    /**
+     * 按业务类型随机读取一个文件。
+     * <p>Returns a random file of the given business type.</p>
+     *
+     * @param type business type
+     * @return a random file, or null when none exists
+     */
+    File random(BizType type);
+
     // ════ Update ══════════════════
 
     /**

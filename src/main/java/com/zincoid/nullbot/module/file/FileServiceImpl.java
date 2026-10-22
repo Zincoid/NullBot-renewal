@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * {@link FileService} 的默认实现。
@@ -75,6 +76,31 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         } catch (IOException e) {
             throw new FileException("Failed to read file: " + file.getStored(), e);
         }
+    }
+
+    @Override
+    public String uri(File file) {
+        if (file == null) throw new FileException("Missing key: file");
+        return Path.of(fileProperties.getRoot())
+                .resolve(file.getStored())
+                .toAbsolutePath()
+                .normalize()
+                .toUri()
+                .toString();
+    }
+
+    // ════ Random ══════════════════
+
+    @Override
+    public File random(BizType type) {
+        if (type == null) throw new FileException("Missing key: type");
+        long count = lambdaQuery().eq(File::getType, type).count();
+        if (count == 0) return null;
+        long offset = ThreadLocalRandom.current().nextLong(count);
+        return lambdaQuery()
+                .eq(File::getType, type)
+                .last("LIMIT 1 OFFSET " + offset)
+                .one();
     }
 
     // ════ Update ══════════════════

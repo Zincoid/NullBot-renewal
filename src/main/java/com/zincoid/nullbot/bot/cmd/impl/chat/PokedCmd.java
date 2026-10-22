@@ -8,6 +8,7 @@ import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,27 +20,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PokedCmd implements Cmd {
 
-    private final ChatFlow chatFlow;
+    private final ObjectProvider<ChatFlow> chatFlow;
 
     // ════ Run ═════════════════════
 
     @Override
     public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        chatFlow.pokeGroup(
-                ctx.client(),
-                event.groupId(),
-                event.selfId(),
-                event.userId()
-        );
+        chatFlow.getObject().poke(ctx.client(), event);
     }
 
     @Override
     public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        chatFlow.pokePrivate(
-                ctx.client(),
-                event.userId(),
-                event.selfId()
-        );
+        chatFlow.getObject().poke(ctx.client(), event);
     }
 
     // ════ Cmd ═════════════════════

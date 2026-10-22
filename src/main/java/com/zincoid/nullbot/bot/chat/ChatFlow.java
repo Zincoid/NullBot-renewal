@@ -1,20 +1,29 @@
 package com.zincoid.nullbot.bot.chat;
 
+import com.zincoid.nullbot.bot.bus.CmdProcessor;
+import com.zincoid.nullbot.bot.bus.CmdRequest;
+import com.zincoid.nullbot.bot.spi.event.BotEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.client.BotAiClient;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
-import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,6 +57,7 @@ public class ChatFlow {
     private final Memory memory;
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
+    private final CmdProcessor cmdProcessor;
     private final ReentrantLock[] locks = stripes();
 
     // ════ Reply ═══════════════════
@@ -56,43 +66,37 @@ public class ChatFlow {
      * 回复群聊消息。
      * <p>Replies to a group message.</p>
      *
-     * @param client    the outbound port
-     * @param groupId   group platform id
-     * @param selfId    the bot's platform user id
-     * @param messageId the triggering platform message id
+     * @param client the outbound port
+     * @param event  the triggering group message event
      */
-    public void chatGroup(BotClient client, String groupId, String selfId, String messageId) {
-        chat(client, ChatIds.ofGroup(groupId), selfId, groupId, true,
-                "The message to respond to is id=" + messageId + " in a group chat.");
+    public void chat(BotClient client, GroupMsgEvent event) {
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true,
+                "The message to respond to is id=" + event.messageId() + " in a group chat.", event);
     }
 
     /**
      * 回复私聊消息。
      * <p>Replies to a private message.</p>
      *
-     * @param client    the outbound port
-     * @param userId    sender platform user id
-     * @param selfId    the bot's platform user id
-     * @param messageId the triggering platform message id
+     * @param client the outbound port
+     * @param event  the triggering private message event
      */
-    public void chatPrivate(BotClient client, String userId, String selfId, String messageId) {
-        chat(client, ChatIds.ofPrivate(userId), selfId, userId, false,
-                "The message to respond to is id=" + messageId + " in a private chat.");
+    public void chat(BotClient client, PrivateMsgEvent event) {
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false,
+                "The message to respond to is id=" + event.messageId() + " in a private chat.", event);
     }
 
     /**
      * 回复群聊中的戳一戳。
      * <p>Responds to a poke in a group chat.</p>
      *
-     * @param client  the outbound port
-     * @param groupId group platform id
-     * @param selfId  the bot's platform user id
-     * @param userId  poker platform user id
+     * @param client the outbound port
+     * @param event  the triggering group poke event
      */
-    public void pokeGroup(BotClient client, String groupId, String selfId, String userId) {
-        chat(client, ChatIds.ofGroup(groupId), selfId, groupId, true,
-                "User " + nickname(client, userId) + "(" + userId
-                        + ") just poked you in a group chat; respond to the poke.");
+    public void poke(BotClient client, GroupPokeEvent event) {
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true,
+                "User " + nickname(client, event.userId()) + "(" + event.userId()
+                        + ") just poked you in a group chat; respond to the poke.", event);
     }
 
     /**
@@ -100,13 +104,12 @@ public class ChatFlow {
      * <p>Responds to a poke in a private chat.</p>
      *
      * @param client the outbound port
-     * @param userId sender platform user id
-     * @param selfId the bot's platform user id
+     * @param event  the triggering private poke event
      */
-    public void pokePrivate(BotClient client, String userId, String selfId) {
-        chat(client, ChatIds.ofPrivate(userId), selfId, userId, false,
-                "User " + nickname(client, userId) + "(" + userId
-                        + ") just poked you in a private chat; respond to the poke.");
+    public void poke(BotClient client, PrivatePokeEvent event) {
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false,
+                "User " + nickname(client, event.userId()) + "(" + event.userId()
+                        + ") just poked you in a private chat; respond to the poke.", event);
     }
 
     // ════ Core ════════════════════
@@ -121,14 +124,17 @@ public class ChatFlow {
      * @param targetId group or user platform id
      * @param group    whether the target is a group
      * @param trigger  the trigger note appended to the prompt
+     * @param event    the triggering event
      */
-    private void chat(BotClient client, String chatId, String selfId, String targetId, boolean group, String trigger) {
+    private void chat(BotClient client, String chatId, String selfId, String targetId, boolean group,
+                      String trigger, BotEvent event) {
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
             GroupSetting setting = group ? groupSettingService.get(targetId) : null;
             String selfName = selfName(client, selfId);
-            ToolContext toolContext = new BotToolCtx(client, chatId, selfId, selfName, targetId, group, memory);
+            ToolContext toolContext = new BotToolCtx(
+                    client, chatId, selfId, selfName, targetId, group, memory, event, cmdProcessor);
             String reply = botAiClient.invoke(memory.get(chatId),
                     prompt(promptBase(setting), trigger), effort(setting), toolContext);
             String replyId = send(client, targetId, group, MsgContent.builder().text(reply).build());
@@ -248,7 +254,9 @@ public class ChatFlow {
     }
 
     private record BotToolCtx(BotClient client, String chatId, String selfId, String selfName,
-                              String targetId, boolean group, Memory memory) implements ToolContext {
+                              String targetId, boolean group, Memory memory, BotEvent event,
+                              CmdProcessor cmdProcessor)
+            implements ToolContext {
 
         @Override
         public String send(String text, String replyId) {
@@ -257,6 +265,12 @@ public class ChatFlow {
             String messageId = ChatFlow.send(client, targetId, group, builder.build());
             memory.add(chatId, messageId, selfId, selfName, AiMessage.assistant(text));
             return messageId;
+        }
+
+        @Override
+        public ToolRes command(String name, List<String> params) {
+            cmdProcessor.process(client, event, new CmdRequest(name, params));
+            return ToolRes.of("Command executed: " + name);
         }
     }
 }

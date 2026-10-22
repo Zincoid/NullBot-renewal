@@ -6,6 +6,9 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.exception.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
@@ -35,10 +38,29 @@ public class QuoteSaveCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
+        handle(ctx, event.content().replyId(), args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
+        handle(ctx, event.content().replyId(), args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
+        handle(ctx, null, args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
+        handle(ctx, null, args);
+    }
+
+    private void handle(CmdContext ctx, String replyId, CmdArgs args) {
         boolean replied = args.hasOpt("id", "i");
         String messageId = replied
                 ? args.getOpt("id", "i")
-                : event.content().replyId();
+                : replyId;
         if (messageId == null)
             throw new CmdWarnException("Missing reply");
         if ("true".equals(messageId))
@@ -67,19 +89,17 @@ public class QuoteSaveCmd implements Cmd {
                 QuoteSave
                 Saves a quote.
                 Usage: [reply] QuoteSave
-                Options: -i,--id=[message id]
                 Aliases: 语录保存
-                Access: >=NORMAL""";
+                Access: >=0(normal)""";
     }
 
     @Override
     public String getAiHelp() {
         return """
                 QuoteSave
-                Saves a quote.
-                Usage: QuoteSave [options]
-                Options: -i,--id=[message id]
-                Note: saves funny or remarkable user messages.""";
+                Saves the text of one message as a quote.
+                Usage: QuoteSave -i=<message id>
+                Note: the id is the [id=...] marker shown before messages in the conversation.""";
     }
 
     // ════ Helpers ═════════════════

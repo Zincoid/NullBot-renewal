@@ -113,6 +113,6 @@ public class ConfigCmd implements Cmd {
                       ai_provider_api_key, ai_provider_model, ai_max_tokens,
                       ai_max_tool_calls, ai_chat_prompt
                 Aliases: 配置
-                Access: >=ADMIN""";
+                Access: >=2(admin)""";
     }
 }

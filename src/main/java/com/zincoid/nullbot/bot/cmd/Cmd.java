@@ -119,7 +119,7 @@ public interface Cmd {
      * <p>Help text exposed to AI documentation.</p>
      */
     default String getAiHelp() {
-        return getHelp();
+        return "Not supported yet";
     }
 
     /**

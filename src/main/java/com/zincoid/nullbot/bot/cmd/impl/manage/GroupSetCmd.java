@@ -190,6 +190,6 @@ public class GroupSetCmd implements Cmd {
                 Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra
                 Note: "GroupSet ai prompt reset" clears the group prompt.
                 Aliases: 群设置
-                Access: >=MANAGER""";
+                Access: >=1(manager)""";
     }
 }

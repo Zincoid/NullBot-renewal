@@ -6,6 +6,10 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.exception.CmdInfoException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
+import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
@@ -20,7 +24,7 @@ import java.time.format.DateTimeFormatter;
  * <p>Random quote command.</p>
  */
 @Slf4j
-@CmdMapping({"RandomQuote", "quote", "随机语录", "语录"})
+@CmdMapping({"QuoteRand", "quote", "随机语录", "语录"})
 @Component
 @RequiredArgsConstructor
 public class QuoteRandCmd implements Cmd {
@@ -33,7 +37,26 @@ public class QuoteRandCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        String userId = event.content().atIds()
+        handle(ctx, event.content(), args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
+        handle(ctx, event.content(), args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
+        handle(ctx, null, args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
+        handle(ctx, null, args);
+    }
+
+    private void handle(CmdContext ctx, MsgContent content, CmdArgs args) {
+        String userId = content == null ? null : content.atIds()
                 .stream().findFirst().orElse(null);
         if (userId == null && args.hasNext())
             userId = args.next();
@@ -56,19 +79,19 @@ public class QuoteRandCmd implements Cmd {
     @Override
     public String getHelp() {
         return """
-                RandomQuote
+                QuoteRand
                 Sends a random quote.
-                Usage: RandomQuote [user id | @user]
-                Aliases: say/随机语录/语录
-                Access: >=RESTRICTED""";
+                Usage: QuoteRand [user id | @user]
+                Aliases: quote/随机语录/语录
+                Access: >=-1(restricted)""";
     }
 
     @Override
     public String getAiHelp() {
         return """
-                RandomQuote
+                QuoteRand
                 Sends a random quote.
-                Usage: RandomQuote [user id | @user]""";
+                Usage: QuoteRand [user id]""";
     }
 
     // ════ Helpers ═════════════════
