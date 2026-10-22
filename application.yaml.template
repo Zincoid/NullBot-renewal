@@ -24,9 +24,12 @@ nullbot:
 
   # ─── 数据 ─────────── #
   db:
+    type: sqlite
     sqlite:
       path: ./data/sqlite.db
     mysql:
+      host: localhost
+      port: 3306
       database:
       username:
       password:

@@ -15,8 +15,3 @@ nullbot:
   # ─── 文件 ─────────── #
   file:
     root: ./target/test-runtime/files
-
-  # ─── 插件 ─────────── #
-  plugin:
-    enabled: false
-    dir: ./target/test-runtime/plugins

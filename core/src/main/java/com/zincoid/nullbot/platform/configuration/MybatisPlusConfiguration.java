@@ -17,14 +17,16 @@ import java.util.Properties;
 public class MybatisPlusConfiguration {
 
     /**
-     * 注册分页拦截器，限制单页最大条数。
-     * <p>Registers the pagination interceptor and caps the page size.</p>
+     * 注册分页拦截器，按数据库类型选择方言并限制单页最大条数。
+     * <p>Registers the pagination interceptor, selects the dialect by database type, and caps the page size.</p>
      *
+     * @param properties the database properties
      * @return the pagination inner interceptor
      */
     @Bean
-    public PaginationInnerInterceptor paginationInnerInterceptor() {
-        PaginationInnerInterceptor interceptor = new PaginationInnerInterceptor(DbType.MYSQL);
+    public PaginationInnerInterceptor paginationInnerInterceptor(DbProperties properties) {
+        DbType dbType = properties.getType() == DbProperties.DbType.SQLITE ? DbType.SQLITE : DbType.MYSQL;
+        PaginationInnerInterceptor interceptor = new PaginationInnerInterceptor(dbType);
         interceptor.setMaxLimit(100L);
         return interceptor;
     }

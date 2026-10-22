@@ -10,11 +10,6 @@ spring:
     name: NullBot-renewal
   profiles:
     active: prod
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/${nullbot.db.mysql.database:}
-    username: ${nullbot.db.mysql.username:}
-    password: ${nullbot.db.mysql.password:}
   mvc:
     problemdetails:
       enabled: true
@@ -61,16 +56,23 @@ shiro:
     access-token: ${nullbot.shiro.token:}
 
 bot:
+  db:
+    type: ${nullbot.db.type:sqlite}
+    mysql:
+      host: ${nullbot.db.mysql.host:localhost}
+      port: ${nullbot.db.mysql.port:3306}
+      database: ${nullbot.db.mysql.database:}
+      username: ${nullbot.db.mysql.username:}
+      password: ${nullbot.db.mysql.password:}
+    sqlite:
+      path: ${nullbot.db.sqlite.path:./data/sqlite.db}
+  file:
+    root: ${nullbot.file.root:./files}
   console:
     token: ${nullbot.console.token:}
   adapter: ${nullbot.adapter:shiro}
   cmd:
     ignore-case: true
-  file:
-    root: ${nullbot.file.root:./files}
-  sqlite:
-    fallback: true
-    path: ${nullbot.db.sqlite.path:./data/sqlite.db}
   plugin:
     enabled: ${nullbot.plugin.enabled:false}
     dir: ${nullbot.plugin.dir:./plugins}

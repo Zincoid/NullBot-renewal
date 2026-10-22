@@ -41,11 +41,6 @@ public class ReplyCmd implements Cmd {
     // ════ Cmd ═════════════════════
 
     @Override
-    public Access getAccess() {
-        return Access.MANAGER;
-    }
-
-    @Override
     public String getHelp(Language language) {
         return language == Language.EN ? """
                 Reply
