@@ -1,6 +1,6 @@
 -- =============================================
 -- NullBot Database Schema (SQLite)
--- Mirrors schema/schema.sql. Applied automatically.
+-- Mirrors schema-mysql.sql. Applied automatically.
 -- =============================================
 
 -- 1. Config

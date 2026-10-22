@@ -1,5 +1,7 @@
 -- =============================================
--- NullBot Database Schema
+-- NullBot Database Schema (MySQL)
+-- Mirrors core/src/main/resources/schema/schema-sqlite.sql.
+-- Applied manually.
 -- Version: 1.0
 -- Engine: InnoDB, Charset: utf8mb4
 -- =============================================
