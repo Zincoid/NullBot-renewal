@@ -31,9 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-/logs/
-/files/
-/data/
-/plugins/
+/workspace/
 /application-dev.yaml
 /application-prod.yaml

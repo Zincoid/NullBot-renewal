@@ -1,7 +1,7 @@
 # ═══════ NullBot 部署配置文件 ═══════ #
 # 生产环境使用，可完全不配置启动，此时：    #
 # 1. 控制台身份校验 token 随机生成       #
-# 2. 使用内置 sqlite 数据库，位置./data #
+# 2. 使用内置 sqlite 数据库            #
 # 3. 其余配置为以下默认值                #
 # ══════════════════════════════════ #
 
@@ -23,10 +23,13 @@ nullbot:
     level: INFO
 
   # ─── 数据 ─────────── #
-  mysql:
-    database:
-    username:
-    password:
+  db:
+    sqlite:
+      path: ./data/sqlite.db
+    mysql:
+      database:
+      username:
+      password:
 
   # ─── 文件 ─────────── #
   file:

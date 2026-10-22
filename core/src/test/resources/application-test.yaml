@@ -1,0 +1,22 @@
+# ═══════ NullBot 测试配置文件 ═══════ #
+# 测试运行数据统一写入 target/.       #
+# ══════════════════════════════════ #
+
+nullbot:
+  # ─── 日志 ─────────── #
+  log:
+    path: ./target/test-runtime/logs/output.log
+
+  # ─── 数据 ─────────── #
+  db:
+    sqlite:
+      path: ./target/test-runtime/data/sqlite.db
+
+  # ─── 文件 ─────────── #
+  file:
+    root: ./target/test-runtime/files
+
+  # ─── 插件 ─────────── #
+  plugin:
+    enabled: false
+    dir: ./target/test-runtime/plugins

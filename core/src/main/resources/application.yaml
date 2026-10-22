@@ -12,9 +12,9 @@ spring:
     active: prod
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/${nullbot.mysql.database:}
-    username: ${nullbot.mysql.username:}
-    password: ${nullbot.mysql.password:}
+    url: jdbc:mysql://localhost:3306/${nullbot.db.mysql.database:}
+    username: ${nullbot.db.mysql.username:}
+    password: ${nullbot.db.mysql.password:}
   mvc:
     problemdetails:
       enabled: true
@@ -64,13 +64,13 @@ bot:
   console:
     token: ${nullbot.console.token:}
   adapter: ${nullbot.adapter:shiro}
-  plugin:
-    enabled: ${nullbot.plugin.enabled:false}
-    dir: ${nullbot.plugin.dir:./plugins}
   cmd:
     ignore-case: true
   file:
     root: ${nullbot.file.root:./files}
   sqlite:
     fallback: true
-    path: ./data/sqlite.db
+    path: ${nullbot.db.sqlite.path:./data/sqlite.db}
+  plugin:
+    enabled: ${nullbot.plugin.enabled:false}
+    dir: ${nullbot.plugin.dir:./plugins}
