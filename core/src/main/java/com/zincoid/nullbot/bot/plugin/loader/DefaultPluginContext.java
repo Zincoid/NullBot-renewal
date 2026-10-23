@@ -1,5 +1,6 @@
-package com.zincoid.nullbot.bot.plugin;
+package com.zincoid.nullbot.bot.plugin.loader;
 
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.common.UserService;

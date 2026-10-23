@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -106,6 +108,19 @@ public class CmdRegistry {
         }
         cmdMap.putAll(pending);
         return true;
+    }
+
+    /**
+     * 按指令实例反注册其全部名称。
+     * <p>Unregisters every name mapped to the given command instances.</p>
+     *
+     * @param cmds the command instances to remove
+     */
+    public synchronized void unregister(Collection<Cmd> cmds) {
+        if (cmds == null || cmds.isEmpty()) return;
+        Set<Cmd> targets = Collections.newSetFromMap(new IdentityHashMap<>());
+        targets.addAll(cmds);
+        cmdMap.entrySet().removeIf(entry -> targets.contains(entry.getValue()));
     }
 
     private String key(String name) {

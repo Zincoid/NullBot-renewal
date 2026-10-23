@@ -389,12 +389,16 @@
 
     async function loadConfig() {
         const status = $('config-status');
+        const total = $('config-total');
+        total.textContent = '';
         setStatus(status, t('config.loading'));
         try {
             const list = await api('/config');
             renderConfigs(list);
-            setStatus(status, t('config.count', {n: list.length}));
+            setStatus(status, '');
+            total.textContent = t('config.count', {n: list.length});
         } catch (e) {
+            total.textContent = '';
             setStatus(status, e.message, 'error');
         }
     }
@@ -1355,6 +1359,109 @@
         }
     }
 
+    // ═══ Plugins ═══════════════════
+
+    let pluginItems = [];
+    let pluginEnabled = true;
+    let pluginBusy = false;
+
+    async function loadPlugins() {
+        const body = $('plugins-body');
+        body.innerHTML = emptyRow(6, t('common.loading'));
+        try {
+            const data = await api('/plugins');
+            pluginEnabled = data.enabled !== false;
+            pluginItems = Array.isArray(data.items) ? data.items : [];
+            renderPlugins();
+        } catch (e) {
+            body.innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
+            $('plugins-total').textContent = '';
+            $('plugins-notice').hidden = true;
+            toast(t('plugins.loadFailed', {msg: e.message}), 'error');
+        }
+    }
+
+    function renderPlugins() {
+        $('plugins-total').textContent = t('plugins.total', {n: pluginItems.length});
+        const notice = $('plugins-notice');
+        notice.hidden = pluginEnabled;
+        notice.textContent = pluginEnabled ? '' : t('plugins.globalDisabled');
+        const body = $('plugins-body');
+        if (!pluginItems.length) {
+            body.innerHTML = emptyRow(6, t('plugins.empty'));
+            return;
+        }
+        body.innerHTML = pluginItems.map(plugin => {
+            const jar = escapeHtml(plugin.jar);
+            const id = plugin.id
+                ? `<code>${escapeHtml(plugin.id)}</code>`
+                : '<span class="muted">-</span>';
+            const versionText = plugin.version
+                ? escapeHtml(plugin.version)
+                : '<span class="muted">-</span>';
+            const api = plugin.apiVersion == null
+                ? ''
+                : ` <span class="muted">api ${escapeHtml(plugin.apiVersion)}</span>`;
+            const version = `<div class="plugin-version">${versionText}${api}</div>`;
+            const commands = plugin.commands && plugin.commands.length
+                ? `<div class="plugin-commands">${plugin.commands
+                    .map(name => `<code>${escapeHtml(name)}</code>`).join('')}</div>`
+                : '<span class="muted">-</span>';
+            const error = plugin.error
+                ? `<div class="plugin-error">${escapeHtml(plugin.error)}</div>`
+                : '';
+            return `
+                <tr>
+                    <td><code>${jar}</code></td>
+                    <td>${id}</td>
+                    <td>${version}</td>
+                    <td>${commands}</td>
+                    <td>${pluginBadge(plugin.state)}${error}</td>
+                    <td class="actions">${pluginActions(plugin)}</td>
+                </tr>`;
+        }).join('');
+    }
+
+    function pluginBadge(state) {
+        const key = 'plugins.state.' + state;
+        const label = t(key);
+        const kind = state === 'LOADED'
+            ? 'badge ok'
+            : state === 'FAILED' ? 'badge error' : 'badge off';
+        return `<span class="${kind}">${escapeHtml(label === key ? state : label)}</span>`;
+    }
+
+    function pluginActions(plugin) {
+        if (!pluginEnabled) return '<span class="muted">-</span>';
+        const jar = escapeHtml(plugin.jar);
+        if (plugin.state === 'LOADED') {
+            return `<button class="small btn-reset" data-plugin-action="reload" data-jar="${jar}">${escapeHtml(t('plugins.reload'))}</button>
+                    <button class="small btn-toggle btn-disable" data-plugin-action="disable" data-jar="${jar}">${escapeHtml(t('plugins.disable'))}</button>`;
+        }
+        if (plugin.state === 'DISABLED' || plugin.state === 'FAILED' || plugin.state === 'AVAILABLE') {
+            const label = plugin.state === 'FAILED' ? t('plugins.retry') : t('plugins.enable');
+            return `<button class="small btn-toggle btn-enable" data-plugin-action="enable" data-jar="${jar}">${escapeHtml(label)}</button>`;
+        }
+        return '<span class="muted">-</span>';
+    }
+
+    async function pluginAction(action, jar) {
+        if (pluginBusy) return;
+        if (action === 'disable' && !await confirmAction(t('plugins.disableConfirm', {jar}))) return;
+        pluginBusy = true;
+        try {
+            await api('/plugins/' + encodeURIComponent(jar) + '/' + action, {method: 'POST'});
+            const key = action === 'enable' ? 'plugins.enabled'
+                : action === 'disable' ? 'plugins.disabled' : 'plugins.reloaded';
+            toast(t(key, {jar}), 'ok');
+        } catch (e) {
+            toast(t('plugins.actionFailed', {msg: e.message}), 'error');
+        } finally {
+            pluginBusy = false;
+        }
+        await loadPlugins();
+    }
+
     // ═══ Navigation ══════════════════
 
     const loaders = {
@@ -1362,7 +1469,8 @@
         config: loadConfig,
         files: loadFiles,
         accounts: loadAccounts,
-        quotes: loadQuotes
+        quotes: loadQuotes,
+        plugins: loadPlugins
     };
 
     function currentView() {
@@ -1679,6 +1787,12 @@
             if (!button) return;
             const quote = quoteState.items.find(item => item.id === Number(button.dataset.id));
             if (quote) deleteQuote(quote);
+        });
+
+        $('plugins-refresh').onclick = loadPlugins;
+        $('plugins-body').addEventListener('click', event => {
+            const button = event.target.closest('button[data-plugin-action]');
+            if (button) pluginAction(button.dataset.pluginAction, button.dataset.jar);
         });
     }
 
