@@ -70,6 +70,8 @@ public class GroupSettingController {
                 .aiEffort(body.aiEffort())
                 .aiPrompt(prompt)
                 .aiInjectionGuard(body.aiInjectionGuard())
+                .aiAutoChat(body.aiAutoChat())
+                .aiChatFrequency(body.aiChatFrequency())
                 .build();
         groupSettingService.update(setting);
         groupCmdRateLimiter.reset(id);

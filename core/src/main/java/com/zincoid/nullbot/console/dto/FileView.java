@@ -40,7 +40,7 @@ public record FileView(
                 file.getUserId(),
                 file.getOriginal(),
                 file.getTag(),
-                file.getSize() == null ? 0 : file.getSize(),
+                file.getSize(),
                 file.getType(),
                 file.getCreatedAt());
     }

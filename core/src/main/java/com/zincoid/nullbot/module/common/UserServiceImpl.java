@@ -74,7 +74,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public boolean isPrivateChatAllowed(String id) {
         User user = getById(id);
         if (user == null) throw new CommonException("User not found: " + id);
-        return Boolean.TRUE.equals(user.getAllowPrivateChat());
+        return user.getAllowPrivateChat();
     }
 
     @Override

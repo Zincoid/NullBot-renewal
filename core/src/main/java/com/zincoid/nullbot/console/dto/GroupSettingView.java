@@ -19,6 +19,8 @@ import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
  * @param aiEffort         the AI reasoning effort
  * @param aiPrompt         the group system prompt, blank when unset
  * @param aiInjectionGuard whether anti prompt injection is enabled
+ * @param aiAutoChat       whether AI replies to ordinary group messages automatically
+ * @param aiChatFrequency  the auto-chat probability per message, 0..1
  */
 public record GroupSettingView(
         String groupId,
@@ -30,7 +32,9 @@ public record GroupSettingView(
         int limitInterval,
         Effort aiEffort,
         String aiPrompt,
-        boolean aiInjectionGuard
+        boolean aiInjectionGuard,
+        boolean aiAutoChat,
+        double aiChatFrequency
 ) {
 
     /**
@@ -41,19 +45,18 @@ public record GroupSettingView(
      * @return the view
      */
     public static GroupSettingView of(GroupSetting setting) {
-        Language language = setting.getLanguage() == null ? Language.AUTO : setting.getLanguage();
-        LimitScope scope = setting.getLimitScope() == null ? LimitScope.USER : setting.getLimitScope();
-        Effort effort = setting.getAiEffort() == null ? Effort.HIGH : setting.getAiEffort();
         return new GroupSettingView(
                 setting.getGroupId(),
-                language,
-                !Boolean.FALSE.equals(setting.getLimitEnabled()),
-                scope,
-                setting.getLimitCapacity() == null ? 5 : setting.getLimitCapacity(),
-                setting.getLimitRefill() == null ? 2 : setting.getLimitRefill(),
-                setting.getLimitInterval() == null ? 1 : setting.getLimitInterval(),
-                effort,
+                setting.getLanguage(),
+                setting.getLimitEnabled(),
+                setting.getLimitScope(),
+                setting.getLimitCapacity(),
+                setting.getLimitRefill(),
+                setting.getLimitInterval(),
+                setting.getAiEffort(),
                 setting.getAiPrompt() == null ? "" : setting.getAiPrompt(),
-                !Boolean.FALSE.equals(setting.getAiInjectionGuard()));
+                setting.getAiInjectionGuard(),
+                setting.getAiAutoChat(),
+                setting.getAiChatFrequency());
     }
 }

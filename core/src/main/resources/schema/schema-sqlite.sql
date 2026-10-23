@@ -76,7 +76,9 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `limit_interval`     INT         NOT NULL DEFAULT 1,
     `ai_prompt`          TEXT        DEFAULT NULL,
     `ai_effort`          TINYINT     NOT NULL DEFAULT 3,
-    `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT 1
+    `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT 1,
+    `ai_auto_chat`      BOOLEAN     NOT NULL DEFAULT 0,
+    `ai_chat_frequency` DOUBLE      NOT NULL DEFAULT 0.001
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_setting_group_id` ON `group_setting` (`group_id`);
 

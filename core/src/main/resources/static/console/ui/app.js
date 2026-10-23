@@ -979,7 +979,9 @@
             $('gs-capacity').value = setting.limitCapacity;
             $('gs-refill').value = setting.limitRefill;
             $('gs-interval').value = setting.limitInterval;
+            $('gs-chat-frequency').value = setting.aiChatFrequency;
             $('gs-limit-enabled').checked = setting.limitEnabled;
+            $('gs-auto-chat').checked = setting.aiAutoChat;
             $('gs-guard').checked = setting.aiInjectionGuard;
             $('gs-prompt').value = setting.aiPrompt || '';
             setStatus($('gs-status'), '');
@@ -994,10 +996,16 @@
         const capacity = Number($('gs-capacity').value);
         const refill = Number($('gs-refill').value);
         const interval = Number($('gs-interval').value);
+        const frequencyText = $('gs-chat-frequency').value.trim();
+        const frequency = Number(frequencyText);
         if (!Number.isInteger(capacity) || capacity < 1
             || !Number.isInteger(refill) || refill < 1
             || !Number.isInteger(interval) || interval < 1) {
             setStatus($('gs-status'), t('group.positiveInts'), 'error');
+            return;
+        }
+        if (!frequencyText || !Number.isFinite(frequency) || frequency < 0 || frequency > 1) {
+            setStatus($('gs-status'), t('group.frequencyRange'), 'error');
             return;
         }
         setStatus($('gs-status'), t('group.saving'));
@@ -1013,6 +1021,8 @@
                     limitInterval: interval,
                     limitEnabled: $('gs-limit-enabled').checked,
                     aiInjectionGuard: $('gs-guard').checked,
+                    aiAutoChat: $('gs-auto-chat').checked,
+                    aiChatFrequency: frequency,
                     aiPrompt: $('gs-prompt').value
                 })
             });

@@ -114,15 +114,15 @@ public class ChatPipeline {
         GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
-                ? !Boolean.FALSE.equals(groupSetting.getAiInjectionGuard())
-                : !Boolean.FALSE.equals(userSetting.getAiInjectionGuard());
+                ? groupSetting.getAiInjectionGuard()
+                : userSetting.getAiInjectionGuard();
         if (event instanceof MsgEvent msg && guard && chatGuard.check(text(msg.content()))) {
             send(client, targetId, group, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
             log.info("Injection blocked: chat={}", chatId);
             return;
         }
         String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getAiPrompt());
-        Effort effort = effort(group ? groupSetting.getAiEffort() : userSetting.getAiEffort());
+        Effort effort = group ? groupSetting.getAiEffort() : userSetting.getAiEffort();
         AgentOptions options = options();
         String selfName = selfName(client, selfId);
         ChatContext ctx = new ChatContext(client, targetId, group, event, cmdDispatcher, fileService);
@@ -179,17 +179,6 @@ public class ChatPipeline {
     private String promptBase(String prompt) {
         if (prompt != null && !prompt.isBlank()) return prompt;
         return configService.getString(Conf.AI_DEFAULT_PROMPT);
-    }
-
-    /**
-     * 选择推理强度，未设置时使用 HIGH。
-     * <p>Selects the reasoning effort, falling back to HIGH when unset.</p>
-     *
-     * @param effort the configured effort, nullable
-     * @return the reasoning effort
-     */
-    private static Effort effort(Effort effort) {
-        return effort == null ? Effort.HIGH : effort;
     }
 
     /**

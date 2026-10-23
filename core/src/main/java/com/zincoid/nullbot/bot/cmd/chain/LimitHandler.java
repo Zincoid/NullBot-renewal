@@ -50,7 +50,7 @@ public class LimitHandler implements CmdHandler {
 
     private boolean check(CmdContext ctx, String groupId, String userId) {
         GroupSetting setting = groupSettingService.get(groupId);
-        if (!Boolean.TRUE.equals(setting.getLimitEnabled())) return true;
+        if (!setting.getLimitEnabled()) return true;
         String cmd = ctx.cmd().getClass().getSimpleName().replace("Cmd", "");
         if (groupCmdRateLimiter.tryConsume(groupId, userId, cmd)) return true;
         log.info("Rate limit exceeded: group={}, user={}, cmd={}", groupId, userId, cmd);

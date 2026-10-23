@@ -3,6 +3,8 @@ package com.zincoid.nullbot.console.dto;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.LimitScope;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -20,6 +22,8 @@ import jakarta.validation.constraints.Size;
  * @param aiEffort         the AI reasoning effort
  * @param aiPrompt         the group system prompt, blank clears it
  * @param aiInjectionGuard whether anti prompt injection is enabled
+ * @param aiAutoChat       whether AI replies to ordinary group messages automatically
+ * @param aiChatFrequency  the auto-chat probability per message, 0..1
  */
 public record GroupSettingUpdate(
         @NotNull(message = "Language is required")
@@ -50,6 +54,14 @@ public record GroupSettingUpdate(
         String aiPrompt,
 
         @NotNull(message = "aiInjectionGuard is required")
-        Boolean aiInjectionGuard
+        Boolean aiInjectionGuard,
+
+        @NotNull(message = "aiAutoChat is required")
+        Boolean aiAutoChat,
+
+        @NotNull(message = "aiChatFrequency is required")
+        @DecimalMin(value = "0.0", message = "aiChatFrequency must be between 0 and 1")
+        @DecimalMax(value = "1.0", message = "aiChatFrequency must be between 0 and 1")
+        Double aiChatFrequency
 ) {
 }

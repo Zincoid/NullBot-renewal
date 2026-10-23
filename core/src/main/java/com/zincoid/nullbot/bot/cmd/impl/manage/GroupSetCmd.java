@@ -119,6 +119,16 @@ public class GroupSetCmd implements Cmd {
                 update.setAiInjectionGuard(enabled);
                 message = ctx.render(Text.GROUPSET_AI_GUARD, enabled);
             }
+            case "auto" -> {
+                boolean enabled = bool(ctx, args.next());
+                update.setAiAutoChat(enabled);
+                message = ctx.render(Text.GROUPSET_AI_AUTO_CHAT, enabled);
+            }
+            case "frequency" -> {
+                double value = frequency(ctx, args.nextDouble());
+                update.setAiChatFrequency(value);
+                message = ctx.render(Text.GROUPSET_AI_CHAT_FREQUENCY, value);
+            }
             default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_AI, name));
         }
         save(update);
@@ -139,9 +149,7 @@ public class GroupSetCmd implements Cmd {
 
     private String view(CmdContext ctx, String groupId) {
         GroupSetting setting = groupSettingService.get(groupId);
-        LimitScope scope = setting.getLimitScope() == null ? LimitScope.USER : setting.getLimitScope();
-        Effort effort = setting.getAiEffort() == null ? Effort.HIGH : setting.getAiEffort();
-        Language language = setting.getLanguage() == null ? Language.AUTO : setting.getLanguage();
+        Language language = setting.getLanguage();
         String languageText = language == Language.AUTO
                 ? ctx.render(Text.GROUPSET_LANG_AUTO, languageService.defaultLanguage().getLabel())
                 : language.getLabel();
@@ -150,9 +158,10 @@ public class GroupSetCmd implements Cmd {
                 : setting.getAiPrompt();
         return ctx.render(Text.GROUPSET_VIEW,
                 groupId, languageText,
-                setting.getLimitEnabled(), scope.getLabel(),
+                setting.getLimitEnabled(), setting.getLimitScope().getLabel(),
                 setting.getLimitCapacity(), setting.getLimitRefill(), setting.getLimitInterval(),
-                effort.getLabel(), setting.getAiInjectionGuard(), prompt);
+                setting.getAiEffort().getLabel(), setting.getAiInjectionGuard(),
+                setting.getAiAutoChat(), setting.getAiChatFrequency(), prompt);
     }
 
     // ════ Helpers ═════════════════
@@ -175,6 +184,12 @@ public class GroupSetCmd implements Cmd {
 
     private static int positive(CmdContext ctx, int value) {
         if (value <= 0) throw new CmdWarnException(ctx.render(Text.GROUPSET_VALUE_POSITIVE, value));
+        return value;
+    }
+
+    private static double frequency(CmdContext ctx, double value) {
+        if (!Double.isFinite(value) || value < 0 || value > 1)
+            throw new CmdWarnException(ctx.render(Text.GROUPSET_VALUE_FREQUENCY, value));
         return value;
     }
 
@@ -206,9 +221,9 @@ public class GroupSetCmd implements Cmd {
                 Views or updates the current group's settings.
                 Usage: GroupSet [-v|--view]
                        GroupSet -l|--limit <enabled|scope|capacity|refill|interval> [value]
-                       GroupSet -a|--ai <effort|prompt|guard> [value]
+                       GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
                        GroupSet -g|--lang <auto|zh|en>
-                Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra
+                Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
                 Note: "GroupSet ai prompt reset" clears the group prompt; "auto" follows the global default_language.
                 Aliases: GSet / 群设置
                 Access: >=1(manager)""" : """
@@ -216,9 +231,9 @@ public class GroupSetCmd implements Cmd {
                 查看或修改当前群的设置。
                 用法：GroupSet [-v|--view]
                       GroupSet -l|--limit <enabled|scope|capacity|refill|interval> [value]
-                      GroupSet -a|--ai <effort|prompt|guard> [value]
+                      GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
                       GroupSet -g|--lang <auto|zh|en>
-                取值：scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra
+                取值：scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
                 说明："GroupSet ai prompt reset" 清空群提示词；"auto" 跟随全局 default_language。
                 别名：GSet / 群设置
                 权限：>=1(manager)""";

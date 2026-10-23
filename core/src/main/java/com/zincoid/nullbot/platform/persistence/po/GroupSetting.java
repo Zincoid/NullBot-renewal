@@ -30,4 +30,6 @@ public class GroupSetting {
     private Effort aiEffort;
     private String aiPrompt;
     private Boolean aiInjectionGuard;
+    private Boolean aiAutoChat;
+    private Double aiChatFrequency;
 }

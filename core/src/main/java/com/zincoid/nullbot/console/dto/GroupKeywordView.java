@@ -29,6 +29,6 @@ public record GroupKeywordView(Long id, String keyword, String cmd, List<String>
                 rule.getKeyword(),
                 rule.getCmd(),
                 rule.getArgs() == null ? List.of() : rule.getArgs(),
-                Boolean.TRUE.equals(rule.getEnabled()));
+                rule.getEnabled());
     }
 }

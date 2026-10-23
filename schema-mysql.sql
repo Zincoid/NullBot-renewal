@@ -103,6 +103,8 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `ai_prompt`          TEXT        DEFAULT NULL             COMMENT 'Group system prompt, blank uses the global prompt',
     `ai_effort`          TINYINT     NOT NULL DEFAULT 3       COMMENT 'AI reasoning effort: 0=MINIMAL, 1=LOW, 2=MEDIUM, 3=HIGH, 4=XHIGH, 5=MAX, 6=ULTRA',
     `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Anti prompt injection',
+    `ai_auto_chat`      BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'AI auto chat',
+    `ai_chat_frequency` DOUBLE      NOT NULL DEFAULT 0.001   COMMENT 'AI auto chat frequency (0..1)',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_group_id` (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group setting table';

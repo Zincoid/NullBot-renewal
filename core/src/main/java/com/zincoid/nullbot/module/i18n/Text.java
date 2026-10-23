@@ -137,6 +137,7 @@ public enum Text {
     GROUPSET_MISSING_PROMPT("缺少提示词", "Missing prompt"),
     GROUPSET_MALFORMED_BOOLEAN("布尔值格式错误：%s", "Malformed boolean: %s"),
     GROUPSET_VALUE_POSITIVE("值必须为正数：%d", "Value must be positive: %d"),
+    GROUPSET_VALUE_FREQUENCY("频率必须在 0~1 之间：%s", "Frequency must be between 0 and 1: %s"),
     GROUPSET_UNKNOWN_SCOPE("未知范围：%s", "Unknown scope: %s"),
     GROUPSET_UNKNOWN_EFFORT("未知强度：%s", "Unknown effort: %s"),
     GROUPSET_UNKNOWN_LANGUAGE("未知语言：%s（可选 auto|zh|en）", "Unknown language: %s (expected auto|zh|en)"),
@@ -151,16 +152,18 @@ public enum Text {
     GROUPSET_AI_PROMPT_RESET("AI 提示词已重置为默认", "AI prompt reset to default"),
     GROUPSET_AI_PROMPT_UPDATED("AI 提示词已更新", "AI prompt updated"),
     GROUPSET_AI_GUARD("AI 防注入 = %s", "AI injection guard = %s"),
+    GROUPSET_AI_AUTO_CHAT("AI 自动回复 = %s", "AI auto reply = %s"),
+    GROUPSET_AI_CHAT_FREQUENCY("AI 自动回复频率 = %s", "AI auto reply frequency = %s"),
     GROUPSET_VIEW("""
             群设置：%s
             语言：%s
             限速：enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
-            AI：effort=%s, guard=%s
+            AI：effort=%s, guard=%s, auto=%s, frequency=%s
             提示词：%s""", """
             Group settings: %s
             Language: %s
             Limit: enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
-            AI: effort=%s, guard=%s
+            AI: effort=%s, guard=%s, auto=%s, frequency=%s
             Prompt: %s"""),
     GROUPSET_LANG_AUTO("auto（全局：%s）", "auto (global: %s)"),
     GROUPSET_DEFAULT("（默认）", "(default)");

@@ -23,11 +23,10 @@ public record UserSettingView(String userId, String aiPrompt, Effort aiEffort, b
      * @return the view
      */
     public static UserSettingView of(String userId, UserSetting setting) {
-        Effort effort = setting == null || setting.getAiEffort() == null
-                ? Effort.HIGH
-                : setting.getAiEffort();
-        String prompt = setting == null || setting.getAiPrompt() == null ? "" : setting.getAiPrompt();
-        boolean guard = setting == null || !Boolean.FALSE.equals(setting.getAiInjectionGuard());
-        return new UserSettingView(userId, prompt, effort, guard);
+        return new UserSettingView(
+                userId,
+                setting.getAiPrompt() == null ? "" : setting.getAiPrompt(),
+                setting.getAiEffort(),
+                setting.getAiInjectionGuard());
     }
 }

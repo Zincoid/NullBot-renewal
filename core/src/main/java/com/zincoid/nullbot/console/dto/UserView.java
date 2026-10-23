@@ -23,6 +23,6 @@ public record UserView(String id, String name, Access access, boolean allowPriva
      */
     public static UserView of(User user) {
         return new UserView(user.getId(), user.getName(), user.getAccess(),
-                Boolean.TRUE.equals(user.getAllowPrivateChat()));
+                user.getAllowPrivateChat());
     }
 }
