@@ -14,5 +14,6 @@
 
     <modules>
         <module>hello-plugin</module>
+        <module>sb6657-plugin</module>
     </modules>
 </project>
