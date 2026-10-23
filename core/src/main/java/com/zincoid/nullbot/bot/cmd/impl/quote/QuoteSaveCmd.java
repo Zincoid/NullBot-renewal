@@ -109,6 +109,11 @@ public class QuoteSaveCmd implements Cmd {
                 Note: the id is the [id=...] marker shown before messages in the conversation.""";
     }
 
+    @Override
+    public boolean isAiCallable() {
+        return true;
+    }
+
     // ════ Helpers ═════════════════
 
     private static String text(MsgContent content, BotClient client) {

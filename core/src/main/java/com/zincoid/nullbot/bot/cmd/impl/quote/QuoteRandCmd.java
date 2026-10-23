@@ -101,6 +101,11 @@ public class QuoteRandCmd implements Cmd {
                 Usage: QuoteRand [user id]""";
     }
 
+    @Override
+    public boolean isAiCallable() {
+        return true;
+    }
+
     // ════ Helpers ═════════════════
 
     private static String format(Quote quote) {

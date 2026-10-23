@@ -91,4 +91,9 @@ public class ImageRandCmd implements Cmd {
                 Sends a random collected image.
                 Usage: ImageRand""";
     }
+
+    @Override
+    public boolean isAiCallable() {
+        return true;
+    }
 }

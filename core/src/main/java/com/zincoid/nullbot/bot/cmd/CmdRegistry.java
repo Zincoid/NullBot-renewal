@@ -9,7 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 按指令名索引 {@link Cmd} 的注册表。
@@ -40,6 +43,22 @@ public class CmdRegistry {
      */
     public Cmd get(String name) {
         return name == null ? null : cmdMap.get(key(name));
+    }
+
+    /**
+     * 返回允许 AI 调用的指令名集合，使用每个指令的首个名称。
+     * <p>Returns the names of AI-callable commands, using the first name of each command.</p>
+     *
+     * @return the sorted AI-callable command names
+     */
+    public Set<String> getAiCallableNames() {
+        return cmdMap.values().stream()
+                .distinct()
+                .filter(Cmd::isAiCallable)
+                .map(cmd -> cmd.getClass().getAnnotation(CmdMapping.class))
+                .filter(mapping -> mapping != null && mapping.value().length > 0)
+                .map(mapping -> mapping.value()[0])
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     // ════ Register ════════════════

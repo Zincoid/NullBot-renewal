@@ -118,4 +118,9 @@ public class VideoSaveCmd implements Cmd {
                 Usage: VideoSave -i=<message id>
                 Note: the id is the [id=...] marker shown before messages in the conversation.""";
     }
+
+    @Override
+    public boolean isAiCallable() {
+        return true;
+    }
 }

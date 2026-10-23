@@ -21,49 +21,38 @@ import java.util.stream.Collectors;
 @Component
 public class Call implements Tool {
 
-    private static final Set<String> CMDS = Set.of(
-            "QuoteRand", "QuoteSave",
-            "ImageRand", "ImageSave",
-            "VideoRand", "VideoSave");
-
     private final CmdRegistry registry;
-    private final ToolDefinition definition;
 
     public Call(CmdRegistry registry) {
         this.registry = registry;
-        this.definition = build();
     }
 
     // ════ Tool ════════════════════
 
     @Override
     public ToolDefinition definition() {
-        return definition;
-    }
-
-    @Override
-    public ToolRes run(ToolContext ctx, String json) {
-        Args args = JsonUtils.parse(json, Args.class);
-        if (args.cmd == null || !CMDS.contains(args.cmd))
-            return ToolRes.error("Unsupported command: " + args.cmd);
-        List<String> params = args.args == null || args.args.isBlank()
-                ? List.of()
-                : List.of(args.args.trim().split("\\s+"));
-        return ctx.cmd(args.cmd, params);
-    }
-
-    // ════ Helpers ═════════════════
-
-    private ToolDefinition build() {
-        String docs = CMDS.stream().sorted()
+        Set<String> names = registry.getAiCallableNames();
+        String docs = names.stream()
                 .map(registry::get)
                 .filter(Objects::nonNull)
                 .map(Cmd::getAiHelp)
                 .collect(Collectors.joining("\n\n"));
         return ToolDefinition.builder("call", "Runs a bot command in the current chat.\n\n" + docs)
-                .addEnum("cmd", "command name", CMDS, true)
+                .addEnum("cmd", "command name", names, true)
                 .addString("args", "space-separated command arguments")
                 .build();
+    }
+
+    @Override
+    public ToolRes run(ToolContext ctx, String json) {
+        Args args = JsonUtils.parse(json, Args.class);
+        Cmd cmd = registry.get(args.cmd);
+        if (cmd == null || !cmd.isAiCallable())
+            return ToolRes.error("Unsupported command: " + args.cmd);
+        List<String> params = args.args == null || args.args.isBlank()
+                ? List.of()
+                : List.of(args.args.trim().split("\\s+"));
+        return ctx.cmd(args.cmd, params);
     }
 
     private record Args(String cmd, String args) {

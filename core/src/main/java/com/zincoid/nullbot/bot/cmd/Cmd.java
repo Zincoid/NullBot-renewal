@@ -127,6 +127,16 @@ public interface Cmd {
     }
 
     /**
+     * 是否允许 AI 通过 call 工具调用此指令。
+     * <p>Whether the AI may invoke this command through the call tool.</p>
+     *
+     * @return true when the command is AI-callable
+     */
+    default boolean isAiCallable() {
+        return false;
+    }
+
+    /**
      * 指令所需限权等级。
      * <p>Required access level of the command.</p>
      *

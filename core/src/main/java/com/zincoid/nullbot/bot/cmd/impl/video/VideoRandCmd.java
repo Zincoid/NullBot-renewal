@@ -91,4 +91,9 @@ public class VideoRandCmd implements Cmd {
                 Sends a random collected video.
                 Usage: VideoRand""";
     }
+
+    @Override
+    public boolean isAiCallable() {
+        return true;
+    }
 }
