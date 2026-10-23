@@ -154,6 +154,15 @@ public enum Text {
     HISTORY_CLEARED("♻️ 聊天历史已清空（%d 条）", "♻️ Chat history cleared (%d messages)"),
     HISTORY_UNKNOWN_OP("未知历史参数：%s", "Unknown history argument: %s"),
 
+    // ════ Prompt ═════════════════
+
+    PROMPT_VIEW("当前提示词：%s", "Current prompt: %s"),
+    PROMPT_MISSING("缺少提示词", "Missing prompt"),
+    PROMPT_GROUP_HINT("该指令用于管理私聊提示词，群提示词请通过群设置修改", "This command manages private-chat prompts; change group prompts through group settings"),
+    PROMPT_UPDATED("提示词已更新", "Prompt updated"),
+    PROMPT_RESET("提示词已重置", "Prompt reset"),
+    PROMPT_UNKNOWN_OP("未知操作", "Unknown operation"),
+
     // ════ Paging ═════════════════
 
     PAGE_HEADER("[%s] 🔍 共 %d 个结果", "[%s] 🔍 %d results"),
