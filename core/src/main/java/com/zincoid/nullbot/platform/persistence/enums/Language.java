@@ -40,8 +40,9 @@ public enum Language {
 
     public static Language fromLabel(String label) {
         if (label == null) return null;
+        String normalized = label.trim();
         for (Language language : values())
-            if (language.label.equalsIgnoreCase(label.trim())) return language;
+            if (language.label.equalsIgnoreCase(normalized)) return language;
         return null;
     }
 }

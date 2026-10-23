@@ -77,7 +77,7 @@ public interface UsageMapper extends BaseMapper<Usage> {
             FROM `usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             GROUP BY `cmd`
-            ORDER BY `count` DESC
+            ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)
     List<UsageRankRow> cmds(@Param("start") LocalDate start,
@@ -98,7 +98,7 @@ public interface UsageMapper extends BaseMapper<Usage> {
             FROM `usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             GROUP BY `group_id`
-            ORDER BY `count` DESC
+            ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)
     List<UsageRankRow> groups(@Param("start") LocalDate start,

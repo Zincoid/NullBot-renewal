@@ -65,8 +65,7 @@ public class GroupController {
      */
     @PutMapping("/{id}")
     public GroupView update(@PathVariable String id, @Valid @RequestBody GroupUpdate body) {
-        Group group = groupService.getById(id);
-        if (group == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "Group not found: " + id);
+        Group group = group(id);
         groupService.setAccess(id, body.access());
         group.setAccess(body.access());
         return GroupView.of(group);
@@ -83,9 +82,16 @@ public class GroupController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
-        Group group = groupService.getById(id);
-        if (group == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "Group not found: " + id);
+        group(id);
         groupService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ════ Helpers ═════════════════
+
+    private Group group(String id) {
+        Group group = groupService.getById(id);
+        if (group == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "Group not found: " + id);
+        return group;
     }
 }

@@ -27,7 +27,7 @@ public final class FileUtils {
      * 用推断出的扩展名纠正原始文件名的后缀。
      * <p>Corrects the extension of the original filename with the inferred extension.</p>
      *
-     * @param original  original filename, may be blank
+     * @param original  original filename, may be null or blank
      * @param extension inferred extension, nullable
      * @return the corrected filename, or the original when no extension was inferred
      */
@@ -43,7 +43,7 @@ public final class FileUtils {
      * 根据纠正后的文件名生成随机存储名，缺少扩展名时使用 bin。
      * <p>Builds a random stored name from the corrected filename, falling back to bin.</p>
      *
-     * @param original corrected filename, may be blank
+     * @param original corrected filename, may be null or blank
      * @return UUID-based stored name that always carries an extension
      */
     private static String stored(String original) {
@@ -71,7 +71,7 @@ public final class FileUtils {
      * <p>Infers the extension from the file header and writes the stream under a generated stored name.</p>
      *
      * @param root     storage root directory, created when absent
-     * @param original original filename, may be blank
+     * @param original original filename, may be null or blank
      * @param in       source stream, not closed by this method
      * @return the stored filename, corrected original filename, and bytes written
      * @throws IOException when the file cannot be written
@@ -83,13 +83,14 @@ public final class FileUtils {
         String extension = MimeUtils.extension(mime);
         String corrected = corrected(original, extension);
         String stored = stored(corrected);
+        Path target = root.resolve(stored);
         Files.createDirectories(root);
         try (InputStream body = new SequenceInputStream(new ByteArrayInputStream(header), in)) {
-            long size = Files.copy(body, root.resolve(stored), StandardCopyOption.REPLACE_EXISTING);
+            long size = Files.copy(body, target, StandardCopyOption.REPLACE_EXISTING);
             return new StoredFile(stored, corrected, size);
         } catch (IOException e) {
             try {
-                Files.deleteIfExists(root.resolve(stored));
+                Files.deleteIfExists(target);
             } catch (IOException ignored) {
                 // keep the original failure
             }

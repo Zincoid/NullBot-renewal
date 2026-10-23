@@ -44,8 +44,9 @@ public enum Effort {
 
     public static Effort fromLabel(String label) {
         if (label == null) return null;
+        String normalized = label.trim();
         for (Effort effort : values())
-            if (effort.label.equalsIgnoreCase(label.trim())) return effort;
+            if (effort.label.equalsIgnoreCase(normalized)) return effort;
         return null;
     }
 }

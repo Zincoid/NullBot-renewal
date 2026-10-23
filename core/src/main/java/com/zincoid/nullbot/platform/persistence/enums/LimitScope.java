@@ -40,8 +40,9 @@ public enum LimitScope {
 
     public static LimitScope fromLabel(String label) {
         if (label == null) return null;
+        String normalized = label.trim();
         for (LimitScope scope : values())
-            if (scope.label.equalsIgnoreCase(label.trim())) return scope;
+            if (scope.label.equalsIgnoreCase(normalized)) return scope;
         return null;
     }
 }

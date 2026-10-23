@@ -43,8 +43,9 @@ public enum BizType {
 
     public static BizType fromLabel(String label) {
         if (label == null) return null;
+        String normalized = label.trim();
         for (BizType type : values())
-            if (type.label.equalsIgnoreCase(label.trim())) return type;
+            if (type.label.equalsIgnoreCase(normalized)) return type;
         return null;
     }
 }

@@ -70,8 +70,7 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public UserView update(@PathVariable String id, @Valid @RequestBody UserUpdate body) {
-        User user = userService.getById(id);
-        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        User user = user(id);
         userService.setAccess(id, body.access());
         user.setAccess(body.access());
         if (body.allowPrivateChat() != null) {
@@ -92,8 +91,7 @@ public class UserController {
      */
     @GetMapping("/{id}/setting")
     public UserSettingView getSetting(@PathVariable String id) {
-        User user = userService.getById(id);
-        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        user(id);
         return UserSettingView.of(id, userSettingService.get(id));
     }
 
@@ -107,8 +105,7 @@ public class UserController {
      */
     @PutMapping("/{id}/setting")
     public UserSettingView updateSetting(@PathVariable String id, @Valid @RequestBody UserSettingUpdate body) {
-        User user = userService.getById(id);
-        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        user(id);
         String prompt = body.aiPrompt() == null ? "" : body.aiPrompt().trim();
         userSettingService.update(UserSetting.builder()
                 .userId(id)
@@ -130,9 +127,16 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
-        User user = userService.getById(id);
-        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        user(id);
         userService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ════ Helpers ═════════════════
+
+    private User user(String id) {
+        User user = userService.getById(id);
+        if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
+        return user;
     }
 }

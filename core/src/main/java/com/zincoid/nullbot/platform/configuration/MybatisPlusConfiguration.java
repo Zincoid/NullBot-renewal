@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Properties;
 
 /**
- * MyBatis-Plus 分页拦截器配置。
- * <p>MyBatis-Plus pagination interceptor configuration.</p>
+ * MyBatis-Plus 配置：分页拦截器与数据库厂商标识。
+ * <p>MyBatis-Plus configuration: pagination interceptor and vendor database id.</p>
  */
 @Configuration
 public class MybatisPlusConfiguration {
