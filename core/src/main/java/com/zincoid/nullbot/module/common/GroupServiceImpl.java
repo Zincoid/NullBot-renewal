@@ -33,7 +33,6 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
                     .eq(Group::getId, id)
                     .set(Group::getName, name)
                     .update();
-            group.setName(name);
         }
     }
 

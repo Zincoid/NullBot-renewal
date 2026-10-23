@@ -76,15 +76,19 @@ public class GroupKeywordServiceImpl extends ServiceImpl<GroupKeywordMapper, Gro
                 .ne(GroupKeyword::getId, id)
                 .exists();
         if (exists) throw new SettingException("Keyword exists: " + keyword);
+        List<String> normalizedArgs = args == null || args.isEmpty() ? List.of() : args;
         GroupKeyword update = GroupKeyword.builder()
                 .id(id)
                 .keyword(keyword)
                 .cmd(cmd)
-                .args(args == null || args.isEmpty() ? List.of() : args)
+                .args(normalizedArgs)
                 .build();
         if (!updateById(update)) throw new SettingException("Keyword not found: " + id);
+        rule.setKeyword(keyword);
+        rule.setCmd(cmd);
+        rule.setArgs(normalizedArgs);
         log.info("Keyword updated: {}", id);
-        return getById(id);
+        return rule;
     }
 
     // ════ Delete ══════════════════

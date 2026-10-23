@@ -11,8 +11,6 @@ import com.zincoid.nullbot.module.ai.tool.ToolCall;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
-import com.zincoid.nullbot.module.config.Conf;
-import com.zincoid.nullbot.module.config.ConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,17 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 机器人 AI 客户端：带系统提示词与多轮工具调用的模型对话。
- * <p>Bot AI client: model conversation with a system prompt and multi-round tool calls.</p>
+ * AI 代理客户端：带系统提示词与多轮工具调用的模型对话。
+ * <p>AI agent client: model conversation with a system prompt and multi-round tool calls.</p>
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BotAiClient {
+public class AgentClient {
 
     private final Model model;
     private final ToolRegistry toolRegistry;
-    private final ConfigService configService;
 
     // ════ Invoke ══════════════════
 
@@ -43,11 +40,13 @@ public class BotAiClient {
      * @param prompt  the system prompt, may be blank
      * @param effort  the reasoning effort
      * @param ctx     the tool context
+     * @param options the agent options
      * @return the final model response
      */
-    public ModelRes invoke(List<AiMessage> history, String prompt, Effort effort, ToolContext ctx) {
-        int maxTcs = maxToolCalls();
-        int maxTokens = maxTokens();
+    public ModelRes invoke(List<AiMessage> history, String prompt, Effort effort, ToolContext ctx,
+                           AgentOptions options) {
+        int maxTcs = options.maxToolRounds();
+        int maxTokens = options.maxTokens();
         List<AiMessage> work = new ArrayList<>();
         if (prompt != null && !prompt.isBlank())
             work.add(AiMessage.system(prompt));
@@ -106,7 +105,7 @@ public class BotAiClient {
             return ToolRes.error("Tool not found");
         try {
             ToolRes res = tool.run(ctx, tc.getArgs());
-            log.info("Tool success: {} -> {}", tc.getName(), res);
+            log.info("Tool success: {} -> {}", tc.getName(), summary(res));
             return res;
         } catch (Exception e) {
             log.warn("Tool error: {}", e.getMessage());
@@ -114,15 +113,9 @@ public class BotAiClient {
         }
     }
 
-    private int maxTokens() {
-        int value = configService.getInt(Conf.AI_MAX_TOKENS);
-        if (value <= 0) throw new AiException("Malformed value: " + value);
-        return value;
-    }
-
-    private int maxToolCalls() {
-        int value = configService.getInt(Conf.AI_MAX_TOOL_CALLS);
-        if (value < 0) throw new AiException("Malformed value: " + value);
-        return value;
+    private static String summary(ToolRes res) {
+        String text = res.text() == null ? "" : res.text();
+        if (text.length() > 200) text = text.substring(0, 200) + "...";
+        return res.images().isEmpty() ? text : text + " (+" + res.images().size() + " image(s))";
     }
 }

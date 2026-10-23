@@ -41,10 +41,12 @@ public class Read implements Tool {
             return ToolRes.error("Message not found: " + _args.id);
         String name = msg.getNickname() == null
                 ? msg.getUserId() : msg.getNickname();
+        String content = msg.getContent() == null
+                ? "(No content)" : msg.getContent();
         StringBuilder text = new StringBuilder()
                 .append("[id=").append(msg.getId()).append("] ")
                 .append(name).append("(").append(msg.getUserId()).append("): ")
-                .append(msg.getContent());
+                .append(content);
         List<String> files = msg.getFiles();
         if (files == null || files.isEmpty()) {
             text.append("\nAttachments: none");

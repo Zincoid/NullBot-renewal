@@ -96,6 +96,7 @@ public class MessageWindowStore {
     private void trim(String chatId) {
         int size = size();
         List<Message> all = messageService.lambdaQuery()
+                .select(Message::getId, Message::getFiles)
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
                 .list();

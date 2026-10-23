@@ -43,8 +43,7 @@ public class ToolDefinition {
         private final Set<String> required = new LinkedHashSet<>();
 
         public Builder addString(String name, String desc) {
-            params.add(new ParamSpec(name, "string", desc, null));
-            return this;
+            return addString(name, desc, false);
         }
 
         public Builder addString(String name, String desc, boolean required) {
@@ -54,8 +53,7 @@ public class ToolDefinition {
         }
 
         public Builder addInteger(String name, String desc) {
-            params.add(new ParamSpec(name, "integer", desc, null));
-            return this;
+            return addInteger(name, desc, false);
         }
 
         public Builder addInteger(String name, String desc, boolean required) {
@@ -65,8 +63,7 @@ public class ToolDefinition {
         }
 
         public Builder addEnum(String name, String desc, Set<String> values) {
-            params.add(new ParamSpec(name, "string", desc, new TreeSet<>(values)));
-            return this;
+            return addEnum(name, desc, values, false);
         }
 
         public Builder addEnum(String name, String desc, Set<String> values, boolean required) {

@@ -700,12 +700,46 @@ code {
     flex: 1 1 120px;
 }
 
-#group-tab-keywords .toolbar input.grow {
-    flex: 2 1 180px;
-}
-
 #group-tab-keywords .toolbar button {
     flex: 0 0 auto;
+}
+
+#group-tab-keywords .keyword-args {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+#group-tab-keywords .kw-arg-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+}
+
+#group-tab-keywords .kw-arg-type {
+    flex: 0 0 118px;
+    width: 118px;
+}
+
+#group-tab-keywords .toolbar input.kw-arg-value {
+    flex: 1 1 160px;
+    width: auto;
+    min-width: 0;
+}
+
+#group-tab-keywords .toolbar input.kw-arg-value:disabled {
+    background: var(--color-bg-alt);
+    color: var(--color-text-secondary);
+    cursor: not-allowed;
+}
+
+#group-tab-keywords .kw-arg-btn {
+    flex: 0 0 auto;
+    width: 40px;
+    padding: 0;
+    font-size: var(--text-base);
+    line-height: 1;
 }
 
 .cards {
@@ -2676,6 +2710,15 @@ dialog::backdrop {
 @media (max-width: 640px) {
     .cards {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #group-tab-keywords .kw-arg-row {
+        flex-wrap: wrap;
+    }
+
+    #group-tab-keywords .kw-arg-type {
+        flex: 1 1 100%;
+        width: 100%;
     }
 
     .chart-head {

@@ -47,6 +47,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     public File save(String userId, String url, String original, BizType type, String tag) {
+        validate(userId, type);
+        if (url == null || url.isBlank()) throw new FileException("Missing key: url");
         if (original == null || original.isBlank()) original = "unnamed";
         HttpResponse<InputStream> resp = download(url);
         try (InputStream in = resp.body()) {
@@ -58,6 +60,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     public File save(String userId, MultipartFile file, String original, BizType type, String tag) {
+        validate(userId, type);
+        if (file == null) throw new FileException("Missing key: file");
         String name = original == null || original.isBlank() ? file.getOriginalFilename() : original;
         if (name == null || name.isBlank()) name = "unnamed";
         try (InputStream in = file.getInputStream()) {
@@ -162,8 +166,6 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Core ════════════════════
 
     private File store(String userId, String original, InputStream in, BizType type, String tag) {
-        if (userId == null || userId.isBlank()) throw new FileException("Missing key: userId");
-        if (type == null) throw new FileException("Missing key: type");
         FileUtils.StoredFile saved;
         try {
             saved = FileUtils.save(Path.of(fileProperties.getRoot()), original, in);
@@ -190,6 +192,11 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     // ════ Helpers ═════════════════
+
+    private static void validate(String userId, BizType type) {
+        if (userId == null || userId.isBlank()) throw new FileException("Missing key: userId");
+        if (type == null) throw new FileException("Missing key: type");
+    }
 
     private static String normalize(String value) {
         return value == null || value.isBlank() ? null : value.trim();

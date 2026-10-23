@@ -61,11 +61,11 @@ public interface UsageService extends IService<Usage> {
      * 用量统计结果。
      * <p>Usage statistics result.</p>
      *
-     * @param total    total usage count
-     * @param users    distinct active users
-     * @param groups   distinct active groups, excluding private chat
-     * @param daily    daily usage rows with data
-     * @param cmds     top commands
+     * @param total     total usage count
+     * @param users     distinct active users
+     * @param groups    distinct active groups, excluding private chat
+     * @param daily     daily usage rows with data
+     * @param cmds      top commands
      * @param topGroups top groups
      */
     record Stats(long total, long users, long groups, List<Daily> daily,

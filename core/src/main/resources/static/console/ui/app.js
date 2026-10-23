@@ -710,6 +710,12 @@
     let currentUser = null;
     let currentKeywords = [];
     let editingKeyword = null;
+    const KW_ARG_PRESETS = {user: '{userId}', group: '{groupId}'};
+    const KW_ARG_TYPES = [
+        {value: 'text', labelKey: 'group.keywordArgText'},
+        {value: 'user', labelKey: 'group.keywordArgUser'},
+        {value: 'group', labelKey: 'group.keywordArgGroup'}
+    ];
 
     function loadAccounts() {
         if (accountsTab === 'users') loadUsers();
@@ -1049,11 +1055,93 @@
             </tr>`).join('');
     }
 
+    function kwArgType(value) {
+        const text = String(value ?? '').trim();
+        if (text === KW_ARG_PRESETS.user) return 'user';
+        if (text === KW_ARG_PRESETS.group) return 'group';
+        return 'text';
+    }
+
+    function kwArgTypeOptions(selected) {
+        return options(KW_ARG_TYPES.map(item => ({value: item.value, label: t(item.labelKey)})), selected);
+    }
+
+    function kwArgRow(value, type) {
+        const preset = KW_ARG_PRESETS[type] || '';
+        const row = document.createElement('div');
+        row.className = 'kw-arg-row';
+        row.innerHTML = `
+            <select class="kw-arg-type" aria-label="${escapeHtml(t('group.keywordArgType'))}">
+                ${kwArgTypeOptions(type)}
+            </select>
+            <input class="kw-arg-value" value="${escapeHtml(value ?? '')}"
+                   ${preset ? 'disabled' : ''}
+                   placeholder="${escapeHtml(preset || t('group.keywordArgValue'))}"
+                   aria-label="${escapeHtml(t('group.keywordArgValue'))}">
+            <button type="button" class="small kw-arg-btn kw-arg-add"
+                    title="${escapeHtml(t('group.keywordArgAdd'))}"
+                    aria-label="${escapeHtml(t('group.keywordArgAdd'))}">+</button>
+            <button type="button" class="small kw-arg-btn kw-arg-remove"
+                    title="${escapeHtml(t('group.keywordArgRemove'))}"
+                    aria-label="${escapeHtml(t('group.keywordArgRemove'))}">−</button>`;
+        return row;
+    }
+
+    function renderKeywordArgs(args) {
+        const list = $('kw-args-list');
+        list.innerHTML = '';
+        const values = Array.isArray(args) && args.length ? args : [''];
+        values.forEach(value => list.appendChild(kwArgRow(value, kwArgType(value))));
+    }
+
+    function applyKwArgType(row, type) {
+        const select = row.querySelector('.kw-arg-type');
+        const input = row.querySelector('.kw-arg-value');
+        select.value = type;
+        const preset = KW_ARG_PRESETS[type];
+        input.disabled = Boolean(preset);
+        if (preset) input.value = preset;
+        else if (Object.values(KW_ARG_PRESETS).includes(input.value.trim())) input.value = '';
+        input.placeholder = preset || t('group.keywordArgValue');
+    }
+
+    function addKeywordArgRow(after) {
+        const row = kwArgRow('', 'text');
+        if (after) after.after(row);
+        else $('kw-args-list').appendChild(row);
+        row.querySelector('.kw-arg-value').focus();
+    }
+
+    function removeKeywordArgRow(row) {
+        const list = $('kw-args-list');
+        if (list.children.length <= 1) {
+            applyKwArgType(row, 'text');
+            const input = row.querySelector('.kw-arg-value');
+            input.value = '';
+            input.focus();
+            return;
+        }
+        const index = Array.prototype.indexOf.call(list.children, row);
+        row.remove();
+        const next = list.children[Math.min(index, list.children.length - 1)];
+        if (next) next.querySelector('.kw-arg-value').focus();
+    }
+
+    function collectKeywordArgs() {
+        return Array.from(document.querySelectorAll('#kw-args-list .kw-arg-row'))
+            .map(row => {
+                const type = row.querySelector('.kw-arg-type').value;
+                const value = row.querySelector('.kw-arg-value').value.trim();
+                return value || KW_ARG_PRESETS[type] || '';
+            })
+            .filter(value => value !== '');
+    }
+
     function editKeyword(rule) {
         editingKeyword = rule;
         $('kw-keyword').value = rule.keyword || '';
         $('kw-cmd').value = rule.cmd || '';
-        $('kw-args').value = (rule.args || []).join(' ');
+        renderKeywordArgs(rule.args || []);
         $('kw-save').textContent = t('group.keywordSave');
         $('kw-cancel').hidden = false;
         $('kw-keyword').focus();
@@ -1063,7 +1151,7 @@
         editingKeyword = null;
         $('kw-keyword').value = '';
         $('kw-cmd').value = '';
-        $('kw-args').value = '';
+        renderKeywordArgs([]);
         $('kw-save').textContent = t('group.keywordAdd');
         $('kw-cancel').hidden = true;
         setStatus($('kw-status'), '');
@@ -1073,7 +1161,6 @@
         if (!currentGroup) return;
         const keyword = $('kw-keyword').value.trim();
         const cmd = $('kw-cmd').value.trim();
-        const rawArgs = $('kw-args').value.trim();
         if (!keyword || !cmd) {
             setStatus($('kw-status'), t('group.keywordRequired'), 'error');
             return;
@@ -1081,7 +1168,7 @@
         const body = {
             keyword,
             cmd,
-            args: rawArgs ? rawArgs.split(/\s+/) : []
+            args: collectKeywordArgs()
         };
         const base = '/groups/' + encodeURIComponent(currentGroup.id) + '/keywords';
         try {
@@ -1464,6 +1551,19 @@
         $('user-setting-form').addEventListener('submit', saveUserSetting);
         $('kw-save').onclick = saveKeyword;
         $('kw-cancel').onclick = resetKeywordForm;
+        $('kw-args-list').addEventListener('click', event => {
+            const add = event.target.closest('.kw-arg-add');
+            if (add) {
+                addKeywordArgRow(add.closest('.kw-arg-row'));
+                return;
+            }
+            const remove = event.target.closest('.kw-arg-remove');
+            if (remove) removeKeywordArgRow(remove.closest('.kw-arg-row'));
+        });
+        $('kw-args-list').addEventListener('change', event => {
+            const select = event.target.closest('.kw-arg-type');
+            if (select) applyKwArgType(select.closest('.kw-arg-row'), select.value);
+        });
         $('kw-body').addEventListener('click', event => {
             const button = event.target.closest('button[data-kw-action]');
             if (!button) return;

@@ -33,7 +33,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     .eq(User::getId, id)
                     .set(User::getName, name)
                     .update();
-            user.setName(name);
         }
     }
 

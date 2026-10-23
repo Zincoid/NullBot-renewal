@@ -68,7 +68,7 @@ public class OpenAiModel implements Model {
 
     private static String resolveUrl(String apiUrl) {
         if (apiUrl.endsWith("/chat/completions")) return apiUrl;
-        return apiUrl.endsWith("/") ? apiUrl + "chat/completions" : apiUrl + "/chat/completions";
+        return (apiUrl.endsWith("/") ? apiUrl : apiUrl + "/") + "chat/completions";
     }
 
     private static boolean insufficient(String body) {

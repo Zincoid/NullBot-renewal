@@ -551,10 +551,9 @@
                        data-i18n-placeholder="group.keywordKeyword" placeholder="关键词">
                 <input id="kw-cmd" maxlength="100"
                        data-i18n-placeholder="group.keywordCmd" placeholder="指令名">
-                <input id="kw-args" class="grow"
-                       data-i18n-placeholder="group.keywordArgs" placeholder="参数（空格分隔）">
                 <button id="kw-save" class="primary btn-save" data-i18n="group.keywordAdd">添加</button>
                 <button id="kw-cancel" data-i18n="group.keywordCancel" hidden>取消</button>
+                <div id="kw-args-list" class="keyword-args"></div>
                 <span class="keyword-hint" data-i18n="group.keywordPlaceholders">占位符：{userId} = 发送者 ID，{groupId} = 群号</span>
             </div>
             <p id="kw-status" class="status"></p>

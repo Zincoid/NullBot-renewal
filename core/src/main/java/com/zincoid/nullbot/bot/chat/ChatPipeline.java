@@ -10,7 +10,8 @@ import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.ai.client.BotAiClient;
+import com.zincoid.nullbot.module.ai.client.AgentClient;
+import com.zincoid.nullbot.module.ai.client.AgentOptions;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
@@ -59,7 +60,7 @@ public class ChatPipeline {
 
     private static final int LOCK_STRIPES = 64;
 
-    private final BotAiClient botAiClient;
+    private final AgentClient agentClient;
     private final Memory memory;
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
@@ -122,12 +123,13 @@ public class ChatPipeline {
         }
         String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getAiPrompt());
         Effort effort = effort(group ? groupSetting.getAiEffort() : userSetting.getAiEffort());
+        AgentOptions options = options();
         String selfName = selfName(client, selfId);
         ChatContext ctx = new ChatContext(client, targetId, group, event, cmdDispatcher, fileService);
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
-            ModelRes reply = botAiClient.invoke(memory.get(chatId), prompt(base, trigger), effort, ctx);
+            ModelRes reply = agentClient.invoke(memory.get(chatId), prompt(base, trigger), effort, ctx, options);
             String content = reply.getContent();
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
@@ -188,6 +190,18 @@ public class ChatPipeline {
      */
     private static Effort effort(Effort effort) {
         return effort == null ? Effort.HIGH : effort;
+    }
+
+    /**
+     * 读取单次对话的输出与工具轮数上限。
+     * <p>Reads the output and tool round limits for one conversation.</p>
+     *
+     * @return the agent options
+     */
+    private AgentOptions options() {
+        return new AgentOptions(
+                configService.getInt(Conf.AI_MAX_TOKENS),
+                configService.getInt(Conf.AI_MAX_TOOL_CALLS));
     }
 
     /**
