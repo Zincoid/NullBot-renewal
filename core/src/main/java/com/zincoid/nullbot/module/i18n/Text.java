@@ -133,6 +133,16 @@ public enum Text {
     MEMBER_LEFT("%s(%s) 离开了我们...", "%s(%s) left the group..."),
     MEMBER_KICKED("%s(%s) 被驱逐了...", "%s(%s) was kicked..."),
 
+    // ════ Anti-Recall ════════════
+
+    ANTI_RECALL_DETECTED("""
+            检测到撤回消息！
+            用户: %s(%s)
+            内容: %s""", """
+            Message recalled!
+            User: %s(%s)
+            Content: %s"""),
+
     // ════ History ════════════════
 
     HISTORY_TITLE("聊天历史", "Chat history"),
@@ -175,6 +185,7 @@ public enum Text {
     GROUPSET_NOTICE_JOIN("入群通知 = %s", "Join notice = %s"),
     GROUPSET_NOTICE_LEAVE("退群通知 = %s", "Leave notice = %s"),
     GROUPSET_UNKNOWN_NOTICE("未知通知项：%s", "Unknown notice setting: %s"),
+    GROUPSET_ANTI_RECALL("防撤回 = %s", "Anti-recall = %s"),
     GROUPSET_LIMIT_ENABLED("限速启用 = %s", "limit enabled = %s"),
     GROUPSET_LIMIT_SCOPE("限速范围 = %s", "limit scope = %s"),
     GROUPSET_LIMIT_CAPACITY("限速容量 = %s", "limit capacity = %s"),
@@ -190,12 +201,14 @@ public enum Text {
             群设置：%s
             语言：%s
             通知：入群=%s, 退群=%s
+            防撤回：%s
             限速：enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
             AI：effort=%s, guard=%s, auto=%s, frequency=%s
             提示词：%s""", """
             Group settings: %s
             Language: %s
             Notices: join=%s, leave=%s
+            Anti-recall: %s
             Limit: enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
             AI: effort=%s, guard=%s, auto=%s, frequency=%s
             Prompt: %s"""),

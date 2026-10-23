@@ -55,6 +55,10 @@ public class GroupSetCmd implements Cmd {
             updateNotice(ctx, groupId, args);
             return;
         }
+        if (args.hasOpt("anti-recall", "r")) {
+            updateAntiRecall(ctx, groupId, args);
+            return;
+        }
         if (args.isEmpty() || "view".equalsIgnoreCase(args.peek())) {
             ctx.send(view(ctx, groupId));
             return;
@@ -169,6 +173,12 @@ public class GroupSetCmd implements Cmd {
         ctx.send(Text.GROUPSET_UPDATED, ctx.render(message, enabled));
     }
 
+    private void updateAntiRecall(CmdContext ctx, String groupId, CmdArgs args) {
+        boolean enabled = bool(ctx, args.next());
+        save(GroupSetting.builder().groupId(groupId).antiRecallEnabled(enabled).build());
+        ctx.send(Text.GROUPSET_UPDATED, ctx.render(Text.GROUPSET_ANTI_RECALL, enabled));
+    }
+
     // ════ View ════════════════════
 
     private String view(CmdContext ctx, String groupId) {
@@ -183,6 +193,7 @@ public class GroupSetCmd implements Cmd {
         return ctx.render(Text.GROUPSET_VIEW,
                 groupId, languageText,
                 setting.getJoinNoticeEnabled(), setting.getLeaveNoticeEnabled(),
+                setting.getAntiRecallEnabled(),
                 setting.getLimitEnabled(), setting.getLimitScope().getLabel(),
                 setting.getLimitCapacity(), setting.getLimitRefill(), setting.getLimitInterval(),
                 setting.getAiEffort().getLabel(), setting.getAiInjectionGuard(),
@@ -249,6 +260,7 @@ public class GroupSetCmd implements Cmd {
                        GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
                        GroupSet -g|--lang <auto|zh|en>
                        GroupSet -n|--notice <join|leave> <on|off>
+                       GroupSet -r|--anti-recall <on|off>
                 Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
                 Note: "GroupSet ai prompt reset" clears the group prompt; "auto" follows the global default_language.
                 Aliases: GSet / 群设置
@@ -260,6 +272,7 @@ public class GroupSetCmd implements Cmd {
                       GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
                       GroupSet -g|--lang <auto|zh|en>
                       GroupSet -n|--notice <join|leave> <on|off>
+                      GroupSet -r|--anti-recall <on|off>
                 取值：scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
                 说明："GroupSet ai prompt reset" 清空群提示词；"auto" 跟随全局 default_language。
                 别名：GSet / 群设置

@@ -24,6 +24,7 @@ public class GroupSetting {
     private Language language;
     private Boolean joinNoticeEnabled;
     private Boolean leaveNoticeEnabled;
+    private Boolean antiRecallEnabled;
     private Boolean limitEnabled;
     private LimitScope limitScope;
     private Integer limitCapacity;

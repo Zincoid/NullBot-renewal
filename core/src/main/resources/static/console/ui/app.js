@@ -976,6 +976,7 @@
             $('gs-language').value = String(setting.language);
             $('gs-join-notice').checked = setting.joinNoticeEnabled;
             $('gs-leave-notice').checked = setting.leaveNoticeEnabled;
+            $('gs-anti-recall').checked = setting.antiRecallEnabled;
             $('gs-effort').value = String(setting.aiEffort);
             $('gs-scope').value = String(setting.limitScope);
             $('gs-capacity').value = setting.limitCapacity;
@@ -1018,6 +1019,7 @@
                     language: Number($('gs-language').value),
                     joinNoticeEnabled: $('gs-join-notice').checked,
                     leaveNoticeEnabled: $('gs-leave-notice').checked,
+                    antiRecallEnabled: $('gs-anti-recall').checked,
                     aiEffort: Number($('gs-effort').value),
                     limitScope: Number($('gs-scope').value),
                     limitCapacity: capacity,

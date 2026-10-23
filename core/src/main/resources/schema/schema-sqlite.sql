@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `language`             TINYINT     NOT NULL DEFAULT 0,
     `join_notice_enabled`  BOOLEAN     NOT NULL DEFAULT 0,
     `leave_notice_enabled` BOOLEAN     NOT NULL DEFAULT 0,
+    `anti_recall_enabled`  BOOLEAN     NOT NULL DEFAULT 0,
     `limit_enabled`        BOOLEAN     NOT NULL DEFAULT 1,
     `limit_scope`          TINYINT     NOT NULL DEFAULT 0,
     `limit_capacity`       INT         NOT NULL DEFAULT 5,

@@ -64,6 +64,7 @@ public class GroupSettingController {
                 .language(body.language())
                 .joinNoticeEnabled(body.joinNoticeEnabled())
                 .leaveNoticeEnabled(body.leaveNoticeEnabled())
+                .antiRecallEnabled(body.antiRecallEnabled())
                 .limitEnabled(body.limitEnabled())
                 .limitScope(body.limitScope())
                 .limitCapacity(body.limitCapacity())

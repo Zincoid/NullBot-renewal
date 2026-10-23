@@ -45,6 +45,15 @@ public interface GroupService extends IService<Group> {
     Access getAccess(String id);
 
     /**
+     * 判断群是否已被封禁，群记录不存在时返回 false。
+     * <p>Whether the group is banned, returning false when the group record is absent.</p>
+     *
+     * @param id platform group id
+     * @return true when the group is banned
+     */
+    boolean isBanned(String id);
+
+    /**
      * 设置群的限权等级。
      * <p>Sets the access level of the group.</p>
      *

@@ -61,6 +61,7 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
                 .language(Language.AUTO)
                 .joinNoticeEnabled(false)
                 .leaveNoticeEnabled(false)
+                .antiRecallEnabled(false)
                 .limitEnabled(true)
                 .limitScope(LimitScope.USER)
                 .limitCapacity(5)
