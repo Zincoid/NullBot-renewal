@@ -135,11 +135,28 @@ public enum Text {
 
     // ════ History ════════════════
 
-    HISTORY_HEADER("聊天历史（最近 %d 条）：", "Chat history (latest %d):"),
+    HISTORY_TITLE("聊天历史", "Chat history"),
     HISTORY_EMPTY("暂无聊天历史", "No chat history"),
     HISTORY_ASSISTANT("AI", "AI"),
+    HISTORY_ATTACHMENTS("附件：%s", "Attachments: %s"),
     HISTORY_CLEARED("♻️ 聊天历史已清空（%d 条）", "♻️ Chat history cleared (%d messages)"),
     HISTORY_UNKNOWN_OP("未知历史参数：%s", "Unknown history argument: %s"),
+
+    // ════ Paging ═════════════════
+
+    PAGE_HEADER("[%s] 🔍 共 %d 个结果", "[%s] 🔍 %d results"),
+    PAGE_FOOTER("""
+            [第 %d/%d 页，每页 %d 条]
+            操作：Up / Down / End
+            选择：发送序号""", """
+            [Page %d/%d, %d per page]
+            Controls: Up / Down / End
+            Select: send the number"""),
+    PAGE_TOP("💦 已经到顶了", "💦 Already at the top"),
+    PAGE_BOTTOM("💦 已经到底了", "💦 Already at the bottom"),
+    PAGE_END("⛔️ 查询结束", "⛔️ Query ended"),
+    PAGE_TIMEOUT("⏳ 操作超时，查询结束", "⏳ Timed out; query ended"),
+    PAGE_INVALID("❌ 无效序号：%s", "❌ Invalid index: %s"),
 
     // ════ GroupSet ═══════════════
 

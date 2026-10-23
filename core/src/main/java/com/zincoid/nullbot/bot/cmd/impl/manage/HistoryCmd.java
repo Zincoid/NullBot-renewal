@@ -5,18 +5,25 @@ import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
+import com.zincoid.nullbot.bot.cmd.input.InputManager;
+import com.zincoid.nullbot.bot.cmd.input.PageSelector;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.model.MsgContent;
+import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.message.MessageWindowStore;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
+import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
+import com.zincoid.nullbot.platform.util.MimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,51 +35,61 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HistoryCmd implements Cmd {
 
-    private static final int PREVIEW_LIMIT = 10;
+    private static final int PAGE_SIZE = 10;
     private static final int CONTENT_LIMIT = 80;
+    private static final long INPUT_TIMEOUT = 60;
 
     private final MessageWindowStore messageWindowStore;
+    private final FileService fileService;
+    private final InputManager inputManager;
 
     // ════ Run ═════════════════════
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        run(ctx, ChatIds.ofGroup(event.groupId()), args);
+        run(ctx, ChatIds.ofGroup(event.groupId()), event.userId(), args);
     }
 
     @Override
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        run(ctx, ChatIds.ofPrivate(event.userId()), args);
+        run(ctx, ChatIds.ofPrivate(event.userId()), event.userId(), args);
     }
 
-    private void run(CmdContext ctx, String chatId, CmdArgs args) {
+    private void run(CmdContext ctx, String chatId, String userId, CmdArgs args) {
         if (args.hasOpt("reset", "r") || args.hasOpt("clear", "c")) {
             reset(ctx, chatId);
             return;
         }
-        if (args.isEmpty()) {
-            list(ctx, chatId);
-            return;
+        if (!args.getOpt().isEmpty()) {
+            throw new CmdWarnException(ctx.render(Text.HISTORY_UNKNOWN_OP,
+                    args.getOpt().keySet().iterator().next()));
         }
-        throw new CmdWarnException(ctx.render(Text.HISTORY_UNKNOWN_OP, args.peek()));
+        if (!args.isEmpty()) {
+            throw new CmdWarnException(ctx.render(Text.HISTORY_UNKNOWN_OP, args.peek()));
+        }
+        list(ctx, chatId, userId);
     }
 
     // ════ Operations ══════════════
 
-    private void list(CmdContext ctx, String chatId) {
-        List<Message> all = messageWindowStore.get(chatId);
-        if (all.isEmpty()) {
+    private void list(CmdContext ctx, String chatId, String userId) {
+        List<Message> messages = messageWindowStore.get(chatId);
+        if (messages.isEmpty()) {
             ctx.send(Text.HISTORY_EMPTY);
             return;
         }
-        List<Message> shown = all.subList(Math.max(0, all.size() - PREVIEW_LIMIT), all.size());
-        StringBuilder text = new StringBuilder(ctx.render(Text.HISTORY_HEADER, shown.size()));
-        for (Message message : shown) {
-            text.append("\n- [id=").append(message.getId()).append("] ")
-                    .append(speaker(ctx, message)).append(": ")
-                    .append(preview(message.getContent()));
-        }
-        ctx.send(text.toString());
+        PageSelector.builder(ctx.render(Text.HISTORY_TITLE), messages,
+                        message -> summary(ctx, message))
+                .inputManager(inputManager)
+                .userId(userId)
+                .language(ctx.language())
+                .sender(ctx::send)
+                .size(PAGE_SIZE)
+                .timeout(INPUT_TIMEOUT)
+                .continuous(true)
+                .action(message -> detail(ctx, message))
+                .build()
+                .start();
     }
 
     private void reset(CmdContext ctx, String chatId) {
@@ -80,6 +97,51 @@ public class HistoryCmd implements Cmd {
     }
 
     // ════ Helpers ═════════════════
+
+    private static String summary(CmdContext ctx, Message message) {
+        return speaker(ctx, message) + ": " + preview(message.getContent());
+    }
+
+    private void detail(CmdContext ctx, Message message) {
+        StringBuilder text = new StringBuilder(speaker(ctx, message)).append(": ")
+                .append(message.getContent() == null ? "" : message.getContent());
+        List<String> images = new ArrayList<>();
+        List<String> unsent = new ArrayList<>();
+        List<String> files = message.getFiles();
+        if (files != null) {
+            for (String fileId : files) {
+                String uri = imageUri(fileId);
+                if (uri == null) unsent.add(fileId);
+                else images.add(uri);
+            }
+        }
+        if (!unsent.isEmpty())
+            text.append("\n").append(ctx.render(Text.HISTORY_ATTACHMENTS,
+                    String.join(", ", unsent)));
+        MsgContent.Builder content = MsgContent.builder().text(text.toString());
+        images.forEach(content::image);
+        ctx.send(content.build());
+    }
+
+    /**
+     * 把附件文件 ID 解析为可发送的图片 URI，非图片或缺失时返回 null。
+     * <p>Resolves an attachment file id into a sendable image URI, returning null for non-images or missing files.</p>
+     *
+     * @param fileId the file record id
+     * @return the image URI, or null when it cannot be sent as an image
+     */
+    private String imageUri(String fileId) {
+        if (fileId == null || fileId.isBlank()) return null;
+        try {
+            File file = fileService.getById(Long.valueOf(fileId));
+            if (file == null) return null;
+            String mime = MimeUtils.mime(file.getStored());
+            if (mime == null) mime = MimeUtils.mime(file.getOriginal());
+            return mime != null && mime.startsWith("image/") ? fileService.uri(file) : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
 
     private static String speaker(CmdContext ctx, Message message) {
         if (message.getRole() == MessageRole.ASSISTANT)
@@ -108,6 +170,7 @@ public class HistoryCmd implements Cmd {
                 Usage: History
                        History -r|--reset
                        History -c|--clear
+                Navigate with Up / Down / End; send a number to view a message and its images.
                 Aliases: 聊天历史 / 历史
                 Access: >=1(manager)""" : """
                 History
@@ -115,6 +178,7 @@ public class HistoryCmd implements Cmd {
                 用法：History
                       History -r|--reset
                       History -c|--clear
+                翻页发送 Up / Down / End；发送序号查看单条消息及图片。
                 别名：聊天历史 / 历史
                 权限：>=1(manager)""";
     }
