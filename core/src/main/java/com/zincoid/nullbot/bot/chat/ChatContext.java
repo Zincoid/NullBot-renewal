@@ -67,7 +67,7 @@ public record ChatContext(
     // ════ Command ═════════════════
 
     @Override
-    public ToolRes command(String name, List<String> params) {
+    public ToolRes cmd(String name, List<String> params) {
         cmdProcessor.process(client, event, new CmdRequest(name, params));
         return ToolRes.of("Command executed: " + name);
     }

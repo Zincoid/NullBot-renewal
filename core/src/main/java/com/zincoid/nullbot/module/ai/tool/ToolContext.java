@@ -27,5 +27,5 @@ public interface ToolContext {
      * @param params command parameters
      * @return the tool result
      */
-    ToolRes command(String name, List<String> params);
+    ToolRes cmd(String name, List<String> params);
 }

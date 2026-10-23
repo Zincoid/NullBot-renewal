@@ -26,7 +26,7 @@ public class HelloPlugin implements BotPlugin {
     }
 
     @Override
-    public List<Cmd> commands() {
+    public List<Cmd> cmds() {
         return List.of(new HelloCmd(this));
     }
 

@@ -27,7 +27,7 @@ public class UsageHandler implements CmdHandler {
 
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
-        String command = ctx.cmd().getClass().getSimpleName().replace("Cmd", "");
+        String cmd = ctx.cmd().getClass().getSimpleName().replace("Cmd", "");
         String groupId;
         String userId;
         switch (ctx.event()) {
@@ -64,7 +64,7 @@ public class UsageHandler implements CmdHandler {
                 userId = e.userId();
             }
         }
-        usageService.increase(groupId, userId, command);
+        usageService.increase(groupId, userId, cmd);
         chain.doHandle(ctx);
     }
 }

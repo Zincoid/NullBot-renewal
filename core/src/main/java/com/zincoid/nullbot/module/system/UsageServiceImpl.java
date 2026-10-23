@@ -38,12 +38,12 @@ public class UsageServiceImpl extends ServiceImpl<UsageMapper, Usage> implements
         List<Daily> daily = baseMapper.daily(start, end).stream()
                 .map(row -> new Daily(row.getDay(), count(row.getCount())))
                 .toList();
-        List<Rank> commands = ranks(baseMapper.commands(start, end, top));
+        List<Rank> cmds = ranks(baseMapper.cmds(start, end, top));
         List<Rank> topGroups = ranks(baseMapper.groups(start, end, top));
         long total = summary == null ? 0 : count(summary.getTotal());
         long users = summary == null ? 0 : count(summary.getUsers());
         long groups = summary == null ? 0 : count(summary.getGroups());
-        return new Stats(total, users, groups, daily, commands, topGroups);
+        return new Stats(total, users, groups, daily, cmds, topGroups);
     }
 
     // ════ Helpers ═════════════════

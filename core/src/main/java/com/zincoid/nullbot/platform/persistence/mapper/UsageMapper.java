@@ -80,9 +80,9 @@ public interface UsageMapper extends BaseMapper<Usage> {
             ORDER BY `count` DESC
             LIMIT #{limit}
             """)
-    List<UsageRankRow> commands(@Param("start") LocalDate start,
-                                @Param("end") LocalDate end,
-                                @Param("limit") int limit);
+    List<UsageRankRow> cmds(@Param("start") LocalDate start,
+                            @Param("end") LocalDate end,
+                            @Param("limit") int limit);
 
     /**
      * 汇总指定日期范围内使用最多的群。

@@ -42,7 +42,7 @@ public interface BotPlugin {
      *
      * @return the commands, may be empty
      */
-    List<Cmd> commands();
+    List<Cmd> cmds();
 
     /**
      * 插件启动，在指令注册前调用。

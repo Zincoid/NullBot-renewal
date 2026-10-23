@@ -23,8 +23,29 @@
     const PAGE_SIZE = 20;
     const MAX_UPLOAD = 64 * 1024 * 1024;
     const UPLOAD_LINE_TTL = 4000;
+    const UPLOAD_PATTERN_KEY = 'nullbot.console.uploadPattern';
     const BIZ_TYPES = [0, 1, 2, 3, 4, 5];
     const ACCESS_LEVELS = [-2, -1, 0, 1, 2];
+
+    function readUploadPattern() {
+        const empty = {enabled: false, regex: '', filenameTemplate: '', tagTemplate: ''};
+        try {
+            const raw = localStorage.getItem(UPLOAD_PATTERN_KEY);
+            if (!raw) return empty;
+            const saved = JSON.parse(raw);
+            const regex = typeof saved.regex === 'string' ? saved.regex.trim() : '';
+            return {
+                enabled: saved.enabled === true && regex !== '',
+                regex,
+                filenameTemplate: typeof saved.filenameTemplate === 'string' ? saved.filenameTemplate.trim() : '',
+                tagTemplate: typeof saved.tagTemplate === 'string' ? saved.tagTemplate.trim() : ''
+            };
+        } catch {
+            return empty;
+        }
+    }
+
+    let uploadPattern = readUploadPattern();
 
     function bizLabel(value) {
         const key = 'files.type' + value;
@@ -224,7 +245,7 @@
         const last = data.daily.length ? data.daily[data.daily.length - 1].date : '-';
         $('usage-chart-note').textContent = t('usage.note', {first, last});
         $('usage-chart').innerHTML = usageSvg(data.daily);
-        renderRanks($('command-ranks'), data.commands, t('usage.noCommands'),
+        renderRanks($('cmd-ranks'), data.cmds, t('usage.noCmds'),
             rank => rank.name || rank.key);
         renderRanks($('group-ranks'), data.groups, t('usage.noGroups'),
             rank => rank.key === '0' ? t('usage.dm') : (rank.name || rank.key));
@@ -559,6 +580,52 @@
         }, delay);
     }
 
+    function syncUploadSettingsFields() {
+        const enabled = $('upload-pattern-enabled').checked;
+        ['upload-regex', 'upload-name-template', 'upload-tag-template']
+            .forEach(id => $(id).disabled = !enabled);
+    }
+
+    function openUploadSettings() {
+        $('upload-pattern-enabled').checked = uploadPattern.enabled;
+        $('upload-regex').value = uploadPattern.regex;
+        $('upload-name-template').value = uploadPattern.filenameTemplate;
+        $('upload-tag-template').value = uploadPattern.tagTemplate;
+        syncUploadSettingsFields();
+        setStatus($('upload-settings-status'), '');
+        $('upload-settings-dialog').showModal();
+    }
+
+    function applyUploadPattern() {
+        const active = uploadPattern.enabled && !!uploadPattern.regex;
+        const button = $('upload-settings');
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+        const summary = $('upload-pattern-summary');
+        summary.hidden = !active;
+        summary.textContent = active ? t('files.regexEnabled', {regex: uploadPattern.regex}) : '';
+    }
+
+    function saveUploadSettings(event) {
+        event.preventDefault();
+        const enabled = $('upload-pattern-enabled').checked;
+        const regex = $('upload-regex').value.trim();
+        if (enabled && !regex) {
+            setStatus($('upload-settings-status'), t('files.regexRequired'), 'error');
+            return;
+        }
+        uploadPattern = {
+            enabled,
+            regex,
+            filenameTemplate: $('upload-name-template').value.trim(),
+            tagTemplate: $('upload-tag-template').value.trim()
+        };
+        localStorage.setItem(UPLOAD_PATTERN_KEY, JSON.stringify(uploadPattern));
+        applyUploadPattern();
+        $('upload-settings-dialog').close();
+        toast(t('files.settingsSaved'), 'ok');
+    }
+
     async function uploadFiles() {
         if (uploading) return;
         const files = Array.from($('upload-files').files || []);
@@ -568,6 +635,7 @@
         }
         const type = $('upload-type').value;
         const tag = $('upload-tag').value.trim();
+        const pattern = uploadPattern.enabled && uploadPattern.regex ? uploadPattern : null;
         const statusBox = $('upload-status');
         statusBox.innerHTML = '';
         const lines = files.map(file => {
@@ -603,6 +671,11 @@
                     const form = new FormData();
                     form.append('type', type);
                     if (tag) form.append('tag', tag);
+                    if (pattern) {
+                        form.append('regex', pattern.regex);
+                        if (pattern.filenameTemplate) form.append('filenameTemplate', pattern.filenameTemplate);
+                        if (pattern.tagTemplate) form.append('tagTemplate', pattern.tagTemplate);
+                    }
                     form.append('file', file);
                     await api('/files', {method: 'POST', body: form});
                     success++;
@@ -1279,6 +1352,9 @@
         $('upload-choose').onclick = () => $('upload-files').click();
         $('upload-files').addEventListener('change', updateUploadLabel);
         $('upload-button').onclick = uploadFiles;
+        $('upload-settings').onclick = openUploadSettings;
+        $('upload-pattern-enabled').addEventListener('change', syncUploadSettingsFields);
+        $('upload-settings-form').addEventListener('submit', saveUploadSettings);
         $('file-form').addEventListener('submit', saveFileInfo);
 
         $('files-body').addEventListener('click', event => {
@@ -1422,6 +1498,7 @@
         bindDialogs();
         bindEvents();
         updateUploadLabel();
+        applyUploadPattern();
         if (!location.hash) history.replaceState(null, '', '#/usage');
         renderView();
         if (typeof ResizeObserver === 'function') {
@@ -1446,8 +1523,10 @@
         setStatus($('gs-status'), '');
         setStatus($('kw-status'), '');
         setStatus($('file-form-status'), '');
+        setStatus($('upload-settings-status'), '');
         $('upload-status').innerHTML = '';
         updateUploadLabel();
+        applyUploadPattern();
         if (currentGroup && $('group-dialog').open) {
             $('group-dialog-subtitle').textContent = t('group.id', {id: currentGroup.id});
             resetKeywordForm();

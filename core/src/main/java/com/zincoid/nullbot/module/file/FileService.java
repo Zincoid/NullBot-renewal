@@ -44,16 +44,31 @@ public interface FileService extends IService<File> {
     }
 
     /**
-     * 保存上传的 multipart 文件并写入新记录。
-     * <p>Stores an uploaded multipart file with a new record.</p>
+     * 保存上传的 multipart 文件，使用上传文件自带的原始文件名。
+     * <p>Stores an uploaded multipart file using its original filename.</p>
      *
-     * @param userId      uploader platform user id
-     * @param file        uploaded file
-     * @param type        business type
-     * @param tag         optional tag
+     * @param userId uploader platform user id
+     * @param file   uploaded file
+     * @param type   business type
+     * @param tag    optional tag
      * @return the persisted record with generated id
      */
-    File save(String userId, MultipartFile file, BizType type, String tag);
+    default File save(String userId, MultipartFile file, BizType type, String tag) {
+        return save(userId, file, null, type, tag);
+    }
+
+    /**
+     * 保存上传的 multipart 文件并使用指定原始文件名写入新记录。
+     * <p>Stores an uploaded multipart file with a new record under the given original filename.</p>
+     *
+     * @param userId   uploader platform user id
+     * @param file     uploaded file
+     * @param original original filename, null or blank falls back to the multipart filename
+     * @param type     business type
+     * @param tag      optional tag
+     * @return the persisted record with generated id
+     */
+    File save(String userId, MultipartFile file, String original, BizType type, String tag);
 
     // ════ Read ════════════════════
 

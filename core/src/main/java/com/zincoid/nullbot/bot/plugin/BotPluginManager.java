@@ -126,19 +126,19 @@ public class BotPluginManager {
             if (plugin.apiVersion() != API_VERSION)
                 throw new PluginException("Unsupported apiVersion: " + plugin.apiVersion()
                         + ", expected " + API_VERSION);
-            List<Cmd> commands = plugin.commands() == null ? List.of() : plugin.commands();
+            List<Cmd> cmds = plugin.cmds() == null ? List.of() : plugin.cmds();
             Path dataDir = dir.resolve(id);
             Files.createDirectories(dataDir);
             plugin.start(new DefaultPluginContext(
                     fileService, userService, groupService, groupSettingService,
                     userSettingService, quoteService, languageService, dataDir));
             started = true;
-            if (!registry.register(commands))
+            if (!registry.register(cmds))
                 throw new PluginException("Command name conflict");
             loaded.add(new LoadedPlugin(id, plugin.version(), jar, loader, plugin));
-            log.info("Plugin loaded: id={}, version={}, commands={}", id, plugin.version(), commands.size());
+            log.info("Plugin loaded: id={}, version={}, cmds={}", id, plugin.version(), cmds.size());
         } catch (Exception | LinkageError e) {
-            if (started && plugin != null) {
+            if (started) {
                 try {
                     plugin.stop();
                 } catch (Exception stopError) {

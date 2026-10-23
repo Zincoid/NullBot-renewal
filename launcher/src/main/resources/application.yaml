@@ -27,7 +27,7 @@ logging:
   file:
     name: ${nullbot.log.path:./logs/output.log}
   level:
-    root: INFO
+    root: WARN
     com.zincoid: ${nullbot.log.level:INFO}
   pattern:
     console: >-

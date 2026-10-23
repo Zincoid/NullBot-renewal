@@ -57,13 +57,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
-    public File save(String userId, MultipartFile file, BizType type, String tag) {
-        String original = file.getOriginalFilename();
-        if (original == null || original.isBlank()) original = "unnamed";
+    public File save(String userId, MultipartFile file, String original, BizType type, String tag) {
+        String name = original == null || original.isBlank() ? file.getOriginalFilename() : original;
+        if (name == null || name.isBlank()) name = "unnamed";
         try (InputStream in = file.getInputStream()) {
-            return store(userId, original, in, type, tag);
+            return store(userId, name, in, type, tag);
         } catch (IOException e) {
-            throw new FileException("Failed to read upload: " + original, e);
+            throw new FileException("Failed to read upload: " + name, e);
         }
     }
 

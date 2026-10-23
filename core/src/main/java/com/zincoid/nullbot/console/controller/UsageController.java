@@ -58,7 +58,7 @@ public class UsageController {
             LocalDate date = start.plusDays(i);
             daily.add(new UsageView.Day(date, counts.getOrDefault(date, 0L)));
         }
-        List<UsageView.Rank> commands = stats.commands().stream()
+        List<UsageView.Rank> cmds = stats.cmds().stream()
                 .map(rank -> new UsageView.Rank(rank.key(), rank.key(), rank.count()))
                 .toList();
         List<String> groupIds = stats.topGroups().stream()
@@ -77,6 +77,6 @@ public class UsageController {
                                 : groupNames.getOrDefault(rank.key(), rank.key()),
                         rank.count()))
                 .toList();
-        return new UsageView(days, stats.total(), stats.users(), stats.groups(), daily, commands, groups);
+        return new UsageView(days, stats.total(), stats.users(), stats.groups(), daily, cmds, groups);
     }
 }

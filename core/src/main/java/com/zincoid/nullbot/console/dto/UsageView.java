@@ -12,7 +12,7 @@ import java.util.List;
  * @param activeUsers  the distinct active users
  * @param activeGroups the distinct active groups, excluding private chat
  * @param daily        the daily usage series, zero-filled
- * @param commands     the top commands
+ * @param cmds         the top commands
  * @param groups       the top groups
  */
 public record UsageView(
@@ -21,7 +21,7 @@ public record UsageView(
         long activeUsers,
         long activeGroups,
         List<Day> daily,
-        List<Rank> commands,
+        List<Rank> cmds,
         List<Rank> groups
 ) {
 

@@ -65,10 +65,10 @@ public interface UsageService extends IService<Usage> {
      * @param users    distinct active users
      * @param groups   distinct active groups, excluding private chat
      * @param daily    daily usage rows with data
-     * @param commands top commands
+     * @param cmds     top commands
      * @param topGroups top groups
      */
     record Stats(long total, long users, long groups, List<Daily> daily,
-                 List<Rank> commands, List<Rank> topGroups) {
+                 List<Rank> cmds, List<Rank> topGroups) {
     }
 }

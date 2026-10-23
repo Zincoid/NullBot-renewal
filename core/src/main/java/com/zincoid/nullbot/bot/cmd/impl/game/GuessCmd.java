@@ -229,8 +229,8 @@ public class GuessCmd implements Cmd {
     private static String inputPattern(String prefix) {
         String quoted = Pattern.quote(prefix);
         String aliases = String.join("|", ALIASES.stream().map(Pattern::quote).toList());
-        String command = quoted + "(?i:" + aliases + ")(?:\\s|$)";
-        return "(?!" + command + ")" + quoted + ".+";
+        String cmd = quoted + "(?i:" + aliases + ")(?:\\s|$)";
+        return "(?!" + cmd + ")" + quoted + ".+";
     }
 
     private static String nickname(CmdContext ctx, String userId) {

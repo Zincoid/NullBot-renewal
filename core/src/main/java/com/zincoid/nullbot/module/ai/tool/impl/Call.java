@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Component
 public class Call implements Tool {
 
-    private static final Set<String> COMMANDS = Set.of(
+    private static final Set<String> CMDS = Set.of(
             "QuoteRand", "QuoteSave",
             "ImageRand", "ImageSave",
             "VideoRand", "VideoSave");
@@ -44,28 +44,28 @@ public class Call implements Tool {
     @Override
     public ToolRes run(ToolContext ctx, String json) {
         Args args = JsonUtils.parse(json, Args.class);
-        if (args.command == null || !COMMANDS.contains(args.command))
-            return ToolRes.error("Unsupported command: " + args.command);
+        if (args.cmd == null || !CMDS.contains(args.cmd))
+            return ToolRes.error("Unsupported command: " + args.cmd);
         List<String> params = args.args == null || args.args.isBlank()
                 ? List.of()
                 : List.of(args.args.trim().split("\\s+"));
-        return ctx.command(args.command, params);
+        return ctx.cmd(args.cmd, params);
     }
 
     // ════ Helpers ═════════════════
 
     private ToolDefinition build() {
-        String docs = COMMANDS.stream().sorted()
+        String docs = CMDS.stream().sorted()
                 .map(registry::get)
                 .filter(Objects::nonNull)
                 .map(Cmd::getAiHelp)
                 .collect(Collectors.joining("\n\n"));
         return ToolDefinition.builder("call", "Runs a bot command in the current chat.\n\n" + docs)
-                .addEnum("command", "command name", COMMANDS, true)
+                .addEnum("cmd", "command name", CMDS, true)
                 .addString("args", "space-separated command arguments")
                 .build();
     }
 
-    private record Args(String command, String args) {
+    private record Args(String cmd, String args) {
     }
 }
