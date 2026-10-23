@@ -17,5 +17,6 @@
         <module>sb6657-plugin</module>
         <module>pubg-plugin</module>
         <module>query-plugin</module>
+        <module>symmetry-plugin</module>
     </modules>
 </project>
