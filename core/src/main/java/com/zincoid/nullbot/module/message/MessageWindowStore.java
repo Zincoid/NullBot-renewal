@@ -73,6 +73,28 @@ public class MessageWindowStore {
         return newest;
     }
 
+    // ════ Clear ═══════════════════
+
+    /**
+     * 清空会话的全部消息及其附件。
+     * <p>Clears all messages and their attachments of the chat.</p>
+     *
+     * @param chatId chat identifier
+     * @return the number of deleted messages
+     */
+    public int clear(String chatId) {
+        if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
+        List<Message> messages = messageService.lambdaQuery()
+                .select(Message::getId, Message::getFiles)
+                .eq(Message::getChatId, chatId)
+                .list();
+        if (messages.isEmpty()) return 0;
+        messageService.removeByIds(messages.stream().map(Message::getId).toList());
+        messages.forEach(this::deleteAttachments);
+        log.info("Chat history cleared: {}, messages={}", chatId, messages.size());
+        return messages.size();
+    }
+
     // ════ Helpers ═════════════════
 
     /**

@@ -133,6 +133,14 @@ public enum Text {
     MEMBER_LEFT("%s(%s) 离开了我们...", "%s(%s) left the group..."),
     MEMBER_KICKED("%s(%s) 被驱逐了...", "%s(%s) was kicked..."),
 
+    // ════ History ════════════════
+
+    HISTORY_HEADER("聊天历史（最近 %d 条）：", "Chat history (latest %d):"),
+    HISTORY_EMPTY("暂无聊天历史", "No chat history"),
+    HISTORY_ASSISTANT("AI", "AI"),
+    HISTORY_CLEARED("♻️ 聊天历史已清空（%d 条）", "♻️ Chat history cleared (%d messages)"),
+    HISTORY_UNKNOWN_OP("未知历史参数：%s", "Unknown history argument: %s"),
+
     // ════ GroupSet ═══════════════
 
     GROUPSET_UNKNOWN_OPTION("未知选项", "Unknown option"),
