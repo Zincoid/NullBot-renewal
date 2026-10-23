@@ -6,14 +6,14 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
  * 群聊消息事件。
  * <p>Group chat message event.</p>
  *
- * @param selfId     the bot's id
- * @param userId     the sender's id
- * @param groupId    the group id
- * @param messageId  the message id
- * @param nickname   the sender's nickname
- * @param content    the message content
- * @param at         whether the bot is mentioned
- * @param reply      whether the first segment is a reply quote
+ * @param selfId    the bot's id
+ * @param userId    the sender's id
+ * @param groupId   the group id
+ * @param messageId the message id
+ * @param nickname  the sender's nickname
+ * @param content   the message content
+ * @param at        whether the bot is mentioned
+ * @param reply     whether the first segment is a reply quote
  */
 public record GroupMsgEvent(
         String selfId,

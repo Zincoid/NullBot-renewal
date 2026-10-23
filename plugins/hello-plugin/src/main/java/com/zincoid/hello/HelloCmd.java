@@ -5,7 +5,6 @@ import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 
 /**
@@ -23,7 +22,9 @@ public class HelloCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        ctx.send("Hello from plugin! dataDir=" + plugin.dataDir());
+        ctx.send("""
+                Hello from plugin!
+                Data: %s""".formatted(plugin.getContext().dataDir()));
     }
 
     @Override

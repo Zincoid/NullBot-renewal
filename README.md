@@ -141,7 +141,7 @@ Console UI: http://localhost:<port>/console/ui?token=...
 
 ### 编写插件
 
-- 实现 `BotPlugin`，在 `META-INF/services/com.zincoid.nullbot.bot.plugin.BotPlugin` 中注册。
+- 实现 `Plugin`，在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册。
 - 指令实现 `Cmd`，用 `@CmdMapping` 声明名称。
 - 插件模块依赖 `core`，作用域 `provided`。
 - 插件 JAR 不能包含 `com/zincoid/nullbot/` 下的宿主类。

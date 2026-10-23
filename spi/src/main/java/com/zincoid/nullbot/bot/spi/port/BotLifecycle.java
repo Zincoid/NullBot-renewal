@@ -11,8 +11,9 @@ public interface BotLifecycle {
      * <p>The bot account came online.</p>
      *
      * @param selfId the bot account id
+     * @param client the outbound port for this account
      */
-    void online(String selfId);
+    void online(String selfId, BotClient client);
 
     /**
      * 机器人账号下线。

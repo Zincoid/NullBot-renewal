@@ -1,7 +1,7 @@
 package com.zincoid.hello;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
-import com.zincoid.nullbot.bot.plugin.BotPlugin;
+import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 
 import java.nio.file.Path;
@@ -11,9 +11,9 @@ import java.util.List;
  * 示例插件：注册 Hello 指令。
  * <p>Sample plugin registering the Hello command.</p>
  */
-public class HelloPlugin implements BotPlugin {
+public class HelloPlugin implements Plugin {
 
-    private Path dataDir;
+    private PluginContext context;
 
     @Override
     public String id() {
@@ -22,7 +22,7 @@ public class HelloPlugin implements BotPlugin {
 
     @Override
     public String version() {
-        return "1.0.0";
+        return "1.0";
     }
 
     @Override
@@ -32,10 +32,10 @@ public class HelloPlugin implements BotPlugin {
 
     @Override
     public void start(PluginContext context) {
-        dataDir = context.dataDir();
+        this.context = context;
     }
 
-    Path dataDir() {
-        return dataDir;
+    public PluginContext getContext() {
+        return context;
     }
 }

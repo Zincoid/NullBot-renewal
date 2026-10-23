@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.chat;
 
-import com.zincoid.nullbot.bot.bus.CmdProcessor;
-import com.zincoid.nullbot.bot.bus.CmdRequest;
+import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
+import com.zincoid.nullbot.bot.cmd.CmdRequest;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
@@ -17,19 +17,19 @@ import java.util.List;
  * 聊天工具上下文：向当前会话发送文本/图片并执行机器人指令。
  * <p>Chat tool context: sends text or images to the current chat and runs bot commands.</p>
  *
- * @param client       the outbound port
- * @param targetId     group or user platform id
- * @param group        whether the target is a group
- * @param event        the triggering event
- * @param cmdProcessor the command processor
- * @param fileService  the file service
+ * @param client        the outbound port
+ * @param targetId      group or user platform id
+ * @param group         whether the target is a group
+ * @param event         the triggering event
+ * @param cmdDispatcher the command dispatcher
+ * @param fileService   the file service
  */
 public record ChatContext(
         BotClient client,
         String targetId,
         boolean group,
         BotEvent event,
-        CmdProcessor cmdProcessor,
+        CmdDispatcher cmdDispatcher,
         FileService fileService
 ) implements ToolContext {
 
@@ -43,11 +43,9 @@ public record ChatContext(
         int attached = 0;
         for (Long id : fileIds) {
             File file = fileService.getById(id);
-            if (file == null)
-                continue;
+            if (file == null) continue;
             String mime = MimeUtils.mime(file.getOriginal());
-            if (mime == null || !mime.startsWith("image/"))
-                continue;
+            if (mime == null || !mime.startsWith("image/")) continue;
             builder.image(fileService.uri(file));
             attached++;
         }
@@ -68,7 +66,7 @@ public record ChatContext(
 
     @Override
     public ToolRes cmd(String name, List<String> params) {
-        cmdProcessor.process(client, event, new CmdRequest(name, params));
+        cmdDispatcher.dispatch(client, event, new CmdRequest(name, params));
         return ToolRes.of("Command executed: " + name);
     }
 }

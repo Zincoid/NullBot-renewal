@@ -12,6 +12,13 @@
     <description>NullBot application entry and packaging</description>
 
     <dependencies>
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Main -->
         <dependency>
             <groupId>com.zincoid</groupId>
             <artifactId>core</artifactId>
@@ -26,12 +33,6 @@
             <groupId>com.zincoid</groupId>
             <artifactId>adapter-stdin</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <!-- Test -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webmvc-test</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -11,5 +11,4 @@ class NullBotApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
