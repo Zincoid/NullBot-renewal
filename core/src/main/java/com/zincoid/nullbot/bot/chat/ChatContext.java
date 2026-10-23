@@ -33,6 +33,8 @@ public record ChatContext(
         FileService fileService
 ) implements ToolContext {
 
+    private static final int MAX_MUTE_MINUTES = 30 * 24 * 60;
+
     // ════ Send ════════════════════
 
     @Override
@@ -74,6 +76,29 @@ public record ChatContext(
     private static String mime(File file) {
         String mime = MimeUtils.mime(file.getStored());
         return mime != null ? mime : MimeUtils.mime(file.getOriginal());
+    }
+
+    // ════ Mute ════════════════════
+
+    /**
+     * 禁言或解除禁言当前群成员。
+     * <p>Mutes or unmutes a member of the current group.</p>
+     *
+     * @param userId  target platform user id
+     * @param minutes duration in minutes, 0 to unmute
+     * @return the tool result
+     */
+    @Override
+    public ToolRes mute(String userId, int minutes) {
+        if (!group) return ToolRes.error("Mute is only available in group chats");
+        if (userId == null || userId.isBlank()) return ToolRes.error("Missing user");
+        if (userId.equals(event.selfId())) return ToolRes.error("Cannot mute the bot");
+        if (minutes < 0 || minutes > MAX_MUTE_MINUTES)
+            return ToolRes.error("Invalid minutes: " + minutes);
+        client.mute(targetId, userId, minutes * 60);
+        return ToolRes.of(minutes == 0
+                ? "Unmuted: " + userId
+                : "Muted: " + userId + " for " + minutes + " minute(s)");
     }
 
     // ════ Command ═════════════════
