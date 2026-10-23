@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,10 +56,29 @@ public class CmdRegistry {
         return cmdMap.values().stream()
                 .distinct()
                 .filter(Cmd::isAiCallable)
-                .map(cmd -> cmd.getClass().getAnnotation(CmdMapping.class))
-                .filter(mapping -> mapping != null && mapping.value().length > 0)
-                .map(mapping -> mapping.value()[0])
+                .map(CmdRegistry::primaryName)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    /**
+     * 返回所有已注册指令的首个名称，按字母顺序排列。
+     * <p>Returns the first name of every registered command, sorted alphabetically.</p>
+     *
+     * @return the sorted command names
+     */
+    public List<String> getNames() {
+        return cmdMap.values().stream()
+                .distinct()
+                .map(CmdRegistry::primaryName)
+                .filter(Objects::nonNull)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
+
+    private static String primaryName(Cmd cmd) {
+        CmdMapping mapping = cmd.getClass().getAnnotation(CmdMapping.class);
+        return mapping == null || mapping.value().length == 0 ? null : mapping.value()[0];
     }
 
     // ════ Register ════════════════

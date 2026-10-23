@@ -42,6 +42,7 @@ public enum Text {
     TOO_MANY_REQUESTS("⚠️ 请求过于频繁", "⚠️ Too many requests"),
     HELP_PRIVATE_UNAVAILABLE("⚠️ 私聊中无法查看帮助", "⚠️ Help is unavailable in private chat"),
     HELP_UNAVAILABLE("暂无帮助", "No help available"),
+    HELP_LIST("可用指令（%d）：\n%s", "Available commands (%d):\n%s"),
     CMD_WARN("⚠️ 警告：%s", "⚠️ Warn: %s"),
     CMD_ERROR("❌ 错误：%s", "❌ Error: %s"),
 
