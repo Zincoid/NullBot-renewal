@@ -903,6 +903,8 @@
         currentUser = user;
         $('user-dialog-subtitle').textContent = user.name ? user.name + ' · ' + user.id : user.id;
         setStatus($('us-status'), '');
+        $('us-effort').value = '3';
+        $('us-guard').checked = true;
         $('us-prompt').value = '';
         $('user-dialog').showModal();
         loadUserSetting();
@@ -912,6 +914,8 @@
         if (!currentUser) return;
         try {
             const setting = await api('/users/' + encodeURIComponent(currentUser.id) + '/setting');
+            $('us-effort').value = String(setting.aiEffort);
+            $('us-guard').checked = setting.aiInjectionGuard;
             $('us-prompt').value = setting.aiPrompt || '';
             setStatus($('us-status'), '');
         } catch (e) {
@@ -927,7 +931,9 @@
             await api('/users/' + encodeURIComponent(currentUser.id) + '/setting', {
                 method: 'PUT',
                 body: JSON.stringify({
-                    aiPrompt: $('us-prompt').value
+                    aiEffort: Number($('us-effort').value),
+                    aiPrompt: $('us-prompt').value,
+                    aiInjectionGuard: $('us-guard').checked
                 })
             });
             $('user-dialog').close();

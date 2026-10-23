@@ -3,6 +3,7 @@ package com.zincoid.nullbot.platform.persistence.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,6 @@ public class UserSetting {
     private Long id;
     private String userId;
     private String aiPrompt;
+    private Effort aiEffort;
+    private Boolean aiInjectionGuard;
 }

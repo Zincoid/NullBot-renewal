@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.setting;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.mapper.UserSettingMapper;
 import com.zincoid.nullbot.platform.persistence.po.UserSetting;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,11 @@ public class UserSettingServiceImpl extends ServiceImpl<UserSettingMapper, UserS
     public UserSetting get(String userId) {
         if (userId == null || userId.isBlank()) throw new SettingException("Missing key: userId");
         UserSetting setting = lambdaQuery().eq(UserSetting::getUserId, userId).one();
-        return setting != null ? setting : UserSetting.builder().userId(userId).build();
+        return setting != null ? setting : UserSetting.builder()
+                .userId(userId)
+                .aiEffort(Effort.HIGH)
+                .aiInjectionGuard(true)
+                .build();
     }
 
     // ════ Update ══════════════════

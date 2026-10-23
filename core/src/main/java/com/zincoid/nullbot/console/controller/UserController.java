@@ -98,8 +98,8 @@ public class UserController {
     }
 
     /**
-     * 更新用户私聊提示词。
-     * <p>Updates the user's private-chat prompt.</p>
+     * 更新用户 AI 设置（强度、提示词、防注入）。
+     * <p>Updates the user's AI settings (effort, prompt, injection guard).</p>
      *
      * @param id   platform user id
      * @param body the new settings
@@ -110,7 +110,12 @@ public class UserController {
         User user = userService.getById(id);
         if (user == null) throw new ConsoleException(HttpStatus.NOT_FOUND, "User not found: " + id);
         String prompt = body.aiPrompt() == null ? "" : body.aiPrompt().trim();
-        userSettingService.update(UserSetting.builder().userId(id).aiPrompt(prompt).build());
+        userSettingService.update(UserSetting.builder()
+                .userId(id)
+                .aiPrompt(prompt)
+                .aiEffort(body.aiEffort())
+                .aiInjectionGuard(body.aiInjectionGuard())
+                .build());
         return UserSettingView.of(id, userSettingService.get(id));
     }
 

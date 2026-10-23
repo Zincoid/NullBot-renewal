@@ -49,9 +49,11 @@ CREATE TABLE IF NOT EXISTS `user` (
 
 -- 5. User Setting
 CREATE TABLE IF NOT EXISTS `user_setting` (
-    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `user_id`       VARCHAR(64)     NOT NULL,
-    `ai_prompt`     TEXT            DEFAULT NULL
+    `id`                 INTEGER     PRIMARY KEY AUTOINCREMENT,
+    `user_id`            VARCHAR(64) NOT NULL,
+    `ai_prompt`          TEXT        DEFAULT NULL,
+    `ai_effort`          TINYINT     NOT NULL DEFAULT 3,
+    `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT 1
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_user_setting_user_id` ON `user_setting` (`user_id`);
 
@@ -72,8 +74,8 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `limit_capacity`     INT         NOT NULL DEFAULT 5,
     `limit_refill`       INT         NOT NULL DEFAULT 2,
     `limit_interval`     INT         NOT NULL DEFAULT 1,
-    `ai_effort`          TINYINT     NOT NULL DEFAULT 3,
     `ai_prompt`          TEXT        DEFAULT NULL,
+    `ai_effort`          TINYINT     NOT NULL DEFAULT 3,
     `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT 1
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_setting_group_id` ON `group_setting` (`group_id`);

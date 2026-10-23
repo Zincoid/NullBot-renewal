@@ -4,6 +4,7 @@ import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -22,6 +23,7 @@ import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
+import com.zincoid.nullbot.platform.persistence.po.UserSetting;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,26 +110,24 @@ public class ChatPipeline {
      */
     private void chat(BotClient client, String chatId, String selfId, String targetId, boolean group,
                       Language language, String trigger, BotEvent event) {
-        GroupSetting setting = group ? groupSettingService.get(targetId) : null;
-        if (group && event instanceof GroupMsgEvent e
-                && Boolean.TRUE.equals(setting.getAiInjectionGuard())
-                && chatGuard.check(text(e))) {
-            send(client, targetId, true,
-                    MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
+        GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
+        UserSetting userSetting = group ? null : userSettingService.get(targetId);
+        boolean guard = group
+                ? !Boolean.FALSE.equals(groupSetting.getAiInjectionGuard())
+                : !Boolean.FALSE.equals(userSetting.getAiInjectionGuard());
+        if (event instanceof MsgEvent msg && guard && chatGuard.check(text(msg.content()))) {
+            send(client, targetId, group, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
             log.info("Injection blocked: chat={}", chatId);
             return;
         }
-        String base = group
-                ? promptBase(setting.getAiPrompt())
-                : promptBase(userSettingService.get(targetId).getAiPrompt());
+        String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getAiPrompt());
+        Effort effort = effort(group ? groupSetting.getAiEffort() : userSetting.getAiEffort());
         String selfName = selfName(client, selfId);
-        ChatContext chatContext = new ChatContext(
-                client, targetId, group, event, cmdDispatcher, fileService);
+        ChatContext ctx = new ChatContext(client, targetId, group, event, cmdDispatcher, fileService);
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
-            ModelRes reply = botAiClient.invoke(memory.get(chatId),
-                    prompt(base, trigger), effort(setting), chatContext);
+            ModelRes reply = botAiClient.invoke(memory.get(chatId), prompt(base, trigger), effort, ctx);
             String content = reply.getContent();
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
@@ -143,12 +143,12 @@ public class ChatPipeline {
      * 提取消息中的纯文本。
      * <p>Extracts the plain text of a message.</p>
      *
-     * @param event the group message event
+     * @param content the message content
      * @return the concatenated text segments
      */
-    private static String text(GroupMsgEvent event) {
+    private static String text(MsgContent content) {
         StringBuilder text = new StringBuilder();
-        for (MsgSegment segment : event.content().segments())
+        for (MsgSegment segment : content.segments())
             if (segment instanceof MsgSegment.Text(String s)) text.append(s);
         return text.toString();
     }
@@ -183,11 +183,11 @@ public class ChatPipeline {
      * 选择推理强度，未设置时使用 HIGH。
      * <p>Selects the reasoning effort, falling back to HIGH when unset.</p>
      *
-     * @param setting group settings, null for private chats
+     * @param effort the configured effort, nullable
      * @return the reasoning effort
      */
-    private static Effort effort(GroupSetting setting) {
-        return setting == null || setting.getAiEffort() == null ? Effort.HIGH : setting.getAiEffort();
+    private static Effort effort(Effort effort) {
+        return effort == null ? Effort.HIGH : effort;
     }
 
     /**

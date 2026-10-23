@@ -594,6 +594,20 @@
                           data-i18n-placeholder="accounts.aiPromptPlaceholder"
                           placeholder="留空使用默认提示词"></textarea>
             </label>
+            <label class="field"><span data-i18n="group.effort">AI 强度</span>
+                <select id="us-effort">
+                    <option value="0" data-i18n="group.effort0">最低</option>
+                    <option value="1" data-i18n="group.effort1">低</option>
+                    <option value="2" data-i18n="group.effort2">中</option>
+                    <option value="3" data-i18n="group.effort3">高</option>
+                    <option value="4" data-i18n="group.effort4">极高</option>
+                    <option value="5" data-i18n="group.effort5">最大</option>
+                    <option value="6" data-i18n="group.effort6">极限</option>
+                </select>
+            </label>
+            <div class="checks">
+                <label><span data-i18n="group.guard">防注入</span><input id="us-guard" type="checkbox"></label>
+            </div>
             <p id="us-status" class="status"></p>
             <div class="dialog-foot">
                 <button type="button" data-close data-i18n="common.cancel">取消</button>

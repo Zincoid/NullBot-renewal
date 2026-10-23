@@ -35,13 +35,13 @@ public class RunHandler implements CmdHandler {
         try {
             dispatch(ctx, args);
         } catch (CmdInfoException e) {
-            log.info("Command info: {}", e.getMessage());
+            log.info("Cmd info: {}", e.getMessage());
             ctx.send(e.getMessage());
         } catch (CmdWarnException e) {
-            log.warn("Command warning: {}", e.getMessage());
+            log.warn("Cmd warning: {}", e.getMessage());
             ctx.send(Text.CMD_WARN, e.getMessage());
         } catch (Exception e) {
-            log.error("Command fatal: {}", e.getMessage());
+            log.error("Cmd fatal: {}", e.getMessage());
             ctx.send(Text.CMD_ERROR, e.getMessage());
             throw e;
         }

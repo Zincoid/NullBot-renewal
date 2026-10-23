@@ -69,9 +69,11 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- 5. User Setting Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user_setting` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Platform user id',
-    `ai_prompt`     TEXT            DEFAULT NULL             COMMENT 'Private chat system prompt, blank uses the global prompt',
+    `id`                 BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `user_id`            VARCHAR(64) NOT NULL                 COMMENT 'Platform user id',
+    `ai_prompt`          TEXT        DEFAULT NULL             COMMENT 'Private chat system prompt, blank uses the global prompt',
+    `ai_effort`          TINYINT     NOT NULL DEFAULT 3       COMMENT 'AI reasoning effort: 0=MINIMAL, 1=LOW, 2=MEDIUM, 3=HIGH, 4=XHIGH, 5=MAX, 6=ULTRA',
+    `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Anti prompt injection',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User setting table';
