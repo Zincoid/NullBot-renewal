@@ -35,6 +35,7 @@
             'nav.accounts': '角色',
             'nav.quotes': '语录',
             'nav.logout': '退出',
+            'nav.about': '关于',
 
             'view.usage': '概览',
             'view.usage.sub': '调用趋势与排行',
@@ -251,6 +252,17 @@
             'quotes.deleteConfirm': '删除语录 #{id}？',
             'quotes.deleteFailed': '删除失败：{msg}',
 
+            'about.title': '关于',
+            'about.subtitle': '应用与构建信息',
+            'about.desc': '机器人控制台',
+            'about.name': '应用名称',
+            'about.author': '作者',
+            'about.version': '构建版本',
+            'about.buildTime': '构建时间',
+            'about.javaVersion': 'Java',
+            'about.springBootVersion': 'Spring Boot',
+            'about.currentTime': '当前时间',
+
             'pager.info': '第 {page} / {pages} 页 · 共 {total} 条',
             'pager.perPage': '每页条数',
             'pager.perPageOption': '{n} 条/页',
@@ -298,6 +310,7 @@
             'nav.accounts': 'Roles',
             'nav.quotes': 'Quotes',
             'nav.logout': 'Sign out',
+            'nav.about': 'About',
 
             'view.usage': 'Overview',
             'view.usage.sub': 'Usage trends and rankings',
@@ -514,6 +527,17 @@
             'quotes.deleteConfirm': 'Delete quote #{id}?',
             'quotes.deleteFailed': 'Delete failed: {msg}',
 
+            'about.title': 'About',
+            'about.subtitle': 'Application and build information',
+            'about.desc': 'Bot console',
+            'about.name': 'Application',
+            'about.author': 'Author',
+            'about.version': 'Build version',
+            'about.buildTime': 'Build time',
+            'about.javaVersion': 'Java',
+            'about.springBootVersion': 'Spring Boot',
+            'about.currentTime': 'Current time',
+
             'pager.info': 'Page {page} / {pages} · {total} total',
             'pager.perPage': 'Rows per page',
             'pager.perPageOption': '{n} / page',
@@ -603,6 +627,140 @@
         document.dispatchEvent(new CustomEvent(name, {detail}));
     }
 
+    const ABOUT_ENDPOINT = '/console/about';
+    const ABOUT_CLOCK_INTERVAL = 1000;
+
+    let aboutTimer = 0;
+    let aboutInfo = null;
+
+    function formatDateTime(value) {
+        if (!value) return '-';
+        const date = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        const pad = number => String(number).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+            + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+
+    function renderAboutClock() {
+        const element = document.getElementById('about-time');
+        if (element) element.textContent = formatDateTime(new Date());
+    }
+
+    function renderAbout(data) {
+        const name = data.name || 'NullBot';
+        const set = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+        set('about-hero-name', name);
+        set('about-name', name);
+        set('about-version', data.version || '-');
+        set('about-build-time', formatDateTime(data.buildTime));
+        set('about-java', data.javaVersion || '-');
+        set('about-spring-boot', data.springBootVersion || '-');
+    }
+
+    async function loadAbout() {
+        if (aboutInfo) {
+            renderAbout(aboutInfo);
+            return;
+        }
+        try {
+            const response = await fetch(ABOUT_ENDPOINT, {headers: {Accept: 'application/json'}});
+            if (!response.ok) return;
+            aboutInfo = await response.json();
+            renderAbout(aboutInfo);
+        } catch {
+            // Keep the placeholders when the endpoint is unreachable.
+        }
+    }
+
+    function openAbout() {
+        const dialog = document.getElementById('about-dialog');
+        if (!dialog) return;
+        if (!dialog.open) dialog.showModal();
+        renderAboutClock();
+        clearInterval(aboutTimer);
+        aboutTimer = setInterval(renderAboutClock, ABOUT_CLOCK_INTERVAL);
+        loadAbout();
+    }
+
+    function closeAbout() {
+        clearInterval(aboutTimer);
+        aboutTimer = 0;
+    }
+
+    function mountAbout() {
+        if (!document.getElementById('about-toggle') || document.getElementById('about-dialog'))
+            return;
+        const dialog = document.createElement('dialog');
+        dialog.id = 'about-dialog';
+        dialog.className = 'about-dialog';
+        dialog.innerHTML = `
+            <div class="dialog-head">
+                <div>
+                    <h2 data-i18n="about.title">关于</h2>
+                    <p class="muted" data-i18n="about.subtitle">应用与构建信息</p>
+                </div>
+                <button type="button" class="dialog-close" data-close
+                        data-i18n-aria-label="common.close" aria-label="关闭">×</button>
+            </div>
+            <div class="dialog-body">
+                <div class="about-hero">
+                    <span class="about-hero__mark" aria-hidden="true">&gt;_</span>
+                    <div class="about-hero__text">
+                        <span class="about-hero__name" id="about-hero-name">NullBot</span>
+                        <span class="about-hero__desc" data-i18n="about.desc">机器人控制台</span>
+                    </div>
+                </div>
+                <dl class="about-list">
+                    <div class="about-row">
+                        <dt data-i18n="about.name">应用名称</dt>
+                        <dd class="about-mono" id="about-name">NullBot</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.author">作者</dt>
+                        <dd>Zincoid</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.version">构建版本</dt>
+                        <dd class="about-mono" id="about-version">-</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.buildTime">构建时间</dt>
+                        <dd class="about-mono" id="about-build-time">-</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.javaVersion">Java</dt>
+                        <dd class="about-mono" id="about-java">-</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.springBootVersion">Spring Boot</dt>
+                        <dd class="about-mono" id="about-spring-boot">-</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.currentTime">当前时间</dt>
+                        <dd class="about-mono" id="about-time">-</dd>
+                    </div>
+                </dl>
+            </div>`;
+        document.body.append(dialog);
+    }
+
+    function bindAbout() {
+        const toggle = document.getElementById('about-toggle');
+        const dialog = document.getElementById('about-dialog');
+        if (!toggle || !dialog) return;
+        toggle.addEventListener('click', openAbout);
+        dialog.addEventListener('close', closeAbout);
+        dialog.addEventListener('click', event => {
+            if (event.target === dialog) dialog.close();
+        });
+        dialog.querySelectorAll('[data-close]').forEach(button =>
+            button.addEventListener('click', () => dialog.close()));
+    }
+
     function setLocale(next) {
         locale = next === 'en' ? 'en' : 'zh';
         writeStore(LOCALE_KEY, locale);
@@ -665,11 +823,13 @@
         if (themeButton) themeButton.addEventListener('click', toggleTheme);
         const localeButton = document.getElementById('locale-toggle');
         if (localeButton) localeButton.addEventListener('click', toggleLocale);
+        bindAbout();
         updateLocaleButton();
         updateThemeButton();
     }
 
     function init() {
+        mountAbout();
         apply();
         bindControls();
     }

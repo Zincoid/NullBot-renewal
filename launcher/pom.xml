@@ -41,6 +41,16 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                        <configuration>
+                            <time>${maven.build.timestamp}</time>
+                        </configuration>
+                    </execution>
+                </executions>
                 <configuration>
                     <workingDirectory>${project.basedir}/..</workingDirectory>
                 </configuration>

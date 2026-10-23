@@ -1982,6 +1982,97 @@ dialog::backdrop {
     margin-top: var(--spacing-xs);
 }
 
+/* ═══ About dialog ══════════════ */
+
+.about-dialog {
+    width: min(560px, calc(100vw - 32px));
+}
+
+.about-hero {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--rounded-lg);
+    background: linear-gradient(135deg, var(--color-primary-light), transparent 65%);
+}
+
+.about-hero__mark {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid var(--color-primary-light);
+    border-radius: var(--rounded-md);
+    background: var(--color-surface);
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.05em;
+}
+
+.about-hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xxs);
+    min-width: 0;
+}
+
+.about-hero__name {
+    color: var(--color-text-heading);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-tight);
+    word-break: break-word;
+}
+
+.about-hero__desc {
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+}
+
+.about-list {
+    display: flex;
+    flex-direction: column;
+    margin: var(--spacing-xl) 0 0;
+}
+
+.about-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px dashed var(--color-border-light);
+}
+
+.about-row:last-child {
+    border-bottom: none;
+}
+
+.about-row dt {
+    flex: 0 0 auto;
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+}
+
+.about-row dd {
+    margin: 0;
+    color: var(--color-text-heading);
+    font-size: var(--text-sm);
+    text-align: right;
+    word-break: break-word;
+}
+
+.about-mono {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
 /* ═══ Confirm dialog ════════════ */
 
 .confirm-dialog {

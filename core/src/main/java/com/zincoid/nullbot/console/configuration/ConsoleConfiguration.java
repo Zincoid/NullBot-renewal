@@ -48,7 +48,7 @@ public class ConsoleConfiguration implements WebMvcConfigurer {
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         registry.addInterceptor(new ConsoleAuthInterceptor(token))
                 .addPathPatterns("/console/**")
-                .excludePathPatterns("/console/ui", "/console/ui/**");
+                .excludePathPatterns("/console/ui", "/console/ui/**", "/console/about");
     }
 
     /**
