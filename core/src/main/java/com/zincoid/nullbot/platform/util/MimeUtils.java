@@ -68,9 +68,32 @@ public final class MimeUtils {
      * @return the MIME type, or null when unknown
      */
     public static String mime(String name) {
-        String type = URLConnection.guessContentTypeFromName(name);
-        if (type != null) return type;
-        return name != null && name.toLowerCase(Locale.ROOT).endsWith(".webp") ? "image/webp" : null;
+        if (name == null || name.isBlank()) return null;
+        int dot = name.lastIndexOf('.');
+        String ext = dot < 0 ? "" : name.substring(dot + 1).toLowerCase(Locale.ROOT);
+        String known = switch (ext) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "gif" -> "image/gif";
+            case "webp" -> "image/webp";
+            case "bmp" -> "image/bmp";
+            case "mp3" -> "audio/mpeg";
+            case "ogg" -> "audio/ogg";
+            case "wav" -> "audio/wav";
+            case "flac" -> "audio/flac";
+            case "m4a" -> "audio/mp4";
+            case "mp4" -> "video/mp4";
+            case "mov" -> "video/quicktime";
+            case "avi" -> "video/x-msvideo";
+            case "mkv" -> "video/x-matroska";
+            case "flv" -> "video/x-flv";
+            case "pdf" -> "application/pdf";
+            case "zip" -> "application/zip";
+            case "gz" -> "application/gzip";
+            default -> null;
+        };
+        if (known != null) return known;
+        return URLConnection.guessContentTypeFromName(name);
     }
 
     // ════ Convert ═════════════════

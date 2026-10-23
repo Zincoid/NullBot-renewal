@@ -40,4 +40,11 @@ public enum BizType {
             if (type.value.equals(value)) return type;
         return null;
     }
+
+    public static BizType fromLabel(String label) {
+        if (label == null) return null;
+        for (BizType type : values())
+            if (type.label.equalsIgnoreCase(label.trim())) return type;
+        return null;
+    }
 }

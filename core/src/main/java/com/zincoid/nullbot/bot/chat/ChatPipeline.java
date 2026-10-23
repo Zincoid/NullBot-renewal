@@ -69,54 +69,22 @@ public class ChatPipeline {
 
     // ════ Reply ═══════════════════
 
-    /**
-     * 回复群聊消息。
-     * <p>Replies to a group message.</p>
-     *
-     * @param client   the outbound port
-     * @param event    the triggering group message event
-     * @param language the reply language
-     */
     public void chat(BotClient client, GroupMsgEvent event, Language language) {
         chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
                 "The message to respond to is id=" + event.messageId() + " in a group chat.", event);
     }
 
-    /**
-     * 回复私聊消息。
-     * <p>Replies to a private message.</p>
-     *
-     * @param client   the outbound port
-     * @param event    the triggering private message event
-     * @param language the reply language
-     */
     public void chat(BotClient client, PrivateMsgEvent event, Language language) {
         chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
                 "The message to respond to is id=" + event.messageId() + " in a private chat.", event);
     }
 
-    /**
-     * 回复群聊中的戳一戳。
-     * <p>Responds to a poke in a group chat.</p>
-     *
-     * @param client   the outbound port
-     * @param event    the triggering group poke event
-     * @param language the reply language
-     */
     public void poke(BotClient client, GroupPokeEvent event, Language language) {
         chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
                 "User " + nickname(client, event.userId()) + "(" + event.userId()
                         + ") just poked you in a group chat; respond to the poke.", event);
     }
 
-    /**
-     * 回复私聊中的戳一戳。
-     * <p>Responds to a poke in a private chat.</p>
-     *
-     * @param client   the outbound port
-     * @param event    the triggering private poke event
-     * @param language the reply language
-     */
     public void poke(BotClient client, PrivatePokeEvent event, Language language) {
         chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
                 "User " + nickname(client, event.userId()) + "(" + event.userId()
@@ -126,8 +94,8 @@ public class ChatPipeline {
     // ════ Core ════════════════════
 
     /**
-     * 执行一次会话：锁定、组装上下文、调用模型、发送并写回回复。
-     * <p>Runs one conversation: locks, builds the context, invokes the model, sends and stores the reply.</p>
+     * 执行一次会话：校验注入、组装上下文，锁定会话后调用模型并写回回复。
+     * <p>Runs one conversation: checks injection, builds the context, then locks the chat to invoke the model and store the reply.</p>
      *
      * @param client   the outbound port
      * @param chatId   chat identifier
@@ -140,29 +108,28 @@ public class ChatPipeline {
      */
     private void chat(BotClient client, String chatId, String selfId, String targetId, boolean group,
                       Language language, String trigger, BotEvent event) {
+        GroupSetting setting = group ? groupSettingService.get(targetId) : null;
+        if (group && event instanceof GroupMsgEvent e
+                && Boolean.TRUE.equals(setting.getAiInjectionGuard())
+                && chatGuard.check(text(e))) {
+            send(client, targetId, true,
+                    MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
+            log.info("Injection blocked: chat={}", chatId);
+            return;
+        }
+        String base = group
+                ? promptBase(setting.getAiPrompt())
+                : promptBase(userSettingService.get(targetId).getAiPrompt());
+        String selfName = selfName(client, selfId);
+        ChatContext chatContext = new ChatContext(
+                client, targetId, group, event, cmdDispatcher, fileService);
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
-            GroupSetting setting = group ? groupSettingService.get(targetId) : null;
-            if (group && event instanceof GroupMsgEvent e
-                    && Boolean.TRUE.equals(setting.getAiInjectionGuard())
-                    && chatGuard.check(text(e))) {
-                send(client, targetId, true,
-                        MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
-                log.info("Injection blocked: chat={}", chatId);
-                return;
-            }
-            String base = group
-                    ? promptBase(setting.getAiPrompt())
-                    : promptBase(userSettingService.get(targetId).getAiPrompt());
-            String selfName = selfName(client, selfId);
-            ChatContext chatContext = new ChatContext(
-                    client, targetId, group, event, cmdDispatcher, fileService);
             ModelRes reply = botAiClient.invoke(memory.get(chatId),
                     prompt(base, trigger), effort(setting), chatContext);
             String content = reply.getContent();
-            String replyId = send(client, targetId, group,
-                    MsgContent.builder().text(content).build());
+            String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
                     AiMessage.assistant(content).withReasoning(reply.getReasoning()));
         } finally {

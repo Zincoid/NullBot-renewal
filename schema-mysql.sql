@@ -98,8 +98,8 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `limit_capacity`     INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',
     `limit_refill`       INT         NOT NULL DEFAULT 2       COMMENT 'Rate limit refill amount',
     `limit_interval`     INT         NOT NULL DEFAULT 1       COMMENT 'Rate limit refill interval in minutes',
-    `ai_effort`          TINYINT     NOT NULL DEFAULT 3       COMMENT 'AI reasoning effort: 0=MINIMAL, 1=LOW, 2=MEDIUM, 3=HIGH, 4=XHIGH, 5=MAX, 6=ULTRA',
     `ai_prompt`          TEXT        DEFAULT NULL             COMMENT 'Group system prompt, blank uses the global prompt',
+    `ai_effort`          TINYINT     NOT NULL DEFAULT 3       COMMENT 'AI reasoning effort: 0=MINIMAL, 1=LOW, 2=MEDIUM, 3=HIGH, 4=XHIGH, 5=MAX, 6=ULTRA',
     `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Anti prompt injection',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_group_id` (`group_id`)

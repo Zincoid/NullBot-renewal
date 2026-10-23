@@ -13,7 +13,7 @@ public interface ToolContext {
      * <p>Sends one message to the current chat.</p>
      *
      * @param text    the message text, may be blank when files are present
-     * @param fileIds the file ids to attach as images
+     * @param fileIds the file ids of media to attach
      * @param replyId the platform message id to quote, nullable
      * @return the tool result
      */

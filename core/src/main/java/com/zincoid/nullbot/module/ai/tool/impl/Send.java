@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 中间回复工具：在最终回复前向当前会话发送文本或图片。
- * <p>Intermediate reply tool: sends text or images to the current chat before the final reply.</p>
+ * 中间回复工具：在最终回复前向当前会话发送文本或媒体（图片、视频、音频）。
+ * <p>Intermediate reply tool: sends text or media (image, video, audio) to the current chat before the final reply.</p>
  */
 @Component
 public class Send implements Tool {
@@ -20,9 +20,9 @@ public class Send implements Tool {
     public ToolDefinition definition() {
         return ToolDefinition.builder("send", """
                         Sends an intermediate message to the current chat before the final reply.
-                        Set file to attach an image by file id.""")
+                        Set file to attach an image, video, or audio by file id.""")
                 .addString("content", "message text, optional when file is set")
-                .addInteger("file", "file id of an image to send, optional")
+                .addInteger("file", "file id of an image, video, or audio to send, optional")
                 .addString("reply", "message id to quote, optional")
                 .build();
     }

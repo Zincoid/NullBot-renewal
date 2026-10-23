@@ -14,8 +14,8 @@ import com.zincoid.nullbot.platform.util.MimeUtils;
 import java.util.List;
 
 /**
- * 聊天工具上下文：向当前会话发送文本/图片并执行机器人指令。
- * <p>Chat tool context: sends text or images to the current chat and runs bot commands.</p>
+ * 聊天工具上下文：向当前会话发送文本与媒体（图片、视频、音频）并执行机器人指令。
+ * <p>Chat tool context: sends text and media (images, videos, audio) to the current chat and runs bot commands.</p>
  *
  * @param client        the outbound port
  * @param targetId      group or user platform id
@@ -44,22 +44,36 @@ public record ChatContext(
         for (Long id : fileIds) {
             File file = fileService.getById(id);
             if (file == null) continue;
-            String mime = MimeUtils.mime(file.getOriginal());
-            if (mime == null || !mime.startsWith("image/")) continue;
-            builder.image(fileService.uri(file));
-            attached++;
+            if (attach(builder, file)) attached++;
         }
         if ((text == null || text.isBlank()) && attached == 0)
-            return ToolRes.error("No valid image: " + fileIds);
+            return ToolRes.error("No valid media: " + fileIds);
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);
-        return ToolRes.of("Message sent: " + deliver(builder.build()));
+        MsgContent content = builder.build();
+        if (group) client.sendGroupMsg(targetId, content);
+        else client.sendPrivateMsg(targetId, content);
+        return ToolRes.of("Message sent: " + content);
     }
 
-    private String deliver(MsgContent content) {
-        return group
-                ? client.sendGroupMsg(targetId, content)
-                : client.sendPrivateMsg(targetId, content);
+    private boolean attach(MsgContent.Builder builder, File file) {
+        String mime = mime(file);
+        if (mime == null) return false;
+        if (mime.startsWith("image/")) {
+            builder.image(fileService.uri(file));
+        } else if (mime.startsWith("video/")) {
+            builder.video(fileService.uri(file));
+        } else if (mime.startsWith("audio/")) {
+            builder.voice(fileService.uri(file));
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    private static String mime(File file) {
+        String mime = MimeUtils.mime(file.getStored());
+        return mime != null ? mime : MimeUtils.mime(file.getOriginal());
     }
 
     // ════ Command ═════════════════
