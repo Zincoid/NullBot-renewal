@@ -127,12 +127,22 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     @Override
     public File random(BizType type) {
+        return random(type, null);
+    }
+
+    @Override
+    public File random(BizType type, String tag) {
         if (type == null) throw new FileException("Missing key: type");
-        long count = lambdaQuery().eq(File::getType, type).count();
+        String tagKey = normalize(tag);
+        long count = lambdaQuery()
+                .eq(File::getType, type)
+                .like(tagKey != null, File::getTag, tagKey)
+                .count();
         if (count == 0) return null;
         long offset = ThreadLocalRandom.current().nextLong(count);
         return lambdaQuery()
                 .eq(File::getType, type)
+                .like(tagKey != null, File::getTag, tagKey)
                 .last("LIMIT 1 OFFSET " + offset)
                 .one();
     }

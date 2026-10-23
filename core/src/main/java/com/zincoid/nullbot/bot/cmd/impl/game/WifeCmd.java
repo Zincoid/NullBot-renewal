@@ -36,8 +36,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class WifeCmd implements Cmd {
 
-    private static final int SEARCH_LIMIT = 50;
-
     private final FileService fileService;
     private final UserService userService;
 
@@ -114,10 +112,9 @@ public class WifeCmd implements Cmd {
     private void setAnime(CmdContext ctx, GroupMsgEvent event, String keyword) {
         if (keyword.isBlank())
             throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED));
-        List<File> wives = fileService.search(BizType.ACG, keyword, null, SEARCH_LIMIT);
-        if (wives.isEmpty())
+        File wife = fileService.random(BizType.ACG, keyword);
+        if (wife == null)
             throw new CmdInfoException(ctx.render(Text.WIFE_NO_RESULT));
-        File wife = wives.get(ThreadLocalRandom.current().nextInt(wives.size()));
         Pick pick = new Pick(String.valueOf(wife.getId()), displayName(wife),
                 fileService.uri(wife), LocalDate.now());
         animePicks.put(event.userId(), pick);

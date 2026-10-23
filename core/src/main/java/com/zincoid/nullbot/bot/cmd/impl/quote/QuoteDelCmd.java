@@ -6,6 +6,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.module.common.CommonException;
 import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -29,6 +30,15 @@ public class QuoteDelCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
+        handle(ctx, args);
+    }
+
+    @Override
+    public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
+        handle(ctx, args);
+    }
+
+    private void handle(CmdContext ctx, CmdArgs args) {
         long id = args.nextLong();
         try {
             quoteService.delete(id);

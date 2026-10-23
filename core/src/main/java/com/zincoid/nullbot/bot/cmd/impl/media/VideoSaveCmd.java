@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.cmd.impl.image;
+package com.zincoid.nullbot.bot.cmd.impl.media;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
@@ -26,14 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 保存图片指令：把引用消息中的图片存入图片收藏。
- * <p>Save image command: stores images of a quoted message into the image collection.</p>
+ * 保存视频指令：把引用消息中的视频存入视频收藏。
+ * <p>Save video command: stores videos of a quoted message into the video collection.</p>
  */
 @Slf4j
-@CmdMapping({"ImageSave", "保存图片"})
+@CmdMapping({"VideoSave", "保存视频"})
 @Component
 @RequiredArgsConstructor
-public class ImageSaveCmd implements Cmd {
+public class VideoSaveCmd implements Cmd {
 
     private final FileService fileService;
 
@@ -69,26 +69,26 @@ public class ImageSaveCmd implements Cmd {
         if ("true".equals(messageId))
             throw new CmdWarnException(ctx.render(Text.MALFORMED_OPTION_ID));
         MsgDetail detail = ctx.client().getMsg(messageId);
-        List<MsgSegment.Image> images = detail.content().segments().stream()
-                .filter(MsgSegment.Image.class::isInstance)
-                .map(MsgSegment.Image.class::cast)
+        List<MsgSegment.Video> videos = detail.content().segments().stream()
+                .filter(MsgSegment.Video.class::isInstance)
+                .map(MsgSegment.Video.class::cast)
                 .toList();
-        if (images.isEmpty())
-            throw new CmdWarnException(ctx.render(Text.NO_IMAGES_IN_REPLY));
+        if (videos.isEmpty())
+            throw new CmdWarnException(ctx.render(Text.NO_VIDEOS_IN_REPLY));
         List<File> saved = new ArrayList<>();
-        for (MsgSegment.Image image : images) {
+        for (MsgSegment.Video video : videos) {
             try {
                 saved.add(fileService.save(
-                        userId, image.url(), image.file(), BizType.IMG_COLL));
+                        userId, video.url(), video.file(), BizType.VID_COLL));
             } catch (FileException e) {
                 throw new CmdWarnException(e.getMessage());
             }
         }
-        saved.forEach(file -> log.info("Image saved: {}", file.getId()));
+        saved.forEach(file -> log.info("Video saved: {}", file.getId()));
         MsgContent.Builder builder = MsgContent.builder()
                 .text(saved.size() == 1
-                        ? ctx.render(Text.IMAGE_SAVED_ONE, saved.getFirst().getId())
-                        : ctx.render(Text.IMAGE_SAVED_MANY, saved.size()));
+                        ? ctx.render(Text.VIDEO_SAVED_ONE, saved.getFirst().getId())
+                        : ctx.render(Text.VIDEO_SAVED_MANY, saved.size()));
         if (replied) builder.reply(messageId);
         ctx.send(builder.build());
     }
@@ -98,24 +98,24 @@ public class ImageSaveCmd implements Cmd {
     @Override
     public String getHelp(Language language) {
         return language == Language.EN ? """
-                ImageSave
-                Saves images from a replied message.
-                Usage: [reply] ImageSave
-                Aliases: 保存图片
+                VideoSave
+                Saves videos from a replied message.
+                Usage: [reply] VideoSave
+                Aliases: 保存视频
                 Access: >=0(normal)""" : """
-                ImageSave
-                保存引用消息中的图片。
-                用法：[回复] ImageSave
-                别名：保存图片
+                VideoSave
+                保存引用消息中的视频。
+                用法：[回复] VideoSave
+                别名：保存视频
                 权限：>=0(normal)""";
     }
 
     @Override
     public String getAiHelp() {
         return """
-                ImageSave
-                Saves all images of one message into the image collection.
-                Usage: ImageSave -i=<message id>
+                VideoSave
+                Saves all videos of one message into the video collection.
+                Usage: VideoSave -i=<message id>
                 Note: the id is the [id=...] marker shown before messages in the conversation.""";
     }
 

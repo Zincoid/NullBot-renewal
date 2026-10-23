@@ -126,6 +126,16 @@ public interface FileService extends IService<File> {
      */
     File random(BizType type);
 
+    /**
+     * 按业务类型与标签随机读取一个文件。
+     * <p>Returns a random file of the given business type and tag.</p>
+     *
+     * @param type business type
+     * @param tag  tag keyword, nullable to match all tags
+     * @return a random file, or null when none exists
+     */
+    File random(BizType type, String tag);
+
     // ════ Update ══════════════════
 
     /**

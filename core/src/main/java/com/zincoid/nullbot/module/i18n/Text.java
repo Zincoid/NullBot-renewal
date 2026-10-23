@@ -21,6 +21,7 @@ public enum Text {
     NOT_VIDEO("不是视频：%d", "Not a video: %d"),
     NO_IMAGES("没有图片", "No images"),
     NO_VIDEOS("没有视频", "No videos"),
+    NO_AUDIOS("没有音频", "No audio"),
     NO_IMAGES_IN_REPLY("回复中没有图片", "No images in reply"),
     NO_VIDEOS_IN_REPLY("回复中没有视频", "No videos in reply"),
     QUOTE_NOT_FOUND("语录不存在：%d", "Quote not found: %d"),

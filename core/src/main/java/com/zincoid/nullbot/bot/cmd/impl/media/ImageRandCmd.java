@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.cmd.impl.image;
+package com.zincoid.nullbot.bot.cmd.impl.media;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
