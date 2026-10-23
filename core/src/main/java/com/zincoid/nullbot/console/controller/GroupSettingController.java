@@ -62,6 +62,8 @@ public class GroupSettingController {
         GroupSetting setting = GroupSetting.builder()
                 .groupId(id)
                 .language(body.language())
+                .joinNoticeEnabled(body.joinNoticeEnabled())
+                .leaveNoticeEnabled(body.leaveNoticeEnabled())
                 .limitEnabled(body.limitEnabled())
                 .limitScope(body.limitScope())
                 .limitCapacity(body.limitCapacity())
@@ -70,7 +72,7 @@ public class GroupSettingController {
                 .aiEffort(body.aiEffort())
                 .aiPrompt(prompt)
                 .aiInjectionGuard(body.aiInjectionGuard())
-                .aiAutoChat(body.aiAutoChat())
+                .aiAutoChatEnabled(body.aiAutoChatEnabled())
                 .aiChatFrequency(body.aiChatFrequency())
                 .build();
         groupSettingService.update(setting);

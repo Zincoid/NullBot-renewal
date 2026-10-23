@@ -22,6 +22,8 @@ public class GroupSetting {
     private Long id;
     private String groupId;
     private Language language;
+    private Boolean joinNoticeEnabled;
+    private Boolean leaveNoticeEnabled;
     private Boolean limitEnabled;
     private LimitScope limitScope;
     private Integer limitCapacity;
@@ -30,6 +32,6 @@ public class GroupSetting {
     private Effort aiEffort;
     private String aiPrompt;
     private Boolean aiInjectionGuard;
-    private Boolean aiAutoChat;
+    private Boolean aiAutoChatEnabled;
     private Double aiChatFrequency;
 }

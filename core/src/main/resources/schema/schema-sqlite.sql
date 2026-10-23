@@ -66,19 +66,21 @@ CREATE TABLE IF NOT EXISTS `group` (
 
 -- 7. Group Setting
 CREATE TABLE IF NOT EXISTS `group_setting` (
-    `id`                 INTEGER    PRIMARY KEY AUTOINCREMENT,
-    `group_id`           VARCHAR(64) NOT NULL,
-    `language`           TINYINT     NOT NULL DEFAULT 0,
-    `limit_enabled`      BOOLEAN     NOT NULL DEFAULT 1,
-    `limit_scope`        TINYINT     NOT NULL DEFAULT 0,
-    `limit_capacity`     INT         NOT NULL DEFAULT 5,
-    `limit_refill`       INT         NOT NULL DEFAULT 2,
-    `limit_interval`     INT         NOT NULL DEFAULT 1,
-    `ai_prompt`          TEXT        DEFAULT NULL,
-    `ai_effort`          TINYINT     NOT NULL DEFAULT 3,
-    `ai_injection_guard` BOOLEAN     NOT NULL DEFAULT 1,
-    `ai_auto_chat`      BOOLEAN     NOT NULL DEFAULT 0,
-    `ai_chat_frequency` DOUBLE      NOT NULL DEFAULT 0.001
+    `id`                   INTEGER     PRIMARY KEY AUTOINCREMENT,
+    `group_id`             VARCHAR(64) NOT NULL,
+    `language`             TINYINT     NOT NULL DEFAULT 0,
+    `join_notice_enabled`  BOOLEAN     NOT NULL DEFAULT 0,
+    `leave_notice_enabled` BOOLEAN     NOT NULL DEFAULT 0,
+    `limit_enabled`        BOOLEAN     NOT NULL DEFAULT 1,
+    `limit_scope`          TINYINT     NOT NULL DEFAULT 0,
+    `limit_capacity`       INT         NOT NULL DEFAULT 5,
+    `limit_refill`         INT         NOT NULL DEFAULT 2,
+    `limit_interval`       INT         NOT NULL DEFAULT 1,
+    `ai_prompt`            TEXT        DEFAULT NULL,
+    `ai_effort`            TINYINT     NOT NULL DEFAULT 3,
+    `ai_injection_guard`   BOOLEAN     NOT NULL DEFAULT 1,
+    `ai_auto_chat_enabled` BOOLEAN     NOT NULL DEFAULT 0,
+    `ai_chat_frequency`    DOUBLE      NOT NULL DEFAULT 0.001
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_setting_group_id` ON `group_setting` (`group_id`);
 

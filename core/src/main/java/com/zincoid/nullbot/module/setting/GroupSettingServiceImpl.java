@@ -59,6 +59,8 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
         setting = GroupSetting.builder()
                 .groupId(groupId)
                 .language(Language.AUTO)
+                .joinNoticeEnabled(false)
+                .leaveNoticeEnabled(false)
                 .limitEnabled(true)
                 .limitScope(LimitScope.USER)
                 .limitCapacity(5)
@@ -66,7 +68,7 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
                 .limitInterval(1)
                 .aiEffort(Effort.HIGH)
                 .aiInjectionGuard(true)
-                .aiAutoChat(false)
+                .aiAutoChatEnabled(false)
                 .aiChatFrequency(0.001)
                 .build();
         save(setting);

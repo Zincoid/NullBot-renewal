@@ -974,6 +974,8 @@
         try {
             const setting = await api('/groups/' + encodeURIComponent(currentGroup.id) + '/setting');
             $('gs-language').value = String(setting.language);
+            $('gs-join-notice').checked = setting.joinNoticeEnabled;
+            $('gs-leave-notice').checked = setting.leaveNoticeEnabled;
             $('gs-effort').value = String(setting.aiEffort);
             $('gs-scope').value = String(setting.limitScope);
             $('gs-capacity').value = setting.limitCapacity;
@@ -981,7 +983,7 @@
             $('gs-interval').value = setting.limitInterval;
             $('gs-chat-frequency').value = setting.aiChatFrequency;
             $('gs-limit-enabled').checked = setting.limitEnabled;
-            $('gs-auto-chat').checked = setting.aiAutoChat;
+            $('gs-auto-chat').checked = setting.aiAutoChatEnabled;
             $('gs-guard').checked = setting.aiInjectionGuard;
             $('gs-prompt').value = setting.aiPrompt || '';
             setStatus($('gs-status'), '');
@@ -1014,6 +1016,8 @@
                 method: 'PUT',
                 body: JSON.stringify({
                     language: Number($('gs-language').value),
+                    joinNoticeEnabled: $('gs-join-notice').checked,
+                    leaveNoticeEnabled: $('gs-leave-notice').checked,
                     aiEffort: Number($('gs-effort').value),
                     limitScope: Number($('gs-scope').value),
                     limitCapacity: capacity,
@@ -1021,7 +1025,7 @@
                     limitInterval: interval,
                     limitEnabled: $('gs-limit-enabled').checked,
                     aiInjectionGuard: $('gs-guard').checked,
-                    aiAutoChat: $('gs-auto-chat').checked,
+                    aiAutoChatEnabled: $('gs-auto-chat').checked,
                     aiChatFrequency: frequency,
                     aiPrompt: $('gs-prompt').value
                 })

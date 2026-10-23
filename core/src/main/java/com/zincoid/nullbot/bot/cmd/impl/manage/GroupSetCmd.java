@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 import java.util.Locale;
 
 /**
- * 群设置指令：查看或修改当前群的限速与 AI 设置。
- * <p>Group setting command: views or updates the current group's rate-limit and AI settings.</p>
+ * 群设置指令：查看或修改当前群的通知、限速与 AI 设置。
+ * <p>Group setting command: views or updates the current group's notice, rate-limit, and AI settings.</p>
  */
 @CmdMapping({"GroupSet", "GSet", "群设置"})
 @Component
@@ -49,6 +49,10 @@ public class GroupSetCmd implements Cmd {
         }
         if (args.hasOpt("lang", "g")) {
             updateLanguage(ctx, groupId, args);
+            return;
+        }
+        if (args.hasOpt("notice", "n")) {
+            updateNotice(ctx, groupId, args);
             return;
         }
         if (args.isEmpty() || "view".equalsIgnoreCase(args.peek())) {
@@ -121,7 +125,7 @@ public class GroupSetCmd implements Cmd {
             }
             case "auto" -> {
                 boolean enabled = bool(ctx, args.next());
-                update.setAiAutoChat(enabled);
+                update.setAiAutoChatEnabled(enabled);
                 message = ctx.render(Text.GROUPSET_AI_AUTO_CHAT, enabled);
             }
             case "frequency" -> {
@@ -145,6 +149,26 @@ public class GroupSetCmd implements Cmd {
         ctx.send(Text.GROUPSET_UPDATED, ctx.render(Text.GROUPSET_LANGUAGE, language.getLabel()));
     }
 
+    private void updateNotice(CmdContext ctx, String groupId, CmdArgs args) {
+        String name = args.next().toLowerCase(Locale.ROOT);
+        boolean enabled = bool(ctx, args.next());
+        GroupSetting update = GroupSetting.builder().groupId(groupId).build();
+        Text message;
+        switch (name) {
+            case "join" -> {
+                update.setJoinNoticeEnabled(enabled);
+                message = Text.GROUPSET_NOTICE_JOIN;
+            }
+            case "leave" -> {
+                update.setLeaveNoticeEnabled(enabled);
+                message = Text.GROUPSET_NOTICE_LEAVE;
+            }
+            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_NOTICE, name));
+        }
+        save(update);
+        ctx.send(Text.GROUPSET_UPDATED, ctx.render(message, enabled));
+    }
+
     // ════ View ════════════════════
 
     private String view(CmdContext ctx, String groupId) {
@@ -158,10 +182,11 @@ public class GroupSetCmd implements Cmd {
                 : setting.getAiPrompt();
         return ctx.render(Text.GROUPSET_VIEW,
                 groupId, languageText,
+                setting.getJoinNoticeEnabled(), setting.getLeaveNoticeEnabled(),
                 setting.getLimitEnabled(), setting.getLimitScope().getLabel(),
                 setting.getLimitCapacity(), setting.getLimitRefill(), setting.getLimitInterval(),
                 setting.getAiEffort().getLabel(), setting.getAiInjectionGuard(),
-                setting.getAiAutoChat(), setting.getAiChatFrequency(), prompt);
+                setting.getAiAutoChatEnabled(), setting.getAiChatFrequency(), prompt);
     }
 
     // ════ Helpers ═════════════════
@@ -223,6 +248,7 @@ public class GroupSetCmd implements Cmd {
                        GroupSet -l|--limit <enabled|scope|capacity|refill|interval> [value]
                        GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
                        GroupSet -g|--lang <auto|zh|en>
+                       GroupSet -n|--notice <join|leave> <on|off>
                 Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
                 Note: "GroupSet ai prompt reset" clears the group prompt; "auto" follows the global default_language.
                 Aliases: GSet / 群设置
@@ -233,6 +259,7 @@ public class GroupSetCmd implements Cmd {
                       GroupSet -l|--limit <enabled|scope|capacity|refill|interval> [value]
                       GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
                       GroupSet -g|--lang <auto|zh|en>
+                      GroupSet -n|--notice <join|leave> <on|off>
                 取值：scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
                 说明："GroupSet ai prompt reset" 清空群提示词；"auto" 跟随全局 default_language。
                 别名：GSet / 群设置

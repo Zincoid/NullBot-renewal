@@ -63,7 +63,7 @@ public class AutoChatMiddleware implements Middleware {
         if (event.selfId().equals(event.userId())) return false;
         if (event.at()) return false;
         GroupSetting setting = groupSettingService.get(event.groupId());
-        if (!setting.getAiAutoChat()) return false;
+        if (!setting.getAiAutoChatEnabled()) return false;
         double frequency = setting.getAiChatFrequency();
         if (!(ThreadLocalRandom.current().nextDouble() < frequency)) return false;
         if (cmdParser.isCmd(event.content())) return false;

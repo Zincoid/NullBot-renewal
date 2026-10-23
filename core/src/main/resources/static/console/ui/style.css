@@ -980,6 +980,10 @@ label.field.inline select {
     gap: var(--spacing-md);
 }
 
+.form-grid__full {
+    grid-column: 1 / -1;
+}
+
 .form-actions {
     display: flex;
     align-items: center;
