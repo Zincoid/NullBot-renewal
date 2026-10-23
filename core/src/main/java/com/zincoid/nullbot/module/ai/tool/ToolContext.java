@@ -30,6 +30,15 @@ public interface ToolContext {
     ToolRes mute(String userId, int minutes);
 
     /**
+     * 撤回一条消息。
+     * <p>Recalls a message.</p>
+     *
+     * @param messageId platform message id
+     * @return the tool result
+     */
+    ToolRes recall(String messageId);
+
+    /**
      * 执行机器人指令。
      * <p>Runs a bot command.</p>
      *

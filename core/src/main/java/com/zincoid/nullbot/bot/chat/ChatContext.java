@@ -101,6 +101,23 @@ public record ChatContext(
                 : "Muted: " + userId + " for " + minutes + " minute(s)");
     }
 
+    // ════ Recall ══════════════════
+
+    /**
+     * 撤回一条消息。
+     * <p>Recalls a message.</p>
+     *
+     * @param messageId platform message id
+     * @return the tool result
+     */
+    @Override
+    public ToolRes recall(String messageId) {
+        if (messageId == null || messageId.isBlank())
+            return ToolRes.error("Missing message id");
+        client.recall(messageId);
+        return ToolRes.of("Message recalled: " + messageId);
+    }
+
     // ════ Command ═════════════════
 
     @Override
