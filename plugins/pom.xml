@@ -15,5 +15,7 @@
     <modules>
         <module>hello-plugin</module>
         <module>sb6657-plugin</module>
+        <module>pubg-plugin</module>
+        <module>query-plugin</module>
     </modules>
 </project>

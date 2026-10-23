@@ -1,0 +1,7 @@
+# Copy to workspace/plugins/query/config.properties.
+# Environment variables AA_API_KEY and SAUCENAO_API_KEY take precedence.
+aa.api-key=
+saucenao.api-key=
+aa.cache-ttl=600
+prts.cache-ttl=600
+http.user-agent=NullBot-Query/1.0

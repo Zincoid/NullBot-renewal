@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UsageController {
 
-    private static final int TOP = 10;
+    private static final int TOP = 20;
 
     private final UsageService usageService;
     private final GroupService groupService;

@@ -116,12 +116,30 @@
         }
     }
 
+    function raiseToast(box) {
+        if (typeof box.showPopover !== 'function') return;
+        try {
+            if (box.matches(':popover-open')) box.hidePopover();
+            box.showPopover();
+        } catch {
+            // Keep the toast in the normal layer when the popover API is unavailable.
+        }
+    }
+
     function toast(message, kind = '') {
         const box = $('toast');
         const item = document.createElement('div');
         item.className = 'toast-item' + (kind ? ' ' + kind : '');
-        item.textContent = message;
+        const text = document.createElement('span');
+        text.className = 'toast-item__text';
+        text.textContent = message;
+        const cursor = document.createElement('span');
+        cursor.className = 'toast-item__cursor';
+        cursor.textContent = '█';
+        cursor.setAttribute('aria-hidden', 'true');
+        item.append(text, cursor);
         box.appendChild(item);
+        raiseToast(box);
         requestAnimationFrame(() => item.classList.add('show'));
         setTimeout(() => {
             item.classList.remove('show');
@@ -254,7 +272,7 @@
     function usageSvg(days) {
         if (!days.length) return `<p class="empty">${escapeHtml(t('usage.empty'))}</p>`;
         const width = Math.max(320, Math.round($('usage-chart').clientWidth || 720));
-        const height = 94;
+        const height = 120;
         const left = 36;
         const right = 16;
         const top = 10;
@@ -263,9 +281,13 @@
         const step = days.length > 1 ? (width - left - right) / (days.length - 1) : 0;
         const x = index => left + step * index;
         const y = value => top + (height - top - bottom) * (1 - (Number(value) || 0) / max);
-        const points = days.map((day, index) =>
-            `${x(index).toFixed(1)},${y(day.count).toFixed(1)}`).join(' ');
-        const area = `${left},${height - bottom} ${points} ${x(days.length - 1).toFixed(1)},${height - bottom}`;
+        const points = days.map((day, index) => ({x: x(index), y: y(day.count)}));
+        const line = smoothPath(points);
+        const baseline = height - bottom;
+        const area = days.length > 1
+            ? `${line} L ${points[points.length - 1].x.toFixed(1)} ${baseline}`
+                + ` L ${points[0].x.toFixed(1)} ${baseline} Z`
+            : '';
 
         let grid = '';
         for (let i = 0; i <= 3; i++) {
@@ -283,9 +305,21 @@
                 + `${escapeHtml(String(day.date).slice(5))}</text>`;
         });
 
-        const dots = days.map((day, index) =>
-            `<circle cx="${x(index).toFixed(1)}" cy="${y(day.count).toFixed(1)}" r="2.5" class="dot">`
-            + `<title>${escapeHtml(day.date)}：${Number(day.count) || 0}</title></circle>`).join('');
+        const dots = days.map((day, index) => {
+            const point = points[index];
+            const hitLeft = index === 0 ? left : point.x - step / 2;
+            const hitRight = index === days.length - 1 ? width - right : point.x + step / 2;
+            return `<g class="point">`
+                + `<rect x="${hitLeft.toFixed(1)}" y="${top}"`
+                + ` width="${(hitRight - hitLeft).toFixed(1)}" height="${(baseline - top).toFixed(1)}" class="hit">`
+                + `<title>${escapeHtml(day.date)}：${Number(day.count) || 0}</title></rect>`
+                + `<line x1="${point.x.toFixed(1)}" y1="${top}"`
+                + ` x2="${point.x.toFixed(1)}" y2="${baseline}" class="guide"/>`
+                + `<line x1="${left}" y1="${point.y.toFixed(1)}"`
+                + ` x2="${width - right}" y2="${point.y.toFixed(1)}" class="guide"/>`
+                + `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="2.5" class="dot"/>`
+                + `</g>`;
+        }).join('');
 
         return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(t('usage.daily'))}">
             <defs>
@@ -295,11 +329,46 @@
                 </linearGradient>
             </defs>
             ${grid}
-            <polygon points="${area}" fill="url(#usage-fill)"/>
-            <polyline points="${points}" class="line"/>
+            <path d="${area}" fill="url(#usage-fill)"/>
+            <path d="${line}" class="line"/>
             ${dots}
             ${labels}
         </svg>`;
+    }
+
+    function smoothPath(points) {
+        if (points.length < 2)
+            return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+        const widths = [];
+        const slopes = [];
+        for (let i = 0; i < points.length - 1; i++) {
+            widths[i] = points[i + 1].x - points[i].x;
+            slopes[i] = (points[i + 1].y - points[i].y) / widths[i];
+        }
+        const tangents = new Array(points.length);
+        tangents[0] = slopes[0];
+        tangents[points.length - 1] = slopes[slopes.length - 1];
+        for (let i = 1; i < points.length - 1; i++) {
+            if (slopes[i - 1] * slopes[i] <= 0) {
+                tangents[i] = 0;
+                continue;
+            }
+            const w1 = 2 * widths[i] + widths[i - 1];
+            const w2 = widths[i] + 2 * widths[i - 1];
+            tangents[i] = (w1 + w2) / (w1 / slopes[i - 1] + w2 / slopes[i]);
+        }
+        let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+        for (let i = 0; i < points.length - 1; i++) {
+            const handle = widths[i] / 3;
+            const c1x = points[i].x + handle;
+            const c1y = points[i].y + tangents[i] * handle;
+            const c2x = points[i + 1].x - handle;
+            const c2y = points[i + 1].y - tangents[i + 1] * handle;
+            path += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}`
+                + ` ${c2x.toFixed(1)} ${c2y.toFixed(1)}`
+                + ` ${points[i + 1].x.toFixed(1)} ${points[i + 1].y.toFixed(1)}`;
+        }
+        return path;
     }
 
     function renderRanks(element, ranks, empty, label) {

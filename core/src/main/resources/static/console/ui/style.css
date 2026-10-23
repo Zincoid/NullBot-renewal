@@ -1614,10 +1614,33 @@ td select.access-select {
     stop-opacity: 0;
 }
 
+.chart .hit {
+    fill: transparent;
+    pointer-events: all;
+}
+
+.chart .guide {
+    stroke: var(--chart-primary);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    stroke-opacity: 0.6;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
 .chart .dot {
     fill: var(--color-surface);
     stroke: var(--chart-primary);
     stroke-width: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.chart .point:hover .guide,
+.chart .point:hover .dot {
+    opacity: 1;
 }
 
 .rank-grid {
@@ -2038,8 +2061,10 @@ dialog::backdrop {
     padding: 0 var(--spacing-2xl) var(--spacing-xl) var(--spacing-2xl);
 }
 
-.confirm-dialog__cursor {
+.confirm-dialog__cursor,
+.toast-item__cursor {
     color: var(--terminal-accent);
+    font-family: var(--font-mono);
     animation: confirm-blink 0.3s step-end infinite;
 }
 
@@ -2132,18 +2157,25 @@ dialog::backdrop {
 
 .toast {
     position: fixed;
-    left: var(--spacing-xl);
-    bottom: var(--spacing-xl);
+    inset: auto auto var(--spacing-xl) var(--spacing-xl);
     z-index: 950;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
     pointer-events: none;
 }
 
 .toast-item {
     position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5em;
     min-width: 280px;
     max-width: 440px;
     padding: var(--spacing-lg) var(--spacing-xl);
@@ -2163,7 +2195,17 @@ dialog::backdrop {
 
 .toast-item::before {
     content: '>';
-    margin-right: 0.5em;
+    color: #58a6ff;
+}
+
+.toast-item__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-item__cursor {
+    flex: none;
+    align-self: center;
     color: #58a6ff;
 }
 
@@ -2179,7 +2221,8 @@ dialog::backdrop {
     animation: toast-shrink 3.2s linear forwards;
 }
 
-.toast-item.ok::before {
+.toast-item.ok::before,
+.toast-item.ok .toast-item__cursor {
     color: var(--color-success);
 }
 
@@ -2187,7 +2230,8 @@ dialog::backdrop {
     background: var(--color-success);
 }
 
-.toast-item.error::before {
+.toast-item.error::before,
+.toast-item.error .toast-item__cursor {
     color: var(--color-danger);
 }
 
