@@ -68,8 +68,10 @@ public class CmdParser {
         int i = !segments.isEmpty() && segments.getFirst() instanceof MsgSegment.Reply ? 1 : 0;
         if (i >= segments.size() || !(segments.get(i) instanceof MsgSegment.Text(String text))) return null;
         String prefix = configService.getString(Conf.CMD_PREFIX);
-        if (!text.startsWith(prefix)) return null;
-        List<String> words = List.of(text.substring(prefix.length()).split("\\s+"));
+        if (prefix == null || prefix.isEmpty() || !text.startsWith(prefix)) return null;
+        String body = text.substring(prefix.length()).trim();
+        if (body.isEmpty()) return null;
+        List<String> words = List.of(body.split("\\s+"));
         return new CmdRequest(words.getFirst(), words.subList(1, words.size()));
     }
 
@@ -77,14 +79,17 @@ public class CmdParser {
         return selfId.equals(targetId) ? new CmdRequest("Poked", List.of()) : null;
     }
 
+    // TODO: Detect this
     private static CmdRequest recall() {
         return new CmdRequest("Recalled", List.of());
     }
 
+    // TODO: Detect this
     private static CmdRequest join() {
         return new CmdRequest("Joined", List.of());
     }
 
+    // TODO: Detect this
     private static CmdRequest left() {
         return new CmdRequest("Left", List.of());
     }

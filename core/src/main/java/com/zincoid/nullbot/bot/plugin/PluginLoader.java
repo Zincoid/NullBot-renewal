@@ -47,7 +47,7 @@ public class PluginLoader {
      */
     private static final int API_VERSION = 1;
 
-    private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9._-]{1,64}");
+    private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
 
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
 
@@ -126,7 +126,8 @@ public class PluginLoader {
             if (plugin.apiVersion() != API_VERSION)
                 throw new PluginException("Unsupported apiVersion: " + plugin.apiVersion()
                         + ", expected " + API_VERSION);
-            List<Cmd> cmds = plugin.cmds() == null ? List.of() : plugin.cmds();
+            List<Cmd> provided = plugin.cmds();
+            List<Cmd> cmds = provided == null ? List.of() : provided;
             Path dataDir = dir.resolve(id);
             Files.createDirectories(dataDir);
             plugin.start(new DefaultPluginContext(

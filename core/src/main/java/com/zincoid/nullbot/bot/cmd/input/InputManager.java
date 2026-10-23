@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
 /**
@@ -22,22 +23,22 @@ import java.util.regex.Pattern;
 public class InputManager {
 
     private final Map<String, InputEntry> entries = new ConcurrentHashMap<>();
-    private final Map<String, List<InputResult>> caches = new ConcurrentHashMap<>();
 
-    private record InputEntry(CompletableFuture<List<InputResult>> future, Pattern pattern, boolean coverable) {
+    private record InputEntry(CompletableFuture<List<InputResult>> future, Pattern pattern,
+                              boolean coverable, List<InputResult> values) {
     }
 
     // ════ Request ═════════════════
 
     /**
-     * 等待一次匹配输入，超时返回空列表。
-     * <p>Waits for a matching input and returns an empty list on timeout.</p>
+     * 等待一次匹配输入，超时返回已收到的输入。
+     * <p>Waits for a matching input, returning the received inputs on timeout.</p>
      *
      * @param mode     the wait mode
      * @param targetId the user or group platform id
      * @param pattern  the regular expression the message must match
      * @param timeout  the timeout in seconds
-     * @return the matched inputs, empty on timeout
+     * @return the matched inputs, empty when none arrived
      */
     public List<InputResult> request(InputMode mode, String targetId, String pattern, long timeout) {
         return request(mode, targetId, pattern, timeout, false);
@@ -52,41 +53,32 @@ public class InputManager {
      * @param pattern   the regular expression the message must match
      * @param timeout   the timeout in seconds
      * @param coverable whether this wait may replace an existing coverable wait
-     * @return the matched inputs, empty on timeout
+     * @return the matched inputs, empty when none arrived
      */
     public List<InputResult> request(InputMode mode, String targetId, String pattern, long timeout, boolean coverable) {
         if (mode == null) throw new InputException("Missing key: mode");
         if (targetId == null || targetId.isBlank()) throw new InputException("Missing key: targetId");
         if (pattern == null) throw new InputException("Missing key: pattern");
         String key = key(mode, targetId);
-        InputEntry previous = entries.get(key);
-        if (previous != null) {
-            if (!previous.coverable()) throw new InputException("Input conflict: " + mode + " " + targetId);
-            cancelWait(mode, targetId);
-            log.info("Input wait covered: mode={}, target={}", mode, targetId);
-        }
-        if (mode == InputMode.GM)
-            caches.put(key, Collections.synchronizedList(new ArrayList<>()));
-        CompletableFuture<List<InputResult>> future = new CompletableFuture<>();
-        entries.put(key, new InputEntry(future, Pattern.compile(pattern), coverable));
+        InputEntry entry = new InputEntry(
+                new CompletableFuture<>(),
+                Pattern.compile(pattern),
+                coverable,
+                mode == InputMode.GM ? Collections.synchronizedList(new ArrayList<>()) : null);
+        register(mode, targetId, key, entry);
+        log.info("Waiting for input: mode={}, target={}, timeout={}s", mode, targetId, timeout);
         try {
-            log.info("Waiting for input: mode={}, target={}, timeout={}s", mode, targetId, timeout);
-            return future.orTimeout(timeout, TimeUnit.SECONDS)
-                    .exceptionally(_ -> {
-                        log.info("Input timeout: mode={}, target={}", mode, targetId);
-                        return mode == InputMode.GM
-                                ? caches.getOrDefault(key, List.of())
-                                : List.of();
-                    })
-                    .get();
+            return entry.future().get(timeout, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            log.info("Input timeout: mode={}, target={}", mode, targetId);
+            return values(entry);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new InputException("Input wait interrupted", e);
         } catch (ExecutionException e) {
             throw new InputException("Input wait failed", e);
         } finally {
-            entries.remove(key);
-            if (mode == InputMode.GM) caches.remove(key);
+            entries.remove(key, entry);
         }
     }
 
@@ -136,32 +128,60 @@ public class InputManager {
     }
 
     /**
-     * 取消指定目标的等待，使其返回空列表。
-     * <p>Cancels the wait for the target, making it return an empty list.</p>
+     * 取消指定目标的等待，使其返回已收到的输入。
+     * <p>Cancels the wait for the target, making it return the received inputs.</p>
      *
      * @param mode     the wait mode
      * @param targetId the user or group platform id
      */
     public void cancelWait(InputMode mode, String targetId) {
-        String key = key(mode, targetId);
-        InputEntry entry = entries.remove(key);
+        InputEntry entry = entries.remove(key(mode, targetId));
         if (entry == null || entry.future().isDone()) return;
-        entry.future().complete(List.of());
+        entry.future().complete(values(entry));
+    }
+
+    /**
+     * 原子地登记等待，必要时覆盖已有的可覆盖等待。
+     * <p>Registers the wait atomically, covering an existing coverable wait when needed.</p>
+     *
+     * @param mode     the wait mode
+     * @param targetId the user or group platform id
+     * @param key      the wait key
+     * @param entry    the wait entry
+     */
+    private void register(InputMode mode, String targetId, String key, InputEntry entry) {
+        while (true) {
+            InputEntry previous = entries.putIfAbsent(key, entry);
+            if (previous == null) return;
+            if (!previous.coverable())
+                throw new InputException("Input conflict: " + mode + " " + targetId);
+            if (!entries.replace(key, previous, entry)) continue;
+            previous.future().complete(values(previous));
+            log.info("Input wait covered: mode={}, target={}", mode, targetId);
+            return;
+        }
     }
 
     private boolean deliver(InputMode mode, String targetId, String userId, String message) {
-        String key = key(mode, targetId);
-        InputEntry entry = entries.get(key);
+        InputEntry entry = entries.get(key(mode, targetId));
         if (entry == null || entry.future().isDone()) return false;
         if (!entry.pattern().matcher(message).matches()) return false;
+        InputResult result = new InputResult(userId, message);
         if (mode == InputMode.GM) {
-            List<InputResult> cache = caches.get(key);
-            if (cache != null) cache.add(new InputResult(userId, message));
+            entry.values().add(result);
         } else {
-            entry.future().complete(List.of(new InputResult(userId, message)));
+            entry.future().complete(List.of(result));
         }
         log.info("Input received: mode={}, target={}, user={}, message={}", mode, targetId, userId, message);
         return true;
+    }
+
+    private static List<InputResult> values(InputEntry entry) {
+        List<InputResult> values = entry.values();
+        if (values == null) return List.of();
+        synchronized (values) {
+            return List.copyOf(values);
+        }
     }
 
     private static String key(InputMode mode, String targetId) {

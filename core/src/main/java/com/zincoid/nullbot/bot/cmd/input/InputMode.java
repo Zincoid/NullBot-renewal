@@ -5,7 +5,22 @@ package com.zincoid.nullbot.bot.cmd.input;
  * <p>Input wait mode: PS per user single, GS per group single, GM per group multiple.</p>
  */
 public enum InputMode {
-    PS,  // Personal single value
-    GS,  // Group single value
-    GM   // Group multiple values
+
+    /**
+     * 个人单值模式
+     * <p>Personal single value</p>
+     */
+    PS,
+
+    /**
+     * 群组单值模式
+     * <p>Group single values</p>
+     */
+    GS,
+
+    /**
+     * 群组多值模式
+     * <p>Group multiple values</p>
+     */
+    GM
 }
