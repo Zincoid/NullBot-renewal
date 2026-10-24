@@ -1,14 +1,7 @@
 package com.zincoid.nullbot.bot.cmd;
 
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
-import com.zincoid.nullbot.bot.spi.event.JoinEvent;
-import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -81,15 +74,8 @@ public record CmdContext(
      * @param content the message content
      */
     public void send(MsgContent content) {
-        switch (event) {
-            case GroupMsgEvent e -> client.sendGroupMsg(e.groupId(), content);
-            case PrivateMsgEvent e -> client.sendPrivateMsg(e.userId(), content);
-            case GroupPokeEvent e -> client.sendGroupMsg(e.groupId(), content);
-            case PrivatePokeEvent e -> client.sendPrivateMsg(e.userId(), content);
-            case GroupRecallEvent e -> client.sendGroupMsg(e.groupId(), content);
-            case PrivateRecallEvent e -> client.sendPrivateMsg(e.userId(), content);
-            case JoinEvent e -> client.sendGroupMsg(e.groupId(), content);
-            case LeaveEvent e -> client.sendGroupMsg(e.groupId(), content);
-        }
+        if (event instanceof GroupEvent group)
+            client.sendGroupMsg(group.groupId(), content);
+        else client.sendPrivateMsg(event.userId(), content);
     }
 }

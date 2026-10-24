@@ -5,8 +5,6 @@ import com.zincoid.nullbot.bot.cmd.CmdRequest;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.setting.GroupKeywordService;
 import com.zincoid.nullbot.platform.persistence.po.GroupKeyword;
@@ -58,7 +56,7 @@ public class KeywordMiddleware implements Middleware {
      * @param event  the triggering group message event
      */
     private void react(BotClient client, GroupMsgEvent event) {
-        String text = text(event.content());
+        String text = event.content().text();
         if (text.isBlank()) return;
         for (GroupKeyword rule : groupKeywordService.listEnabled(event.groupId())) {
             if (rule.getKeyword() == null || rule.getKeyword().isBlank()) continue;
@@ -72,19 +70,5 @@ public class KeywordMiddleware implements Middleware {
             log.info("Keyword matched: group={}, keyword={}, cmd={}", event.groupId(), rule.getKeyword(), rule.getCmd());
             cmdDispatcher.dispatch(client, event, new CmdRequest(rule.getCmd(), resolved), false);
         }
-    }
-
-    /**
-     * 提取消息中的文本段。
-     * <p>Extracts text segments from the message.</p>
-     *
-     * @param content the message content
-     * @return the concatenated text
-     */
-    private static String text(MsgContent content) {
-        StringBuilder text = new StringBuilder();
-        for (MsgSegment segment : content.segments())
-            if (segment instanceof MsgSegment.Text(String s)) text.append(s);
-        return text.toString();
     }
 }

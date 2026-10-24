@@ -14,5 +14,5 @@ public record GroupPokeEvent(
         String userId,
         String targetId,
         String groupId
-) implements PokeEvent {
+) implements PokeEvent, GroupEvent {
 }

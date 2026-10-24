@@ -60,51 +60,16 @@ public interface Cmd {
     }
 
     /**
-     * 在群聊撤回事件上执行指令。
-     * <p>Runs the command on a group recall event.</p>
+     * 指令的规范名称，取第一个别名。
+     * <p>The canonical command name, taken from the first alias.</p>
      *
-     * @param ctx   the command context
-     * @param event the triggering event
-     * @param args  the parsed arguments
+     * @return the command name
      */
-    default void run(CmdContext ctx, GroupRecallEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_GROUP_RECALL));
-    }
-
-    /**
-     * 在私聊撤回事件上执行指令。
-     * <p>Runs the command on a private recall event.</p>
-     *
-     * @param ctx   the command context
-     * @param event the triggering event
-     * @param args  the parsed arguments
-     */
-    default void run(CmdContext ctx, PrivateRecallEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_RECALL));
-    }
-
-    /**
-     * 在入群事件上执行指令。
-     * <p>Runs the command on a group join event.</p>
-     *
-     * @param ctx   the command context
-     * @param event the triggering event
-     * @param args  the parsed arguments
-     */
-    default void run(CmdContext ctx, JoinEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_JOIN));
-    }
-
-    /**
-     * 在离群事件上执行指令。
-     * <p>Runs the command on a group leave event.</p>
-     *
-     * @param ctx   the command context
-     * @param event the triggering event
-     * @param args  the parsed arguments
-     */
-    default void run(CmdContext ctx, LeaveEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_LEAVE));
+    default String name() {
+        CmdMapping mapping = getClass().getAnnotation(CmdMapping.class);
+        return mapping == null || mapping.value().length == 0
+                ? getClass().getSimpleName()
+                : mapping.value()[0];
     }
 
     /**

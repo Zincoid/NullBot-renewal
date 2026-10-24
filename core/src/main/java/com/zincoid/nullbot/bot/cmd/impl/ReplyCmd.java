@@ -47,11 +47,11 @@ public class ReplyCmd implements Cmd {
                 Sends the given text to the current chat.
                 Usage: Reply <text>
                 Aliases: 回复
-                Access: >=1(manager)""" : """
+                Access: >=0(normal)""" : """
                 Reply
                 把给定文本发送到当前会话。
                 用法：Reply <文本>
                 别名：回复
-                权限：>=1(manager)""";
+                权限：>=0(normal)""";
     }
 }

@@ -20,8 +20,6 @@ import com.zincoid.nullbot.platform.persistence.po.Quote;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.regex.Pattern;
-
 /**
  * 保存语录指令。
  * <p>Save quote command.</p>
@@ -30,9 +28,6 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class QuoteSaveCmd implements Cmd {
-
-    private static final Pattern QUOTE_PATTERN = Pattern.compile(
-            "^\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}]\\[No\\.\\d+][\\s\\S]*");
 
     private final QuoteService quoteService;
 
@@ -73,7 +68,7 @@ public class QuoteSaveCmd implements Cmd {
         String text = text(detail.content(), ctx.client());
         if (text.isBlank())
             throw new CmdWarnException(ctx.render(Text.NO_TEXT_CONTENT));
-        if (QUOTE_PATTERN.matcher(text).matches())
+        if (QuoteText.isFormatted(text))
             throw new CmdWarnException(ctx.render(Text.QUOTE_ALREADY_SAVED));
         Quote quote = quoteService.add(
                 detail.userId(), detail.nickname(), text);

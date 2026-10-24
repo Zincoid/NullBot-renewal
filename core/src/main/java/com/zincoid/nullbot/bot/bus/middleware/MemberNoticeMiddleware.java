@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.bot.bus.middleware;
 
+import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.JoinEvent;
 import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
@@ -69,24 +70,8 @@ public class MemberNoticeMiddleware implements Middleware {
      */
     private void notice(BotClient client, String groupId, String userId, Text text) {
         Language language = languageService.group(groupId);
-        String nickname = nickname(client, userId);
+        String nickname = BotClients.nickname(client, userId);
         client.sendGroupMsg(groupId, text.of(language, nickname, userId));
         log.info("Member notice: group={}, user={}, type={}", groupId, userId, text.name());
-    }
-
-    /**
-     * 查询用户昵称，失败时回退为 ID。
-     * <p>Looks up the user nickname, falling back to the id.</p>
-     *
-     * @param client the outbound port
-     * @param userId platform user id
-     * @return the nickname or the id
-     */
-    private static String nickname(BotClient client, String userId) {
-        try {
-            return client.getUserInfo(userId).nickname();
-        } catch (RuntimeException e) {
-            return userId;
-        }
     }
 }

@@ -19,8 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.format.DateTimeFormatter;
-
 /**
  * 随机语录指令。
  * <p>Random quote command.</p>
@@ -30,8 +28,6 @@ import java.time.format.DateTimeFormatter;
 @Component
 @RequiredArgsConstructor
 public class QuoteRandCmd implements Cmd {
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final QuoteService quoteService;
 
@@ -67,7 +63,7 @@ public class QuoteRandCmd implements Cmd {
                 : quoteService.random(userId);
         if (quote == null)
             throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
-        ctx.send(format(quote));
+        ctx.send(QuoteText.format(quote));
         log.info("Quote sent: {}", quote.getId());
     }
 
@@ -104,16 +100,5 @@ public class QuoteRandCmd implements Cmd {
     @Override
     public boolean isAiCallable() {
         return true;
-    }
-
-    // ════ Helpers ═════════════════
-
-    private static String format(Quote quote) {
-        String time = quote.getTime() == null ? "" : quote.getTime().format(FORMATTER);
-        return """
-                [%s][No.%d]
-                %s
-                \t—— %s(%s)""".formatted(
-                time, quote.getId(), quote.getText(), quote.getNickname(), quote.getUserId());
     }
 }

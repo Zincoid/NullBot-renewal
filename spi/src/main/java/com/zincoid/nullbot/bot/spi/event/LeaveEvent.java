@@ -16,5 +16,5 @@ public record LeaveEvent(
         String userId,
         String operatorId,
         boolean kicked
-) implements BotEvent {
+) implements BotEvent, GroupEvent {
 }

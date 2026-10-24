@@ -1,14 +1,15 @@
 package com.zincoid.nullbot.bot.chat;
 
+import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.client.AgentClient;
 import com.zincoid.nullbot.module.ai.client.AgentOptions;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,29 +77,19 @@ public class ChatPipeline {
     // ════ Reply ═══════════════════
 
     public void chat(BotClient client, GroupMsgEvent event, Language language) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
-                "The message to respond to is id=" + event.messageId() + " in a group chat.", event, null);
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event);
     }
 
     public void chat(BotClient client, PrivateMsgEvent event, Language language) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
-                "The message to respond to is id=" + event.messageId() + " in a private chat.", event, null);
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event);
     }
 
     public void poke(BotClient client, GroupPokeEvent event, Language language) {
-        String name = nickname(client, event.userId());
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
-                "User " + name + "(" + event.userId()
-                        + ") just rubbed you in a group chat; respond to it.", event,
-                AiMessage.user(name, "[Rubbed you]", List.of()));
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event);
     }
 
     public void poke(BotClient client, PrivatePokeEvent event, Language language) {
-        String name = nickname(client, event.userId());
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
-                "User " + name + "(" + event.userId()
-                        + ") just rubbed you in a private chat; respond to it.", event,
-                AiMessage.user(name, "[Rubbed you]", List.of()));
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event);
     }
 
     // ════ Core ════════════════════
@@ -112,18 +104,16 @@ public class ChatPipeline {
      * @param targetId group or user platform id
      * @param group    whether the target is a group
      * @param language the reply language
-     * @param trigger  the trigger note appended to the prompt
      * @param event    the triggering event
-     * @param incoming the extra user message appended to the history, or null
      */
-    private void chat(BotClient client, String chatId, String selfId, String targetId, boolean group,
-                      Language language, String trigger, BotEvent event, AiMessage incoming) {
+    private void chat(BotClient client, String chatId, String selfId, String targetId,
+                      boolean group, Language language, BotEvent event) {
         GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
                 ? groupSetting.getAiInjectionGuard()
                 : userSetting.getAiInjectionGuard();
-        if (event instanceof MsgEvent msg && guard && chatGuard.check(text(msg.content()))) {
+        if (event instanceof MsgEvent msg && guard && chatGuard.check(msg.content().text())) {
             send(client, targetId, group, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
             log.info("Injection blocked: chat={}", chatId);
             return;
@@ -131,13 +121,19 @@ public class ChatPipeline {
         String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getAiPrompt());
         Effort effort = group ? groupSetting.getAiEffort() : userSetting.getAiEffort();
         AgentOptions options = options();
-        String selfName = selfName(client, selfId);
+        String trigger = trigger(event);
+        String selfName = BotClients.selfName(client, selfId);
         ChatContext ctx = new ChatContext(client, targetId, group, event, cmdDispatcher, fileService);
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
             List<AiMessage> history = new ArrayList<>(memory.get(chatId));
-            if (incoming != null) history.add(incoming);
+            if (event instanceof PokeEvent poke) {
+                AiMessage incoming = AiMessage.user(poke.userId(), "[Rubbed you]", List.of());
+                history.add(incoming);
+                memory.add(chatId, "poke-" + UUID.randomUUID(),
+                        poke.userId(), poke.userId(), incoming);
+            }
             ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
             String content = reply.getContent();
             String replyId = send(client, targetId, group, MsgContent.of(content));
@@ -151,20 +147,6 @@ public class ChatPipeline {
     // ════ Helpers ═════════════════
 
     /**
-     * 提取消息中的纯文本。
-     * <p>Extracts the plain text of a message.</p>
-     *
-     * @param content the message content
-     * @return the concatenated text segments
-     */
-    private static String text(MsgContent content) {
-        StringBuilder text = new StringBuilder();
-        for (MsgSegment segment : content.segments())
-            if (segment instanceof MsgSegment.Text(String s)) text.append(s);
-        return text.toString();
-    }
-
-    /**
      * 拼接系统提示词。
      * <p>Builds the system prompt.</p>
      *
@@ -176,6 +158,23 @@ public class ChatPipeline {
         return Stream.of(base, FORMAT_PROMPT, trigger)
                 .filter(text -> text != null && !text.isBlank())
                 .collect(Collectors.joining("\n\n"));
+    }
+
+    /**
+     * 构建触发说明。
+     * <p>Builds the trigger note.</p>
+     *
+     * @param event the triggering event
+     * @return the trigger note, or null for unsupported events
+     */
+    private static String trigger(BotEvent event) {
+        return switch (event) {
+            case GroupMsgEvent e -> "The message to respond to is id=" + e.messageId() + " in a group chat.";
+            case PrivateMsgEvent e -> "The message to respond to is id=" + e.messageId() + " in a private chat.";
+            case GroupPokeEvent e -> "User " + e.userId() + " just rubbed you in a group chat; respond to it.";
+            case PrivatePokeEvent e -> "User " + e.userId() + " just rubbed you in a private chat; respond to it.";
+            default -> null;
+        };
     }
 
     /**
@@ -200,38 +199,6 @@ public class ChatPipeline {
         return new AgentOptions(
                 configService.getInt(Conf.AI_MAX_TOKENS),
                 configService.getInt(Conf.AI_MAX_TOOL_CALLS));
-    }
-
-    /**
-     * 查询机器人昵称，失败时回退为 ID。
-     * <p>Looks up the bot nickname, falling back to the id.</p>
-     *
-     * @param client the outbound port
-     * @param selfId the bot's platform user id
-     * @return the nickname or the id
-     */
-    private static String selfName(BotClient client, String selfId) {
-        try {
-            return client.getLoginInfo().nickname();
-        } catch (RuntimeException e) {
-            return selfId;
-        }
-    }
-
-    /**
-     * 查询用户昵称，失败时回退为 ID。
-     * <p>Looks up the user nickname, falling back to the id.</p>
-     *
-     * @param client the outbound port
-     * @param userId platform user id
-     * @return the nickname or the id
-     */
-    private static String nickname(BotClient client, String userId) {
-        try {
-            return client.getUserInfo(userId).nickname();
-        } catch (RuntimeException e) {
-            return userId;
-        }
     }
 
     /**

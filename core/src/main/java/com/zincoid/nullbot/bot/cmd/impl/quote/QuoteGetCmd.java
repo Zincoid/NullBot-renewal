@@ -15,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.format.DateTimeFormatter;
-
 /**
  * 获取语录指令：按语录 ID 发送指定语录。
  * <p>Get quote command: sends the quote with the given id.</p>
@@ -26,8 +24,6 @@ import java.time.format.DateTimeFormatter;
 @Component
 @RequiredArgsConstructor
 public class QuoteGetCmd implements Cmd {
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final QuoteService quoteService;
 
@@ -48,19 +44,8 @@ public class QuoteGetCmd implements Cmd {
         Quote quote = quoteService.getById(id);
         if (quote == null)
             throw new CmdWarnException(ctx.render(Text.QUOTE_NOT_FOUND, id));
-        ctx.send(format(quote));
+        ctx.send(QuoteText.format(quote));
         log.info("Quote sent: {}", id);
-    }
-
-    // ════ Helpers ═════════════════
-
-    private static String format(Quote quote) {
-        String time = quote.getTime() == null ? "" : quote.getTime().format(FORMATTER);
-        return """
-                [%s][No.%d]
-                %s
-                \t—— %s(%s)""".formatted(
-                time, quote.getId(), quote.getText(), quote.getNickname(), quote.getUserId());
     }
 
     // ════ Cmd ═════════════════════

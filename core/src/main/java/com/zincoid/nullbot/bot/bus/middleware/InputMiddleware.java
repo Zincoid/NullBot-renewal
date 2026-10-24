@@ -4,7 +4,6 @@ import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +60,7 @@ public class InputMiddleware implements Middleware {
      * @return true when a wait accepted the message
      */
     private boolean response(String groupId, String userId, MsgContent content) {
-        String text = text(content);
+        String text = content.text();
         return !text.isBlank() && inputManager.response(groupId, userId, text);
     }
 
@@ -74,21 +73,7 @@ public class InputMiddleware implements Middleware {
      * @return true when a wait accepted the message
      */
     private boolean response(String userId, MsgContent content) {
-        String text = text(content);
+        String text = content.text();
         return !text.isBlank() && inputManager.response(userId, text);
-    }
-
-    /**
-     * 提取消息中的文本段。
-     * <p>Extracts text segments from the message.</p>
-     *
-     * @param content the message content
-     * @return the concatenated text
-     */
-    private static String text(MsgContent content) {
-        StringBuilder text = new StringBuilder();
-        for (MsgSegment segment : content.segments())
-            if (segment instanceof MsgSegment.Text(String s)) text.append(s);
-        return text.toString();
     }
 }

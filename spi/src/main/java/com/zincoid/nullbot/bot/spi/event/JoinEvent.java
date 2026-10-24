@@ -14,5 +14,5 @@ public record JoinEvent(
         String groupId,
         String userId,
         String operatorId
-) implements BotEvent {
+) implements BotEvent, GroupEvent {
 }

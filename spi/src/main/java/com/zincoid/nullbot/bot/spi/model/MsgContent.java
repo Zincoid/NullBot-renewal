@@ -40,6 +40,19 @@ public record MsgContent(List<MsgSegment> segments) {
     }
 
     /**
+     * 提取消息内容中所有文本段。
+     * <p>Extracts all text segments from the message content.</p>
+     *
+     * @return the concatenated text
+     */
+    public String text() {
+        StringBuilder text = new StringBuilder();
+        for (MsgSegment segment : segments)
+            if (segment instanceof MsgSegment.Text(String s)) text.append(s);
+        return text.toString();
+    }
+
+    /**
      * 提取消息内容中所有提及的用户 ID。
      * <p>Extracts the user ids of all mention segments.</p>
      *

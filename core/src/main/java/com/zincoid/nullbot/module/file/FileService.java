@@ -95,6 +95,15 @@ public interface FileService extends IService<File> {
      */
     String uri(File file);
 
+    /**
+     * 把文件记录 ID 解析为可发送的图片 URI，非图片或不存在时返回 null。
+     * <p>Resolves a file record id into a sendable image URI, returning null for non-images or missing files.</p>
+     *
+     * @param fileId the file record id
+     * @return the image URI, or null when it cannot be sent as an image
+     */
+    String imageUri(String fileId);
+
     // ════ Random ══════════════════
 
     /**

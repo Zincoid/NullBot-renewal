@@ -55,10 +55,8 @@ public class RunHandler implements CmdHandler {
             case PrivateMsgEvent e -> ctx.cmd().run(ctx, e, args);
             case GroupPokeEvent e -> ctx.cmd().run(ctx, e, args);
             case PrivatePokeEvent e -> ctx.cmd().run(ctx, e, args);
-            case GroupRecallEvent e -> ctx.cmd().run(ctx, e, args);
-            case PrivateRecallEvent e -> ctx.cmd().run(ctx, e, args);
-            case JoinEvent e -> ctx.cmd().run(ctx, e, args);
-            case LeaveEvent e -> ctx.cmd().run(ctx, e, args);
+            case GroupRecallEvent _, PrivateRecallEvent _, JoinEvent _, LeaveEvent _ -> {
+            }
         }
     }
 }

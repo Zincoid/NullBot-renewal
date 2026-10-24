@@ -4,14 +4,7 @@ import com.zincoid.nullbot.bot.bus.middleware.Middleware;
 import com.zincoid.nullbot.bot.bus.middleware.MiddlewareChain;
 import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
-import com.zincoid.nullbot.bot.spi.event.JoinEvent;
-import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.bot.spi.port.BotServer;
 import com.zincoid.nullbot.module.common.GroupService;
@@ -52,9 +45,8 @@ public class BotDispatcher implements BotServer {
                 log.info("Event ignored: account={}, online={}", event.selfId(), online);
                 return;
             }
-            String groupId = groupId(event);
-            if (groupId != null && groupService.isBanned(groupId)) {
-                log.info("Group banned: {}", groupId);
+            if (event instanceof GroupEvent group && groupService.isBanned(group.groupId())) {
+                log.info("Group banned: {}", group.groupId());
                 return;
             }
             log.info("Event dispatched: {}", event.getClass().getSimpleName());
@@ -63,25 +55,5 @@ public class BotDispatcher implements BotServer {
         } catch (Exception e) {
             log.error("Event failed: {}", e.getMessage(), e);
         }
-    }
-
-    // ════ Helpers ═════════════════
-
-    /**
-     * 读取事件所属群 ID，私聊事件返回 null。
-     * <p>Returns the group id of the event, or null for private events.</p>
-     *
-     * @param event the inbound event
-     * @return the group id, or null
-     */
-    private static String groupId(BotEvent event) {
-        return switch (event) {
-            case GroupMsgEvent e -> e.groupId();
-            case GroupPokeEvent e -> e.groupId();
-            case GroupRecallEvent e -> e.groupId();
-            case JoinEvent e -> e.groupId();
-            case LeaveEvent e -> e.groupId();
-            case PrivateMsgEvent _, PrivatePokeEvent _, PrivateRecallEvent _ -> null;
-        };
     }
 }

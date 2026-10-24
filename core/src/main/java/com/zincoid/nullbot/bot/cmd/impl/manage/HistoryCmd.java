@@ -16,10 +16,8 @@ import com.zincoid.nullbot.module.message.MessageWindowStore;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
-import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
-import com.zincoid.nullbot.platform.util.MimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -110,7 +108,7 @@ public class HistoryCmd implements Cmd {
         List<String> files = message.getFiles();
         if (files != null) {
             for (String fileId : files) {
-                String uri = imageUri(fileId);
+                String uri = fileService.imageUri(fileId);
                 if (uri == null) unsent.add(fileId);
                 else images.add(uri);
             }
@@ -121,26 +119,6 @@ public class HistoryCmd implements Cmd {
         MsgContent.Builder content = MsgContent.builder().text(text.toString());
         images.forEach(content::image);
         ctx.send(content.build());
-    }
-
-    /**
-     * 把附件文件 ID 解析为可发送的图片 URI，非图片或缺失时返回 null。
-     * <p>Resolves an attachment file id into a sendable image URI, returning null for non-images or missing files.</p>
-     *
-     * @param fileId the file record id
-     * @return the image URI, or null when it cannot be sent as an image
-     */
-    private String imageUri(String fileId) {
-        if (fileId == null || fileId.isBlank()) return null;
-        try {
-            File file = fileService.getById(Long.valueOf(fileId));
-            if (file == null) return null;
-            String mime = MimeUtils.mime(file.getStored());
-            if (mime == null) mime = MimeUtils.mime(file.getOriginal());
-            return mime != null && mime.startsWith("image/") ? fileService.uri(file) : null;
-        } catch (RuntimeException e) {
-            return null;
-        }
     }
 
     private static String speaker(CmdContext ctx, Message message) {

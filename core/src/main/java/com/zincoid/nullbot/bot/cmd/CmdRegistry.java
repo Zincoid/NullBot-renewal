@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,8 +57,7 @@ public class CmdRegistry {
         return cmdMap.values().stream()
                 .distinct()
                 .filter(Cmd::isAiCallable)
-                .map(CmdRegistry::primaryName)
-                .filter(Objects::nonNull)
+                .map(Cmd::name)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -72,15 +70,9 @@ public class CmdRegistry {
     public List<String> getNames() {
         return cmdMap.values().stream()
                 .distinct()
-                .map(CmdRegistry::primaryName)
-                .filter(Objects::nonNull)
+                .map(Cmd::name)
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .toList();
-    }
-
-    private static String primaryName(Cmd cmd) {
-        CmdMapping mapping = cmd.getClass().getAnnotation(CmdMapping.class);
-        return mapping == null || mapping.value().length == 0 ? null : mapping.value()[0];
     }
 
     // ════ Register ════════════════

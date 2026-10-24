@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.bot.bus.middleware;
 
+import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
@@ -101,23 +102,7 @@ public class MessageStoreMiddleware implements Middleware {
      */
     private static String at(BotClient client, String selfId, String userId) {
         if (userId.equals(selfId)) return "@you";
-        return "@" + nickname(client, userId) + "(" + userId + ")";
-    }
-
-    /**
-     * 查询用户昵称，失败时回退为 ID。
-     * <p>Looks up the user nickname, falling back to the id.</p>
-     *
-     * @param client the outbound port
-     * @param userId platform user id
-     * @return the nickname or the id
-     */
-    private static String nickname(BotClient client, String userId) {
-        try {
-            return client.getUserInfo(userId).nickname();
-        } catch (RuntimeException e) {
-            return userId;
-        }
+        return "@" + BotClients.nickname(client, userId) + "(" + userId + ")";
     }
 
     /**

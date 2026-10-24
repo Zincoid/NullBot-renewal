@@ -53,9 +53,12 @@ public record ChatContext(
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);
         MsgContent content = builder.build();
-        if (group) client.sendGroupMsg(targetId, content);
-        else client.sendPrivateMsg(targetId, content);
-        return ToolRes.of("Message sent: " + content);
+        String messageId = group
+                ? client.sendGroupMsg(targetId, content)
+                : client.sendPrivateMsg(targetId, content);
+        return ToolRes.of(messageId == null || messageId.isBlank()
+                ? "Message sent"
+                : "Message sent: id=" + messageId);
     }
 
     private boolean attach(MsgContent.Builder builder, File file) {

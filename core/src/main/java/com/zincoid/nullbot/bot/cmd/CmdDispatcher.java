@@ -3,14 +3,7 @@ package com.zincoid.nullbot.bot.cmd;
 import com.zincoid.nullbot.bot.cmd.chain.CmdChain;
 import com.zincoid.nullbot.bot.cmd.chain.CmdHandler;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
-import com.zincoid.nullbot.bot.spi.event.JoinEvent;
-import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -82,16 +75,8 @@ public class CmdDispatcher {
     // ════ Helpers ═════════════════
 
     private Language language(BotEvent event) {
-        String groupId = switch (event) {
-            case GroupMsgEvent e -> e.groupId();
-            case GroupPokeEvent e -> e.groupId();
-            case GroupRecallEvent e -> e.groupId();
-            case JoinEvent e -> e.groupId();
-            case LeaveEvent e -> e.groupId();
-            case PrivateMsgEvent _, PrivatePokeEvent _, PrivateRecallEvent _ -> null;
-        };
-        return groupId == null
-                ? languageService.defaultLanguage()
-                : languageService.group(groupId);
+        return event instanceof GroupEvent group
+                ? languageService.group(group.groupId())
+                : languageService.defaultLanguage();
     }
 }

@@ -1,14 +1,9 @@
 package com.zincoid.nullbot.bot.cmd.chain;
 
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
-import com.zincoid.nullbot.bot.spi.event.JoinEvent;
-import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.bot.spi.event.BotEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.UserService;
@@ -33,31 +28,10 @@ public class RegisterHandler implements CmdHandler {
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
         BotClient client = ctx.client();
-        switch (ctx.event()) {
-            case GroupMsgEvent e -> {
-                registerGroup(client, e.groupId());
-                registerUser(e.userId(), e.nickname());
-            }
-            case PrivateMsgEvent e -> registerUser(e.userId(), e.nickname());
-            case GroupPokeEvent e -> {
-                registerGroup(client, e.groupId());
-                registerUser(client, e.userId());
-            }
-            case PrivatePokeEvent e -> registerUser(client, e.userId());
-            case GroupRecallEvent e -> {
-                registerGroup(client, e.groupId());
-                registerUser(client, e.userId());
-            }
-            case PrivateRecallEvent e -> registerUser(client, e.userId());
-            case JoinEvent e -> {
-                registerGroup(client, e.groupId());
-                registerUser(client, e.userId());
-            }
-            case LeaveEvent e -> {
-                registerGroup(client, e.groupId());
-                registerUser(client, e.userId());
-            }
-        }
+        BotEvent event = ctx.event();
+        if (event instanceof GroupEvent group) registerGroup(client, group.groupId());
+        if (event instanceof MsgEvent msg) registerUser(msg.userId(), msg.nickname());
+        else registerUser(client, event.userId());
         chain.doHandle(ctx);
     }
 

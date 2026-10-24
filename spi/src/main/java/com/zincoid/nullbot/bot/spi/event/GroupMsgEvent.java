@@ -24,5 +24,5 @@ public record GroupMsgEvent(
         MsgContent content,
         boolean at,
         boolean reply
-) implements MsgEvent {
+) implements MsgEvent, GroupEvent {
 }

@@ -16,5 +16,5 @@ public record GroupRecallEvent(
         String messageId,
         String groupId,
         String operatorId
-) implements RecallEvent {
+) implements RecallEvent, GroupEvent {
 }

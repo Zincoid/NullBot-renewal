@@ -1,14 +1,8 @@
 package com.zincoid.nullbot.bot.cmd.chain;
 
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
-import com.zincoid.nullbot.bot.spi.event.JoinEvent;
-import com.zincoid.nullbot.bot.spi.event.LeaveEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateRecallEvent;
+import com.zincoid.nullbot.bot.spi.event.BotEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -40,16 +34,10 @@ public class AccessHandler implements CmdHandler {
             return;
         }
         Access required = ctx.cmd().getAccess();
-        boolean allowed = switch (ctx.event()) {
-            case GroupMsgEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case PrivateMsgEvent e -> checkPrivate(ctx, required, e.userId());
-            case GroupPokeEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case PrivatePokeEvent e -> checkPrivate(ctx, required, e.userId());
-            case GroupRecallEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case PrivateRecallEvent e -> checkPrivate(ctx, required, e.userId());
-            case JoinEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-            case LeaveEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());
-        };
+        BotEvent event = ctx.event();
+        boolean allowed = event instanceof GroupEvent group
+                ? checkGroup(ctx, required, group.groupId(), event.userId())
+                : checkPrivate(ctx, required, event.userId());
         if (allowed) chain.doHandle(ctx);
     }
 

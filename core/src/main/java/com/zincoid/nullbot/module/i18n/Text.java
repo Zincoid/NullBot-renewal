@@ -52,10 +52,6 @@ public enum Text {
     CMD_UNSUPPORTED_PRIVATE_MSG("指令不支持私聊消息事件", "Command does not support private message events"),
     CMD_UNSUPPORTED_GROUP_POKE("指令不支持群戳一戳事件", "Command does not support group poke events"),
     CMD_UNSUPPORTED_PRIVATE_POKE("指令不支持私聊戳一戳事件", "Command does not support private poke events"),
-    CMD_UNSUPPORTED_GROUP_RECALL("指令不支持群撤回事件", "Command does not support group recall events"),
-    CMD_UNSUPPORTED_PRIVATE_RECALL("指令不支持私聊撤回事件", "Command does not support private recall events"),
-    CMD_UNSUPPORTED_JOIN("指令不支持入群事件", "Command does not support group join events"),
-    CMD_UNSUPPORTED_LEAVE("指令不支持离群事件", "Command does not support group leave events"),
 
     // ════ Quiz ═══════════════════
 

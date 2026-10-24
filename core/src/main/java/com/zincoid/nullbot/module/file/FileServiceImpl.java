@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.mapper.FileMapper;
 import com.zincoid.nullbot.platform.persistence.po.File;
+import com.zincoid.nullbot.platform.util.MimeUtils;
 import com.zincoid.nullbot.platform.util.PageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,6 +107,20 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     public String uri(File file) {
         if (file == null) throw new FileException("Missing key: file");
         return fileStorage.uri(file.getStored());
+    }
+
+    @Override
+    public String imageUri(String fileId) {
+        if (fileId == null || fileId.isBlank()) return null;
+        try {
+            File file = getById(Long.valueOf(fileId));
+            if (file == null) return null;
+            String mime = MimeUtils.mime(file.getStored());
+            if (mime == null) mime = MimeUtils.mime(file.getOriginal());
+            return mime != null && mime.startsWith("image/") ? uri(file) : null;
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     // ════ Random ══════════════════
