@@ -45,9 +45,41 @@ public enum Text {
     TOO_MANY_REQUESTS("⚠️ 请求过于频繁", "⚠️ Too many requests"),
     HELP_PRIVATE_UNAVAILABLE("⚠️ 私聊中无法查看帮助", "⚠️ Help is unavailable in private chat"),
     HELP_UNAVAILABLE("暂无帮助", "No help available"),
-    HELP_LIST("可用指令（%d）：\n%s", "Available commands (%d):\n%s"),
+    HELP_LIST("""
+            内置指令（%d）：
+            %s
+            插件（%d）：
+            %s
+            使用 Help -p=插件名 查看插件指令。""", """
+            Built-in commands (%d):
+            %s
+            Plugins (%d):
+            %s
+            Use Help -p=<plugin> to view a plugin's commands."""),
+    HELP_PLUGIN("插件 %s 的指令（%d）：\n%s", "Commands of plugin %s (%d):\n%s"),
+    HELP_PLUGIN_NOT_FOUND("插件不存在：%s", "Plugin not found: %s"),
+    HELP_PLUGIN_MISSING("缺少插件名", "Missing plugin name"),
+    HELP_NONE("无", "None"),
     CMD_WARN("⚠️ 警告：%s", "⚠️ Warn: %s"),
     CMD_ERROR("❌ 错误：%s", "❌ Error: %s"),
+
+    // ════ Info ═══════════════════
+
+    INFO("""
+            系统信息
+            版本：%s
+            构建时间：%s
+            运行时间：%s
+            Java：%s
+            系统：%s
+            作者：@Zincoid""", """
+            System info
+            Version: %s
+            Build time: %s
+            Uptime: %s
+            Java: %s
+            OS: %s
+            Author: @Zincoid"""),
 
     // ════ Unsupported events ═════
 

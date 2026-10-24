@@ -27,7 +27,7 @@ public class QueryPlugin implements Plugin {
 
     @Override
     public String id() {
-        return "query";
+        return "Query";
     }
 
     @Override

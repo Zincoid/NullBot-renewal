@@ -117,6 +117,19 @@ public class PluginLoader {
     // ════ List ════════════════════
 
     /**
+     * 列出已加载插件，按插件 ID 排序。
+     * <p>Lists the loaded plugins, sorted by plugin id.</p>
+     *
+     * @return the loaded plugin statuses
+     */
+    public synchronized List<PluginStatus> loaded() {
+        return loaded.stream()
+                .map(LoadedPlugin::status)
+                .sorted(Comparator.comparing(PluginStatus::id))
+                .toList();
+    }
+
+    /**
      * 列出插件目录中的 JAR 及其加载状态。
      * <p>Lists the jars in the plugin directory and their load states.</p>
      *

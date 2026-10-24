@@ -278,6 +278,7 @@
             'about.buildTime': '构建时间',
             'about.javaVersion': 'Java',
             'about.springBootVersion': 'Spring Boot',
+            'about.uptime': '运行时间',
             'about.currentTime': '当前时间',
 
             'pager.info': '第 {page} / {pages} 页 · 共 {total} 条',
@@ -570,6 +571,7 @@
             'about.buildTime': 'Build time',
             'about.javaVersion': 'Java',
             'about.springBootVersion': 'Spring Boot',
+            'about.uptime': 'Uptime',
             'about.currentTime': 'Current time',
 
             'pager.info': 'Page {page} / {pages} · {total} total',
@@ -665,7 +667,7 @@
     const ABOUT_CLOCK_INTERVAL = 1000;
 
     let aboutTimer = 0;
-    let aboutInfo = null;
+    let aboutStartedAt = 0;
 
     function formatDateTime(value) {
         if (!value) return '-';
@@ -676,9 +678,24 @@
             + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     }
 
+    function formatUptime(value) {
+        const total = Math.max(0, Math.floor((Number(value) || 0) / 1000));
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor(total % 86400 / 3600);
+        const minutes = Math.floor(total % 3600 / 60);
+        const seconds = total % 60;
+        const pad = number => String(number).padStart(2, '0');
+        return days > 0
+            ? `${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
+            : `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
+    }
+
     function renderAboutClock() {
         const element = document.getElementById('about-time');
         if (element) element.textContent = formatDateTime(new Date());
+        const uptime = document.getElementById('about-uptime');
+        if (uptime && aboutStartedAt)
+            uptime.textContent = formatUptime(Date.now() - aboutStartedAt);
     }
 
     function renderAbout(data) {
@@ -687,24 +704,22 @@
             const element = document.getElementById(id);
             if (element) element.textContent = value;
         };
+        const uptime = Number(data.uptime) || 0;
+        aboutStartedAt = Date.now() - uptime;
         set('about-hero-name', name);
         set('about-name', name);
         set('about-version', data.version || '-');
         set('about-build-time', formatDateTime(data.buildTime));
         set('about-java', data.javaVersion || '-');
         set('about-spring-boot', data.springBootVersion || '-');
+        set('about-uptime', formatUptime(uptime));
     }
 
     async function loadAbout() {
-        if (aboutInfo) {
-            renderAbout(aboutInfo);
-            return;
-        }
         try {
             const response = await fetch(ABOUT_ENDPOINT, {headers: {Accept: 'application/json'}});
             if (!response.ok) return;
-            aboutInfo = await response.json();
-            renderAbout(aboutInfo);
+            renderAbout(await response.json());
         } catch {
             // Keep the placeholders when the endpoint is unreachable.
         }
@@ -772,6 +787,10 @@
                     <div class="about-row">
                         <dt data-i18n="about.springBootVersion">Spring Boot</dt>
                         <dd class="about-mono" id="about-spring-boot">-</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.uptime">运行时间</dt>
+                        <dd class="about-mono" id="about-uptime">-</dd>
                     </div>
                     <div class="about-row">
                         <dt data-i18n="about.currentTime">当前时间</dt>

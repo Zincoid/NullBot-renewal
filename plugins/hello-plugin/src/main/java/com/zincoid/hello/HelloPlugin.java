@@ -17,7 +17,7 @@ public class HelloPlugin implements Plugin {
 
     @Override
     public String id() {
-        return "hello";
+        return "Hello";
     }
 
     @Override

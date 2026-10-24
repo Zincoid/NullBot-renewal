@@ -21,7 +21,7 @@ public class PubgPlugin implements Plugin {
 
     @Override
     public String id() {
-        return "pubg";
+        return "Pubg";
     }
 
     @Override
