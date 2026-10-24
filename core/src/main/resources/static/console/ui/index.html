@@ -213,10 +213,10 @@
                 <label class="field"><span data-i18n="files.bizType">业务类型</span>
                     <select id="upload-type"></select>
                 </label>
-                <label class="field grow"><span data-i18n="files.tagOptional">标签（可选）</span>
-                    <input id="upload-tag" maxlength="255"
-                           data-i18n-placeholder="files.tagPlaceholder"
-                           placeholder="同一批文件使用相同标签">
+                <label class="field grow"><span data-i18n="files.descriptionOptional">描述（可选）</span>
+                    <input id="upload-description" maxlength="255"
+                           data-i18n-placeholder="files.descriptionPlaceholder"
+                           placeholder="同一批文件使用相同描述">
                 </label>
                 <div class="upload-pick">
                     <span id="upload-files-label" class="upload-files-label" data-i18n="files.noFiles">未选择文件</span>
@@ -231,11 +231,8 @@
                     </button>
                     <input id="upload-files" type="file" multiple hidden>
                 </div>
-                <button type="button" id="upload-settings" class="btn-settings" aria-pressed="false"
-                        title="上传设置">上传设置</button>
                 <button id="upload-button" class="primary btn-upload" data-i18n="files.upload">上传</button>
             </div>
-            <p id="upload-pattern-summary" class="upload-hint" hidden></p>
             <div class="upload-status" id="upload-status"></div>
         </div>
         <div class="toolbar">
@@ -245,15 +242,7 @@
             <div class="search-box">
                 <input id="file-keyword" class="search"
                        data-i18n-placeholder="files.searchPlaceholder"
-                       placeholder="搜索关键词">
-                <div id="file-search-mode" class="search-mode" data-field="original"
-                     role="group" data-i18n-aria-label="files.searchField" aria-label="搜索范围">
-                    <span class="search-mode__indicator" aria-hidden="true"></span>
-                    <button type="button" class="search-mode__btn active" data-field="original"
-                            data-i18n="files.searchByName">文件名</button>
-                    <button type="button" class="search-mode__btn" data-field="tag"
-                            data-i18n="files.searchByTag">标签</button>
-                </div>
+                       placeholder="搜索文件名或描述">
             </div>
             <button id="file-search" class="primary btn-search" data-i18n="common.search">搜索</button>
             <button id="file-reset" class="btn-reset" data-i18n="common.reset">重置</button>
@@ -268,7 +257,7 @@
                                                  data-i18n-aria-label="files.selectAll" aria-label="全选"></th>
                     <th data-i18n="common.id">ID</th>
                     <th data-i18n="files.name">文件名</th>
-                    <th data-i18n="files.tag">标签</th>
+                    <th data-i18n="files.description">描述</th>
                     <th data-i18n="files.type">类型</th>
                     <th data-i18n="files.size">大小</th>
                     <th data-i18n="files.uploader">上传者</th>
@@ -476,54 +465,10 @@
             <label class="field"><span data-i18n="files.original">原始文件名</span>
                 <input id="file-original" maxlength="255" required>
             </label>
-            <label class="field"><span data-i18n="files.tag">标签</span>
-                <textarea id="file-tag" rows="3" maxlength="255"></textarea>
+            <label class="field"><span data-i18n="files.description">描述</span>
+                <textarea id="file-description" rows="3" maxlength="255"></textarea>
             </label>
             <p id="file-form-status" class="status"></p>
-            <div class="dialog-foot">
-                <button type="button" data-close data-i18n="common.cancel">取消</button>
-                <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
-            </div>
-        </form>
-    </div>
-</dialog>
-
-<!-- ═══ Upload settings dialog ══ -->
-<dialog id="upload-settings-dialog">
-    <div class="dialog-head">
-        <div>
-            <h2 data-i18n="files.uploadSettingsTitle">上传设置</h2>
-            <p class="muted" data-i18n="files.uploadSettingsHint">启用后才会在批量上传时解析文件名</p>
-        </div>
-        <button type="button" class="dialog-close" data-close
-                data-i18n-aria-label="common.close" aria-label="关闭">×</button>
-    </div>
-    <div class="dialog-body">
-        <form id="upload-settings-form" class="form">
-            <div class="checks">
-                <label><span data-i18n="files.enableRegex">启用正则拆分</span>
-                    <input id="upload-pattern-enabled" type="checkbox">
-                </label>
-            </div>
-            <label class="field"><span data-i18n="files.regex">文件名正则</span>
-                <input id="upload-regex" maxlength="255" autocomplete="off" spellcheck="false"
-                       data-i18n-placeholder="files.regexPlaceholder"
-                       placeholder="完整匹配不含扩展名的文件名，如 ^(.+?)[-_](.+)$">
-            </label>
-            <div class="form-grid">
-                <label class="field"><span data-i18n="files.nameTemplate">文件名模板</span>
-                    <input id="upload-name-template" maxlength="255" autocomplete="off" spellcheck="false"
-                           data-i18n-placeholder="files.nameTemplatePlaceholder"
-                           placeholder="留空保留原名，如 A_${0}_${2}">
-                </label>
-                <label class="field"><span data-i18n="files.tagTemplate">标签模板</span>
-                    <input id="upload-tag-template" maxlength="255" autocomplete="off" spellcheck="false"
-                           data-i18n-placeholder="files.tagTemplatePlaceholder"
-                           placeholder="留空使用上方标签，如 ${1}">
-                </label>
-            </div>
-            <p class="upload-hint" data-i18n="files.regexHint">正则完整匹配不含扩展名的文件名。模板用 ${0}、${1}… 引用捕获组（从 0 开始），${match} 表示整个匹配；文件名模板留空保留原名，标签模板留空使用上方标签，扩展名自动保留。示例：^(.+?)[-_](.+)$ 匹配 cat-cute 时 ${0}=cat、${1}=cute。</p>
-            <p id="upload-settings-status" class="status"></p>
             <div class="dialog-foot">
                 <button type="button" data-close data-i18n="common.cancel">取消</button>
                 <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>

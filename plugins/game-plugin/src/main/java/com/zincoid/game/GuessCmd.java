@@ -1,30 +1,23 @@
-package com.zincoid.nullbot.bot.cmd.impl.game;
+package com.zincoid.game;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
+import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
-import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import com.zincoid.nullbot.bot.cmd.input.InputMode;
 import com.zincoid.nullbot.bot.cmd.input.InputResult;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.config.Conf;
-import com.zincoid.nullbot.module.config.ConfigService;
-import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
-import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
@@ -35,16 +28,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 /**
- * 猜图指令：按标签随机抽取 ACG 图片，裁剪后由群成员抢答。
- * <p>Guess command: draws a random ACG image by tag, crops it, and lets group members guess.</p>
+ * 猜图指令：从共享资源目录按分类或角色随机抽取图片，裁剪后由群成员抢答。
+ * <p>Guess command: draws a random image by category or character from the shared resource directory, crops it, and lets group members guess.</p>
  */
 @Slf4j
 @CmdMapping({"Guess", "猜"})
-@Component
 @RequiredArgsConstructor
 public class GuessCmd implements Cmd {
 
-    private static final int SEARCH_LIMIT = 50;
     private static final int WAIT_TIMEOUT_SECONDS = 99;
     private static final int MAX_RETRIES = 10;
     private static final int MAX_CROP_ATTEMPTS = 100;
@@ -54,9 +45,7 @@ public class GuessCmd implements Cmd {
     private static final String BASE64_PREFIX = "base64://";
     private static final List<String> ALIASES = List.of("Guess", "猜");
 
-    private final FileService fileService;
-    private final InputManager inputManager;
-    private final ConfigService configService;
+    private final GamePlugin plugin;
 
     private final Map<String, Guess> games = new ConcurrentHashMap<>();
 
@@ -65,11 +54,11 @@ public class GuessCmd implements Cmd {
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         String groupId = event.groupId();
-        String prefix = configService.getString(Conf.CMD_PREFIX);
+        String prefix = plugin.context().config().getString(Conf.CMD_PREFIX);
         if (args.hasOpt("forfeit", "f")) {
             if (!games.containsKey(groupId))
                 throw new CmdInfoException(ctx.render(Text.GUESS_NOT_PLAYING));
-            inputManager.cancelWait(InputMode.GS, groupId);
+            plugin.context().inputs().cancelWait(InputMode.GS, groupId);
             log.info("Guess forfeited: group={}", groupId);
             return;
         }
@@ -99,7 +88,7 @@ public class GuessCmd implements Cmd {
         String pattern = inputPattern(prefix);
         while (guess.times < MAX_RETRIES) {
             guess.times++;
-            List<InputResult> inputs = inputManager.request(
+            List<InputResult> inputs = plugin.context().inputs().request(
                     InputMode.GS, groupId, pattern, WAIT_TIMEOUT_SECONDS);
             if (inputs.isEmpty() || forfeit.equals(inputs.getFirst().message().trim())) {
                 end(ctx, groupId, guess, ctx.render(Text.GUESS_END, guess.answer));
@@ -111,7 +100,7 @@ public class GuessCmd implements Cmd {
                 ctx.send(MsgContent.builder()
                         .text(ctx.render(Text.GUESS_CORRECT,
                                 nickname(ctx, input.userId()), guess.answer, guess.times))
-                        .image(fileService.uri(guess.file))
+                        .image(guess.resource.path().toUri().toString())
                         .build());
                 log.info("Guess correct: group={}, user={}", groupId, input.userId());
                 return;
@@ -128,7 +117,7 @@ public class GuessCmd implements Cmd {
     private void end(CmdContext ctx, String groupId, Guess guess, String text) {
         ctx.send(MsgContent.builder()
                 .text(text)
-                .image(fileService.uri(guess.file))
+                .image(guess.resource.path().toUri().toString())
                 .build());
         log.info("Guess ended: group={}, answer={}", groupId, guess.answer);
     }
@@ -137,20 +126,18 @@ public class GuessCmd implements Cmd {
 
     private Guess create(CmdContext ctx, CmdArgs args) {
         String keyword = args.rest("").trim();
-        List<File> files = fileService.search(BizType.ACG,
-                keyword.isBlank() ? null : keyword, null, SEARCH_LIMIT);
-        if (files.isEmpty())
+        GameResources.Resource resource = plugin.resources().random(keyword);
+        if (resource == null)
             throw new CmdInfoException(ctx.render(Text.GUESS_NO_IMAGES));
-        File file = files.get(ThreadLocalRandom.current().nextInt(files.size()));
-        return new Guess(file, displayName(file), crop(ctx, file));
+        return new Guess(resource, resource.character(), crop(ctx, resource));
     }
 
     // ════ Crop ════════════════════
 
-    private String crop(CmdContext ctx, File file) {
+    private String crop(CmdContext ctx, GameResources.Resource resource) {
         BufferedImage image;
         try {
-            image = ImageIO.read(new ByteArrayInputStream(fileService.read(file.getId())));
+            image = ImageIO.read(resource.path().toFile());
         } catch (IOException | RuntimeException e) {
             throw new CmdWarnException(ctx.render(Text.GUESS_CROP_FAILED));
         }
@@ -206,20 +193,20 @@ public class GuessCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        String prefix = configService.getString(Conf.CMD_PREFIX);
+        String prefix = plugin.context().config().getString(Conf.CMD_PREFIX);
         return language == Language.EN ? """
                 Guess
                 Plays a multiplayer image-guessing game.
-                Usage: Guess [tag]
+                Usage: Guess [keyword]
                 Options: -f/--forfeit  forfeit the game
-                Notes: picks a random ACG image by tag and sends a cropped part; answer with "%sanswer" or give up with "%s%s".
+                Notes: picks a random image by exact category or character name and sends a cropped part; answer with "%sanswer" or give up with "%s%s".
                 Aliases: 猜
                 Access: >=0(normal)""".formatted(prefix, prefix, prefix) : """
                 Guess
                 多人猜图。
-                用法：Guess [标签]
+                用法：Guess [关键词]
                 选项：-f/--forfeit  放弃游戏
-                说明：按标签随机抽取 ACG 图片并发送裁剪图；回答格式为 %s答案，发送 %s%s 放弃。
+                说明：按分类或角色名精确随机抽取图片并发送裁剪图；回答格式为 %s答案，发送 %s%s 放弃。
                 别名：猜
                 权限：>=0(normal)""".formatted(prefix, prefix, prefix);
     }
@@ -241,25 +228,15 @@ public class GuessCmd implements Cmd {
         }
     }
 
-    private static String displayName(File file) {
-        String original = file.getOriginal() == null ? "" : file.getOriginal().trim();
-        if (!original.isEmpty()) {
-            int dot = original.lastIndexOf('.');
-            return dot > 0 ? original.substring(0, dot) : original;
-        }
-        String tag = file.getTag();
-        return tag == null ? "" : tag.trim();
-    }
-
     private static final class Guess {
 
-        private final File file;
+        private final GameResources.Resource resource;
         private final String answer;
         private final String cropped;
         private int times;
 
-        private Guess(File file, String answer, String cropped) {
-            this.file = file;
+        private Guess(GameResources.Resource resource, String answer, String cropped) {
+            this.resource = resource;
             this.answer = answer;
             this.cropped = cropped;
         }

@@ -131,7 +131,7 @@ public class MessageStoreMiddleware implements Middleware {
      */
     private String saveAttachment(String userId, String url, String file) {
         try {
-            File saved = fileService.save(userId, url, file, BizType.CHAT);
+            File saved = fileService.save(userId, BizType.CHAT, url, file);
             return String.valueOf(saved.getId());
         } catch (RuntimeException e) {
             log.warn("Failed to store attachment: {}", url, e);

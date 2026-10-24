@@ -21,31 +21,9 @@
     const {t} = window.ConsoleUI;
 
     const PAGE_SIZE = 20;
-    const MAX_UPLOAD = 64 * 1024 * 1024;
     const UPLOAD_LINE_TTL = 4000;
-    const UPLOAD_PATTERN_KEY = 'nullbot.console.uploadPattern';
-    const BIZ_TYPES = [0, 1, 2, 3, 4, 5];
+    const BIZ_TYPES = [0, 1, 2, 3, 4];
     const ACCESS_LEVELS = [-2, -1, 0, 1, 2];
-
-    function readUploadPattern() {
-        const empty = {enabled: false, regex: '', filenameTemplate: '', tagTemplate: ''};
-        try {
-            const raw = localStorage.getItem(UPLOAD_PATTERN_KEY);
-            if (!raw) return empty;
-            const saved = JSON.parse(raw);
-            const regex = typeof saved.regex === 'string' ? saved.regex.trim() : '';
-            return {
-                enabled: saved.enabled === true && regex !== '',
-                regex,
-                filenameTemplate: typeof saved.filenameTemplate === 'string' ? saved.filenameTemplate.trim() : '',
-                tagTemplate: typeof saved.tagTemplate === 'string' ? saved.tagTemplate.trim() : ''
-            };
-        } catch {
-            return empty;
-        }
-    }
-
-    let uploadPattern = readUploadPattern();
 
     function bizLabel(value) {
         const key = 'files.type' + value;
@@ -465,26 +443,11 @@
 
     // ═══ Files ═══════════════════════
 
-    const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', field: 'original', items: []};
+    const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', items: []};
     const fileSelection = new Set();
     let editingFile = null;
     let uploading = false;
     let deletingFiles = false;
-
-    function setFileSearchField(field, reload = true) {
-        if (field !== 'tag') field = 'original';
-        if (fileState.field === field && reload) return;
-        fileState.field = field;
-        const mode = $('file-search-mode');
-        mode.dataset.field = field;
-        mode.querySelectorAll('button[data-field]').forEach(button => {
-            button.classList.toggle('active', button.dataset.field === field);
-        });
-        if (!reload) return;
-        fileState.keyword = $('file-keyword').value.trim();
-        fileState.page = 1;
-        loadFiles();
-    }
 
     function updateFileSelection() {
         const selectAll = $('files-select-all');
@@ -507,7 +470,7 @@
             size: String(fileState.size)
         });
         if (fileState.type) params.set('type', fileState.type);
-        if (fileState.keyword) params.set(fileState.field, fileState.keyword);
+        if (fileState.keyword) params.set('keyword', fileState.keyword);
         try {
             const data = await api('/files?' + params.toString());
             fileState.items = data.items;
@@ -535,7 +498,7 @@
                                                  ${fileSelection.has(file.id) ? 'checked' : ''}></td>
                     <td>${file.id}</td>
                     <td><span class="file-name" title="${escapeHtml(file.original || '')}">${escapeHtml(file.original || '-')}</span></td>
-                    <td><span class="file-tag" title="${escapeHtml(file.tag || '')}">${escapeHtml(file.tag || '-')}</span></td>
+                    <td><span class="file-description" title="${escapeHtml(file.description || '')}">${escapeHtml(file.description || '-')}</span></td>
                     <td class="nowrap">${escapeHtml(bizLabel(file.type) || file.type || '-')}</td>
                     <td class="nowrap">${formatBytes(file.size)}</td>
                     <td class="nowrap"><code>${escapeHtml(file.userId || '-')}</code></td>
@@ -561,7 +524,7 @@
     function openFileDialog(file) {
         editingFile = file;
         $('file-original').value = file.original || '';
-        $('file-tag').value = file.tag || '';
+        $('file-description').value = file.description || '';
         setStatus($('file-form-status'), '');
         $('file-dialog').showModal();
     }
@@ -580,7 +543,7 @@
                 method: 'PUT',
                 body: JSON.stringify({
                     original,
-                    tag: $('file-tag').value
+                    description: $('file-description').value
                 })
             });
             $('file-dialog').close();
@@ -653,58 +616,6 @@
         }, delay);
     }
 
-    function syncUploadSettingsFields() {
-        const enabled = $('upload-pattern-enabled').checked;
-        ['upload-regex', 'upload-name-template', 'upload-tag-template']
-            .forEach(id => $(id).disabled = !enabled);
-    }
-
-    function openUploadSettings() {
-        $('upload-pattern-enabled').checked = uploadPattern.enabled;
-        $('upload-regex').value = uploadPattern.regex;
-        $('upload-name-template').value = uploadPattern.filenameTemplate;
-        $('upload-tag-template').value = uploadPattern.tagTemplate;
-        syncUploadSettingsFields();
-        setStatus($('upload-settings-status'), '');
-        $('upload-settings-dialog').showModal();
-    }
-
-    function applyUploadPattern() {
-        const active = uploadPattern.enabled && !!uploadPattern.regex;
-        const button = $('upload-settings');
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', String(active));
-        button.textContent = t(active ? 'files.settingsActive' : 'files.uploadSettings');
-        button.title = t('files.uploadSettings');
-        const summary = $('upload-pattern-summary');
-        summary.hidden = !active;
-        summary.textContent = active ? t('files.regexEnabled', {regex: uploadPattern.regex}) : '';
-        const derivedTag = active && !!uploadPattern.tagTemplate;
-        const tagInput = $('upload-tag');
-        tagInput.disabled = derivedTag;
-        tagInput.placeholder = t(derivedTag ? 'files.tagDerived' : 'files.tagPlaceholder');
-    }
-
-    function saveUploadSettings(event) {
-        event.preventDefault();
-        const enabled = $('upload-pattern-enabled').checked;
-        const regex = $('upload-regex').value.trim();
-        if (enabled && !regex) {
-            setStatus($('upload-settings-status'), t('files.regexRequired'), 'error');
-            return;
-        }
-        uploadPattern = {
-            enabled,
-            regex,
-            filenameTemplate: $('upload-name-template').value.trim(),
-            tagTemplate: $('upload-tag-template').value.trim()
-        };
-        localStorage.setItem(UPLOAD_PATTERN_KEY, JSON.stringify(uploadPattern));
-        applyUploadPattern();
-        $('upload-settings-dialog').close();
-        toast(t('files.settingsSaved'), 'ok');
-    }
-
     async function uploadFiles() {
         if (uploading) return;
         const files = Array.from($('upload-files').files || []);
@@ -713,8 +624,7 @@
             return;
         }
         const type = $('upload-type').value;
-        const tag = $('upload-tag').disabled ? '' : $('upload-tag').value.trim();
-        const pattern = uploadPattern.enabled && uploadPattern.regex ? uploadPattern : null;
+        const description = $('upload-description').value.trim();
         const statusBox = $('upload-status');
         statusBox.innerHTML = '';
         const lines = files.map(file => {
@@ -737,24 +647,12 @@
                 if (index >= files.length) return;
                 const file = files[index];
                 const line = lines[index];
-                if (file.size > MAX_UPLOAD) {
-                    failed++;
-                    line.textContent = t('files.tooLarge', {name: file.name});
-                    line.className = 'upload-line error';
-                    dismissUploadLine(line);
-                    continue;
-                }
                 line.textContent = t('files.uploading', {name: file.name});
                 line.className = 'upload-line';
                 try {
                     const form = new FormData();
                     form.append('type', type);
-                    if (tag) form.append('tag', tag);
-                    if (pattern) {
-                        form.append('regex', pattern.regex);
-                        if (pattern.filenameTemplate) form.append('filenameTemplate', pattern.filenameTemplate);
-                        if (pattern.tagTemplate) form.append('tagTemplate', pattern.tagTemplate);
-                    }
+                    if (description) form.append('description', description);
                     form.append('file', file);
                     await api('/files', {method: 'POST', body: form});
                     success++;
@@ -1628,13 +1526,8 @@
             fileState.page = 1;
             $('file-keyword').value = '';
             $('file-filter-type').value = '';
-            setFileSearchField('original', false);
             loadFiles();
         };
-        $('file-search-mode').addEventListener('click', event => {
-            const button = event.target.closest('button[data-field]');
-            if (button) setFileSearchField(button.dataset.field);
-        });
         $('file-filter-type').onchange = () => {
             fileState.type = $('file-filter-type').value;
             fileState.page = 1;
@@ -1646,9 +1539,6 @@
         $('upload-choose').onclick = () => $('upload-files').click();
         $('upload-files').addEventListener('change', updateUploadLabel);
         $('upload-button').onclick = uploadFiles;
-        $('upload-settings').onclick = openUploadSettings;
-        $('upload-pattern-enabled').addEventListener('change', syncUploadSettingsFields);
-        $('upload-settings-form').addEventListener('submit', saveUploadSettings);
         $('file-form').addEventListener('submit', saveFileInfo);
 
         $('files-body').addEventListener('click', event => {
@@ -1811,7 +1701,6 @@
         bindDialogs();
         bindEvents();
         updateUploadLabel();
-        applyUploadPattern();
         if (!location.hash) history.replaceState(null, '', '#/usage');
         renderView();
         if (typeof ResizeObserver === 'function') {
@@ -1836,10 +1725,8 @@
         setStatus($('gs-status'), '');
         setStatus($('kw-status'), '');
         setStatus($('file-form-status'), '');
-        setStatus($('upload-settings-status'), '');
         $('upload-status').innerHTML = '';
         updateUploadLabel();
-        applyUploadPattern();
         if (currentGroup && $('group-dialog').open) {
             $('group-dialog-subtitle').textContent = t('group.id', {id: currentGroup.id});
             resetKeywordForm();

@@ -25,7 +25,7 @@ public class File {
     private String original;
     @TableField("`stored`")
     private String stored;
-    private String tag;
+    private String description;
     private Long size;
     private BizType type;
     private LocalDateTime createdAt;

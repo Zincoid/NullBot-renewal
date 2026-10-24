@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `file` (
     `user_id`       VARCHAR(64)     NOT NULL,
     `original`      VARCHAR(255)    NOT NULL,
     `stored`        VARCHAR(255)    NOT NULL,
-    `tag`           VARCHAR(255)    DEFAULT NULL,
+    `description`   VARCHAR(255)    DEFAULT NULL,
     `size`          BIGINT          NOT NULL DEFAULT 0,
     `type`          TINYINT         NOT NULL DEFAULT 0,
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP

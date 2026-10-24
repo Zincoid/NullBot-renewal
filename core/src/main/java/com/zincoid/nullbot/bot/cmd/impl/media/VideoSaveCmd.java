@@ -79,7 +79,7 @@ public class VideoSaveCmd implements Cmd {
         for (MsgSegment.Video video : videos) {
             try {
                 saved.add(fileService.save(
-                        userId, video.url(), video.file(), BizType.VID_COLL));
+                        userId, BizType.VID_COLL, video.url(), video.file()));
             } catch (FileException e) {
                 throw new CmdWarnException(e.getMessage());
             }

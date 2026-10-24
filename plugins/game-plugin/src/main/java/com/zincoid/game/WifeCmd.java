@@ -1,24 +1,19 @@
-package com.zincoid.nullbot.bot.cmd.impl.game;
+package com.zincoid.game;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
+import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
-import com.zincoid.nullbot.module.common.UserService;
-import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
-import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
-import com.zincoid.nullbot.platform.persistence.po.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,17 +22,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * 今日老婆指令：随机抽选群友或二次元老婆，两类每日各一次。
- * <p>Wife command: draws a random group member or anime wife, once per day for each kind.</p>
+ * 今日老婆指令：随机抽选群友或资源目录中的二次元老婆，两类每日各一次。
+ * <p>Wife command: draws a random group member or an anime wife from the resource directory, once per day for each kind.</p>
  */
 @Slf4j
 @CmdMapping({"Wife", "今日老婆"})
-@Component
 @RequiredArgsConstructor
 public class WifeCmd implements Cmd {
 
-    private final FileService fileService;
-    private final UserService userService;
+    private final GamePlugin plugin;
 
     private final Map<String, Pick> memberPicks = new ConcurrentHashMap<>();
     private final Map<String, Pick> animePicks = new ConcurrentHashMap<>();
@@ -82,7 +75,7 @@ public class WifeCmd implements Cmd {
 
     private void setMember(CmdContext ctx, GroupMsgEvent event, String wifeId) {
         UserInfo wife = ctx.client().getUserInfo(wifeId);
-        Pick pick = new Pick(wife.userId(), wife.nickname(), wife.avatar(), LocalDate.now());
+        Pick pick = new Pick(wife.userId(), wife.nickname(), wife.avatar(), null, LocalDate.now());
         memberPicks.put(event.userId(), pick);
         sendMember(ctx, event, pick, false);
         log.info("Member wife picked: {} -> {}", event.userId(), pick.id());
@@ -112,21 +105,23 @@ public class WifeCmd implements Cmd {
     private void setAnime(CmdContext ctx, GroupMsgEvent event, String keyword) {
         if (keyword.isBlank())
             throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED));
-        File wife = fileService.random(BizType.ACG, keyword);
+        GameResources.Resource wife = plugin.resources().random(keyword);
         if (wife == null)
             throw new CmdInfoException(ctx.render(Text.WIFE_NO_RESULT));
-        Pick pick = new Pick(String.valueOf(wife.getId()), displayName(wife),
-                fileService.uri(wife), LocalDate.now());
+        Pick pick = new Pick(wife.path().toString(), wife.character(),
+                wife.path().toUri().toString(), wife.category(), LocalDate.now());
         animePicks.put(event.userId(), pick);
         sendAnime(ctx, event, pick, false);
         log.info("Anime wife picked: {} -> {}", event.userId(), pick.name());
     }
 
     private void sendAnime(CmdContext ctx, GroupMsgEvent event, Pick pick, boolean picked) {
+        String text = picked
+                ? ctx.render(Text.WIFE_ANIME_ALREADY, pick.name())
+                : ctx.render(Text.WIFE_ANIME_PICKED, pick.category(), pick.name());
         MsgContent.Builder builder = MsgContent.builder()
                 .at(event.userId())
-                .text(ctx.render(picked ? Text.WIFE_ANIME_ALREADY : Text.WIFE_ANIME_PICKED,
-                        pick.name()));
+                .text(text);
         if (pick.image() != null) builder.image(pick.image());
         ctx.send(builder.build());
     }
@@ -141,7 +136,7 @@ public class WifeCmd implements Cmd {
                 Usage: Wife [keyword]
                 Options: -m/--member=<user id> picks a group member (manager)
                          -a/--anime=<keyword> picks an anime wife (manager)
-                Notes: no argument picks a random group member; a keyword picks a random ACG file by tag.
+                Notes: no argument picks a random group member; a keyword exactly matches a category or character name.
                 Aliases: 今日老婆
                 Access: >=0(normal)""" : """
                 Wife
@@ -149,7 +144,7 @@ public class WifeCmd implements Cmd {
                 用法：Wife [关键词]
                 选项：-m/--member=<用户ID>  指定群友老婆（需 manager）
                       -a/--anime=<关键词>  指定二次元老婆（需 manager）
-                说明：无参数随机群友；带关键词随机搜索 ACG 标签。
+                说明：无参数随机群友；带关键词按分类或角色名精确匹配。
                 别名：今日老婆
                 权限：>=0(normal)""";
     }
@@ -157,7 +152,7 @@ public class WifeCmd implements Cmd {
     // ════ Helpers ═════════════════
 
     private void requireManager(CmdContext ctx, String userId) {
-        if (userService.getAccess(userId).getValue() < Access.MANAGER.getValue())
+        if (plugin.context().users().getAccess(userId).getValue() < Access.MANAGER.getValue())
             throw new CmdWarnException(ctx.render(Text.WIFE_NOT_ALLOWED));
     }
 
@@ -172,16 +167,6 @@ public class WifeCmd implements Cmd {
         return pick != null && pick.date().equals(LocalDate.now());
     }
 
-    private static String displayName(File file) {
-        String original = file.getOriginal() == null ? "" : file.getOriginal().trim();
-        if (!original.isEmpty()) {
-            int dot = original.lastIndexOf('.');
-            return dot > 0 ? original.substring(0, dot) : original;
-        }
-        String tag = file.getTag();
-        return tag == null ? "" : tag.trim();
-    }
-
-    private record Pick(String id, String name, String image, LocalDate date) {
+    private record Pick(String id, String name, String image, String category, LocalDate date) {
     }
 }

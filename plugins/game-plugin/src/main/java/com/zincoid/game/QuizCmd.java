@@ -1,28 +1,25 @@
-package com.zincoid.nullbot.bot.cmd.impl.game;
+package com.zincoid.game;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
+import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
+import com.zincoid.nullbot.bot.cmd.input.InputMode;
+import com.zincoid.nullbot.bot.cmd.input.InputResult;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
-import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.bot.cmd.input.InputManager;
-import com.zincoid.nullbot.bot.cmd.input.InputMode;
-import com.zincoid.nullbot.bot.cmd.input.InputResult;
 import com.zincoid.nullbot.platform.exception.PlatformException;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @CmdMapping({"Quiz", "问答"})
-@Component
 @RequiredArgsConstructor
 public class QuizCmd implements Cmd {
 
@@ -59,8 +55,8 @@ public class QuizCmd implements Cmd {
             2. Do not use LaTeX for formulas.
             3. Write the question and options in %s.""";
 
-    private final Model model;
-    private final InputManager inputManager;
+    private final GamePlugin plugin;
+
     private final Set<String> inGame = ConcurrentHashMap.newKeySet();
 
     // ════ Run ═════════════════════
@@ -76,7 +72,7 @@ public class QuizCmd implements Cmd {
             QuizData data = generate(ctx, topic);
             String question = ctx.render(Text.QUIZ_QUESTION, data.question(), data.timeout());
             ctx.send(MsgContent.builder().at(userId).text(question).build());
-            List<InputResult> inputs = inputManager.request(
+            List<InputResult> inputs = plugin.context().inputs().request(
                     InputMode.PS, userId, "[A-Za-z]", data.timeout());
             if (inputs.isEmpty()) {
                 ctx.send(Text.QUIZ_TIMEOUT, event.nickname(), data.answer());
@@ -96,7 +92,7 @@ public class QuizCmd implements Cmd {
         String language = ctx.language() == Language.EN ? "English" : "Chinese";
         ModelRes res;
         try {
-            res = model.invoke(ModelReq.of(
+            res = plugin.context().model().invoke(ModelReq.of(
                     List.of(AiMessage.system(PROMPT.formatted(topic, language))),
                     Effort.HIGH,
                     MAX_TOKENS));

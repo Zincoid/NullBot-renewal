@@ -1,9 +1,12 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
+import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
+import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.common.UserService;
+import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
@@ -22,6 +25,9 @@ import java.nio.file.Path;
 public class PluginContextFactory {
 
     private final FileService files;
+    private final ConfigService config;
+    private final InputManager inputs;
+    private final Model model;
     private final UserService users;
     private final GroupService groups;
     private final GroupSettingService groupSettings;
@@ -38,7 +44,7 @@ public class PluginContextFactory {
      */
     PluginContext create(Path dataDir) {
         return new DefaultPluginContext(
-                files, users, groups,
+                files, config, inputs, model, users, groups,
                 groupSettings, userSettings,
                 quotes,
                 languages,

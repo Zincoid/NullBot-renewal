@@ -57,7 +57,7 @@ public class BotDispatcher implements BotServer {
                 log.info("Group banned: {}", groupId);
                 return;
             }
-            log.info("Event dispatched: {}", event.getClass());
+            log.info("Event dispatched: {}", event.getClass().getSimpleName());
             if (new MiddlewareChain(middlewares).process(client, event)) return;
             dispatcher.dispatch(client, event);
         } catch (Exception e) {

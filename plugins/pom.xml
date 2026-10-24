@@ -18,5 +18,6 @@
         <module>pubg-plugin</module>
         <module>query-plugin</module>
         <module>symmetry-plugin</module>
+        <module>game-plugin</module>
     </modules>
 </project>

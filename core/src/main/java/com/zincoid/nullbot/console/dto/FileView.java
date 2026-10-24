@@ -9,19 +9,19 @@ import java.time.LocalDateTime;
  * 控制台文件视图。
  * <p>Console view of a stored file.</p>
  *
- * @param id        the record id
- * @param userId    the uploader platform user id
- * @param original  the original filename
- * @param tag       the file tag
- * @param size      the file size in bytes
- * @param type      the business type
- * @param createdAt the creation time
+ * @param id          the record id
+ * @param userId      the uploader platform user id
+ * @param original    the original filename
+ * @param description the file description
+ * @param size        the file size in bytes
+ * @param type        the business type
+ * @param createdAt   the creation time
  */
 public record FileView(
         Long id,
         String userId,
         String original,
-        String tag,
+        String description,
         long size,
         BizType type,
         LocalDateTime createdAt
@@ -39,7 +39,7 @@ public record FileView(
                 file.getId(),
                 file.getUserId(),
                 file.getOriginal(),
-                file.getTag(),
+                file.getDescription(),
                 file.getSize(),
                 file.getType(),
                 file.getCreatedAt());

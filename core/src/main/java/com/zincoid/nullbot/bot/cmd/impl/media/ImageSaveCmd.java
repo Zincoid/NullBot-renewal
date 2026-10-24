@@ -79,7 +79,7 @@ public class ImageSaveCmd implements Cmd {
         for (MsgSegment.Image image : images) {
             try {
                 saved.add(fileService.save(
-                        userId, image.url(), image.file(), BizType.IMG_COLL));
+                        userId, BizType.IMG_COLL, image.url(), image.file()));
             } catch (FileException e) {
                 throw new CmdWarnException(e.getMessage());
             }

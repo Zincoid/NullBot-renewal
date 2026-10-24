@@ -38,7 +38,7 @@ public class View implements Tool {
         File file = fileService.getById(_args.id);
         if (file == null)
             return ToolRes.error("File not found: " + _args.id);
-        byte[] bytes = fileService.read(_args.id);
+        byte[] bytes = fileService.read(file);
         String mime = mime(file, bytes);
         if (mime == null || !mime.startsWith("image/"))
             return ToolRes.error("Not an image: " + file.getOriginal());

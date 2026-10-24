@@ -1,12 +1,12 @@
 package com.zincoid.nullbot.module.file;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
-import com.zincoid.nullbot.platform.configuration.FileProperties;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.mapper.FileMapper;
 import com.zincoid.nullbot.platform.persistence.po.File;
-import com.zincoid.nullbot.platform.util.FileUtils;
 import com.zincoid.nullbot.platform.util.PageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -36,7 +35,9 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements FileService {
 
-    private final FileProperties fileProperties;
+    public static final int MAX_LIMIT = Integer.MAX_VALUE;
+
+    private final FileStorage fileStorage;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -46,103 +47,77 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Save ════════════════════
 
     @Override
-    public File save(String userId, String url, String original, BizType type, String tag) {
+    public File save(String userId, BizType type, String url, String original) {
         validate(userId, type);
         if (url == null || url.isBlank()) throw new FileException("Missing key: url");
-        if (original == null || original.isBlank()) original = "unnamed";
         HttpResponse<InputStream> resp = download(url);
         try (InputStream in = resp.body()) {
-            return store(userId, original, in, type, tag);
+            return store(userId, original, in, type, null);
         } catch (IOException e) {
             throw new FileException("Failed to read download body: " + url, e);
         }
     }
 
     @Override
-    public File save(String userId, MultipartFile file, String original, BizType type, String tag) {
+    public File save(String userId, BizType type, MultipartFile file, String description) {
         validate(userId, type);
         if (file == null) throw new FileException("Missing key: file");
-        String name = original == null || original.isBlank() ? file.getOriginalFilename() : original;
-        if (name == null || name.isBlank()) name = "unnamed";
+        String name = file.getOriginalFilename();
         try (InputStream in = file.getInputStream()) {
-            return store(userId, name, in, type, tag);
+            return store(userId, name, in, type, description);
         } catch (IOException e) {
             throw new FileException("Failed to read upload: " + name, e);
         }
     }
 
+    // ════ List ════════════════════
+
+    @Override
+    public List<File> search(BizType type, String keyword, int limit) {
+        if (type == null) throw new FileException("Missing key: type");
+        int size = Math.clamp(limit, 1, MAX_LIMIT);
+        return baseMapper.selectList(query(type, keyword).last("LIMIT " + size));
+    }
+
+    @Override
+    public Page<File> page(BizType type, String keyword, long page, long size) {
+        return baseMapper.selectPage(PageUtils.of(page, size), query(type, keyword));
+    }
+
     // ════ Read ════════════════════
 
     @Override
-    public byte[] read(Long id) {
-        if (id == null) throw new FileException("Missing key: id");
-        File file = getById(id);
-        if (file == null) throw new FileException("File not found: " + id);
+    public byte[] read(File file) {
+        if (file == null) throw new FileException("Missing key: file");
         try {
-            return Files.readAllBytes(Path.of(fileProperties.getRoot()).resolve(file.getStored()));
+            return fileStorage.read(file.getStored());
         } catch (IOException e) {
             throw new FileException("Failed to read file: " + file.getStored(), e);
         }
     }
 
     @Override
+    public Path path(File file) {
+        if (file == null) throw new FileException("Missing key: file");
+        return fileStorage.path(file.getStored());
+    }
+
+    @Override
     public String uri(File file) {
         if (file == null) throw new FileException("Missing key: file");
-        return Path.of(fileProperties.getRoot())
-                .resolve(file.getStored())
-                .toAbsolutePath()
-                .normalize()
-                .toUri()
-                .toString();
-    }
-
-    @Override
-    public List<File> search(BizType type, String tag, String original, int limit) {
-        if (type == null) throw new FileException("Missing key: type");
-        int size = Math.clamp(limit, 1, 50);
-        String tagKey = normalize(tag);
-        String originalKey = normalize(original);
-        return lambdaQuery()
-                .eq(File::getType, type)
-                .like(tagKey != null, File::getTag, tagKey)
-                .like(originalKey != null, File::getOriginal, originalKey)
-                .orderByDesc(File::getId)
-                .last("LIMIT " + size)
-                .list();
-    }
-
-    @Override
-    public Page<File> page(BizType type, String tag, String original, long page, long size) {
-        String tagKey = normalize(tag);
-        String originalKey = normalize(original);
-        return lambdaQuery()
-                .eq(type != null, File::getType, type)
-                .like(tagKey != null, File::getTag, tagKey)
-                .like(originalKey != null, File::getOriginal, originalKey)
-                .orderByDesc(File::getId)
-                .page(PageUtils.of(page, size));
+        return fileStorage.uri(file.getStored());
     }
 
     // ════ Random ══════════════════
 
     @Override
     public File random(BizType type) {
-        return random(type, null);
-    }
-
-    @Override
-    public File random(BizType type, String tag) {
         if (type == null) throw new FileException("Missing key: type");
-        String tagKey = normalize(tag);
-        long count = lambdaQuery()
-                .eq(File::getType, type)
-                .like(tagKey != null, File::getTag, tagKey)
-                .count();
+        long count = lambdaQuery().eq(File::getType, type).count();
         if (count == 0) return null;
         long offset = ThreadLocalRandom.current().nextLong(count);
         return lambdaQuery()
                 .eq(File::getType, type)
-                .like(tagKey != null, File::getTag, tagKey)
                 .last("LIMIT 1 OFFSET " + offset)
                 .one();
     }
@@ -150,13 +125,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Update ══════════════════
 
     @Override
-    public void update(Long id, String original, String tag) {
+    public void update(Long id, String original, String description) {
         if (original == null || original.isBlank())
             throw new FileException("Missing filename: " + id);
         boolean updated = lambdaUpdate()
                 .eq(File::getId, id)
                 .set(File::getOriginal, original)
-                .set(File::getTag, tag)
+                .set(File::getDescription, description)
                 .update();
         if (!updated) throw new FileException("File not found: " + id);
     }
@@ -175,10 +150,10 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
 
     // ════ Core ════════════════════
 
-    private File store(String userId, String original, InputStream in, BizType type, String tag) {
-        FileUtils.StoredFile saved;
+    private File store(String userId, String original, InputStream in, BizType type, String description) {
+        FileStorage.StoredFile saved;
         try {
-            saved = FileUtils.save(Path.of(fileProperties.getRoot()), original, in);
+            saved = fileStorage.save(original, in);
         } catch (IOException e) {
             throw new FileException("Failed to store file: " + original, e);
         }
@@ -186,7 +161,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                 .userId(userId)
                 .original(saved.original())
                 .stored(saved.stored())
-                .tag(tag)
+                .description(description)
                 .size(saved.size())
                 .type(type)
                 .createdAt(LocalDateTime.now())
@@ -212,6 +187,25 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         return value == null || value.isBlank() ? null : value.trim();
     }
 
+    private static LambdaQueryWrapper<File> query(BizType type, String keyword) {
+        String key = normalize(keyword);
+        return Wrappers.lambdaQuery(File.class)
+                .eq(type != null, File::getType, type)
+                .and(key != null, wrapper -> wrapper
+                        .like(File::getDescription, key)
+                        .or()
+                        .like(File::getOriginal, key))
+                .orderByDesc(File::getId);
+    }
+
+    private void deleteQuietly(String stored) {
+        try {
+            fileStorage.delete(stored);
+        } catch (IOException e) {
+            log.warn("Failed to delete file: {}", stored, e);
+        }
+    }
+
     private HttpResponse<InputStream> download(String url) {
         HttpRequest request;
         try {
@@ -235,14 +229,6 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             throw new FileException("Download interrupted: " + url, e);
         } catch (IOException e) {
             throw new FileException("Download failed: " + url, e);
-        }
-    }
-
-    private void deleteQuietly(String stored) {
-        try {
-            FileUtils.delete(Path.of(fileProperties.getRoot()), stored);
-        } catch (IOException e) {
-            log.warn("Failed to delete file: {}", stored, e);
         }
     }
 }

@@ -1,8 +1,11 @@
 package com.zincoid.nullbot.bot.plugin;
 
+import com.zincoid.nullbot.bot.cmd.input.InputManager;
+import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.common.UserService;
+import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
@@ -23,6 +26,30 @@ public interface PluginContext {
      * @return the file service
      */
     FileService files();
+
+    /**
+     * 配置存储服务。
+     * <p>Configuration store service.</p>
+     *
+     * @return the config service
+     */
+    ConfigService config();
+
+    /**
+     * 输入等待管理器。
+     * <p>Input wait manager.</p>
+     *
+     * @return the input manager
+     */
+    InputManager inputs();
+
+    /**
+     * 模型调用端口。
+     * <p>Model invocation port.</p>
+     *
+     * @return the model
+     */
+    Model model();
 
     /**
      * 用户记录服务。

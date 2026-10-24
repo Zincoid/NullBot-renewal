@@ -105,7 +105,7 @@ public final class MimeUtils {
      * @param mime the MIME type, nullable
      * @return the extension without a dot, or null when unknown
      */
-    static String extension(String mime) {
+    public static String extension(String mime) {
         if (mime == null) return null;
         return switch (mime) {
             case "image/jpeg" -> "jpg";
