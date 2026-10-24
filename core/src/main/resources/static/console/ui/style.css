@@ -732,6 +732,105 @@ code {
     grid-column: 1 / -1;
 }
 
+.bot-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.bot-avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    color: var(--color-text-tertiary);
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-full);
+}
+
+.bot-avatar svg {
+    width: 26px;
+    height: 26px;
+}
+
+.bot-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bot-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.bot-label {
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+}
+
+.bot-name {
+    margin-top: var(--spacing-xxs);
+    overflow: hidden;
+    color: var(--color-text-heading);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-tight);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bot-id {
+    margin-top: var(--spacing-xxs);
+    overflow: hidden;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bot-id:empty {
+    display: none;
+}
+
+.bot-state {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: var(--spacing-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+}
+
+.bot-state::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: var(--rounded-full);
+    background: var(--color-text-tertiary);
+}
+
+.bot-state.online::before {
+    background: var(--color-success);
+    box-shadow: 0 0 0 4px var(--color-success-bg);
+}
+
+.bot-state.offline::before,
+.bot-state.error::before {
+    background: var(--color-danger);
+    box-shadow: 0 0 0 4px var(--color-danger-bg);
+}
+
 .cards {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2491,6 +2590,7 @@ audio.preview-media {
 .toast-item__cursor {
     flex: none;
     align-self: center;
+    margin-left: var(--spacing-xs);
     color: #58a6ff;
 }
 

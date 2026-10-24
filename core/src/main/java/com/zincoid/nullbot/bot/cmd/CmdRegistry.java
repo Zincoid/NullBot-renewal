@@ -31,7 +31,7 @@ public class CmdRegistry {
         this.cmdProperties = cmdProperties;
         if (!register(cmds))
             throw new CmdException("Built-in command registration failed");
-        log.info("Commands registered: {}", cmdMap.size());
+        log.info("Built-in commands registered: {}", cmdMap.size());
     }
 
     // ════ Get ═════════════════════

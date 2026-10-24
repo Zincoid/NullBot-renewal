@@ -69,6 +69,13 @@
             'usage.empty': '暂无数据',
             'usage.loadFailed': '加载用量失败：{msg}',
 
+            'bot.current': '当前账号',
+            'bot.online': '在线',
+            'bot.offline': '离线',
+            'bot.none': '未连接',
+            'bot.id': 'ID：{id}',
+            'bot.loadFailed': '加载失败',
+
             'config.count': '配置: {n}',
             'config.loading': '加载中...',
             'config.reset': '重置',
@@ -353,6 +360,13 @@
             'usage.dm': 'Private chat',
             'usage.empty': 'No data',
             'usage.loadFailed': 'Failed to load usage: {msg}',
+
+            'bot.current': 'Current account',
+            'bot.online': 'Online',
+            'bot.offline': 'Offline',
+            'bot.none': 'Not connected',
+            'bot.id': 'ID: {id}',
+            'bot.loadFailed': 'Failed to load',
 
             'config.count': 'Config: {n}',
             'config.loading': 'Loading...',

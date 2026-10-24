@@ -10,13 +10,22 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * 启动时输出版本信息。
- * <p>Logs application version information during startup.</p>
+ * 启动时输出项目 banner 与版本信息。
+ * <p>Prints the project banner and application version information during startup.</p>
  */
 @Component
 public class StartupLogger implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(StartupLogger.class);
+
+    private static final String BANNER = """
+            ███╗   ██╗██╗   ██╗██╗     ██╗     ██████╗  ██████╗ ████████╗
+            ████╗  ██║██║   ██║██║     ██║     ██╔══██╗██╔═══██╗╚══██╔══╝
+            ██╔██╗ ██║██║   ██║██║     ██║     ██████╔╝██║   ██║   ██║
+            ██║╚██╗██║██║   ██║██║     ██║     ██╔══██╗██║   ██║   ██║
+            ██║ ╚████║╚██████╔╝███████╗███████╗██████╔╝╚██████╔╝   ██║
+            ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝╚═════╝  ╚═════╝    ╚═╝
+            """;
 
     private final ObjectProvider<BuildProperties> builds;
 
@@ -38,6 +47,8 @@ public class StartupLogger implements ApplicationRunner {
      */
     @Override
     public void run(@NonNull ApplicationArguments args) {
+        BANNER.lines().forEach(log::info);
+        log.info("NullBot renewal author: @Zincoid");
         BuildProperties build = builds.getIfAvailable();
         if (build == null || build.getVersion() == null) {
             log.info("NullBot renewal version: dev");

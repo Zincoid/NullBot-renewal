@@ -8,6 +8,8 @@ server:
 spring:
   application:
     name: NullBot-renewal
+  main:
+    banner-mode: off
   profiles:
     active: prod
   config:
@@ -48,6 +50,8 @@ logging:
       %m%n%wEx
 
 mybatis-plus:
+  global-config:
+    banner: false
   mapper-locations: classpath:mapper/*.xml
 
 bot:

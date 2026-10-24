@@ -220,6 +220,44 @@
     let usageData = null;
     let usageResizeFrame = 0;
 
+    async function loadBot() {
+        try {
+            renderBot(await api('/bot'));
+        } catch {
+            const img = $('bot-avatar-img');
+            img.hidden = true;
+            img.removeAttribute('src');
+            $('bot-name').textContent = '-';
+            $('bot-id').textContent = '';
+            $('bot-state').textContent = t('bot.loadFailed');
+            $('bot-state').className = 'bot-state error';
+        }
+    }
+
+    function renderBot(data) {
+        const online = Boolean(data && data.online);
+        const id = online && data.userId ? String(data.userId) : '';
+        $('bot-name').textContent = online
+            ? (data.nickname || id || '-')
+            : t('bot.none');
+        $('bot-id').textContent = id ? t('bot.id', {id}) : '';
+        $('bot-state').textContent = online ? t('bot.online') : t('bot.offline');
+        $('bot-state').className = 'bot-state ' + (online ? 'online' : 'offline');
+
+        const img = $('bot-avatar-img');
+        if (online && data.avatar) {
+            img.onerror = () => {
+                img.hidden = true;
+            };
+            img.src = String(data.avatar);
+            img.hidden = false;
+        } else {
+            img.onerror = null;
+            img.hidden = true;
+            img.removeAttribute('src');
+        }
+    }
+
     async function loadUsage() {
         const chart = $('usage-chart');
         chart.innerHTML = `<p class="empty">${escapeHtml(t('common.loading'))}</p>`;
@@ -1444,7 +1482,10 @@
     // ═══ Navigation ══════════════════
 
     const loaders = {
-        usage: loadUsage,
+        usage: () => {
+            loadBot();
+            return loadUsage();
+        },
         config: loadConfig,
         files: loadFiles,
         accounts: loadAccounts,
@@ -1588,7 +1629,10 @@
         });
         nav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
 
-        $('usage-refresh').onclick = loadUsage;
+        $('usage-refresh').onclick = () => {
+            loadBot();
+            loadUsage();
+        };
         $('usage-days').onchange = () => {
             usageState.days = Number($('usage-days').value) || 14;
             loadUsage();
