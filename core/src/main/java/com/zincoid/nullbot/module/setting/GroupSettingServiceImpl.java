@@ -27,7 +27,7 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
     @Override
     public GroupSetting get(String groupId) {
         if (groupId == null || groupId.isBlank()) throw new SettingException("Missing key: groupId");
-        return cache.computeIfAbsent(groupId, this::load);
+        return cache.computeIfAbsent(groupId, this::load).toBuilder().build();
     }
 
     // ════ Update ══════════════════

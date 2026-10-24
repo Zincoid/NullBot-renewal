@@ -22,7 +22,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void register(String id, String name) {
         if (id == null || id.isBlank()) throw new CommonException("Missing key: id");
-        if (name == null) throw new CommonException("Missing key: name");
+        if (name == null || name.isBlank()) throw new CommonException("Missing key: name");
         User user = getById(id);
         if (user == null) {
             user = new User(id, name);

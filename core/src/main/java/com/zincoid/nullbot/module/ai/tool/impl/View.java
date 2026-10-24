@@ -22,6 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class View implements Tool {
 
+    private static final long MAX_IMAGE_BYTES = 64L * 1024 * 1024;
+
     private final FileService fileService;
 
     @Override
@@ -38,6 +40,9 @@ public class View implements Tool {
         File file = fileService.getById(_args.id);
         if (file == null)
             return ToolRes.error("File not found: " + _args.id);
+        if (file.getSize() != null && file.getSize() > MAX_IMAGE_BYTES)
+            return ToolRes.error("Image too large: %d bytes (max %d)"
+                    .formatted(file.getSize(), MAX_IMAGE_BYTES));
         byte[] bytes = fileService.read(file);
         String mime = mime(file, bytes);
         if (mime == null || !mime.startsWith("image/"))

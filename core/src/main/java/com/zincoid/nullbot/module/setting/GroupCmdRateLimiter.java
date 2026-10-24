@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 指令限速器：按群设置对指令消费做令牌桶限速。
@@ -19,10 +20,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GroupCmdRateLimiter {
 
     private static final long SPAM_INTERVAL = 500;
+    private static final int CLEANUP_THRESHOLD = 2048;
+    private static final long CLEANUP_INTERVAL_NANOS = Duration.ofMinutes(1).toNanos();
 
     private final GroupSettingService groupSettingService;
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final Map<String, BucketEntry> buckets = new ConcurrentHashMap<>();
     private final Map<String, Long> lastProcess = new ConcurrentHashMap<>();
+    private final AtomicLong lastCleanup = new AtomicLong(System.nanoTime());
 
     // ════ Consume ═════════════════
 
@@ -76,11 +80,35 @@ public class GroupCmdRateLimiter {
     }
 
     private Bucket resolveBucket(String key, GroupSetting setting) {
-        return buckets.computeIfAbsent(key, _ -> Bucket.builder()
-                .addLimit(limit -> limit
-                        .capacity(setting.getLimitCapacity())
-                        .refillGreedy(setting.getLimitRefill(),
-                                Duration.ofMinutes(setting.getLimitInterval())))
-                .build());
+        BucketEntry entry = buckets.computeIfAbsent(key, _ -> new BucketEntry(
+                Bucket.builder()
+                        .addLimit(limit -> limit
+                                .capacity(setting.getLimitCapacity())
+                                .refillGreedy(setting.getLimitRefill(),
+                                        Duration.ofMinutes(setting.getLimitInterval())))
+                        .build(),
+                setting.getLimitCapacity()));
+        cleanup();
+        return entry.bucket();
+    }
+
+    private void cleanup() {
+        if (buckets.size() < CLEANUP_THRESHOLD) return;
+        long now = System.nanoTime();
+        long last = lastCleanup.get();
+        if (now - last < CLEANUP_INTERVAL_NANOS
+                || !lastCleanup.compareAndSet(last, now)) return;
+        buckets.entrySet().removeIf(entry ->
+                entry.getValue().bucket().getAvailableTokens() >= entry.getValue().capacity());
+    }
+
+    /**
+     * 限速桶及其容量，容量用于判断桶是否已回满。
+     * <p>A rate-limit bucket and its capacity; the capacity detects a full bucket.</p>
+     *
+     * @param bucket   the token bucket
+     * @param capacity the bucket capacity
+     */
+    private record BucketEntry(Bucket bucket, int capacity) {
     }
 }

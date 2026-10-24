@@ -12,9 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * OpenAI 兼容模型实现：调用 {@code /chat/completions}。
  * <p>OpenAI-compatible model implementation: calls {@code /chat/completions}.</p>
@@ -25,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OpenAiModel implements Model {
 
     private final OpenAiProvider openAiProvider;
-    private final Map<String, RestClient> clients = new ConcurrentHashMap<>();
+    private final RestClient client = buildClient();
 
     @Override
     public ModelRes invoke(ModelReq req) {
@@ -33,8 +30,9 @@ public class OpenAiModel implements Model {
         OpenAiReq apiReq = OpenAiReq.from(req, provider.model());
         OpenAiRes apiRes;
         try {
-            apiRes = client(provider).post()
+            apiRes = client.post()
                     .uri(resolveUrl(provider.apiUrl()))
+                    .header("Authorization", "Bearer " + provider.apiKey())
                     .body(apiReq)
                     .retrieve()
                     .body(OpenAiRes.class);
@@ -51,19 +49,21 @@ public class OpenAiModel implements Model {
         return apiRes.toModelRes();
     }
 
-    private RestClient client(OpenAiProvider.Provider provider) {
-        String key = provider.apiUrl() + "|" + provider.apiKey();
-        return clients.computeIfAbsent(key, ignored -> {
-            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-            factory.setConnectTimeout(10_000);
-            factory.setReadTimeout(180_000);
-            return RestClient.builder()
-                    .requestFactory(factory)
-                    .defaultHeader("Authorization", "Bearer " + provider.apiKey())
-                    .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
-                    .build();
-        });
+    /**
+     * 构建共享的 HTTP 客户端。
+     * <p>Builds the shared HTTP client.</p>
+     *
+     * @return the shared REST client
+     */
+    private static RestClient buildClient() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10_000);
+        factory.setReadTimeout(180_000);
+        return RestClient.builder()
+                .requestFactory(factory)
+                .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader("Accept", MediaType.APPLICATION_JSON_VALUE)
+                .build();
     }
 
     private static String resolveUrl(String apiUrl) {

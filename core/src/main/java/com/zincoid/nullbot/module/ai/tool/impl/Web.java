@@ -6,13 +6,20 @@ import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -24,6 +31,8 @@ import java.util.regex.Pattern;
 public class Web implements Tool {
 
     private static final int MAX_BODY_LENGTH = 8192;
+    private static final int MAX_BODY_BYTES = 1024 * 1024;
+    private static final int MAX_REDIRECTS = 5;
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s{3,}");
     private static final Pattern[] STRIP_PATTERNS = {
             Pattern.compile("<script[^>]*>.*?</script>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE),
@@ -35,7 +44,7 @@ public class Web implements Tool {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
-            .followRedirects(HttpClient.Redirect.ALWAYS)
+            .followRedirects(HttpClient.Redirect.NEVER)
             .build();
 
     // ════ Tool ════════════════════
@@ -67,29 +76,98 @@ public class Web implements Tool {
     // ════ Helpers ═════════════════
 
     /**
-     * 请求网页并返回响应正文。
-     * <p>Requests the webpage and returns the response body.</p>
+     * 请求网页并返回响应正文，手动跟随有限次重定向。
+     * <p>Requests the webpage and returns the response body, following a limited number of redirects manually.</p>
      *
      * @param url the webpage URL
      * @return the response body
      * @throws Exception when the request fails or the response is unsupported
      */
     private String fetchPage(String url) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                .header("Accept-Language", "zh-CN,zh;q=0.9")
-                .timeout(Duration.ofSeconds(15))
-                .GET()
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        String contentType = response.headers().firstValue("Content-Type").orElse("");
-        if (!contentType.contains("text/html") && !contentType.contains("text/plain"))
-            throw new RuntimeException("Unsupported Content-Type: %s, only HTML/text pages are supported".formatted(contentType));
-        if (response.statusCode() != 200)
-            throw new RuntimeException("HTTP %d".formatted(response.statusCode()));
-        return response.body();
+        URI uri = URI.create(url);
+        for (int redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
+            validate(uri);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .header("Accept-Language", "zh-CN,zh;q=0.9")
+                    .timeout(Duration.ofSeconds(15))
+                    .GET()
+                    .build();
+            HttpResponse<InputStream> response;
+            try {
+                response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw e;
+            }
+            int status = response.statusCode();
+            if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
+                String location = response.headers().firstValue("Location").orElse(null);
+                response.body().close();
+                if (location == null || location.isBlank())
+                    throw new RuntimeException("Redirect without Location");
+                uri = uri.resolve(location);
+                continue;
+            }
+            String contentType = response.headers().firstValue("Content-Type").orElse("");
+            if (status != 200) {
+                response.body().close();
+                throw new RuntimeException("HTTP %d".formatted(status));
+            }
+            String type = contentType.toLowerCase(Locale.ROOT);
+            if (!type.contains("text/html") && !type.contains("text/plain")) {
+                response.body().close();
+                throw new RuntimeException("Unsupported Content-Type: %s, only HTML/text pages are supported".formatted(contentType));
+            }
+            try (InputStream body = response.body()) {
+                return new String(body.readNBytes(MAX_BODY_BYTES), charset(contentType));
+            }
+        }
+        throw new RuntimeException("Too many redirects: " + MAX_REDIRECTS);
+    }
+
+    /**
+     * 校验请求地址，拒绝非 http/https 与本机、内网目标。
+     * <p>Validates the request URI, rejecting non-http/https targets and local or private hosts.</p>
+     *
+     * @param uri the request URI
+     * @throws Exception when the host cannot be resolved
+     */
+    private static void validate(URI uri) throws Exception {
+        String scheme = uri.getScheme();
+        if (scheme == null || (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")))
+            throw new RuntimeException("Unsupported URL scheme, only http/https is allowed");
+        String host = uri.getHost();
+        if (host == null || host.isBlank())
+            throw new RuntimeException("Missing URL host");
+        if (host.startsWith("[") && host.endsWith("]"))
+            host = host.substring(1, host.length() - 1);
+        for (InetAddress address : InetAddress.getAllByName(host)) {
+            byte[] bytes = address.getAddress();
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress()
+                    || address.isLinkLocalAddress() || address.isSiteLocalAddress()
+                    || address.isMulticastAddress()
+                    || (bytes.length == 16 && (bytes[0] & 0xFE) == 0xFC))
+                throw new RuntimeException("Blocked URL host: " + host);
+        }
+    }
+
+    /**
+     * 读取响应字符集，缺失或非法时回退 UTF-8。
+     * <p>Reads the response charset, falling back to UTF-8 when missing or invalid.</p>
+     *
+     * @param contentType the Content-Type header value
+     * @return the response charset
+     */
+    private static Charset charset(String contentType) {
+        try {
+            Charset charset = MediaType.parseMediaType(contentType).getCharset();
+            return charset == null ? StandardCharsets.UTF_8 : charset;
+        } catch (InvalidMediaTypeException e) {
+            return StandardCharsets.UTF_8;
+        }
     }
 
     /**

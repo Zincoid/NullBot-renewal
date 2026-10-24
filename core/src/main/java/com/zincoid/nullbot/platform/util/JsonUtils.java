@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.platform.util;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zincoid.nullbot.platform.exception.PlatformException;
 
@@ -9,7 +10,8 @@ import com.zincoid.nullbot.platform.exception.PlatformException;
  */
 public final class JsonUtils {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     private JsonUtils() {
     }
