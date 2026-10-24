@@ -40,11 +40,13 @@ nullbot:
 
   # ─── 连接 ─────────── #
   shiro:
-    url: /ws
     token:
-
-  # ─── 适配 ─────────── #
-  adapter: shiro
+    server:
+      enable: true
+      url: /ws
+    client:
+      enable: false
+      url:
 
   # ─── 插件 ─────────── #
   plugin:

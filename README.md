@@ -1,10 +1,10 @@
 # NullBot Renewal
 
-基于 Spring Boot 4 和 Java 27 的 QQ 机器人，采用适配器架构和多模块 Maven 工程。支持 Shiro（OneBot）与 stdin 调试适配器、外部插件、AI 对话、控制台管理，以及 MySQL / SQLite。
+基于 Spring Boot 4 和 Java 27 的聊天机器人，采用适配器架构和多模块 Maven 工程。支持 Shiro（OneBot / QQ）与 stdin 调试适配器、外部插件、AI 对话、控制台管理，以及 MySQL / SQLite。
 
 ## 特性
 
-- **适配器解耦**：核心只依赖 `spi`，新增机器人框架只需新增 `adapter-*` 模块。
+- **适配器解耦**：核心只依赖 `spi`，新增机器人框架只需新增 `adapter-*` 模块和对应构建 profile。
 - **指令框架**：指令注册、别名、权限、用量统计和限速责任链。
 - **外部插件**：独立 JAR 通过 `ServiceLoader` 加载，按插件隔离数据目录；控制台可查看状态并在运行时启用、禁用、重载。
 - **AI 能力**：OpenAI 兼容接口、工具调用、消息窗口记忆、提示词注入防护。
@@ -24,14 +24,14 @@ Java 27 · Spring Boot 4.0.8 · MyBatis-Plus 3.5.17 · Shiro 2.5.5 · Maven Wrap
 | `core` | 核心应用：`platform`、`module`、`bot`、`console` |
 | `adapters/adapter-shiro` | Shiro（QQ / OneBot）适配器 |
 | `adapters/adapter-stdin` | 终端调试适配器 |
-| `launcher` | 启动类、配置和可执行 JAR 打包 |
+| `launcher` | 启动类、配置和可执行 JAR 打包（按 Maven profile 选择适配器） |
 | `plugins/hello-plugin` | 示例插件（`Hello` / `你好`） |
 | `plugins/sb6657-plugin` | 随机玩机器烂梗 |
 | `plugins/pubg-plugin` | PUBG 资源地图 |
 | `plugins/query-plugin` | AA、PRTS 与图片溯源查询 |
 | `plugins/symmetry-plugin` | 图片对称 |
 
-依赖方向：`adapter-* -> spi`，`core -> spi`，`launcher -> core + adapters`。
+依赖方向：`adapter-* -> spi`，`core -> spi`，`launcher -> core + 一个由 Maven profile 选择的 adapter`。
 
 ## 快速开始
 
@@ -44,14 +44,21 @@ Java 27 · Spring Boot 4.0.8 · MyBatis-Plus 3.5.17 · Shiro 2.5.5 · Maven Wrap
 ### 构建
 
 ```bash
+# 默认构建 Shiro 适配器
 ./mvnw -DskipTests package
+
+# 构建 stdin 适配器
+./mvnw -DskipTests -Padapter-stdin package
 ```
 
 主要产物：
 
-- `launcher/target/launcher-0.0.1-SNAPSHOT.jar`：可执行 JAR
+- `launcher/target/launcher-shiro.jar`：Shiro 适配器可执行 JAR（默认构建）
+- `launcher/target/launcher-stdin.jar`：stdin 适配器可执行 JAR（使用 `-Padapter-stdin` 构建）
 - `core/target/core-0.0.1-SNAPSHOT.jar`：核心 JAR，供插件编译
 - `plugins/*/target/*.jar`：外部插件 JAR，构建后自动复制到 `workspace/plugins/`
+
+两个 profile 的产物文件名不同，可以分别构建后同时保留。
 
 ### 配置
 
@@ -60,6 +67,8 @@ cp application.yaml.template application-prod.yaml
 ```
 
 外部配置统一使用 `nullbot.*`，基础配置会映射到 `bot.*`。`application-dev.yaml` / `application-prod.yaml` 已被 gitignore。
+
+`launcher` 的基础配置只保留共享配置；适配器自己的连接配置由对应模块的 `adapter.yaml` 提供（Shiro 为 `adapters/adapter-shiro/src/main/resources/adapter.yaml`），launcher 通过 `spring.config.import: optional:classpath:adapter.yaml` 加载。每个适配器模块都会提供这个文件，`optional:` 主要是避免 IDE 跨模块资源检查报错；一次构建只包含一个适配器，切换适配器需要重新构建。
 
 常用配置：
 
@@ -72,7 +81,6 @@ nullbot:
     type: sqlite
     sqlite:
       path: ./workspace/data/sqlite.db
-  adapter: shiro
   plugin:
     enabled: true         # 是否加载 plugins 目录中的 JAR
     dir: ./workspace/plugins
@@ -85,16 +93,17 @@ nullbot:
 
 ### 运行
 
-从仓库根目录：
+从仓库根目录启动默认 Shiro 构建：
 
 ```bash
-java -jar launcher/target/launcher-0.0.1-SNAPSHOT.jar
+java -jar launcher/target/launcher-shiro.jar
 ```
 
-选择 stdin 适配器：
+启动 stdin 构建：
 
 ```bash
-java -jar launcher/target/launcher-0.0.1-SNAPSHOT.jar --nullbot.adapter=stdin
+./mvnw -DskipTests -Padapter-stdin package
+java -jar launcher/target/launcher-stdin.jar
 ```
 
 配置里的相对路径以运行目录为基准，建议从仓库根目录启动。也可以在运行目录放置 `application.yaml`，或用 `--spring.config.additional-location` 指定配置位置。
@@ -103,9 +112,15 @@ java -jar launcher/target/launcher-0.0.1-SNAPSHOT.jar --nullbot.adapter=stdin
 
 ```bash
 ./mvnw -DskipTests install
+
+# Shiro（默认）
 ./mvnw -pl launcher spring-boot:run
 
+# stdin
+./mvnw -pl launcher -Padapter-stdin spring-boot:run
+
 ./mvnw test
+./mvnw test -Padapter-stdin
 ```
 
 ## 控制台
@@ -145,12 +160,28 @@ Console UI: http://localhost:<port>/console/ui?token=...
 
 ## 适配器
 
-| 值 | 适配器 |
-| --- | --- |
-| `shiro` | Shiro（QQ / OneBot） |
-| `stdin` | 终端调试 |
+| 构建 profile | 适配器 | 产物 |
+| --- | --- | --- |
+| `adapter-shiro`（默认） | Shiro（QQ / OneBot） | `launcher-shiro.jar` |
+| `adapter-stdin` | 终端调试 | `launcher-stdin.jar` |
 
-默认 `shiro`。新增适配器见下方开发说明。
+一次构建只打入一个适配器，运行时不再通过 `nullbot.adapter` 切换；不要同时激活多个 adapter profile。适配器专属配置由对应模块的 `adapter.yaml` 提供。在 IDE 中运行 launcher 时，也需要在 Maven 面板选中对应的 adapter profile。新增适配器见下方开发说明。
+
+### Shiro 连接模式
+
+Shiro 默认使用反向 WebSocket（`shiro.ws.server.enable=true`）。正向 WebSocket 通过 `nullbot.*` 外部配置切换：
+
+```yaml
+nullbot:
+  shiro:
+    server:
+      enable: false
+    client:
+      enable: true
+      url: ws://websocket_server:port
+```
+
+反向 WS 的监听路径通过 `nullbot.shiro.server.url` 配置（默认 `/ws`），正向 WS 的连接地址通过 `nullbot.shiro.client.url` 配置。`server` 和 `client` 必须互斥；两者同时启用时 Shiro 会退出。`nullbot.shiro.client.reconnect-interval` 可调整正向连接的重连间隔，默认 5 秒。
 
 ## 插件
 
@@ -195,8 +226,11 @@ Console UI: http://localhost:<port>/console/ui?token=...
 
 - 入站：把框架事件转换成 `BotEvent`，调用 `BotServer.handle(client, event)`。
 - 出站：实现 `BotClient`。
-- 在 `adapters/` 下新建模块，依赖 `spi`，并加入 `adapters/pom.xml` 和 `launcher/pom.xml`。
-- 在 `AdapterProperties.Adapter` 中增加枚举值，配置 `nullbot.adapter`。
+- 在 `adapters/` 下新建模块，依赖 `spi`，并加入 `adapters/pom.xml`。
+- 在 `launcher/pom.xml` 增加一个 Maven profile，把该模块作为唯一的 adapter 依赖，并设置独立的 `finalName`。
+- 在模块的 `src/main/resources/adapter.yaml` 中放适配器默认配置；launcher 会通过 `optional:classpath:adapter.yaml` 加载。每个适配器都应提供该文件，`optional:` 只是避免 IDE 检查或缺失时阻塞启动。
+- 适配器组件直接注册为 Spring bean；一次构建只包含一个适配器，不需要运行时条件注解。
+- 第三方 starter 的自动配置会随依赖自然加载，不需要额外 exclude。
 - 参考实现：`adapters/adapter-stdin`、`adapters/adapter-shiro`。
 
 ### 编写插件

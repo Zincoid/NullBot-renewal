@@ -30,7 +30,6 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotServer;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Component;
  */
 @Shiro
 @Component
-@ConditionalOnProperty(name = "bot.adapter", havingValue = "shiro", matchIfMissing = true)
 @RequiredArgsConstructor
 public class ShiroListener {
 

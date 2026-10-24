@@ -4,7 +4,6 @@ import com.zincoid.nullbot.bot.spi.port.BotLifecycle;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
  * <p>Stdin lifecycle listener: goes online when the terminal adapter starts and offline on shutdown.</p>
  */
 @Component
-@ConditionalOnProperty(name = "bot.adapter", havingValue = "stdin")
 @RequiredArgsConstructor
 public class StdinLifecycleListener {
 

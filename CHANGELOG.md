@@ -34,7 +34,9 @@
 
 - 插件加载器保存插件实际注册的 `Cmd` 实例，`CmdRegistry` 支持按实例反注册，使插件可以安全卸载和重载。
 - 插件状态文件使用临时文件加原子替换写入，避免并发或中断时留下半个文件。
-- README 全面更新：控制台、插件管理、内置插件、配置项与插件开发说明。
+- 适配器改为构建时选择：`launcher` 通过 Maven profile 只打入一个适配器（默认 Shiro，`-Padapter-stdin` 构建 stdin），产物为 `launcher-shiro.jar` / `launcher-stdin.jar`；移除 `bot.adapter`、`AdapterProperties` 和适配器条件注解，适配器配置由模块内 `adapter.yaml` 提供。
+- Shiro 适配器配置支持反向 / 正向 WebSocket 切换：`adapter.yaml` 提供 `server` 与 `client` 占位符，二者互斥，可通过 `nullbot.shiro.*` 外部配置切换。
+- README 全面更新：控制台、插件管理、内置插件、适配器配置、配置项与插件开发说明。
 
 ### 修复
 

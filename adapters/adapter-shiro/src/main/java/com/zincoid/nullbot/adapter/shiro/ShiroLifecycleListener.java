@@ -5,7 +5,6 @@ import com.mikuac.shiro.core.CoreEvent;
 import com.zincoid.nullbot.bot.spi.port.BotLifecycle;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -17,7 +16,6 @@ import org.springframework.web.socket.WebSocketSession;
 @Slf4j
 @Primary
 @Component
-@ConditionalOnProperty(name = "bot.adapter", havingValue = "shiro", matchIfMissing = true)
 @RequiredArgsConstructor
 public class ShiroLifecycleListener extends CoreEvent {
 

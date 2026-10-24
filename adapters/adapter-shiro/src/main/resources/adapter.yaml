@@ -1,0 +1,11 @@
+# Shiro 适配器默认配置，由选中 adapter-shiro 的 launcher 构建加载
+shiro:
+  ws:
+    access-token: ${nullbot.shiro.token:}
+    server: # 反向 WS（默认）
+      enable: ${nullbot.shiro.server.enable:true}
+      url: ${nullbot.shiro.server.url:/ws}
+    client: # 正向 WS（启用时必须关闭 server）
+      enable: ${nullbot.shiro.client.enable:false}
+      url: ${nullbot.shiro.client.url:}
+      reconnect-interval: ${nullbot.shiro.client.reconnect-interval:5}

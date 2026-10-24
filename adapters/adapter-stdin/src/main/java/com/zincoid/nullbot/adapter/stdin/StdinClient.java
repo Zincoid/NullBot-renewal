@@ -6,8 +6,6 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;

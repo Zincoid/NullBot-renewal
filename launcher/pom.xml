@@ -24,16 +24,6 @@
             <artifactId>core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.zincoid</groupId>
-            <artifactId>adapter-shiro</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.zincoid</groupId>
-            <artifactId>adapter-stdin</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -57,4 +47,36 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>adapter-shiro</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.zincoid</groupId>
+                    <artifactId>adapter-shiro</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <finalName>launcher-shiro</finalName>
+            </build>
+        </profile>
+        <profile>
+            <id>adapter-stdin</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.zincoid</groupId>
+                    <artifactId>adapter-stdin</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <finalName>launcher-stdin</finalName>
+            </build>
+        </profile>
+    </profiles>
 </project>

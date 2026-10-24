@@ -10,6 +10,8 @@ spring:
     name: NullBot-renewal
   profiles:
     active: prod
+  config:
+    import: optional:classpath:adapter.yaml
   mvc:
     problemdetails:
       enabled: true
@@ -48,13 +50,6 @@ logging:
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
 
-shiro:
-  ws:
-    server:
-      enable: true
-      url: ${nullbot.shiro.url:/ws}
-    access-token: ${nullbot.shiro.token:}
-
 bot:
   db:
     type: ${nullbot.db.type:sqlite}
@@ -70,7 +65,6 @@ bot:
     root: ${nullbot.file.root:./files}
   console:
     token: ${nullbot.console.token:}
-  adapter: ${nullbot.adapter:shiro}
   cmd:
     ignore-case: true
   plugin:
