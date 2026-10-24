@@ -34,3 +34,4 @@ build/
 /workspace/
 /application-dev.yaml
 /application-prod.yaml
+/DEPLOY.md

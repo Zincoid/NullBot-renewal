@@ -1394,6 +1394,7 @@
             body.innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
             $('plugins-total').textContent = '';
             $('plugins-notice').hidden = true;
+            $('plugins-upload').hidden = true;
             $('plugins-reload-all').hidden = true;
             toast(t('plugins.loadFailed', {msg: e.message}), 'error');
         }
@@ -1401,6 +1402,7 @@
 
     function renderPlugins() {
         $('plugins-total').textContent = t('plugins.total', {n: pluginItems.length});
+        $('plugins-upload').hidden = !pluginEnabled;
         $('plugins-reload-all').hidden = !pluginEnabled;
         const notice = $('plugins-notice');
         notice.hidden = pluginEnabled;
@@ -1453,13 +1455,16 @@
     function pluginActions(plugin) {
         if (!pluginEnabled) return '<span class="muted">-</span>';
         const jar = escapeHtml(plugin.jar);
+        const remove = `<button class="small danger btn-delete" data-plugin-action="delete" data-jar="${jar}">${escapeHtml(t('plugins.delete'))}</button>`;
         if (plugin.state === 'LOADED') {
             return `<button class="small btn-reset" data-plugin-action="reload" data-jar="${jar}">${escapeHtml(t('plugins.reload'))}</button>
-                    <button class="small btn-toggle btn-disable" data-plugin-action="disable" data-jar="${jar}">${escapeHtml(t('plugins.disable'))}</button>`;
+                    <button class="small btn-toggle btn-disable" data-plugin-action="disable" data-jar="${jar}">${escapeHtml(t('plugins.disable'))}</button>
+                    ${remove}`;
         }
         if (plugin.state === 'DISABLED' || plugin.state === 'FAILED' || plugin.state === 'AVAILABLE') {
             const label = plugin.state === 'FAILED' ? t('plugins.retry') : t('plugins.enable');
-            return `<button class="small btn-toggle btn-enable" data-plugin-action="enable" data-jar="${jar}">${escapeHtml(label)}</button>`;
+            return `<button class="small btn-toggle btn-enable" data-plugin-action="enable" data-jar="${jar}">${escapeHtml(label)}</button>
+                    ${remove}`;
         }
         return '<span class="muted">-</span>';
     }
@@ -1467,11 +1472,17 @@
     async function pluginAction(action, jar) {
         if (pluginBusy) return;
         if (action === 'disable' && !await confirmAction(t('plugins.disableConfirm', {jar}))) return;
+        if (action === 'delete' && !await confirmAction(t('plugins.deleteConfirm', {jar}))) return;
         pluginBusy = true;
         try {
-            await api('/plugins/' + encodeURIComponent(jar) + '/' + action, {method: 'POST'});
+            if (action === 'delete') {
+                await api('/plugins/' + encodeURIComponent(jar), {method: 'DELETE'});
+            } else {
+                await api('/plugins/' + encodeURIComponent(jar) + '/' + action, {method: 'POST'});
+            }
             const key = action === 'enable' ? 'plugins.enabled'
-                : action === 'disable' ? 'plugins.disabled' : 'plugins.reloaded';
+                : action === 'disable' ? 'plugins.disabled'
+                : action === 'delete' ? 'plugins.deleted' : 'plugins.reloaded';
             toast(t(key, {jar}), 'ok');
         } catch (e) {
             toast(t('plugins.actionFailed', {msg: e.message}), 'error');
@@ -1492,6 +1503,40 @@
         } catch (e) {
             toast(t('plugins.actionFailed', {msg: e.message}), 'error');
         } finally {
+            await loadPlugins();
+            pluginBusy = false;
+            button.disabled = false;
+        }
+    }
+
+    async function uploadPlugin() {
+        const input = $('plugins-upload-file');
+        const file = input.files && input.files[0];
+        if (!file) return;
+        if (!pluginEnabled || pluginBusy) {
+            input.value = '';
+            return;
+        }
+        if (!file.name.endsWith('.jar')) {
+            input.value = '';
+            toast(t('plugins.uploadInvalid'), 'error');
+            return;
+        }
+        pluginBusy = true;
+        const button = $('plugins-upload');
+        button.disabled = true;
+        try {
+            const form = new FormData();
+            form.append('file', file);
+            const data = await api('/plugins', {method: 'POST', body: form});
+            if (data && data.state === 'FAILED')
+                toast(t('plugins.uploadLoadFailed', {msg: data.error || t('plugins.state.FAILED')}), 'error');
+            else
+                toast(t('plugins.uploaded', {jar: (data && data.jar) || file.name}), 'ok');
+        } catch (e) {
+            toast(t('plugins.uploadFailed', {msg: e.message}), 'error');
+        } finally {
+            input.value = '';
             await loadPlugins();
             pluginBusy = false;
             button.disabled = false;
@@ -1835,6 +1880,10 @@
         });
 
         $('plugins-refresh').onclick = loadPlugins;
+        $('plugins-upload').onclick = () => {
+            if (!pluginBusy) $('plugins-upload-file').click();
+        };
+        $('plugins-upload-file').addEventListener('change', uploadPlugin);
         $('plugins-reload-all').onclick = reloadAllPlugins;
         $('plugins-body').addEventListener('click', event => {
             const button = event.target.closest('button[data-plugin-action]');

@@ -12,8 +12,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -35,9 +38,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * 外部插件加载器：扫描插件目录，校验并注册插件指令，支持运行时启停、重载与目录重扫。
+ * 外部插件加载器：扫描插件目录，校验并注册插件指令，支持运行时启停、重载、目录重扫、上传与删除。
  * <p>External plugin loader: scans the plugin directory, validates and registers plugin commands,
- * and supports runtime enable, disable, reload, and directory rescan.</p>
+ * and supports runtime enable, disable, reload, directory rescan, install, and delete.</p>
  */
 @Slf4j
 @Component
@@ -224,6 +227,90 @@ public class PluginLoader {
         requireEnabled();
         state.load();
         rescan();
+    }
+
+    /**
+     * 安装上传的插件 JAR，写入插件目录并立即加载；加载失败时保留 JAR。
+     * <p>Installs an uploaded plugin jar, writes it to the plugin directory, and loads it immediately;
+     * the jar is kept when loading fails.</p>
+     *
+     * @param jarName the plugin jar filename
+     * @param source  the uploaded jar content; the caller closes the stream
+     * @return the installed plugin status
+     */
+    public synchronized PluginStatus install(String jarName, InputStream source) {
+        requireEnabled();
+        String name = validateJarName(jarName);
+        Path target = jarPath(name);
+        if (findLoaded(name) != null || Files.exists(target))
+            throw new PluginException("Plugin already exists: " + name);
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new PluginException("Cannot create plugin directory: " + dir, e);
+        }
+        Path temp = null;
+        try {
+            temp = Files.createTempFile(dir, ".upload-", ".tmp");
+            Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
+            if (findLoaded(name) != null || Files.exists(target))
+                throw new PluginException("Plugin already exists: " + name);
+            try {
+                Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temp, target);
+            }
+            temp = null;
+        } catch (FileAlreadyExistsException e) {
+            throw new PluginException("Plugin already exists: " + name);
+        } catch (IOException e) {
+            throw new PluginException("Cannot install plugin jar: " + name, e);
+        } finally {
+            deleteQuietly(temp);
+        }
+        state.setDisabled(name, false);
+        failures.remove(name);
+        try {
+            loadPlugin(name, target);
+        } catch (PluginException e) {
+            PluginStatus status = new PluginStatus(name, null, null, null, List.of(),
+                    PluginStatus.State.FAILED, failures.getOrDefault(name, message(e)));
+            log.info("Plugin installed: {} ({})", name, status.state());
+            return status;
+        }
+        PluginStatus status = findLoaded(name).status();
+        log.info("Plugin installed: {} ({})", name, status.state());
+        return status;
+    }
+
+    /**
+     * 删除插件 JAR，已加载时先卸载；插件数据目录保留。
+     * <p>Deletes a plugin jar, unloading it first when loaded; the plugin data directory is kept.</p>
+     *
+     * @param jarName the plugin jar filename
+     * @return true when a plugin jar was deleted
+     */
+    public synchronized boolean delete(String jarName) {
+        requireEnabled();
+        String name = validateJarName(jarName);
+        LoadedPlugin current = findLoaded(name);
+        Path jar = jarPath(name);
+        if (current == null && !Files.isRegularFile(jar))
+            return false;
+        try {
+            Files.deleteIfExists(jar);
+        } catch (IOException e) {
+            throw new PluginException("Cannot delete plugin jar: " + name, e);
+        }
+        if (current != null) unloadInternal(current);
+        failures.remove(name);
+        try {
+            state.setDisabled(name, false);
+        } catch (PluginException e) {
+            log.warn("Cannot clear plugin state: {}", name, e);
+        }
+        log.info("Plugin deleted: {}", name);
+        return true;
     }
 
     // ════ Unload ══════════════════
