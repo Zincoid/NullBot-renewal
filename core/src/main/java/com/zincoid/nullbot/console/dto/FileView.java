@@ -2,6 +2,8 @@ package com.zincoid.nullbot.console.dto;
 
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.po.File;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
  * @param description the file description
  * @param size        the file size in bytes
  * @param type        the business type
+ * @param contentType the stored content type
  * @param createdAt   the creation time
  */
 public record FileView(
@@ -24,6 +27,7 @@ public record FileView(
         String description,
         long size,
         BizType type,
+        String contentType,
         LocalDateTime createdAt
 ) {
 
@@ -42,6 +46,9 @@ public record FileView(
                 file.getDescription(),
                 file.getSize(),
                 file.getType(),
+                MediaTypeFactory.getMediaType(file.getStored())
+                        .orElse(MediaType.APPLICATION_OCTET_STREAM)
+                        .toString(),
                 file.getCreatedAt());
     }
 }

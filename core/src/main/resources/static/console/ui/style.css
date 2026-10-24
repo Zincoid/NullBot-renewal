@@ -1464,6 +1464,28 @@ td.actions > .actions-divider {
     max-width: 220px;
 }
 
+button.file-name--link {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-primary);
+    font-weight: inherit;
+    line-height: inherit;
+    text-align: left;
+    text-overflow: ellipsis;
+}
+
+button.file-name--link:hover {
+    border-color: transparent;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+button.file-name--link:active {
+    transform: none;
+}
+
 .file-description {
     max-width: 160px;
 }
@@ -2022,6 +2044,33 @@ dialog::backdrop {
     justify-content: flex-end;
     gap: var(--spacing-sm);
     margin-top: var(--spacing-xs);
+}
+
+/* ═══ Preview dialog ════════════ */
+
+.preview-dialog {
+    width: min(1100px, calc(100vw - 32px));
+}
+
+.preview-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    padding: var(--spacing-xl);
+    overflow: hidden;
+}
+
+.preview-media {
+    display: block;
+    max-width: 100%;
+    max-height: calc(85vh - 170px);
+    border-radius: var(--rounded-md);
+    background: var(--color-bg-alt);
+}
+
+audio.preview-media {
+    width: min(560px, 100%);
 }
 
 /* ═══ About dialog ══════════════ */

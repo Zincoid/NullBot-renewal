@@ -22,7 +22,7 @@ import java.io.InputStreamReader;
 public class StdinListener {
 
     private final BotServer server;
-    private final StdinClient client = new StdinClient();
+    private final StdinClient client;
 
     // ════ Input ═══════════════════
 

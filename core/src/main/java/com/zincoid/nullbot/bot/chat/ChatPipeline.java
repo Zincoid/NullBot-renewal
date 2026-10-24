@@ -89,7 +89,7 @@ public class ChatPipeline {
         chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
                 "User " + name + "(" + event.userId()
                         + ") just rubbed you in a group chat; respond to it.", event,
-                AiMessage.user(name, "[揉]", List.of()));
+                AiMessage.user(name, "[Rubbed you]", List.of()));
     }
 
     public void poke(BotClient client, PrivatePokeEvent event, Language language) {
@@ -97,7 +97,7 @@ public class ChatPipeline {
         chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
                 "User " + name + "(" + event.userId()
                         + ") just rubbed you in a private chat; respond to it.", event,
-                AiMessage.user(name, "[揉]", List.of()));
+                AiMessage.user(name, "[Rubbed you]", List.of()));
     }
 
     // ════ Core ════════════════════

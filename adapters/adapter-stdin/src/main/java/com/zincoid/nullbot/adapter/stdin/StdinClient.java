@@ -6,6 +6,7 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Stdin outbound adapter: prints bot actions to the terminal, fakes the rest.</p>
  */
 @Slf4j
+@Component
 public class StdinClient implements BotClient {
 
     public static final String SELF_ID = "1";

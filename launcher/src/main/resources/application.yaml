@@ -41,10 +41,10 @@ logging:
       %m%n%wEx
     file: >-
       %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}
-      %highlight(%5p)
-      %clr([%15.15t]){faint}
-      %clr(%-36.36logger{36}){cyan}
-      %clr(:){faint}
+      %5p
+      [%15.15t]
+      %-36.36logger{36}
+      :
       %m%n%wEx
 
 mybatis-plus:

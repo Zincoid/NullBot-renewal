@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class StdinLifecycleListener {
 
     private final BotLifecycle lifecycle;
-    private final StdinClient client = new StdinClient();
+    private final StdinClient client;
 
     @PostConstruct
     void start() {

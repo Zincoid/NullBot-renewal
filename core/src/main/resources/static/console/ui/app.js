@@ -446,6 +446,7 @@
     const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', items: []};
     const fileSelection = new Set();
     let editingFile = null;
+    let previewUrl = null;
     let uploading = false;
     let deletingFiles = false;
 
@@ -491,13 +492,21 @@
         if (!data.items.length) {
             body.innerHTML = emptyRow(9, t('files.empty'));
         } else {
-            body.innerHTML = data.items.map(file => `
+            body.innerHTML = data.items.map(file => {
+                const name = escapeHtml(file.original || '-');
+                const title = escapeHtml(file.original || '');
+                const fileName = previewKind(file)
+                    ? `<button type="button" class="file-name file-name--link"
+                               data-action="preview" data-id="${file.id}" title="${title}"
+                               aria-label="${escapeHtml(t('files.preview'))}: ${title}">${name}</button>`
+                    : `<span class="file-name" title="${title}">${name}</span>`;
+                return `
                 <tr>
                     <td class="check-col"><input type="checkbox" class="file-select" data-id="${file.id}"
                                                  aria-label="${escapeHtml(t('files.select'))}"
                                                  ${fileSelection.has(file.id) ? 'checked' : ''}></td>
                     <td>${file.id}</td>
-                    <td><span class="file-name" title="${escapeHtml(file.original || '')}">${escapeHtml(file.original || '-')}</span></td>
+                    <td>${fileName}</td>
                     <td><span class="file-description" title="${escapeHtml(file.description || '')}">${escapeHtml(file.description || '-')}</span></td>
                     <td class="nowrap">${escapeHtml(bizLabel(file.type) || file.type || '-')}</td>
                     <td class="nowrap">${formatBytes(file.size)}</td>
@@ -508,7 +517,8 @@
                         <button class="small btn-download" data-action="download" data-id="${file.id}">${escapeHtml(t('common.download'))}</button>
                         <button class="small danger btn-delete" data-action="delete" data-id="${file.id}">${escapeHtml(t('common.delete'))}</button>
                     </td>
-                </tr>`).join('');
+                </tr>`;
+            }).join('');
         }
         renderPager($('files-pager'), data, page => {
             fileState.page = page;
@@ -567,6 +577,42 @@
             setTimeout(() => URL.revokeObjectURL(url), 10000);
         } catch (e) {
             toast(t('files.downloadFailed', {msg: e.message}), 'error');
+        }
+    }
+
+    function previewKind(file) {
+        const type = (file.contentType || '').toLowerCase();
+        if (type.startsWith('image/')) return 'image';
+        if (type.startsWith('video/')) return 'video';
+        if (type.startsWith('audio/')) return 'audio';
+        return null;
+    }
+
+    function releasePreview() {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+        $('preview-body').innerHTML = '';
+    }
+
+    async function openPreview(file) {
+        const kind = previewKind(file);
+        if (!kind) return;
+        try {
+            const blob = await apiBlob('/files/' + file.id + '/content');
+            releasePreview();
+            previewUrl = URL.createObjectURL(blob);
+            $('preview-title').textContent = file.original || ('file-' + file.id);
+            const media = document.createElement(kind === 'image' ? 'img' : kind);
+            media.className = 'preview-media';
+            if (kind === 'image') media.alt = file.original || '';
+            else media.controls = true;
+            media.src = previewUrl;
+            $('preview-body').appendChild(media);
+            $('preview-dialog').showModal();
+        } catch (e) {
+            toast(t('files.previewFailed', {msg: e.message}), 'error');
         }
     }
 
@@ -1453,6 +1499,7 @@
             });
             dialog.addEventListener('close', () => {
                 if (dialog.id === 'file-dialog') editingFile = null;
+                if (dialog.id === 'preview-dialog') releasePreview();
                 if (dialog.id === 'user-dialog') currentUser = null;
                 if (dialog.id === 'group-dialog') {
                     currentGroup = null;
@@ -1547,6 +1594,7 @@
             const file = fileState.items.find(item => item.id === Number(button.dataset.id));
             if (!file) return;
             if (button.dataset.action === 'edit') openFileDialog(file);
+            else if (button.dataset.action === 'preview') openPreview(file);
             else if (button.dataset.action === 'download') downloadFile(file);
             else if (button.dataset.action === 'delete') deleteFile(file);
         });
