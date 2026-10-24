@@ -1,55 +1,44 @@
 package com.zincoid.nullbot.bot.cmd.impl.media;
 
-import com.zincoid.nullbot.bot.cmd.Cmd;
-import com.zincoid.nullbot.bot.cmd.CmdArgs;
-import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * 获取图片指令：按文件 ID 发送已收藏的图片。
  * <p>Get image command: sends a collected image by file id.</p>
  */
-@Slf4j
 @CmdMapping({"ImageGet", "获取图片"})
 @Component
-@RequiredArgsConstructor
-public class ImageGetCmd implements Cmd {
+public class ImageGetCmd extends MediaGetCmd {
 
-    private final FileService fileService;
-
-    // ════ Run ═════════════════════
-
-    @Override
-    public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        handle(ctx, args);
+    public ImageGetCmd(FileService fileService) {
+        super(fileService);
     }
 
     @Override
-    public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        handle(ctx, args);
+    protected BizType type() {
+        return BizType.IMAGE_COLLECTION;
     }
 
-    private void handle(CmdContext ctx, CmdArgs args) {
-        long id = args.nextLong();
-        File file = fileService.getById(id);
-        if (file == null)
-            throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
-        if (file.getType() != BizType.IMG_COLL)
-            throw new CmdWarnException(ctx.render(Text.NOT_IMAGE, id));
-        ctx.send(MsgContent.builder().image(fileService.uri(file)).build());
-        log.info("Image sent: {}", id);
+    @Override
+    protected Text notFound() {
+        return Text.NOT_IMAGE;
+    }
+
+    @Override
+    protected MsgContent content(File file) {
+        return MsgContent.builder().image(fileService.uri(file)).build();
+    }
+
+    @Override
+    protected String kind() {
+        return "Image";
     }
 
     // ════ Cmd ═════════════════════

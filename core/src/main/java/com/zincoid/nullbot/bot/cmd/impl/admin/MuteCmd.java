@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.cmd.impl.manage;
+package com.zincoid.nullbot.bot.cmd.impl.admin;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;

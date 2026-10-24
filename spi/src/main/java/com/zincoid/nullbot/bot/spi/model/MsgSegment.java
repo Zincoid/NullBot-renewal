@@ -6,9 +6,7 @@ package com.zincoid.nullbot.bot.spi.model;
  */
 public sealed interface MsgSegment permits
         MsgSegment.Text,
-        MsgSegment.Image,
-        MsgSegment.Video,
-        MsgSegment.Voice,
+        MsgSegment.Media,
         MsgSegment.At,
         MsgSegment.Reply,
         MsgSegment.Face,
@@ -24,13 +22,36 @@ public sealed interface MsgSegment permits
     }
 
     /**
+     * 媒体段：图片、视频或语音。
+     * <p>Media segment: image, video, or voice.</p>
+     */
+    sealed interface Media extends MsgSegment permits Image, Video, Voice {
+
+        /**
+         * 媒体地址。
+         * <p>The media url.</p>
+         *
+         * @return the media url
+         */
+        String url();
+
+        /**
+         * 原始文件名，可能为 null。
+         * <p>The original filename, possibly null.</p>
+         *
+         * @return the original filename, or null
+         */
+        String file();
+    }
+
+    /**
      * 图片段。
      * <p>Image segment.</p>
      *
      * @param url  the image url
      * @param file original filename, nullable
      */
-    record Image(String url, String file) implements MsgSegment {
+    record Image(String url, String file) implements Media {
 
         public Image(String url) {
             this(url, null);
@@ -44,7 +65,7 @@ public sealed interface MsgSegment permits
      * @param url  the video url
      * @param file original filename, nullable
      */
-    record Video(String url, String file) implements MsgSegment {
+    record Video(String url, String file) implements Media {
 
         public Video(String url) {
             this(url, null);
@@ -58,7 +79,7 @@ public sealed interface MsgSegment permits
      * @param url  the voice url
      * @param file original filename, nullable
      */
-    record Voice(String url, String file) implements MsgSegment {
+    record Voice(String url, String file) implements Media {
 
         public Voice(String url) {
             this(url, null);

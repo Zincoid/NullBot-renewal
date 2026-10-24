@@ -2,6 +2,7 @@ package com.zincoid.nullbot.console.dto;
 
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.po.File;
+import com.zincoid.nullbot.platform.util.MimeUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 
@@ -46,9 +47,23 @@ public record FileView(
                 file.getDescription(),
                 file.getSize(),
                 file.getType(),
-                MediaTypeFactory.getMediaType(file.getStored())
-                        .orElse(MediaType.APPLICATION_OCTET_STREAM)
-                        .toString(),
+                contentType(file),
                 file.getCreatedAt());
+    }
+
+    /**
+     * 推断文件的 MIME 类型，优先使用扩展名映射。
+     * <p>Infers the file MIME type, preferring the extension mapping.</p>
+     *
+     * @param file the file record
+     * @return the content type
+     */
+    private static String contentType(File file) {
+        String mime = MimeUtils.mime(file.getStored());
+        if (mime == null) mime = MimeUtils.mime(file.getOriginal());
+        if (mime != null) return mime;
+        return MediaTypeFactory.getMediaType(file.getStored())
+                .orElse(MediaType.APPLICATION_OCTET_STREAM)
+                .toString();
     }
 }

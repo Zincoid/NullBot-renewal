@@ -479,12 +479,29 @@
 
 <!-- ═══ Preview dialog ═══════════ -->
 <dialog id="preview-dialog" class="preview-dialog">
-    <div class="dialog-head">
-        <h2 id="preview-title"></h2>
-        <button type="button" class="dialog-close" data-close
-                data-i18n-aria-label="common.close" aria-label="关闭">×</button>
+    <h2 id="preview-title" class="preview-title"></h2>
+    <div class="preview-toolbar">
+        <button type="button" class="preview-btn" id="preview-download"
+                data-i18n-title="common.download" data-i18n-aria-label="common.download"
+                aria-label="下载" title="下载">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+        </button>
+        <button type="button" class="preview-btn" data-close
+                data-i18n-title="common.close" data-i18n-aria-label="common.close"
+                aria-label="关闭" title="关闭">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
     </div>
-    <div class="dialog-body preview-body" id="preview-body"></div>
+    <div class="preview-body" id="preview-body"></div>
 </dialog>
 
 <!-- ═══ Group dialog ═════════════ -->

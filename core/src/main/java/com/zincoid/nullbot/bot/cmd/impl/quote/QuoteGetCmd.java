@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * <p>Get quote command: sends the quote with the given id.</p>
  */
 @Slf4j
-@CmdMapping({"QuoteGet", "获取语录"})
+@CmdMapping({"QuoteGet", "SayGet", "获取语录"})
 @Component
 @RequiredArgsConstructor
 public class QuoteGetCmd implements Cmd {
@@ -56,12 +56,12 @@ public class QuoteGetCmd implements Cmd {
                 QuoteGet
                 Sends a quote by id.
                 Usage: QuoteGet [quote id]
-                Aliases: 获取语录
+                Aliases: SayGet/获取语录
                 Access: >=0(normal)""" : """
                 QuoteGet
                 按语录 id 发送语录。
                 用法：QuoteGet [quote id]
-                别名：获取语录
+                别名：SayGet/获取语录
                 权限：>=0(normal)""";
     }
 }

@@ -19,11 +19,13 @@ public enum Text {
     FILE_NOT_FOUND("文件不存在：%d", "File not found: %d"),
     NOT_IMAGE("不是图片：%d", "Not an image: %d"),
     NOT_VIDEO("不是视频：%d", "Not a video: %d"),
+    NOT_AUDIO("不是音频：%d", "Not audio: %d"),
     NO_IMAGES("没有图片", "No images"),
     NO_VIDEOS("没有视频", "No videos"),
     NO_AUDIOS("没有音频", "No audio"),
     NO_IMAGES_IN_REPLY("回复中没有图片", "No images in reply"),
     NO_VIDEOS_IN_REPLY("回复中没有视频", "No videos in reply"),
+    NO_AUDIOS_IN_REPLY("回复中没有音频", "No audio in reply"),
     QUOTE_NOT_FOUND("语录不存在：%d", "Quote not found: %d"),
     NO_QUOTES("没有语录", "No quotes"),
     QUOTE_ALREADY_SAVED("语录已保存", "Quote already saved"),
@@ -39,6 +41,7 @@ public enum Text {
     // ════ Handlers ═══════════════
 
     ACCESS_DENIED("🚫 权限不足：需要 %s，当前 %s", "🚫 Access denied: required %s, yours %s"),
+    GROUP_ACCESS_DENIED("🚫 群权限不足：需要 %s，当前 %s", "🚫 Group access denied: required %s, current %s"),
     TOO_MANY_REQUESTS("⚠️ 请求过于频繁", "⚠️ Too many requests"),
     HELP_PRIVATE_UNAVAILABLE("⚠️ 私聊中无法查看帮助", "⚠️ Help is unavailable in private chat"),
     HELP_UNAVAILABLE("暂无帮助", "No help available"),
@@ -113,6 +116,9 @@ public enum Text {
     VIDEO_SAVED_ONE("🎥 视频已保存：id=%d", "🎥 Video saved: id=%d"),
     VIDEO_SAVED_MANY("🎥 已保存 %d 个视频", "🎥 Videos saved: %d"),
     VIDEO_DELETED("⚠️ 视频已删除：%d", "⚠️ Video deleted: %d"),
+    AUDIO_SAVED_ONE("🎵 音频已保存：id=%d", "🎵 Audio saved: id=%d"),
+    AUDIO_SAVED_MANY("🎵 已保存 %d 个音频", "🎵 Audio saved: %d"),
+    AUDIO_DELETED("⚠️ 音频已删除：%d", "⚠️ Audio deleted: %d"),
     QUOTE_SAVED("💾 语录已保存：no.%d", "💾 Quote saved: no.%d"),
     QUOTE_DELETED("⚠️ 语录 No.%d 已删除", "⚠️ Quote No.%d deleted"),
 

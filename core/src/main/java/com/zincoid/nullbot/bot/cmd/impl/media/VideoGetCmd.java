@@ -1,55 +1,44 @@
 package com.zincoid.nullbot.bot.cmd.impl.media;
 
-import com.zincoid.nullbot.bot.cmd.Cmd;
-import com.zincoid.nullbot.bot.cmd.CmdArgs;
-import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * 获取视频指令：按文件 ID 发送已收藏的视频。
  * <p>Get video command: sends a collected video by file id.</p>
  */
-@Slf4j
 @CmdMapping({"VideoGet", "获取视频"})
 @Component
-@RequiredArgsConstructor
-public class VideoGetCmd implements Cmd {
+public class VideoGetCmd extends MediaGetCmd {
 
-    private final FileService fileService;
-
-    // ════ Run ═════════════════════
-
-    @Override
-    public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        handle(ctx, args);
+    public VideoGetCmd(FileService fileService) {
+        super(fileService);
     }
 
     @Override
-    public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        handle(ctx, args);
+    protected BizType type() {
+        return BizType.VIDEO_COLLECTION;
     }
 
-    private void handle(CmdContext ctx, CmdArgs args) {
-        long id = args.nextLong();
-        File file = fileService.getById(id);
-        if (file == null)
-            throw new CmdWarnException(ctx.render(Text.FILE_NOT_FOUND, id));
-        if (file.getType() != BizType.VID_COLL)
-            throw new CmdWarnException(ctx.render(Text.NOT_VIDEO, id));
-        ctx.send(MsgContent.builder().video(fileService.uri(file)).build());
-        log.info("Video sent: {}", id);
+    @Override
+    protected Text notFound() {
+        return Text.NOT_VIDEO;
+    }
+
+    @Override
+    protected MsgContent content(File file) {
+        return MsgContent.builder().video(fileService.uri(file)).build();
+    }
+
+    @Override
+    protected String kind() {
+        return "Video";
     }
 
     // ════ Cmd ═════════════════════

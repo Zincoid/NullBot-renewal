@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.cmd.impl.ai;
+package com.zincoid.nullbot.bot.cmd.impl.aichat;
 
 import com.zincoid.nullbot.bot.chat.ChatPipeline;
 import com.zincoid.nullbot.bot.cmd.Cmd;

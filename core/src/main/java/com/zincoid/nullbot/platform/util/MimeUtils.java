@@ -42,6 +42,9 @@ public final class MimeUtils {
             return "video/mp4";
         }
         // Audio
+        if ((bytes[0] & 0xFF) == 0x02 && has(bytes, 1, "#!SILK")) return "audio/silk";
+        if (has(bytes, 0, "#!SILK")) return "audio/silk";
+        if (has(bytes, 0, "#!AMR")) return "audio/amr";
         if (has(bytes, 0, "ID3")) return "audio/mpeg";
         if ((bytes[0] & 0xFF) == 0xFF && ((bytes[1] & 0xFF) == 0xFB
                 || (bytes[1] & 0xFF) == 0xF3 || (bytes[1] & 0xFF) == 0xF2))
@@ -82,6 +85,8 @@ public final class MimeUtils {
             case "wav" -> "audio/wav";
             case "flac" -> "audio/flac";
             case "m4a" -> "audio/mp4";
+            case "amr" -> "audio/amr";
+            case "silk" -> "audio/silk";
             case "mp4" -> "video/mp4";
             case "mov" -> "video/quicktime";
             case "avi" -> "video/x-msvideo";
@@ -118,6 +123,8 @@ public final class MimeUtils {
             case "audio/wav" -> "wav";
             case "audio/flac" -> "flac";
             case "audio/mp4" -> "m4a";
+            case "audio/amr" -> "amr";
+            case "audio/silk" -> "silk";
             case "video/mp4" -> "mp4";
             case "video/quicktime" -> "mov";
             case "video/x-msvideo" -> "avi";

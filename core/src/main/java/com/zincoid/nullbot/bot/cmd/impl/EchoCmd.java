@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @CmdMapping({"Reply", "回复"})
 @Component
-public class ReplyCmd implements Cmd {
+public class EchoCmd implements Cmd {
 
     // ════ Run ═════════════════════
 

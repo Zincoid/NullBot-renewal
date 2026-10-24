@@ -2049,28 +2049,131 @@ dialog::backdrop {
 /* ═══ Preview dialog ════════════ */
 
 .preview-dialog {
-    width: min(1100px, calc(100vw - 32px));
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #fff;
+    box-shadow: none;
+    overflow: hidden;
 }
 
-.preview-body {
+.preview-dialog[open] {
+    animation: preview-fade-in var(--transition-fast);
+}
+
+.preview-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: none;
+}
+
+.preview-title {
+    position: absolute;
+    top: var(--spacing-xl);
+    left: var(--spacing-xl);
+    z-index: 2;
+    max-width: calc(100vw - 160px);
+    margin: 0;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.preview-toolbar {
+    position: absolute;
+    top: var(--spacing-xl);
+    right: var(--spacing-xl);
+    z-index: 2;
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.preview-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 160px;
-    padding: var(--spacing-xl);
-    overflow: hidden;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--rounded-full);
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.preview-btn:hover {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.preview-body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--spacing-xl) * 2 + 40px) var(--spacing-xl) var(--spacing-xl);
+    overflow: auto;
 }
 
 .preview-media {
     display: block;
-    max-width: 100%;
-    max-height: calc(85vh - 170px);
-    border-radius: var(--rounded-md);
-    background: var(--color-bg-alt);
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: var(--rounded-lg);
+    background: transparent;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 audio.preview-media {
-    width: min(560px, 100%);
+    width: 400px;
+    max-width: 90vw;
+}
+
+.preview-unsupported {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    max-width: 520px;
+    text-align: center;
+}
+
+.preview-unsupported p {
+    margin: 0;
+}
+
+.preview-unsupported button {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.preview-unsupported button:hover {
+    border-color: transparent;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes preview-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* ═══ About dialog ══════════════ */

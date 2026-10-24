@@ -447,6 +447,7 @@
     const fileSelection = new Set();
     let editingFile = null;
     let previewUrl = null;
+    let previewFile = null;
     let uploading = false;
     let deletingFiles = false;
 
@@ -580,6 +581,8 @@
         }
     }
 
+    const UNPREVIEWABLE_AUDIO = new Set(['audio/silk', 'audio/x-silk', 'audio/amr']);
+
     function previewKind(file) {
         const type = (file.contentType || '').toLowerCase();
         if (type.startsWith('image/')) return 'image';
@@ -599,6 +602,25 @@
     async function openPreview(file) {
         const kind = previewKind(file);
         if (!kind) return;
+        previewFile = file;
+        const type = (file.contentType || '').toLowerCase();
+        if (kind === 'audio' && UNPREVIEWABLE_AUDIO.has(type)) {
+            releasePreview();
+            $('preview-title').textContent = file.original || ('file-' + file.id);
+            const wrap = document.createElement('div');
+            wrap.className = 'preview-unsupported';
+            const message = document.createElement('p');
+            message.textContent = t('files.previewUnsupported', {type: file.contentType || ''});
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'small';
+            button.textContent = t('common.download');
+            button.addEventListener('click', () => downloadFile(file));
+            wrap.append(message, button);
+            $('preview-body').appendChild(wrap);
+            $('preview-dialog').showModal();
+            return;
+        }
         try {
             const blob = await apiBlob('/files/' + file.id + '/content');
             releasePreview();
@@ -606,8 +628,13 @@
             $('preview-title').textContent = file.original || ('file-' + file.id);
             const media = document.createElement(kind === 'image' ? 'img' : kind);
             media.className = 'preview-media';
-            if (kind === 'image') media.alt = file.original || '';
-            else media.controls = true;
+            if (kind === 'image') {
+                media.alt = file.original || '';
+            } else {
+                media.controls = true;
+                media.autoplay = true;
+                if (kind === 'video') media.volume = 0.25;
+            }
             media.src = previewUrl;
             $('preview-body').appendChild(media);
             $('preview-dialog').showModal();
@@ -1499,7 +1526,10 @@
             });
             dialog.addEventListener('close', () => {
                 if (dialog.id === 'file-dialog') editingFile = null;
-                if (dialog.id === 'preview-dialog') releasePreview();
+                if (dialog.id === 'preview-dialog') {
+                    releasePreview();
+                    previewFile = null;
+                }
                 if (dialog.id === 'user-dialog') currentUser = null;
                 if (dialog.id === 'group-dialog') {
                     currentGroup = null;
@@ -1507,6 +1537,12 @@
                     resetKeywordForm();
                 }
             });
+        });
+        $('preview-download').addEventListener('click', () => {
+            if (previewFile) downloadFile(previewFile);
+        });
+        $('preview-body').addEventListener('click', event => {
+            if (event.target === event.currentTarget) $('preview-dialog').close();
         });
     }
 
