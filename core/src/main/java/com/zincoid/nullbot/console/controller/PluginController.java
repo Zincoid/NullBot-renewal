@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * 控制台插件接口：查询、启用、禁用与重载外部插件。
- * <p>Console plugin API: queries, enabling, disabling, and reloading external plugins.</p>
+ * 控制台插件接口：查询、启用、禁用、重载与重扫外部插件。
+ * <p>Console plugin API: queries, enabling, disabling, reloading, and rescanning external plugins.</p>
  */
 @RestController
 @RequestMapping("/console/plugins")
@@ -85,6 +85,19 @@ public class PluginController {
     @PostMapping("/{jar}/reload")
     public ResponseEntity<Void> reload(@PathVariable String jar) {
         pluginLoader.reload(name(jar));
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 重新扫描插件目录：加载新增、重载变更、卸载已删除的插件。
+     * <p>Rescans the plugin directory: loads new jars, reloads changed jars,
+     * and unloads deleted jars.</p>
+     *
+     * @return an empty response
+     */
+    @PostMapping("/reload")
+    public ResponseEntity<Void> reloadAll() {
+        pluginLoader.reloadAll();
         return ResponseEntity.noContent().build();
     }
 

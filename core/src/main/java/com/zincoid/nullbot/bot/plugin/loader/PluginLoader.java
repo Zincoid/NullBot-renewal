@@ -16,11 +16,14 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceConfigurationError;
@@ -32,9 +35,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * 外部插件加载器：扫描插件目录，校验并注册插件指令，支持运行时启停与重载。
+ * 外部插件加载器：扫描插件目录，校验并注册插件指令，支持运行时启停、重载与目录重扫。
  * <p>External plugin loader: scans the plugin directory, validates and registers plugin commands,
- * and supports runtime enable, disable, and reload.</p>
+ * and supports runtime enable, disable, reload, and directory rescan.</p>
  */
 @Slf4j
 @Component
@@ -89,27 +92,11 @@ public class PluginLoader {
             log.info("Plugin loading disabled.");
             return;
         }
-        List<Path> jars = new ArrayList<>();
-        try (Stream<Path> files = Files.list(dir)) {
-            files.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().endsWith(".jar"))
-                    .sorted()
-                    .forEach(jars::add);
-        } catch (IOException e) {
+        try {
+            rescan();
+        } catch (PluginException e) {
             log.error("Cannot list plugin directory: {}", dir, e);
             return;
-        }
-        for (Path jar : jars) {
-            String name = jar.getFileName().toString();
-            if (state.isDisabled(name)) {
-                log.info("Plugin disabled: {}", name);
-                continue;
-            }
-            try {
-                loadPlugin(name, jar);
-            } catch (PluginException ignored) {
-                // Failure is recorded by loadPlugin; continue with the remaining jars.
-            }
         }
         log.info("Plugins loaded: {}", loaded.size());
     }
@@ -141,25 +128,18 @@ public class PluginLoader {
         List<PluginStatus> result = new ArrayList<>();
         for (LoadedPlugin item : loadedByJar.values()) result.add(item.status());
         Set<String> seen = new HashSet<>(loadedByJar.keySet());
-        try (Stream<Path> files = Files.list(dir)) {
-            files.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().endsWith(".jar"))
-                    .sorted()
-                    .forEach(jar -> {
-                        String name = jar.getFileName().toString();
-                        if (!seen.add(name)) return;
-                        if (state.isDisabled(name)) {
-                            result.add(new PluginStatus(name, null, null, null, List.of(),
-                                    PluginStatus.State.DISABLED, null));
-                            return;
-                        }
-                        String error = failures.get(name);
-                        result.add(new PluginStatus(name, null, null, null, List.of(),
-                                error == null ? PluginStatus.State.AVAILABLE : PluginStatus.State.FAILED,
-                                error));
-                    });
-        } catch (IOException e) {
-            throw new PluginException("Cannot list plugin directory: " + dir, e);
+        for (Path jar : scanJars()) {
+            String name = jar.getFileName().toString();
+            if (!seen.add(name)) continue;
+            if (state.isDisabled(name)) {
+                result.add(new PluginStatus(name, null, null, null, List.of(),
+                        PluginStatus.State.DISABLED, null));
+                continue;
+            }
+            String error = failures.get(name);
+            result.add(new PluginStatus(name, null, null, null, List.of(),
+                    error == null ? PluginStatus.State.AVAILABLE : PluginStatus.State.FAILED,
+                    error));
         }
         result.sort(Comparator.comparing(PluginStatus::jar));
         return result;
@@ -235,6 +215,17 @@ public class PluginLoader {
         loadPlugin(name, jar);
     }
 
+    /**
+     * 重新扫描插件目录：加载新增、重载变更、卸载已删除的插件。
+     * <p>Rescans the plugin directory: loads new jars, reloads changed jars,
+     * and unloads deleted jars.</p>
+     */
+    public synchronized void reloadAll() {
+        requireEnabled();
+        state.load();
+        rescan();
+    }
+
     // ════ Unload ══════════════════
 
     /**
@@ -256,6 +247,7 @@ public class PluginLoader {
             log.warn("Plugin stop failed: {}", item.id(), e);
         }
         closeQuietly(item.loader());
+        deleteQuietly(item.jarCopy());
         loaded.remove(item);
         log.info("Plugin unloaded: {}", item.id());
     }
@@ -278,12 +270,17 @@ public class PluginLoader {
 
     private LoadedPlugin loadJar(Path jar) {
         URLClassLoader loader = null;
+        Path copy = null;
         Plugin plugin = null;
         boolean started = false;
         try {
-            checkApiBundled(jar);
+            FileTime modified = Files.getLastModifiedTime(jar);
+            long size = Files.size(jar);
+            copy = Files.createTempFile(dir, ".nullbot-plugin-", ".jar.tmp");
+            Files.copy(jar, copy, StandardCopyOption.REPLACE_EXISTING);
+            checkApiBundled(copy);
             loader = new URLClassLoader(
-                    new URL[]{jar.toUri().toURL()},
+                    new URL[]{copy.toUri().toURL()},
                     Plugin.class.getClassLoader());
             List<Plugin> providers = new ArrayList<>();
             ServiceLoader.load(Plugin.class, loader).forEach(providers::add);
@@ -309,7 +306,7 @@ public class PluginLoader {
             if (!registry.register(cmds))
                 throw new PluginException("Command name conflict");
             return new LoadedPlugin(id, plugin.version(), plugin.apiVersion(),
-                    jar.getFileName().toString(), loader, plugin, cmds);
+                    jar.getFileName().toString(), copy, modified, size, loader, plugin, cmds);
         } catch (Exception | LinkageError | ServiceConfigurationError e) {
             if (started) {
                 try {
@@ -319,6 +316,7 @@ public class PluginLoader {
                 }
             }
             closeQuietly(loader);
+            deleteQuietly(copy);
             if (e instanceof PluginException pluginException) throw pluginException;
             throw new PluginException("Plugin load failed: " + message(e), e);
         }
@@ -335,7 +333,80 @@ public class PluginLoader {
         }
     }
 
+    // ════ Rescan ══════════════════
+
+    /**
+     * 重新扫描目录并同步插件状态，调用方需持有当前加载器的监视器。
+     * <p>Rescans the directory and synchronizes plugin state; callers must hold the loader monitor.</p>
+     */
+    private void rescan() {
+        List<Path> jars = scanJars();
+        Map<String, Path> byName = new LinkedHashMap<>();
+        for (Path jar : jars) byName.put(jar.getFileName().toString(), jar);
+
+        int unloaded = 0;
+        List<LoadedPlugin> snapshot = new ArrayList<>(loaded);
+        for (int i = snapshot.size() - 1; i >= 0; i--) {
+            LoadedPlugin item = snapshot.get(i);
+            Path source = byName.get(item.jarName());
+            if (source == null
+                    || state.isDisabled(item.jarName())
+                    || isModified(item, source)) {
+                unloadInternal(item);
+                unloaded++;
+            }
+        }
+
+        failures.keySet().removeIf(name ->
+                !byName.containsKey(name) || state.isDisabled(name));
+
+        int before = loaded.size();
+        int failed = 0;
+        for (Map.Entry<String, Path> entry : byName.entrySet()) {
+            String name = entry.getKey();
+            if (state.isDisabled(name)) {
+                log.info("Plugin disabled: {}", name);
+                continue;
+            }
+            if (findLoaded(name) != null) continue;
+            Path source = entry.getValue();
+            if (!Files.isRegularFile(source)) {
+                failures.remove(name);
+                continue;
+            }
+            try {
+                loadPlugin(name, source);
+            } catch (PluginException ignored) {
+                failed++;
+            }
+        }
+        log.info("Plugin rescan complete: scanned={}, unloaded={}, loaded={}, failed={}",
+                byName.size(), unloaded, loaded.size() - before, failed);
+    }
+
     // ════ Helpers ═════════════════
+
+    private List<Path> scanJars() {
+        state.load();
+        try (Stream<Path> files = Files.list(dir)) {
+            return files.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(".jar"))
+                    .sorted()
+                    .toList();
+        } catch (IOException e) {
+            throw new PluginException("Cannot list plugin directory: " + dir, e);
+        }
+    }
+
+    private boolean isModified(LoadedPlugin item, Path jar) {
+        try {
+            return !item.jarModified().equals(Files.getLastModifiedTime(jar))
+                    || item.jarSize() != Files.size(jar);
+        } catch (IOException e) {
+            log.warn("Cannot stat plugin jar: {}", jar, e);
+            return true;
+        }
+    }
 
     private Path jarPath(String jarName) {
         return dir.resolve(validateJarName(jarName)).normalize();
@@ -370,6 +441,16 @@ public class PluginLoader {
             loader.close();
         } catch (IOException e) {
             log.warn("Plugin classloader close failed", e);
+        }
+    }
+
+    private static void deleteQuietly(Path path) {
+        if (path == null) return;
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            log.warn("Plugin temp file delete failed: {}", path, e);
+            path.toFile().deleteOnExit();
         }
     }
 }

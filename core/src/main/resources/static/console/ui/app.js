@@ -1394,12 +1394,14 @@
             body.innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
             $('plugins-total').textContent = '';
             $('plugins-notice').hidden = true;
+            $('plugins-reload-all').hidden = true;
             toast(t('plugins.loadFailed', {msg: e.message}), 'error');
         }
     }
 
     function renderPlugins() {
         $('plugins-total').textContent = t('plugins.total', {n: pluginItems.length});
+        $('plugins-reload-all').hidden = !pluginEnabled;
         const notice = $('plugins-notice');
         notice.hidden = pluginEnabled;
         notice.textContent = pluginEnabled ? '' : t('plugins.globalDisabled');
@@ -1477,6 +1479,23 @@
             pluginBusy = false;
         }
         await loadPlugins();
+    }
+
+    async function reloadAllPlugins() {
+        if (pluginBusy) return;
+        pluginBusy = true;
+        const button = $('plugins-reload-all');
+        button.disabled = true;
+        try {
+            await api('/plugins/reload', {method: 'POST'});
+            toast(t('plugins.reloadedAll'), 'ok');
+        } catch (e) {
+            toast(t('plugins.actionFailed', {msg: e.message}), 'error');
+        } finally {
+            await loadPlugins();
+            pluginBusy = false;
+            button.disabled = false;
+        }
     }
 
     // ═══ Navigation ══════════════════
@@ -1816,6 +1835,7 @@
         });
 
         $('plugins-refresh').onclick = loadPlugins;
+        $('plugins-reload-all').onclick = reloadAllPlugins;
         $('plugins-body').addEventListener('click', event => {
             const button = event.target.closest('button[data-plugin-action]');
             if (button) pluginAction(button.dataset.pluginAction, button.dataset.jar);
