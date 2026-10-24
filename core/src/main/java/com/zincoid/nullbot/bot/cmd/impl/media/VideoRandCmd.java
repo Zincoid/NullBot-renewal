@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
  * <p>Random video command: sends a random video from the collection.</p>
  */
 @Slf4j
-@CmdMapping({"VideoRand", "video", "随机视频", "视频"})
+@CmdMapping({"VideoRand", "video", "vid", "随机视频", "视频"})
 @Component
 @RequiredArgsConstructor
 public class VideoRandCmd implements Cmd {
@@ -75,12 +75,12 @@ public class VideoRandCmd implements Cmd {
                 VideoRand
                 Sends a random collected video.
                 Usage: VideoRand
-                Aliases: video/随机视频/视频
+                Aliases: video/vid/随机视频/视频
                 Access: >=-1(restricted)""" : """
                 VideoRand
                 随机发送一个已收藏的视频。
                 用法：VideoRand
-                别名：video/随机视频/视频
+                别名：video/vid/随机视频/视频
                 权限：>=-1(restricted)""";
     }
 

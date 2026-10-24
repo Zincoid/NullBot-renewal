@@ -674,9 +674,15 @@
         const button = $('upload-settings');
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', String(active));
+        button.textContent = t(active ? 'files.settingsActive' : 'files.uploadSettings');
+        button.title = t('files.uploadSettings');
         const summary = $('upload-pattern-summary');
         summary.hidden = !active;
         summary.textContent = active ? t('files.regexEnabled', {regex: uploadPattern.regex}) : '';
+        const derivedTag = active && !!uploadPattern.tagTemplate;
+        const tagInput = $('upload-tag');
+        tagInput.disabled = derivedTag;
+        tagInput.placeholder = t(derivedTag ? 'files.tagDerived' : 'files.tagPlaceholder');
     }
 
     function saveUploadSettings(event) {
@@ -707,7 +713,7 @@
             return;
         }
         const type = $('upload-type').value;
-        const tag = $('upload-tag').value.trim();
+        const tag = $('upload-tag').disabled ? '' : $('upload-tag').value.trim();
         const pattern = uploadPattern.enabled && uploadPattern.regex ? uploadPattern : null;
         const statusBox = $('upload-status');
         statusBox.innerHTML = '';
@@ -1167,12 +1173,14 @@
                    ${preset ? 'disabled' : ''}
                    placeholder="${escapeHtml(preset || t('group.keywordArgValue'))}"
                    aria-label="${escapeHtml(t('group.keywordArgValue'))}">
-            <button type="button" class="small kw-arg-btn kw-arg-add"
-                    title="${escapeHtml(t('group.keywordArgAdd'))}"
-                    aria-label="${escapeHtml(t('group.keywordArgAdd'))}">+</button>
-            <button type="button" class="small kw-arg-btn kw-arg-remove"
-                    title="${escapeHtml(t('group.keywordArgRemove'))}"
-                    aria-label="${escapeHtml(t('group.keywordArgRemove'))}">−</button>`;
+            <div class="kw-arg-btns">
+                <button type="button" class="small kw-arg-btn kw-arg-add"
+                        title="${escapeHtml(t('group.keywordArgAdd'))}"
+                        aria-label="${escapeHtml(t('group.keywordArgAdd'))}">+</button>
+                <button type="button" class="small kw-arg-btn kw-arg-remove"
+                        title="${escapeHtml(t('group.keywordArgRemove'))}"
+                        aria-label="${escapeHtml(t('group.keywordArgRemove'))}">−</button>
+            </div>`;
         return row;
     }
 

@@ -25,7 +25,7 @@ import java.util.Locale;
  * 群设置指令：查看或修改当前群的通知、限速与 AI 设置。
  * <p>Group setting command: views or updates the current group's notice, rate-limit, and AI settings.</p>
  */
-@CmdMapping({"GroupSet", "GSet", "群设置"})
+@CmdMapping({"GroupSet", "群设置"})
 @Component
 @RequiredArgsConstructor
 public class GroupSetCmd implements Cmd {
@@ -263,7 +263,7 @@ public class GroupSetCmd implements Cmd {
                        GroupSet -r|--anti-recall <on|off>
                 Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
                 Note: "GroupSet ai prompt reset" clears the group prompt; "auto" follows the global default_language.
-                Aliases: GSet / 群设置
+                Aliases: 群设置
                 Access: >=1(manager)""" : """
                 GroupSet
                 查看或修改当前群的设置。
@@ -275,7 +275,7 @@ public class GroupSetCmd implements Cmd {
                       GroupSet -r|--anti-recall <on|off>
                 取值：scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
                 说明："GroupSet ai prompt reset" 清空群提示词；"auto" 跟随全局 default_language。
-                别名：GSet / 群设置
+                别名：群设置
                 权限：>=1(manager)""";
     }
 }

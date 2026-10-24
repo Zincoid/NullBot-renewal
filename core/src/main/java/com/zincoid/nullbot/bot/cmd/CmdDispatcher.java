@@ -47,20 +47,33 @@ public class CmdDispatcher {
     }
 
     /**
-     * 按显式请求分发指令处理链。
-     * <p>Dispatches an explicit command request through the handler chain.</p>
+     * 按显式请求分发指令处理链，执行权限校验。
+     * <p>Dispatches an explicit command request through the handler chain with access checks.</p>
      *
-     * @param client  the outbound port
-     * @param event   the inbound event
-     * @param req the explicit command request
+     * @param client the outbound port
+     * @param event  the inbound event
+     * @param req    the explicit command request
      */
     public void dispatch(BotClient client, BotEvent event, CmdRequest req) {
+        dispatch(client, event, req, true);
+    }
+
+    /**
+     * 按显式请求分发指令处理链，可选择是否执行权限校验。
+     * <p>Dispatches an explicit command request through the handler chain with optional access checks.</p>
+     *
+     * @param client      the outbound port
+     * @param event       the inbound event
+     * @param req         the explicit command request
+     * @param checkAccess whether to run access checks
+     */
+    public void dispatch(BotClient client, BotEvent event, CmdRequest req, boolean checkAccess) {
         Cmd cmd = registry.get(req.name());
         if (cmd == null) {
             log.info("Unknown command: {}", req.name());
             return;
         }
-        CmdContext ctx = new CmdContext(client, event, cmd, req.params(), language(event));
+        CmdContext ctx = new CmdContext(client, event, cmd, req.params(), language(event), checkAccess);
         log.info("Command start: {}", req.name());
         new CmdChain(handlers).doHandle(ctx);
         log.info("Command done: {}", req.name());

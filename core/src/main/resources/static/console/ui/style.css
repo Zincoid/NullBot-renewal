@@ -717,37 +717,50 @@ code {
     transform: none;
 }
 
+#group-tab-keywords .toolbar {
+    display: grid;
+    grid-template-columns: 118px minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+}
+
 #group-tab-keywords .toolbar input {
     width: auto;
     min-width: 0;
-    flex: 1 1 120px;
 }
 
 #group-tab-keywords .toolbar button {
     flex: 0 0 auto;
 }
 
-#group-tab-keywords .keyword-args {
-    flex: 1 1 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
+#group-tab-keywords #kw-keyword {
+    grid-column: 1 / 3;
 }
 
-#group-tab-keywords .kw-arg-row {
+#group-tab-keywords #kw-cmd {
+    grid-column: 3;
+}
+
+#group-tab-keywords .kw-actions {
+    grid-column: 4;
     display: flex;
-    align-items: stretch;
-    gap: var(--spacing-xs);
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+}
+
+#group-tab-keywords .keyword-args,
+#group-tab-keywords .kw-arg-row {
+    display: contents;
 }
 
 #group-tab-keywords .kw-arg-type {
-    flex: 0 0 118px;
-    width: 118px;
+    grid-column: 1;
+    align-self: stretch;
+    width: 100%;
 }
 
 #group-tab-keywords .toolbar input.kw-arg-value {
-    flex: 1 1 160px;
-    width: auto;
+    grid-column: 2 / 4;
+    width: 100%;
     min-width: 0;
 }
 
@@ -757,12 +770,24 @@ code {
     cursor: not-allowed;
 }
 
+#group-tab-keywords .kw-arg-btns {
+    grid-column: 4;
+    display: flex;
+    align-self: stretch;
+    justify-content: flex-end;
+    gap: var(--spacing-xs);
+}
+
 #group-tab-keywords .kw-arg-btn {
     flex: 0 0 auto;
     width: 40px;
     padding: 0;
     font-size: var(--text-base);
     line-height: 1;
+}
+
+#group-tab-keywords .keyword-hint {
+    grid-column: 1 / -1;
 }
 
 .cards {
@@ -964,6 +989,14 @@ textarea {
     resize: vertical;
     min-height: 72px;
     line-height: var(--leading-normal);
+}
+
+input:disabled:not([type="checkbox"]),
+select:disabled,
+textarea:disabled {
+    background: var(--color-bg-alt);
+    color: var(--color-text-secondary);
+    cursor: not-allowed;
 }
 
 input[type="checkbox"] {
@@ -2940,13 +2973,32 @@ dialog::backdrop {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    #group-tab-keywords .kw-arg-row {
-        flex-wrap: wrap;
+    #group-tab-keywords .toolbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    #group-tab-keywords #kw-keyword {
+        grid-column: 1 / -1;
+    }
+
+    #group-tab-keywords #kw-cmd {
+        grid-column: 1;
+    }
+
+    #group-tab-keywords .kw-actions {
+        grid-column: 2;
     }
 
     #group-tab-keywords .kw-arg-type {
-        flex: 1 1 100%;
-        width: 100%;
+        grid-column: 1 / -1;
+    }
+
+    #group-tab-keywords .toolbar input.kw-arg-value {
+        grid-column: 1;
+    }
+
+    #group-tab-keywords .kw-arg-btns {
+        grid-column: 2;
     }
 
     .chart-head {

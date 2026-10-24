@@ -17,6 +17,12 @@ import java.util.Map;
 @ToString
 public class AiMessage {
 
+    /**
+     * 思考模型要求助手消息回传推理内容，缺失时使用的占位文本。
+     * <p>Placeholder used when an assistant message has no reasoning to replay to a thinking model.</p>
+     */
+    private static final String REASONING_FALLBACK = "(reasoning content unavailable)";
+
     private final AiRole role;
     private final String name;
     private final String content;
@@ -70,8 +76,8 @@ public class AiMessage {
         } else if (content != null && !content.isEmpty()) {
             map.put("content", content);
         }
-        if (reasoning != null && !reasoning.isEmpty())
-            map.put("reasoning_content", reasoning);
+        if (role == AiRole.ASSISTANT)
+            map.put("reasoning_content", reasoning == null || reasoning.isBlank() ? REASONING_FALLBACK : reasoning);
         if (tcs != null && !tcs.isEmpty()) {
             List<Map<String, Object>> calls = new ArrayList<>();
             for (ToolCall tc : tcs) {

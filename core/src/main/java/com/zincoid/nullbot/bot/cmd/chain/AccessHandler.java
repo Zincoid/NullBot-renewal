@@ -35,6 +35,10 @@ public class AccessHandler implements CmdHandler {
 
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
+        if (!ctx.checkAccess()) {
+            chain.doHandle(ctx);
+            return;
+        }
         Access required = ctx.cmd().getAccess();
         boolean allowed = switch (ctx.event()) {
             case GroupMsgEvent e -> checkGroup(ctx, required, e.groupId(), e.userId());

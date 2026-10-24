@@ -20,18 +20,20 @@ import java.util.List;
  * 指令执行上下文：触发事件、绑定指令与出站端口。
  * <p>Command execution context: the triggering event, the bound command and the outbound port.</p>
  *
- * @param client   the outbound port
- * @param event    the triggering event
- * @param cmd      the bound command
- * @param params   the raw command parameters
- * @param language the resolved reply language
+ * @param client      the outbound port
+ * @param event       the triggering event
+ * @param cmd         the bound command
+ * @param params      the raw command parameters
+ * @param language    the resolved reply language
+ * @param checkAccess whether to run access checks
  */
 public record CmdContext(
         BotClient client,
         BotEvent event,
         Cmd cmd,
         List<String> params,
-        Language language
+        Language language,
+        boolean checkAccess
 ) {
 
     public CmdContext {

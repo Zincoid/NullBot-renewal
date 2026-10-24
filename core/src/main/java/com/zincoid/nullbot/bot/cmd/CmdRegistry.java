@@ -102,7 +102,12 @@ public class CmdRegistry {
             for (String name : mapping.value()) {
                 if (name == null || name.isBlank()) return false;
                 String key = key(name);
-                if (cmdMap.containsKey(key) || pending.containsKey(key)) return false;
+                Cmd registered = cmdMap.get(key);
+                Cmd queued = pending.get(key);
+                if ((registered != null && registered != cmd) || (queued != null && queued != cmd)) {
+                    log.warn("Command name conflict: {} ({})", name, cmd.getClass().getSimpleName());
+                    return false;
+                }
                 pending.put(key, cmd);
             }
         }

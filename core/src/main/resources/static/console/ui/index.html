@@ -232,7 +232,7 @@
                     <input id="upload-files" type="file" multiple hidden>
                 </div>
                 <button type="button" id="upload-settings" class="btn-settings" aria-pressed="false"
-                        data-i18n="files.uploadSettings">上传设置</button>
+                        title="上传设置">上传设置</button>
                 <button id="upload-button" class="primary btn-upload" data-i18n="files.upload">上传</button>
             </div>
             <p id="upload-pattern-summary" class="upload-hint" hidden></p>
@@ -616,8 +616,10 @@
                        data-i18n-placeholder="group.keywordKeyword" placeholder="关键词">
                 <input id="kw-cmd" maxlength="100"
                        data-i18n-placeholder="group.keywordCmd" placeholder="指令名">
-                <button id="kw-save" class="primary btn-save" data-i18n="group.keywordAdd">添加</button>
-                <button id="kw-cancel" data-i18n="group.keywordCancel" hidden>取消</button>
+                <div class="kw-actions">
+                    <button id="kw-save" class="primary btn-save" data-i18n="group.keywordAdd">添加</button>
+                    <button id="kw-cancel" data-i18n="group.keywordCancel" hidden>取消</button>
+                </div>
                 <div id="kw-args-list" class="keyword-args"></div>
                 <span class="keyword-hint" data-i18n="group.keywordPlaceholders">占位符：{userId} = 发送者 ID，{groupId} = 群号</span>
             </div>

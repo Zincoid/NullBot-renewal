@@ -50,8 +50,9 @@ public class KeywordMiddleware implements Middleware {
     // ════ Helpers ═════════════════
 
     /**
-     * 匹配群关键词规则并派发对应指令。
-     * <p>Matches group keyword rules and dispatches the corresponding commands.</p>
+     * 匹配群关键词规则并派发对应指令；规则由管理员配置，因此跳过群和用户权限校验。
+     * <p>Matches group keyword rules and dispatches the corresponding commands; rules are configured by
+     * administrators, so both group and user access checks are skipped.</p>
      *
      * @param client the outbound port
      * @param event  the triggering group message event
@@ -69,7 +70,7 @@ public class KeywordMiddleware implements Middleware {
                     "groupId", event.groupId()
             )).getRaw();
             log.info("Keyword matched: group={}, keyword={}, cmd={}", event.groupId(), rule.getKeyword(), rule.getCmd());
-            cmdDispatcher.dispatch(client, event, new CmdRequest(rule.getCmd(), resolved));
+            cmdDispatcher.dispatch(client, event, new CmdRequest(rule.getCmd(), resolved), false);
         }
     }
 

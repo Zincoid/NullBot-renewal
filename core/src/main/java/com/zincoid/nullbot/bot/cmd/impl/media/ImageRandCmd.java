@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
  * <p>Random image command: sends a random image from the collection.</p>
  */
 @Slf4j
-@CmdMapping({"ImageRand", "image", "随机图片", "图片"})
+@CmdMapping({"ImageRand", "image", "img", "随机图片", "图片"})
 @Component
 @RequiredArgsConstructor
 public class ImageRandCmd implements Cmd {
@@ -75,12 +75,12 @@ public class ImageRandCmd implements Cmd {
                 ImageRand
                 Sends a random collected image.
                 Usage: ImageRand
-                Aliases: image/随机图片/图片
+                Aliases: image/img/随机图片/图片
                 Access: >=-1(restricted)""" : """
                 ImageRand
                 随机发送一张已收藏的图片。
                 用法：ImageRand
-                别名：image/随机图片/图片
+                别名：image/img/随机图片/图片
                 权限：>=-1(restricted)""";
     }
 

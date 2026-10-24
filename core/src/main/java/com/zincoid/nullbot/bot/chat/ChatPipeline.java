@@ -30,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -74,24 +76,28 @@ public class ChatPipeline {
 
     public void chat(BotClient client, GroupMsgEvent event, Language language) {
         chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
-                "The message to respond to is id=" + event.messageId() + " in a group chat.", event);
+                "The message to respond to is id=" + event.messageId() + " in a group chat.", event, null);
     }
 
     public void chat(BotClient client, PrivateMsgEvent event, Language language) {
         chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
-                "The message to respond to is id=" + event.messageId() + " in a private chat.", event);
+                "The message to respond to is id=" + event.messageId() + " in a private chat.", event, null);
     }
 
     public void poke(BotClient client, GroupPokeEvent event, Language language) {
+        String name = nickname(client, event.userId());
         chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language,
-                "User " + nickname(client, event.userId()) + "(" + event.userId()
-                        + ") just poked you in a group chat; respond to the poke.", event);
+                "User " + name + "(" + event.userId()
+                        + ") just rubbed you in a group chat; respond to it.", event,
+                AiMessage.user(name, "[揉]", List.of()));
     }
 
     public void poke(BotClient client, PrivatePokeEvent event, Language language) {
+        String name = nickname(client, event.userId());
         chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language,
-                "User " + nickname(client, event.userId()) + "(" + event.userId()
-                        + ") just poked you in a private chat; respond to the poke.", event);
+                "User " + name + "(" + event.userId()
+                        + ") just rubbed you in a private chat; respond to it.", event,
+                AiMessage.user(name, "[揉]", List.of()));
     }
 
     // ════ Core ════════════════════
@@ -108,9 +114,10 @@ public class ChatPipeline {
      * @param language the reply language
      * @param trigger  the trigger note appended to the prompt
      * @param event    the triggering event
+     * @param incoming the extra user message appended to the history, or null
      */
     private void chat(BotClient client, String chatId, String selfId, String targetId, boolean group,
-                      Language language, String trigger, BotEvent event) {
+                      Language language, String trigger, BotEvent event, AiMessage incoming) {
         GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
@@ -129,7 +136,9 @@ public class ChatPipeline {
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
-            ModelRes reply = agentClient.invoke(memory.get(chatId), prompt(base, trigger), effort, ctx, options);
+            List<AiMessage> history = new ArrayList<>(memory.get(chatId));
+            if (incoming != null) history.add(incoming);
+            ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
             String content = reply.getContent();
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
