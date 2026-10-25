@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="css/dialogs.css">
     <link rel="stylesheet" href="css/pages.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/logs.css">
     <link rel="stylesheet" href="css/plugin-data.css">
     <script type="module" src="app.js"></script>
     <script src="digital-flow.js" defer></script>
@@ -84,6 +85,16 @@
         </a>
     </nav>
     <div class="topbar-actions">
+        <button type="button" class="icon-btn" id="log-toggle"
+                data-i18n-title="logs.title" data-i18n-aria-label="logs.title"
+                title="实时日志" aria-label="实时日志" aria-controls="log-panel" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="1.5"/>
+                <path d="M7 9l2.5 2.5L7 14"/>
+                <path d="M12.5 14H17"/>
+            </svg>
+        </button>
         <button type="button" class="icon-btn" id="about-toggle" data-i18n-title="nav.about"
                 data-i18n-aria-label="nav.about" title="关于" aria-label="关于">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -114,6 +125,26 @@
         </button>
     </div>
 </header>
+
+<section class="log-panel" id="log-panel" hidden data-state="disconnected"
+         data-i18n-aria-label="logs.title" aria-label="实时日志">
+    <div class="log-panel__head">
+        <div class="log-panel__heading">
+            <span class="log-panel__dot" aria-hidden="true"></span>
+            <span class="log-panel__title" data-i18n="logs.title">实时日志</span>
+            <span class="log-panel__status" id="log-status"></span>
+        </div>
+        <div class="log-panel__tools">
+            <button type="button" class="log-panel__button btn-delete" id="log-clear" disabled>
+                <span data-i18n="logs.clear">清空</span>
+            </button>
+        </div>
+    </div>
+    <div class="log-panel__body" id="log-body">
+        <p class="log-panel__empty" id="log-empty" data-i18n="logs.empty">暂无日志</p>
+        <div class="log-panel__list" id="log-list"></div>
+    </div>
+</section>
 
 <main class="app-main">
     <!-- ═══ Usage ═════════════════ -->

@@ -29,6 +29,13 @@
             'common.switchLanguage': '切换语言',
             'common.toggleTheme': '切换主题',
 
+            'logs.title': '实时日志',
+            'logs.clear': '清空',
+            'logs.empty': '暂无日志',
+            'logs.connecting': '连接中',
+            'logs.connected': '已连接',
+            'logs.disconnected': '已断开',
+
             'nav.usage': '概览',
             'nav.config': '配置',
             'nav.files': '文件',
@@ -362,6 +369,13 @@
             'common.loadError': 'Load failed: {msg}',
             'common.switchLanguage': 'Switch language',
             'common.toggleTheme': 'Toggle theme',
+
+            'logs.title': 'Live logs',
+            'logs.clear': 'Clear',
+            'logs.empty': 'No logs',
+            'logs.connecting': 'Connecting',
+            'logs.connected': 'Connected',
+            'logs.disconnected': 'Disconnected',
 
             'nav.usage': 'Overview',
             'nav.config': 'Configuration',

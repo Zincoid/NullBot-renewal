@@ -1,0 +1,279 @@
+/* ═══ Live logs ═══════════════════ */
+
+#log-toggle.is-active {
+    color: var(--terminal-accent);
+    background: var(--color-primary-bg);
+    box-shadow: inset 0 -2px 0 var(--terminal-accent);
+}
+
+.log-panel {
+    position: fixed;
+    top: var(--navbar-height);
+    right: 0;
+    left: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    height: clamp(220px, 38vh, 380px);
+    background: var(--terminal-bg);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+}
+
+.log-panel:not([hidden]) {
+    animation: log-panel-drop 140ms ease;
+}
+
+@keyframes log-panel-drop {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.log-panel__head {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    min-height: 34px;
+    padding: var(--spacing-xs) var(--spacing-lg);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.log-panel__heading {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.log-panel__dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--rounded-full);
+    background: var(--color-text-tertiary);
+}
+
+.log-panel__title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-heading);
+    white-space: nowrap;
+}
+
+.log-panel__status {
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.log-panel__status:not(:empty)::before {
+    content: '·';
+    margin-right: var(--spacing-xs);
+}
+
+.log-panel__tools {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.log-panel__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 2px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-sm);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.log-panel__button.btn-delete::before {
+    width: 12px;
+    height: 12px;
+}
+
+.log-panel__button:hover:not(:disabled) {
+    color: var(--color-text-heading);
+    border-color: var(--color-text-tertiary);
+    background: var(--color-bg-alt);
+}
+
+.log-panel__button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.log-panel[data-state="connected"] .log-panel__dot {
+    background: var(--color-success);
+    box-shadow: 0 0 0 3px var(--color-success-bg);
+}
+
+.log-panel[data-state="connecting"] .log-panel__dot {
+    background: var(--color-warning);
+    box-shadow: 0 0 0 3px var(--color-warning-bg);
+    animation: log-pulse 1s ease-in-out infinite;
+}
+
+@keyframes log-pulse {
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.log-panel__body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-md);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-image:
+        linear-gradient(var(--terminal-grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--terminal-grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.log-panel__empty {
+    margin: 0;
+    padding: var(--spacing-2xl) 0;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-align: center;
+}
+
+.log-panel__list {
+    display: flex;
+    flex-direction: column;
+}
+
+.log-line {
+    display: grid;
+    grid-template-columns: 90px 52px minmax(120px, 360px) minmax(0, 1fr);
+    gap: var(--spacing-sm);
+    align-items: baseline;
+    padding: 1px 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.55;
+}
+
+.log-line__time {
+    color: var(--color-text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.log-line__level {
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
+}
+
+.log-line--trace .log-line__level,
+.log-line--debug .log-line__level {
+    color: var(--color-text-tertiary);
+}
+
+.log-line--info .log-line__level {
+    color: var(--terminal-green);
+}
+
+.log-line--warn .log-line__level {
+    color: var(--color-warning);
+}
+
+.log-line--error .log-line__level {
+    color: var(--color-danger);
+}
+
+.log-line__logger {
+    overflow: hidden;
+    color: var(--terminal-text-dim);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.log-line__message {
+    min-width: 0;
+    color: var(--terminal-text-base);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.log-line__stack {
+    grid-column: 1 / -1;
+    margin: 2px 0 var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border-left: 2px solid var(--color-danger);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .log-panel {
+        height: clamp(200px, 42vh, 320px);
+    }
+
+    .log-panel__head {
+        padding: var(--spacing-xs) var(--spacing-md);
+    }
+
+    .log-panel__body {
+        padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm);
+    }
+
+    .log-line {
+        grid-template-columns: 82px 44px minmax(0, 1fr);
+        gap: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .log-line__logger {
+        display: none;
+    }
+}
+
+/* The extra navbar button still fits the smallest top bars. */
+@media (max-width: 480px) {
+    .brand {
+        padding-right: var(--spacing-sm);
+        font-size: var(--text-base);
+    }
+
+    .topbar-actions .icon-btn,
+    .nav-toggle {
+        width: 34px;
+    }
+
+    #logout {
+        width: 3.5rem;
+        font-size: var(--text-xs);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .log-panel:not([hidden]),
+    .log-panel[data-state="connecting"] .log-panel__dot {
+        animation: none;
+    }
+}

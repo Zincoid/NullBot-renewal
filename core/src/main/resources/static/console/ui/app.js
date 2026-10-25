@@ -17,6 +17,7 @@ import {
 import {bind as bindQuotes, loadQuotes} from './views/quotes.js';
 import {bind as bindPlugins, loadPlugins} from './views/plugins.js';
 import {bind as bindPluginData, onLocaleChange as onPluginDataLocaleChange} from './views/plugin-data.js';
+import {bind as bindLogs, onLocaleChange as onLogsLocaleChange} from './logs.js';
 
 function main() {
     // ═══ Navigation ══════════════════
@@ -103,6 +104,7 @@ function main() {
         bindQuotes();
         bindPlugins();
         bindPluginData();
+        bindLogs();
     }
 
     function init() {
@@ -126,6 +128,7 @@ function main() {
         onFilesLocaleChange();
         onAccountsLocaleChange();
         onPluginDataLocaleChange();
+        onLogsLocaleChange();
         renderView();
     });
 
