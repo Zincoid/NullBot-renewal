@@ -5,6 +5,7 @@ import com.zincoid.nullbot.bot.plugin.loader.PluginLoader;
 import com.zincoid.nullbot.console.dto.PluginDataResult;
 import com.zincoid.nullbot.console.dto.PluginDataView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
+import com.zincoid.nullbot.platform.util.AtomicFiles;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
@@ -14,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -291,12 +291,7 @@ public class PluginDataService {
         Path temp = Files.createTempFile(dir, ".upload-", ".tmp");
         try (InputStream in = file.getInputStream()) {
             Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
-            try {
-                Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.ATOMIC_MOVE);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
-            }
+            AtomicFiles.moveReplace(temp, target);
         } finally {
             Files.deleteIfExists(temp);
         }

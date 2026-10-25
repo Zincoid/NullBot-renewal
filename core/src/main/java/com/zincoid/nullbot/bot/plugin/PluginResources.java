@@ -1,8 +1,9 @@
 package com.zincoid.nullbot.bot.plugin;
 
+import com.zincoid.nullbot.platform.util.AtomicFiles;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -39,12 +40,7 @@ public final class PluginResources {
             Path temp = Files.createTempFile(dir, ".resource-", ".tmp");
             try {
                 Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
-                try {
-                    Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING,
-                            StandardCopyOption.ATOMIC_MOVE);
-                } catch (AtomicMoveNotSupportedException e) {
-                    Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
-                }
+                AtomicFiles.moveReplace(temp, target);
             } finally {
                 Files.deleteIfExists(temp);
             }

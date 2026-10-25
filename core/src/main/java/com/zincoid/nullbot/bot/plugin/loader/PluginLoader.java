@@ -4,7 +4,9 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginException;
+import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.platform.configuration.PluginProperties;
+import com.zincoid.nullbot.platform.util.AtomicFiles;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,6 @@ public class PluginLoader {
      */
     private static final int API_VERSION = 1;
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
-    private static final Pattern PLUGIN_JAR = Pattern.compile("[A-Za-z0-9._-]{1,128}\\.jar");
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
 
     private final CmdRegistry registry;
@@ -271,11 +271,7 @@ public class PluginLoader {
             Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
             if (findLoaded(name) != null || Files.exists(target))
                 throw new PluginException("Plugin already exists: " + name);
-            try {
-                Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temp, target);
-            }
+            AtomicFiles.moveNew(temp, target);
             temp = null;
         } catch (FileAlreadyExistsException e) {
             throw new PluginException("Plugin already exists: " + name);
@@ -518,7 +514,7 @@ public class PluginLoader {
     }
 
     private static String validateJarName(String jarName) {
-        if (jarName == null || !PLUGIN_JAR.matcher(jarName).matches())
+        if (!PluginJarName.isValid(jarName))
             throw new PluginException("Invalid plugin jar: " + jarName);
         return jarName;
     }

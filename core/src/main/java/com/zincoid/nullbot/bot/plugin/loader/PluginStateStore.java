@@ -1,14 +1,14 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
 import com.zincoid.nullbot.bot.plugin.PluginException;
+import com.zincoid.nullbot.bot.plugin.PluginJarName;
+import com.zincoid.nullbot.platform.util.AtomicFiles;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +26,6 @@ final class PluginStateStore {
 
     private static final String FILE_NAME = "disabled.txt";
     private static final String IDS_FILE = "plugin-ids.txt";
-    private static final Pattern JAR_NAME = Pattern.compile("[A-Za-z0-9._-]{1,128}\\.jar");
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
 
     private final Path dir;
@@ -61,7 +60,7 @@ final class PluginStateStore {
             if (!Files.isRegularFile(file)) return;
             for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 String name = line.trim();
-                if (!name.isEmpty() && !name.startsWith("#") && JAR_NAME.matcher(name).matches())
+                if (!name.isEmpty() && !name.startsWith("#") && PluginJarName.isValid(name))
                     disabled.add(name);
             }
         } catch (IOException e) {
@@ -80,7 +79,7 @@ final class PluginStateStore {
                 if (split <= 0) continue;
                 String jar = value.substring(0, split).trim();
                 String id = value.substring(split + 1).trim();
-                if (JAR_NAME.matcher(jar).matches() && PLUGIN_ID.matcher(id).matches())
+                if (PluginJarName.isValid(jar) && PLUGIN_ID.matcher(id).matches())
                     ids.put(jar, id);
             }
         } catch (IOException e) {
@@ -121,8 +120,8 @@ final class PluginStateStore {
      */
     synchronized void setId(String jarName, String pluginId) {
         load();
-        if (jarName == null || pluginId == null
-                || !JAR_NAME.matcher(jarName).matches()
+        if (pluginId == null
+                || !PluginJarName.isValid(jarName)
                 || !PLUGIN_ID.matcher(pluginId).matches()
                 || pluginId.equals(ids.get(jarName))) return;
         Map<String, String> next = new HashMap<>(ids);
@@ -167,14 +166,7 @@ final class PluginStateStore {
     private void write(Set<String> names) {
         Path file = dir.resolve(FILE_NAME);
         try {
-            Files.createDirectories(dir);
-            Path temp = Files.createTempFile(dir, "disabled-", ".tmp");
-            try {
-                Files.write(temp, names.stream().sorted().toList(), StandardCharsets.UTF_8);
-                moveReplace(temp, file);
-            } finally {
-                Files.deleteIfExists(temp);
-            }
+            writeLines(file, "disabled-", names.stream().sorted().toList());
         } catch (IOException e) {
             throw new PluginException("Cannot write plugin state: " + file, e);
         }
@@ -183,29 +175,24 @@ final class PluginStateStore {
     private void writeIds(Map<String, String> next) {
         Path file = dir.resolve(IDS_FILE);
         try {
-            Files.createDirectories(dir);
-            Path temp = Files.createTempFile(dir, "ids-", ".tmp");
-            try {
-                List<String> lines = next.entrySet().stream()
-                        .sorted(Map.Entry.comparingByKey())
-                        .map(entry -> entry.getKey() + "=" + entry.getValue())
-                        .toList();
-                Files.write(temp, lines, StandardCharsets.UTF_8);
-                moveReplace(temp, file);
-            } finally {
-                Files.deleteIfExists(temp);
-            }
+            List<String> lines = next.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(entry -> entry.getKey() + "=" + entry.getValue())
+                    .toList();
+            writeLines(file, "ids-", lines);
         } catch (IOException e) {
             log.warn("Cannot write plugin ids: {}", file, e);
         }
     }
 
-    private static void moveReplace(Path temp, Path file) throws IOException {
+    private void writeLines(Path file, String prefix, List<String> lines) throws IOException {
+        Files.createDirectories(dir);
+        Path temp = Files.createTempFile(dir, prefix, ".tmp");
         try {
-            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
-            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
+            Files.write(temp, lines, StandardCharsets.UTF_8);
+            AtomicFiles.moveReplace(temp, file);
+        } finally {
+            Files.deleteIfExists(temp);
         }
     }
 }

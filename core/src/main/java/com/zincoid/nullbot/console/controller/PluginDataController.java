@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.console.controller;
 
+import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.console.dto.PluginDataDelete;
 import com.zincoid.nullbot.console.dto.PluginDataFolder;
 import com.zincoid.nullbot.console.dto.PluginDataResult;
@@ -28,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * 控制台插件数据接口：浏览、新建文件夹、上传、删除与下载插件数据文件。
@@ -40,8 +40,6 @@ import java.util.regex.Pattern;
 @SecurityRequirement(name = "console-token")
 @RequiredArgsConstructor
 public class PluginDataController {
-
-    private static final Pattern JAR_NAME = Pattern.compile("[A-Za-z0-9._-]{1,128}\\.jar");
 
     private final PluginDataService dataService;
 
@@ -147,7 +145,7 @@ public class PluginDataController {
     // ════ Helpers ════════════════
 
     private static String name(String jar) {
-        if (jar == null || !JAR_NAME.matcher(jar).matches())
+        if (!PluginJarName.isValid(jar))
             throw new ConsoleException(HttpStatus.BAD_REQUEST, "Invalid plugin jar: " + jar);
         return jar;
     }
