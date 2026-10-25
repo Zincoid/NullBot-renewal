@@ -481,7 +481,7 @@ public class PluginLoader {
                 failed++;
             }
         }
-        log.info("Plugin rescan complete: scanned={}, unloaded={}, loaded={}, failed={}",
+        log.info("Plugin scan complete: scanned={}, unloaded={}, loaded={}, failed={}",
                 byName.size(), unloaded, loaded.size() - before, failed);
     }
 

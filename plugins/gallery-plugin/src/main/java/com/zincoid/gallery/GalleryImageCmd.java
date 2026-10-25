@@ -5,7 +5,9 @@ import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.i18n.Text;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,17 @@ abstract class GalleryImageCmd implements Cmd {
     }
 
     @Override
+    public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
+        send(ctx);
+    }
+
+    @Override
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
+        send(ctx);
+    }
+
+    @Override
+    public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
         send(ctx);
     }
 
