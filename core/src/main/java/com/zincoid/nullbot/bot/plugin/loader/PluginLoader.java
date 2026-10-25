@@ -364,8 +364,8 @@ public class PluginLoader {
             LoadedPlugin item = loadJar(jar);
             loaded.add(item);
             failures.remove(name);
-            log.info("Plugin loaded: id={}, version={}, cmds={}, tools={}",
-                    item.id(), item.version(), item.cmds().size(), item.tools().size());
+            log.info("Plugin loaded: id={}, version={}, api={}, cmds={}, tools={}",
+                    item.id(), item.version(), item.apiVersion(), item.cmds().size(), item.tools().size());
         } catch (PluginException e) {
             failures.put(name, message(e));
             log.error("Plugin load failed: {} - {}", name, message(e), e);

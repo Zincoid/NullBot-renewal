@@ -346,13 +346,15 @@ td select.access-select {
     white-space: nowrap;
 }
 
-.plugin-cmds {
+.plugin-cmds,
+.plugin-tools {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
 }
 
-.plugin-cmds code {
+.plugin-cmds code,
+.plugin-tools code {
     white-space: nowrap;
 }
 

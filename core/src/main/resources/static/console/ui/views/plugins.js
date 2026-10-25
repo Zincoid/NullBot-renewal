@@ -9,14 +9,14 @@ let pluginBusy = false;
 
 async function loadPlugins() {
     const body = $('plugins-body');
-    body.innerHTML = emptyRow(6, t('common.loading'));
+    body.innerHTML = emptyRow(7, t('common.loading'));
     try {
         const data = await api('/plugins');
         pluginEnabled = data.enabled !== false;
         pluginItems = Array.isArray(data.items) ? data.items : [];
         renderPlugins();
     } catch (e) {
-        body.innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
+        body.innerHTML = emptyRow(7, t('common.loadError', {msg: e.message}));
         $('plugins-total').textContent = '';
         $('plugins-notice').hidden = true;
         $('plugins-upload').hidden = true;
@@ -34,7 +34,7 @@ function renderPlugins() {
     notice.textContent = pluginEnabled ? '' : t('plugins.globalDisabled');
     const body = $('plugins-body');
     if (!pluginItems.length) {
-        body.innerHTML = emptyRow(6, t('plugins.empty'));
+        body.innerHTML = emptyRow(7, t('plugins.empty'));
         return;
     }
     body.innerHTML = pluginItems.map(plugin => {
@@ -53,6 +53,10 @@ function renderPlugins() {
             ? `<div class="plugin-cmds">${plugin.cmds
                 .map(name => `<code>${escapeHtml(name)}</code>`).join('')}</div>`
             : '<span class="muted">-</span>';
+        const tools = plugin.tools && plugin.tools.length
+            ? `<div class="plugin-tools">${plugin.tools
+                .map(name => `<code>${escapeHtml(name)}</code>`).join('')}</div>`
+            : '<span class="muted">-</span>';
         const error = plugin.error
             ? `<div class="plugin-error">${escapeHtml(plugin.error)}</div>`
             : '';
@@ -62,6 +66,7 @@ function renderPlugins() {
                 <td>${id}</td>
                 <td class="col-center">${version}</td>
                 <td>${cmds}</td>
+                <td>${tools}</td>
                 <td class="col-center">${pluginBadge(plugin.state)}${error}</td>
                 <td class="actions">${pluginActions(plugin)}</td>
             </tr>`;
