@@ -42,7 +42,6 @@ public class GuessCmd implements Cmd {
     private static final double CROP_RATIO = 0.1;
     private static final int CROP_PADDING = 250;
     private static final double TRANSPARENT_RATIO = 0.75;
-    private static final String BASE64_PREFIX = "base64://";
     private static final List<String> ALIASES = List.of("Guess", "猜");
 
     private final GamePlugin plugin;
@@ -71,7 +70,7 @@ public class GuessCmd implements Cmd {
         try {
             ctx.send(MsgContent.builder()
                     .text(ctx.render(Text.GUESS_START))
-                    .image(BASE64_PREFIX + guess.cropped)
+                    .imageBase64(guess.cropped)
                     .text(ctx.render(Text.GUESS_HINT, prefix, prefix, prefix))
                     .build());
             log.info("Guess started: group={}, answer={}", groupId, guess.answer);

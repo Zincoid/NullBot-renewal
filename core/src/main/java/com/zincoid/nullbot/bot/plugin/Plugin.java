@@ -28,8 +28,10 @@ public interface Plugin {
     String version();
 
     /**
-     * 插件适配的宿主 API 版本，当前支持 1 与 2；提供 AI 工具时必须为 2。
-     * <p>Host API version the plugin targets; 1 and 2 are supported, and 2 is required for AI tools.</p>
+     * 插件适配的宿主 API 版本，当前支持 1 至 3；提供 AI 工具时至少为 2，
+     * 使用图片渲染或插件模板时为 3。
+     * <p>Host API version the plugin targets; 1 through 3 are supported.
+     * At least 2 is required for AI tools; 3 is required for image rendering or plugin templates.</p>
      *
      * @return the API version
      */
@@ -53,9 +55,9 @@ public interface Plugin {
      * 插件提供的 AI 工具，在 {@link #start(PluginContext)} 之后调用。
      * <p>AI tools provided by the plugin, requested after {@link #start(PluginContext)}.</p>
      * <p>工具名必须全局唯一，建议使用“插件 ID_工具名”的格式；提供工具时
-     * {@link #apiVersion()} 必须返回 2。</p>
+     * {@link #apiVersion()} 至少为 2。</p>
      * <p>Tool names must be globally unique, preferably prefixed with the plugin id;
-     * {@link #apiVersion()} must return 2 when tools are provided.</p>
+     * {@link #apiVersion()} must be at least 2 when tools are provided.</p>
      *
      * @return the tools, may be empty
      */

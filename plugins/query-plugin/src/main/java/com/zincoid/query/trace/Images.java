@@ -1,5 +1,6 @@
 package com.zincoid.query.trace;
 
+import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.query.Http;
 import com.zincoid.query.QueryException;
 
@@ -30,8 +31,8 @@ final class Images {
         if (source == null || source.isBlank())
             throw new QueryException("Missing image source");
         try {
-            if (source.startsWith("base64://"))
-                return decode(source.substring("base64://".length()));
+            if (source.startsWith(MsgContent.BASE64_PREFIX))
+                return decode(source.substring(MsgContent.BASE64_PREFIX.length()));
             if (source.startsWith("data:")) {
                 int comma = source.indexOf(',');
                 if (comma < 0) throw new QueryException("Malformed data URI");

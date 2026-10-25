@@ -1,12 +1,15 @@
-package com.zincoid.nullbot.bot.cmd.impl;
+package com.zincoid.nullbot.bot.cmd.impl.system;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
+import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.module.render.RenderService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.util.SystemInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,7 @@ import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 /**
  * 信息指令：输出应用、版本与运行环境信息。
@@ -34,11 +38,14 @@ public class InfoCmd implements Cmd {
 
     private final ObjectProvider<BuildProperties> builds;
     private final String name;
+    private final RenderService renderService;
 
     public InfoCmd(ObjectProvider<BuildProperties> builds,
-                   @Value("${spring.application.name:NullBot}") String name) {
+                   @Value("${spring.application.name:NullBot}") String name,
+                   RenderService renderService) {
         this.builds = builds;
         this.name = name;
+        this.renderService = renderService;
     }
 
     // ════ Run ═════════════════════
@@ -59,8 +66,23 @@ public class InfoCmd implements Cmd {
         String buildTime = build == null || build.getTime() == null
                 ? "-"
                 : TIME.format(build.getTime().atZone(ZoneId.systemDefault()));
-        ctx.send(Text.INFO, name, version, buildTime, SystemInfo.java(), springBootVersion(),
-                uptime(), SystemInfo.os(), LocalDateTime.now().format(TIME));
+        byte[] png;
+        try {
+            png = renderService.template("info.jte", Map.of(
+                    "app", name,
+                    "version", version,
+                    "build", buildTime,
+                    "javaVersion", SystemInfo.java(),
+                    "spring", springBootVersion(),
+                    "uptime", uptime(),
+                    "os", SystemInfo.os(),
+                    "time", LocalDateTime.now().format(TIME)
+            ));
+        } catch (RuntimeException e) {
+            log.warn("Info image render failed: version={}", version, e);
+            throw new CmdWarnException(ctx.render(Text.INFO_RENDER_FAILED), e);
+        }
+        ctx.send(MsgContent.builder().imageBase64(png).build());
         log.info("Info sent: version={}", version);
     }
 

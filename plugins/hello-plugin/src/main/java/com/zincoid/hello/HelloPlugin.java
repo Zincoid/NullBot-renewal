@@ -27,7 +27,7 @@ public class HelloPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 2;
+        return 3;
     }
 
     @Override

@@ -51,10 +51,11 @@ import java.util.stream.Stream;
 public class PluginLoader {
 
     /**
-     * 当前插件 API 版本，支持 1 与 2；2 增加 AI 工具。
-     * <p>Current plugin API version, supporting 1 and 2; version 2 adds AI tools.</p>
+     * 当前插件 API 版本，支持 1 至 3；2 增加 AI 工具，3 增加图片渲染与插件模板。
+     * <p>Current plugin API version, supporting 1 through 3; version 2 adds AI tools,
+     * and version 3 adds image rendering and plugin templates.</p>
      */
-    private static final int API_VERSION = 2;
+    private static final int API_VERSION = 3;
     private static final int MIN_API_VERSION = 1;
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
@@ -103,6 +104,7 @@ public class PluginLoader {
             log.info("Plugin loading disabled.");
             return;
         }
+        cleanStaleCopies();
         try {
             rescan();
         } catch (PluginException e) {
@@ -379,7 +381,7 @@ public class PluginLoader {
             Path dataDir = dir.resolve(opened.id());
             Files.createDirectories(dataDir);
             state.setId(opened.jar().name(), opened.id());
-            opened.start(contexts.create(dataDir));
+            opened.start(contexts.create(dataDir, opened.loader(), opened.jar().copy()));
             PluginContributions contributions = PluginContributions.collect(opened.plugin(), opened.apiVersion());
             LoadedPlugin item = new LoadedPlugin(opened.id(), opened.version(), opened.apiVersion(),
                     opened.jar(), opened.loader(), opened.plugin(), contributions);
@@ -551,6 +553,26 @@ public class PluginLoader {
     }
 
     // ════ Helpers ═════════════════
+
+    /**
+     * 清理上次异常退出遗留的插件 JAR 副本，仅在启动加载前调用。
+     * <p>Removes plugin jar copies left by abnormal exits; called only before startup loading.</p>
+     */
+    private void cleanStaleCopies() {
+        if (!loaded.isEmpty() || !Files.isDirectory(dir)) return;
+        try (Stream<Path> files = Files.list(dir)) {
+            List<Path> stale = files.filter(Files::isRegularFile)
+                    .filter(path -> {
+                        String name = path.getFileName().toString();
+                        return name.startsWith(".nullbot-plugin-") && name.endsWith(".jar.tmp");
+                    })
+                    .toList();
+            for (Path path : stale) deleteQuietly(path);
+            if (!stale.isEmpty()) log.info("Stale plugin temp files removed: {}", stale.size());
+        } catch (IOException e) {
+            log.warn("Cannot clean plugin temp files: {}", dir, e);
+        }
+    }
 
     private List<Path> scanJars() {
         if (!Files.isDirectory(dir)) return List.of();

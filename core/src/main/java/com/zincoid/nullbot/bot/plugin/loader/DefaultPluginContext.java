@@ -9,6 +9,7 @@ import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
+import com.zincoid.nullbot.module.render.PluginRenderer;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 
@@ -29,6 +30,7 @@ record DefaultPluginContext(
         UserSettingService userSettings,
         QuoteService quotes,
         LanguageService languages,
+        PluginRenderer renderer,
         Path dataDir
 ) implements PluginContext {
 }

@@ -27,6 +27,15 @@ public interface UsageService extends IService<Usage> {
     // ════ Stats ═══════════════════
 
     /**
+     * 统计指定用户的历史总用量。
+     * <p>Counts the all-time total usage of the given user.</p>
+     *
+     * @param userId the platform user id
+     * @return the total usage count
+     */
+    long total(String userId);
+
+    /**
      * 汇总指定日期范围内的用量。
      * <p>Summarizes usage in the date range.</p>
      *

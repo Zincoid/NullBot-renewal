@@ -30,6 +30,20 @@ public interface UsageMapper extends BaseMapper<Usage> {
                   @Param("cmd") String cmd);
 
     /**
+     * 统计指定用户的历史总用量。
+     * <p>Counts the all-time total usage of the given user.</p>
+     *
+     * @param userId the platform user id
+     * @return the total usage count
+     */
+    @Select("""
+            SELECT COALESCE(SUM(`count`), 0)
+            FROM `usage`
+            WHERE `user_id` = #{userId}
+            """)
+    long totalByUser(@Param("userId") String userId);
+
+    /**
      * 汇总指定日期范围内的用量、活跃用户与活跃群。
      * <p>Summarizes usage, active users, and active groups in the date range.</p>
      *

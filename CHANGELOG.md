@@ -6,13 +6,22 @@
 
 ### Added
 
+- 插件 API：`PluginContext.renderer()` 统一提供插件图片渲染，支持原始 SVG 与预编译 JTE 模板；插件 JAR 内 `fonts/` 下的 TTF/OTF 加载时自动注册，`PluginRenderer.font` 支持动态注册；插件 API 版本升至 3，仍兼容版本 1 与 2。
+- `hello-plugin` 的 `Hello` 指令新增 `--image` 图片卡片输出示例。
+- `MsgContent` 新增公共 `BASE64_PREFIX`，`MsgContent.Builder` 新增 `imageBase64` 重载，封装 base64 图片 URL 的编码与拼接。
 - 插件 API：`Plugin.tools()` 允许外部插件注册 AI 工具，插件停用或重载时同步注销；`cmds()` 改为默认空实现，插件可只提供工具；插件 API 版本升至 2，仍兼容版本 1。
 - 控制台插件页展示插件注册的 AI 工具。
 - 控制台概览新增用户调用排行。
+- 新增图片渲染服务：JTE 模板填充数据，SVG 模板经 JairoSVG 输出 PNG；`Usage`/`用量` 指令渲染用户历史用量卡片。
 
 ### Changed
 
+- 优化渲染服务：合并插件渲染入口为 `PluginContext.renderer()`，宿主 JTE 引擎由 `JteSvgRenderer` 直接创建，宿主与插件共用同一渲染管线，字体重复注册与模板类读取错误处理更明确。
+- `Info`、`Help`（别名 `帮助`）指令改为发送图片卡片。
+- 插件加载器启动时清理上次异常退出遗留的 `.nullbot-plugin-*.jar.tmp` 副本。
 - 重构插件加载与注册流程：指令与工具注册统一回滚，插件状态新增工具列表。
+- 优化 `Usage` 用量卡片的布局与视觉样式。
+- `Echo` 指令使用 `Echo` 作为唯一名称，不再保留 `Reply` / `回复` 别名。
 
 ## [1.0.0] - 2026-10-25
 

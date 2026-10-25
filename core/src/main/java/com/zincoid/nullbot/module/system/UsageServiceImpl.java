@@ -30,6 +30,12 @@ public class UsageServiceImpl extends ServiceImpl<UsageMapper, Usage> implements
     // ════ Stats ═══════════════════
 
     @Override
+    public long total(String userId) {
+        if (userId == null || userId.isBlank()) throw new SystemException("Missing key: userId");
+        return baseMapper.totalByUser(userId);
+    }
+
+    @Override
     public Stats stats(LocalDate start, LocalDate end, int limit) {
         if (start == null || end == null) throw new SystemException("Missing key: range");
         if (start.isAfter(end)) throw new SystemException("Invalid range: " + start + " > " + end);

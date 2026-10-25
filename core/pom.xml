@@ -71,6 +71,15 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser</artifactId>
         </dependency>
+        <!-- Render -->
+        <dependency>
+            <groupId>gg.jte</groupId>
+            <artifactId>jte-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.brunoborges</groupId>
+            <artifactId>jairosvg</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -91,6 +100,22 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>gg.jte</groupId>
+                <artifactId>jte-maven-plugin</artifactId>
+                <configuration>
+                    <sourceDirectory>${project.basedir}/src/main/resources/templates</sourceDirectory>
+                    <targetDirectory>${project.build.directory}/generated-sources/jte</targetDirectory>
+                    <contentType>Plain</contentType>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -87,6 +87,14 @@ public enum Text {
             OS: %s
             Current time: %s"""),
 
+    // ════ Usage ═════════════════
+
+    USAGE_AVATAR_FAILED("无法获取用户头像", "Failed to fetch the user avatar"),
+    USAGE_COUNT_FAILED("用量统计读取失败", "Failed to read usage statistics"),
+    USAGE_RENDER_FAILED("用量图片生成失败", "Failed to render the usage image"),
+    INFO_RENDER_FAILED("信息图片生成失败", "Failed to render the info image"),
+    HELP_RENDER_FAILED("帮助图片生成失败", "Failed to render the help image"),
+
     // ════ Unsupported events ═════
 
     CMD_UNSUPPORTED_GROUP_MSG("指令不支持群消息事件", "Command does not support group message events"),

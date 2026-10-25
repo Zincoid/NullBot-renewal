@@ -32,6 +32,8 @@
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <shiro.version>2.5.5</shiro.version>
         <antrun.version>3.1.0</antrun.version>
+        <jte.version>3.2.4</jte.version>
+        <jairosvg.version>1.0.15</jairosvg.version>
     </properties>
 
     <dependencyManagement>
@@ -68,6 +70,16 @@
                 <artifactId>shiro</artifactId>
                 <version>${shiro.version}</version>
             </dependency>
+            <dependency>
+                <groupId>gg.jte</groupId>
+                <artifactId>jte-runtime</artifactId>
+                <version>${jte.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.brunoborges</groupId>
+                <artifactId>jairosvg</artifactId>
+                <version>${jairosvg.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -91,6 +103,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-antrun-plugin</artifactId>
                     <version>${antrun.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>gg.jte</groupId>
+                    <artifactId>jte-maven-plugin</artifactId>
+                    <version>${jte.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

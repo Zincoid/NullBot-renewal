@@ -97,7 +97,9 @@ public class SymmetryCmd implements Cmd {
         int sent = 0;
         for (String source : sources) {
             try {
-                ctx.send(MsgContent.of(new MsgSegment.Image("base64://" + render(source, mode))));
+                ctx.send(MsgContent.builder()
+                        .imageBase64(render(source, mode))
+                        .build());
                 sent++;
             } catch (SymmetryException e) {
                 log.warn("Symmetry image failed: {}", e.getMessage());
@@ -162,8 +164,8 @@ public class SymmetryCmd implements Cmd {
 
     private static byte[] fetch(String source) {
         try {
-            if (source.startsWith("base64://"))
-                return decodeBase64(source.substring("base64://".length()));
+            if (source.startsWith(MsgContent.BASE64_PREFIX))
+                return decodeBase64(source.substring(MsgContent.BASE64_PREFIX.length()));
             if (source.startsWith("data:")) {
                 int comma = source.indexOf(',');
                 if (comma < 0) throw new SymmetryException("Malformed data URI");

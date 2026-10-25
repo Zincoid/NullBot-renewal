@@ -8,6 +8,7 @@ import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
+import com.zincoid.nullbot.module.render.PluginRenderer;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 
@@ -98,6 +99,14 @@ public interface PluginContext {
      * @return the language service
      */
     LanguageService languages();
+
+    /**
+     * 插件图片渲染器，可渲染原始 SVG 或预编译 JTE 模板。
+     * <p>Plugin image renderer that renders raw SVG or precompiled JTE templates.</p>
+     *
+     * @return the plugin renderer
+     */
+    PluginRenderer renderer();
 
     /**
      * 插件专用数据目录，由宿主创建。

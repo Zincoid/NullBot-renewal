@@ -69,7 +69,7 @@ java -jar launcher/target/launcher-stdin.jar
 
 ## 插件
 
-插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名，不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`；提供工具时 `apiVersion()` 返回 `2`。开发时依赖 `core`（`provided`），可参考 `plugins/hello-plugin`。
+插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名，不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`；提供工具时 `apiVersion()` 至少为 `2`。需要生成图片时，可通过 `PluginContext.renderer()` 渲染：`renderer().svg(...)` 直接输出 PNG，`renderer().template("card.jte", Map.of(...))` 使用预编译 JTE 模板，结果以 `base64://` 图片发送。模板用 `jte-maven-plugin`（配置可参考 `core/pom.xml`，JTE 版本与宿主一致）从 `src/main/resources/templates/*.jte` 预编译进插件 JAR，模板参数名与 `.jte` 的 `@param` 一致；使用渲染能力时 `apiVersion()` 返回 `3`。插件字体可放在 `src/main/resources/fonts/` 下（TTF/OTF），加载时自动注册；也可调用 `PluginContext.renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。开发时依赖 `core`（`provided`），可参考 `plugins/hello-plugin`（`Hello --image` 为插件模板示例）。
 
 启用插件后，把 JAR 放入 `nullbot.plugin.dir`，或在控制台“插件”页上传；支持运行时启用、停用、重载与删除。插件数据目录由宿主创建，可通过 `PluginContext.dataDir()` 获取。
 
@@ -79,6 +79,7 @@ java -jar launcher/target/launcher-stdin.jar
 
 - 群聊中 @机器人 或私聊直接发消息会进入 AI 对话；戳一戳也会触发。
 - 插件示例：`#Hello`、`#Anime`、`#Guess`、`#Quiz`、`#Wife`、`#PUBG`、`#AA`、`#PRTS`、`#Trace`、`#SB6657`、`#Symmetry`。
+- 内置图片指令：`#Usage`（别名 `#用量`）渲染当前用户的历史指令用量卡片；`#Info` 渲染系统信息；`#Help`（别名 `#帮助`）渲染指令与插件列表。
 
 ## 许可
 

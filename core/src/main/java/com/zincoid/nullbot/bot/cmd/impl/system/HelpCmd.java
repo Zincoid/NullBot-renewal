@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.cmd.impl;
+package com.zincoid.nullbot.bot.cmd.impl.system;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
@@ -10,7 +10,9 @@ import com.zincoid.nullbot.bot.plugin.loader.PluginLoader;
 import com.zincoid.nullbot.bot.plugin.loader.PluginStatus;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.module.render.RenderService;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,6 +38,7 @@ public class HelpCmd implements Cmd {
 
     private final ObjectProvider<CmdRegistry> registryProvider;
     private final ObjectProvider<PluginLoader> pluginLoaderProvider;
+    private final RenderService renderService;
 
     // ════ Run ═════════════════════
 
@@ -68,7 +72,7 @@ public class HelpCmd implements Cmd {
                     .distinct()
                     .sorted(String.CASE_INSENSITIVE_ORDER)
                     .toList();
-            ctx.send(Text.HELP_PLUGIN, plugin.id(), names.size(), String.join(", ", names));
+            sendImage(ctx, "PLUGIN", plugin.id(), names, "", "", "");
             log.info("Help sent: plugin={}, {} commands", plugin.id(), names.size());
             return;
         }
@@ -81,9 +85,35 @@ public class HelpCmd implements Cmd {
         String pluginIds = plugins.isEmpty()
                 ? Text.HELP_NONE.of(ctx.language())
                 : plugins.stream().map(PluginStatus::id).collect(Collectors.joining(", "));
-        ctx.send(Text.HELP_LIST, builtins.size(), String.join(", ", builtins),
-                plugins.size(), pluginIds);
+        String hint = ctx.language() == Language.EN
+                ? "Help -p=name"
+                : "Help -p=插件名";
+        sendImage(ctx, "HELP", "BUILT-IN COMMANDS", builtins, "PLUGINS", pluginIds, hint);
         log.info("Help sent: {} built-in commands, {} plugins", builtins.size(), plugins.size());
+    }
+
+    private void sendImage(CmdContext ctx, String heading, String title,
+                           List<String> names, String footerLabel, String footer, String hint) {
+        int rows = Math.max(1, (names.size() + 3) / 4);
+        int height = 170 + rows * 26 + (footer.isBlank() ? 20 : 70);
+        byte[] png;
+        try {
+            png = renderService.template("help.jte", Map.of(
+                    "heading", heading,
+                    "title", title,
+                    "count", names.size() + (names.size() == 1 ? " COMMAND" : " COMMANDS"),
+                    "names", names,
+                    "rows", rows,
+                    "height", height,
+                    "footerLabel", footerLabel,
+                    "footer", footer,
+                    "hint", hint
+            ));
+        } catch (RuntimeException e) {
+            log.warn("Help image render failed: title={}", title, e);
+            throw new CmdWarnException(ctx.render(Text.HELP_RENDER_FAILED), e);
+        }
+        ctx.send(MsgContent.builder().imageBase64(png).build());
     }
 
     // ════ Cmd ═════════════════════

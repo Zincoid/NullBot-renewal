@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.bot.spi.model;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -10,6 +11,12 @@ import java.util.List;
  * @param segments the ordered message segments
  */
 public record MsgContent(List<MsgSegment> segments) {
+
+    /**
+     * base64 URL 前缀。
+     * <p>Prefix of a base64 URL.</p>
+     */
+    public static final String BASE64_PREFIX = "base64://";
 
     public MsgContent {
         segments = List.copyOf(segments);
@@ -125,6 +132,26 @@ public record MsgContent(List<MsgSegment> segments) {
         public Builder image(String url) {
             segments.add(new MsgSegment.Image(url));
             return this;
+        }
+
+        /**
+         * 追加 base64 图片段，自动编码字节。
+         * <p>Appends a base64 image segment, encoding the given bytes.</p>
+         *
+         * @param bytes the raw image bytes
+         */
+        public Builder imageBase64(byte[] bytes) {
+            return image(BASE64_PREFIX + Base64.getEncoder().encodeToString(bytes));
+        }
+
+        /**
+         * 追加已经编码的 base64 图片段。
+         * <p>Appends an image segment with an already base64-encoded payload.</p>
+         *
+         * @param base64 the base64 payload without the prefix
+         */
+        public Builder imageBase64(String base64) {
+            return image(BASE64_PREFIX + base64);
         }
 
         /**
