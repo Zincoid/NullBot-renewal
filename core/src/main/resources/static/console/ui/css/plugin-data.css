@@ -1,0 +1,82 @@
+/* ═══ Plugin data dialog ═════════ */
+
+#plugin-data-dialog {
+    width: min(1000px, calc(100vw - 32px));
+}
+
+.plugin-data-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.plugin-data-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.plugin-data-crumb {
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font: inherit;
+    cursor: pointer;
+}
+
+.plugin-data-crumb:hover {
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.plugin-data-sep {
+    color: var(--color-text-secondary);
+}
+
+.plugin-data-toolbar {
+    margin-top: 0;
+}
+
+.plugin-data-toolbar > button {
+    height: 39px;
+}
+
+.plugin-data-spacer {
+    flex: 1;
+}
+
+.plugin-data-folder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.plugin-data-folder input {
+    width: auto;
+    height: 39px;
+    flex: 1 1 220px;
+    max-width: 320px;
+}
+
+.plugin-data-folder button {
+    height: 39px;
+}
+
+.plugin-data-table {
+    margin-top: var(--spacing-md);
+}
+
+.plugin-data-toolbar #plugin-data-count {
+    margin-left: 0;
+}

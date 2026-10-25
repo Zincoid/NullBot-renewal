@@ -1,0 +1,349 @@
+/* ═══ Usage ═══════════════════════ */
+
+.chart-card {
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-xl);
+}
+
+.chart-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.chart-head .muted {
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.chart .grid {
+    stroke: var(--color-border);
+    stroke-width: 1;
+}
+
+.chart .axis {
+    fill: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.chart .line {
+    fill: none;
+    stroke: var(--chart-primary);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+}
+
+.chart .fill-start {
+    stop-color: var(--chart-primary);
+    stop-opacity: 0.12;
+}
+
+.chart .fill-end {
+    stop-color: var(--chart-primary);
+    stop-opacity: 0;
+}
+
+.chart .hit {
+    fill: transparent;
+    pointer-events: all;
+}
+
+.chart .guide {
+    stroke: var(--chart-primary);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    stroke-opacity: 0.6;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.chart .dot {
+    fill: var(--color-surface);
+    stroke: var(--chart-primary);
+    stroke-width: 1.5;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.chart .point:hover .guide,
+.chart .point:hover .dot {
+    opacity: 1;
+}
+
+.rank-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.rank-grid .card {
+    padding: var(--spacing-xl);
+}
+
+.ranks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.rank-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--spacing-xs) var(--spacing-md);
+    align-items: baseline;
+    font-size: var(--text-sm);
+}
+
+.rank-row > span:first-child {
+    font-size: var(--text-xs);
+}
+
+.rank-index {
+    display: inline-block;
+    width: 2em;
+    color: var(--color-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.rank-count {
+    color: var(--color-text-heading);
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.rank-bar {
+    grid-column: 1 / -1;
+    height: 2px;
+    overflow: hidden;
+    background: var(--color-bg-alt);
+    border-radius: var(--rounded-full);
+}
+
+.rank-bar span {
+    display: block;
+    height: 100%;
+    background: var(--chart-primary);
+    border-radius: inherit;
+}
+
+/* ═══ Config ═════════════════════ */
+
+.config {
+    position: relative;
+    --edge-glow: #ec66a6;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "head actions"
+        "value value";
+    align-items: center;
+    gap: var(--spacing-xs) var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-lg);
+    transition: border-color var(--transition-fast);
+}
+
+.config-head {
+    grid-area: head;
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+    min-width: 0;
+}
+
+.config-head .badge {
+    flex-shrink: 0;
+}
+
+.config-head code {
+    padding: 0;
+    background: none;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+}
+
+.config .desc {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.config .default {
+    color: var(--color-text-secondary);
+}
+
+.config .default code {
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+}
+
+.config .value {
+    grid-area: value;
+    height: 48px;
+    min-height: 48px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.config .actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    justify-self: end;
+    margin-top: 0;
+}
+
+.config .actions .row-status {
+    max-width: 160px;
+    margin-right: var(--spacing-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.config .actions .row-status:empty {
+    display: none;
+}
+
+.config .save,
+.config .reset {
+    border: none;
+    background: transparent;
+}
+
+.config .save {
+    color: var(--color-primary);
+}
+
+.config .save:hover {
+    color: var(--color-primary);
+}
+
+.config .reset {
+    color: var(--color-text-secondary);
+}
+
+.config .reset:hover {
+    background: var(--color-bg-alt);
+    color: var(--color-text-heading);
+}
+
+.row-status {
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+}
+
+.row-status.ok {
+    color: var(--color-success);
+}
+
+.row-status.error {
+    color: var(--color-danger);
+}
+
+/* ═══ Upload ══════════════════════ */
+
+.upload-card {
+    margin-bottom: var(--spacing-xl);
+}
+
+.upload-card h2 {
+    margin-bottom: var(--spacing-md);
+}
+
+.upload-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-md);
+}
+
+.upload-pick {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-left: auto;
+    height: 39px;
+}
+
+.upload-files-label {
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+}
+
+button.file-pick {
+    width: 39px;
+    height: 39px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+}
+
+button.file-pick:hover {
+    border-color: var(--color-primary);
+    background: transparent;
+    color: var(--color-primary);
+}
+
+button.file-pick svg {
+    width: 20px;
+    height: 20px;
+}
+
+.upload-status {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+}
+
+.upload-status:not(:empty) {
+    margin-top: var(--spacing-md);
+}
+
+.upload-line {
+    color: var(--color-text-secondary);
+    transition: opacity 0.25s ease;
+}
+
+.upload-line.fade-out {
+    opacity: 0;
+}
+
+.upload-line.ok {
+    color: var(--color-success);
+}
+
+.upload-line.error {
+    color: var(--color-danger);
+}

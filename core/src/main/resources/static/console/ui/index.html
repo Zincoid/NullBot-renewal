@@ -3,16 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.png" type="image/png" sizes="64x64">
     <title>NullBot 控制台</title>
+    <script src="ui-core.js"></script>
     <script src="common.js"></script>
+    <script src="about.js"></script>
     <link rel="preconnect" href="https://fonts.loli.net">
     <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
     <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@100..900&display=swap" rel="stylesheet">
     <link href="https://fonts.loli.net/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&subset=japanese&display=swap" rel="stylesheet">
     <link href="https://fonts.loli.net/css2?family=JetBrains+Mono:wght@400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="app.js" defer></script>
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/forms.css">
+    <link rel="stylesheet" href="css/tables.css">
+    <link rel="stylesheet" href="css/views.css">
+    <link rel="stylesheet" href="css/dialogs.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/plugin-data.css">
+    <script type="module" src="app.js"></script>
     <script src="digital-flow.js" defer></script>
 </head>
 <body>
@@ -434,9 +445,9 @@
                 <tr>
                     <th data-i18n="plugins.jar">JAR 文件</th>
                     <th data-i18n="plugins.id">插件 ID</th>
-                    <th data-i18n="plugins.version">版本</th>
+                    <th class="col-center" data-i18n="plugins.version">版本</th>
                     <th data-i18n="plugins.commands">指令</th>
-                    <th data-i18n="plugins.state">状态</th>
+                    <th class="col-center" data-i18n="plugins.state">状态</th>
                     <th data-i18n="common.actions">操作</th>
                 </tr>
                 </thead>
@@ -692,12 +703,12 @@
             <nav id="plugin-data-crumbs" class="plugin-data-crumbs"></nav>
         </div>
         <div class="toolbar plugin-data-toolbar">
-            <button type="button" id="plugin-data-new-folder" class="small btn-data"
+            <button type="button" id="plugin-data-new-folder" class="btn-data"
                     data-i18n="plugins.dataNewFolder">新建文件夹</button>
-            <button type="button" id="plugin-data-upload" class="small btn-upload"
+            <button type="button" id="plugin-data-upload" class="btn-upload"
                     data-i18n="plugins.dataUpload">上传</button>
             <input id="plugin-data-files" type="file" multiple hidden>
-            <button type="button" id="plugin-data-delete" class="small danger btn-delete"
+            <button type="button" id="plugin-data-delete" class="danger btn-delete"
                     data-i18n="plugins.dataDelete" disabled>删除所选</button>
             <span class="plugin-data-spacer"></span>
             <span id="plugin-data-count" class="muted"></span>

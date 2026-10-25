@@ -6,7 +6,9 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.boot.web.server.context.WebServerInitializedEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UriUtils;
@@ -49,6 +51,19 @@ public class ConsoleConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(new ConsoleAuthInterceptor(token))
                 .addPathPatterns("/console/**")
                 .excludePathPatterns("/console/ui", "/console/ui/**", "/console/about");
+    }
+
+    /**
+     * 控制台静态资源使用协商缓存，更新后无需强制刷新。
+     * <p>Serves console static resources with revalidation, so updates need no hard refresh.</p>
+     *
+     * @param registry resource handler registry
+     */
+    @Override
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/console/ui/**")
+                .addResourceLocations("classpath:/static/console/ui/")
+                .setCacheControl(CacheControl.noCache());
     }
 
     /**

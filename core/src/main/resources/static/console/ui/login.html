@@ -3,15 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.png" type="image/png" sizes="64x64">
     <title>NullBot 控制台 · 登录</title>
+    <script src="ui-core.js"></script>
     <script src="common.js"></script>
+    <script src="about.js"></script>
     <link rel="preconnect" href="https://fonts.loli.net">
     <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
     <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@100..900&display=swap" rel="stylesheet">
     <link href="https://fonts.loli.net/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&subset=japanese&display=swap" rel="stylesheet">
     <link href="https://fonts.loli.net/css2?family=JetBrains+Mono:wght@400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/tokens.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/forms.css">
+    <link rel="stylesheet" href="css/tables.css">
+    <link rel="stylesheet" href="css/views.css">
+    <link rel="stylesheet" href="css/dialogs.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/plugin-data.css">
 </head>
 <body class="login-page">
 <div class="auth-controls">
@@ -100,7 +111,7 @@
 
 <script>
     const {t} = window.ConsoleUI;
-    const TOKEN_KEY = 'nullbot.console.token';
+    const {setToken, clearToken, getToken} = window.ConsoleUtils;
     const input = document.getElementById('token');
     const status = document.getElementById('status');
     const form = document.getElementById('login-form');
@@ -194,11 +205,11 @@
         setStatus(auto ? t('login.checkingSaved') : t('login.checking'));
         try {
             if (await check(token)) {
-                localStorage.setItem(TOKEN_KEY, token);
+                setToken(token);
                 location.replace('index.html');
                 return;
             }
-            localStorage.removeItem(TOKEN_KEY);
+            clearToken();
             setStatus(t('login.invalid'), 'error');
             input.focus();
         } catch (e) {
@@ -226,7 +237,7 @@
         setStatus('');
     });
 
-    const saved = (localStorage.getItem(TOKEN_KEY) || '').trim();
+    const saved = getToken();
     if (saved) {
         input.value = saved;
         login(saved, true);

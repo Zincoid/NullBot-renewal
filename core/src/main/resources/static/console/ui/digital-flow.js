@@ -46,6 +46,7 @@
     }
 
     function draw() {
+        if (!width || !height) return;
         const isDark = document.documentElement.dataset.theme === 'dark';
         const color = isDark ? '75,85,99' : '107,114,128';
 
@@ -129,7 +130,7 @@
     resize();
     if (!reducedMotion) {
         lastTime = performance.now();
-        animationId = requestAnimationFrame(tick);
+        requestAnimationFrame(tick);
     }
     window.addEventListener('resize', onResize);
     window.addEventListener('mousemove', onMouseMove, {passive: true});
