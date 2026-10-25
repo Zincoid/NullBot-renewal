@@ -4,29 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.zincoid</groupId>
-        <artifactId>nullbot-parent</artifactId>
+        <artifactId>adapters</artifactId>
         <version>1.0.0</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>adapter-shiro</artifactId>
     <name>NullBot Shiro Adapter</name>
     <description>Shiro inbound and outbound adapter</description>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.zincoid</groupId>
-            <artifactId>spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.mikuac</groupId>
             <artifactId>shiro</artifactId>
