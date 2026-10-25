@@ -8,25 +8,38 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
-import lombok.RequiredArgsConstructor;
+import com.zincoid.nullbot.platform.util.SystemInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootVersion;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 
 import java.lang.management.ManagementFactory;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
- * 信息指令：输出版本与运行环境信息。
- * <p>Info command: prints version and runtime environment information.</p>
+ * 信息指令：输出应用、版本与运行环境信息。
+ * <p>Info command: prints application, version, and runtime environment information.</p>
  */
 @Slf4j
 @CmdMapping("Info")
 @Component
-@RequiredArgsConstructor
 public class InfoCmd implements Cmd {
 
+    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final ObjectProvider<BuildProperties> builds;
+    private final String name;
+
+    public InfoCmd(ObjectProvider<BuildProperties> builds,
+                   @Value("${spring.application.name:NullBot}") String name) {
+        this.builds = builds;
+        this.name = name;
+    }
 
     // ════ Run ═════════════════════
 
@@ -43,8 +56,11 @@ public class InfoCmd implements Cmd {
     private void handle(CmdContext ctx) {
         BuildProperties build = builds.getIfAvailable();
         String version = build == null || build.getVersion() == null ? "dev" : build.getVersion();
-        String buildTime = build == null || build.getTime() == null ? "-" : build.getTime().toString();
-        ctx.send(Text.INFO, version, buildTime, uptime(), java(), os());
+        String buildTime = build == null || build.getTime() == null
+                ? "-"
+                : TIME.format(build.getTime().atZone(ZoneId.systemDefault()));
+        ctx.send(Text.INFO, name, version, buildTime, SystemInfo.java(), springBootVersion(),
+                uptime(), SystemInfo.os(), LocalDateTime.now().format(TIME));
         log.info("Info sent: version={}", version);
     }
 
@@ -61,17 +77,9 @@ public class InfoCmd implements Cmd {
                 : "%dh %02dm %02ds".formatted(hours, minutes, secs);
     }
 
-    private static String java() {
-        return "%s (%s)".formatted(
-                System.getProperty("java.version", "unknown"),
-                System.getProperty("java.vendor", "unknown"));
-    }
-
-    private static String os() {
-        return "%s %s (%s)".formatted(
-                System.getProperty("os.name", "unknown"),
-                System.getProperty("os.version", "unknown"),
-                System.getProperty("os.arch", "unknown"));
+    private static String springBootVersion() {
+        String version = SpringBootVersion.getVersion();
+        return version.isBlank() ? "-" : version;
     }
 
     // ════ Cmd ═════════════════════
@@ -80,11 +88,11 @@ public class InfoCmd implements Cmd {
     public String getHelp(Language language) {
         return language == Language.EN ? """
                 Info
-                Shows the bot version and runtime environment.
+                Shows application, version, and runtime environment information.
                 Usage: Info
                 Access: >=0(normal)""" : """
                 Info
-                查看机器人版本与运行环境。
+                查看应用、版本与运行环境信息。
                 用法：Info
                 权限：>=0(normal)""";
     }

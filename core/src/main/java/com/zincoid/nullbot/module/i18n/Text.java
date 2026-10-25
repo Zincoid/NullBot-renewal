@@ -67,19 +67,25 @@ public enum Text {
 
     INFO("""
             系统信息
+            应用：%s
+            作者：@Zincoid
             版本：%s
             构建时间：%s
-            运行时间：%s
             Java：%s
+            Spring Boot：%s
+            运行时间：%s
             系统：%s
-            作者：@Zincoid""", """
+            当前时间：%s""", """
             System info
+            Application: %s
+            Author: @Zincoid
             Version: %s
             Build time: %s
-            Uptime: %s
             Java: %s
+            Spring Boot: %s
+            Uptime: %s
             OS: %s
-            Author: @Zincoid"""),
+            Current time: %s"""),
 
     // ════ Unsupported events ═════
 

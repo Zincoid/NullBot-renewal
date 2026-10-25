@@ -9,8 +9,10 @@ package com.zincoid.nullbot.console.dto;
  * @param version           the build version
  * @param buildTime         the build time in ISO-8601, null when unavailable
  * @param javaVersion       the running Java version
+ * @param javaVendor        the running Java vendor
  * @param springBootVersion the running Spring Boot version
  * @param uptime            the process uptime in milliseconds
+ * @param os                the operating system name, version, and architecture
  */
 public record AboutView(
         String name,
@@ -18,7 +20,9 @@ public record AboutView(
         String version,
         String buildTime,
         String javaVersion,
+        String javaVendor,
         String springBootVersion,
-        long uptime
+        long uptime,
+        String os
 ) {
 }

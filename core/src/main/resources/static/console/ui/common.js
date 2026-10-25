@@ -289,6 +289,7 @@
             'about.javaVersion': 'Java',
             'about.springBootVersion': 'Spring Boot',
             'about.uptime': '运行时间',
+            'about.os': '系统',
             'about.currentTime': '当前时间',
 
             'pager.info': '第 {page} / {pages} 页 · 共 {total} 条',
@@ -592,6 +593,7 @@
             'about.javaVersion': 'Java',
             'about.springBootVersion': 'Spring Boot',
             'about.uptime': 'Uptime',
+            'about.os': 'OS',
             'about.currentTime': 'Current time',
 
             'pager.info': 'Page {page} / {pages} · {total} total',
@@ -725,14 +727,19 @@
             if (element) element.textContent = value;
         };
         const uptime = Number(data.uptime) || 0;
+        const java = data.javaVersion
+            ? `${data.javaVersion}${data.javaVendor ? ` (${data.javaVendor})` : ''}`
+            : '-';
         aboutStartedAt = Date.now() - uptime;
         set('about-hero-name', name);
         set('about-name', name);
+        set('about-author', data.author || 'Zincoid');
         set('about-version', data.version || '-');
         set('about-build-time', formatDateTime(data.buildTime));
-        set('about-java', data.javaVersion || '-');
+        set('about-java', java);
         set('about-spring-boot', data.springBootVersion || '-');
         set('about-uptime', formatUptime(uptime));
+        set('about-os', data.os || '-');
     }
 
     async function loadAbout() {
@@ -790,7 +797,7 @@
                     </div>
                     <div class="about-row">
                         <dt data-i18n="about.author">作者</dt>
-                        <dd>Zincoid</dd>
+                        <dd id="about-author">Zincoid</dd>
                     </div>
                     <div class="about-row">
                         <dt data-i18n="about.version">构建版本</dt>
@@ -811,6 +818,10 @@
                     <div class="about-row">
                         <dt data-i18n="about.uptime">运行时间</dt>
                         <dd class="about-mono" id="about-uptime">-</dd>
+                    </div>
+                    <div class="about-row">
+                        <dt data-i18n="about.os">系统</dt>
+                        <dd class="about-mono" id="about-os">-</dd>
                     </div>
                     <div class="about-row">
                         <dt data-i18n="about.currentTime">当前时间</dt>
