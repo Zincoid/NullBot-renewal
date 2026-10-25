@@ -1,15 +1,15 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
-import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;
 import com.zincoid.nullbot.bot.plugin.Plugin;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.plugin.PluginException;
 import com.zincoid.nullbot.bot.plugin.PluginJarName;
-import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
 import com.zincoid.nullbot.platform.configuration.PluginProperties;
 import com.zincoid.nullbot.platform.util.AtomicFiles;
 import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -42,8 +42,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * 外部插件加载器：扫描插件目录，校验并注册插件指令，支持运行时启停、重载、目录重扫、上传与删除。
- * <p>External plugin loader: scans the plugin directory, validates and registers plugin commands,
+ * 外部插件加载器：扫描插件目录，校验并注册插件指令与 AI 工具，支持运行时启停、重载、目录重扫、上传与删除。
+ * <p>External plugin loader: scans the plugin directory, validates and registers plugin commands and AI tools,
  * and supports runtime enable, disable, reload, directory rescan, install, and delete.</p>
  */
 @Slf4j
@@ -144,14 +144,13 @@ public class PluginLoader {
             if (!seen.add(name)) continue;
             String id = state.pluginId(name);
             if (state.isDisabled(name)) {
-                result.add(new PluginStatus(name, id, null, null, List.of(),
-                        PluginStatus.State.DISABLED, null));
+                result.add(PluginStatus.disabled(name, id));
                 continue;
             }
             String error = failures.get(name);
-            result.add(new PluginStatus(name, id, null, null, List.of(),
-                    error == null ? PluginStatus.State.AVAILABLE : PluginStatus.State.FAILED,
-                    error));
+            result.add(error == null
+                    ? PluginStatus.available(name, id)
+                    : PluginStatus.failed(name, id, error));
         }
         result.sort(Comparator.comparing(PluginStatus::jar));
         return result;
@@ -292,8 +291,8 @@ public class PluginLoader {
         try {
             loadPlugin(name, target);
         } catch (PluginException e) {
-            PluginStatus status = new PluginStatus(name, state.pluginId(name), null, null, List.of(),
-                    PluginStatus.State.FAILED, failures.getOrDefault(name, message(e)));
+            PluginStatus status = PluginStatus.failed(name, state.pluginId(name),
+                    failures.getOrDefault(name, message(e)));
             log.info("Plugin installed: {} ({})", name, status.state());
             return status;
         }
@@ -343,12 +342,10 @@ public class PluginLoader {
     public synchronized void unload() {
         List<LoadedPlugin> snapshot = new ArrayList<>(loaded);
         for (int i = snapshot.size() - 1; i >= 0; i--) unloadInternal(snapshot.get(i));
-        loaded.clear();
     }
 
     private void unloadInternal(LoadedPlugin item) {
-        cmdRegistry.unregister(item.cmds());
-        toolRegistry.unregister(item.tools());
+        item.contributions().unregister(cmdRegistry, toolRegistry);
         try {
             item.plugin().stop();
         } catch (Exception e) {
@@ -377,14 +374,27 @@ public class PluginLoader {
     }
 
     private LoadedPlugin loadJar(Path jar) {
+        OpenedPlugin opened = openJar(jar);
+        try {
+            Path dataDir = dir.resolve(opened.id());
+            Files.createDirectories(dataDir);
+            state.setId(opened.jar().name(), opened.id());
+            opened.start(contexts.create(dataDir));
+            PluginContributions contributions = PluginContributions.collect(opened.plugin(), opened.apiVersion());
+            LoadedPlugin item = new LoadedPlugin(opened.id(), opened.version(), opened.apiVersion(),
+                    opened.jar(), opened.loader(), opened.plugin(), contributions);
+            contributions.register(cmdRegistry, toolRegistry);
+            return item;
+        } catch (Exception | LinkageError | ServiceConfigurationError e) {
+            opened.close();
+            if (e instanceof PluginException pluginException) throw pluginException;
+            throw new PluginException("Plugin load failed: " + message(e), e);
+        }
+    }
+
+    private OpenedPlugin openJar(Path jar) {
         URLClassLoader loader = null;
         Path copy = null;
-        Plugin plugin = null;
-        boolean started = false;
-        List<Cmd> cmds = List.of();
-        List<Tool> tools = List.of();
-        boolean cmdsRegistered = false;
-        boolean toolsRegistered = false;
         try {
             FileTime modified = Files.getLastModifiedTime(jar);
             long size = Files.size(jar);
@@ -400,7 +410,7 @@ public class PluginLoader {
                 throw new PluginException("Plugin provider missing");
             if (providers.size() > 1)
                 throw new PluginException("Multiple plugin providers in one jar");
-            plugin = providers.getFirst();
+            Plugin plugin = providers.getFirst();
             String id = plugin.id();
             if (id == null || !PLUGIN_ID.matcher(id).matches())
                 throw new PluginException("Invalid plugin id: " + id);
@@ -410,39 +420,71 @@ public class PluginLoader {
             if (apiVersion < MIN_API_VERSION || apiVersion > API_VERSION)
                 throw new PluginException("Unsupported apiVersion: " + apiVersion
                         + ", expected " + MIN_API_VERSION + "-" + API_VERSION);
-            Path dataDir = dir.resolve(id);
-            Files.createDirectories(dataDir);
-            state.setId(jar.getFileName().toString(), id);
-            plugin.start(contexts.create(dataDir));
-            started = true;
-            List<Cmd> provided = plugin.cmds();
-            cmds = provided == null ? List.of() : List.copyOf(provided);
-            List<Tool> providedTools = plugin.tools();
-            tools = providedTools == null ? List.of() : List.copyOf(providedTools);
-            if (apiVersion < 2 && !tools.isEmpty())
-                throw new PluginException("Plugins providing tools must declare apiVersion 2: " + id);
-            if (!cmdRegistry.register(cmds))
-                throw new PluginException("Command name conflict");
-            cmdsRegistered = true;
-            if (!toolRegistry.register(tools))
-                throw new PluginException("Tool name conflict");
-            toolsRegistered = true;
-            return new LoadedPlugin(id, plugin.version(), apiVersion,
-                    jar.getFileName().toString(), copy, modified, size, loader, plugin, cmds, tools);
+            PluginJar jarInfo = new PluginJar(jar.getFileName().toString(), copy, modified, size);
+            return new OpenedPlugin(id, plugin.version(), apiVersion, jarInfo, loader, plugin);
         } catch (Exception | LinkageError | ServiceConfigurationError e) {
-            if (toolsRegistered) toolRegistry.unregister(tools);
-            if (cmdsRegistered) cmdRegistry.unregister(cmds);
-            if (started) {
-                try {
-                    plugin.stop();
-                } catch (Exception stopError) {
-                    log.warn("Plugin stop failed after load error: {}", plugin.id(), stopError);
-                }
-            }
             closeQuietly(loader);
             deleteQuietly(copy);
             if (e instanceof PluginException pluginException) throw pluginException;
             throw new PluginException("Plugin load failed: " + message(e), e);
+        }
+    }
+
+    /**
+     * 已打开但未注册的插件：JAR、类加载器与插件实例，加载失败时统一关闭。
+     * <p>Opened but unregistered plugin: jar, classloader, and plugin instance, closed uniformly on load failure.</p>
+     */
+    @RequiredArgsConstructor
+    private static final class OpenedPlugin implements AutoCloseable {
+
+        private final String id;
+        private final String version;
+        private final int apiVersion;
+        private final PluginJar jar;
+        private final URLClassLoader loader;
+        private final Plugin plugin;
+        private boolean started;
+
+        String id() {
+            return id;
+        }
+
+        String version() {
+            return version;
+        }
+
+        int apiVersion() {
+            return apiVersion;
+        }
+
+        PluginJar jar() {
+            return jar;
+        }
+
+        URLClassLoader loader() {
+            return loader;
+        }
+
+        Plugin plugin() {
+            return plugin;
+        }
+
+        void start(PluginContext context) {
+            plugin.start(context);
+            started = true;
+        }
+
+        @Override
+        public void close() {
+            if (started) {
+                try {
+                    plugin.stop();
+                } catch (Exception e) {
+                    log.warn("Plugin stop failed after load error: {}", id, e);
+                }
+            }
+            closeQuietly(loader);
+            deleteQuietly(jar.copy());
         }
     }
 
@@ -511,7 +553,7 @@ public class PluginLoader {
     // ════ Helpers ═════════════════
 
     private List<Path> scanJars() {
-        state.load();
+        if (!Files.isDirectory(dir)) return List.of();
         try (Stream<Path> files = Files.list(dir)) {
             return files.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().endsWith(".jar"))

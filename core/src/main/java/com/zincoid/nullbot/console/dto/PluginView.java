@@ -12,7 +12,8 @@ import java.util.List;
  * @param id         the plugin id from the loaded instance or persisted mapping, null when unknown
  * @param version    the plugin version, null when not loaded
  * @param apiVersion the plugin API version, null when not loaded
- * @param commands   the registered command aliases
+ * @param cmds       the registered command aliases
+ * @param tools      the registered AI tool names
  * @param state      the load state
  * @param error      the load failure message, null unless failed
  */
@@ -21,13 +22,15 @@ public record PluginView(
         String id,
         String version,
         Integer apiVersion,
-        List<String> commands,
+        List<String> cmds,
+        List<String> tools,
         String state,
         String error
 ) {
 
     public PluginView {
-        commands = commands == null ? List.of() : List.copyOf(commands);
+        cmds = cmds == null ? List.of() : List.copyOf(cmds);
+        tools = tools == null ? List.of() : List.copyOf(tools);
     }
 
     /**
@@ -39,6 +42,6 @@ public record PluginView(
      */
     public static PluginView of(PluginStatus status) {
         return new PluginView(status.jar(), status.id(), status.version(), status.apiVersion(),
-                status.commands(), status.state().name(), status.error());
+                status.cmds(), status.tools(), status.state().name(), status.error());
     }
 }

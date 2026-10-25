@@ -13,39 +13,55 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * 已加载插件：元数据、源 JAR 指纹、私有副本、类加载器、插件实例、注册指令与 AI 工具。
- * <p>Loaded plugin: metadata, source jar stamp, private copy, classloader, plugin instance,
- * registered commands, and AI tools.</p>
+ * 已加载插件：元数据、JAR 信息、类加载器、插件实例与注册贡献。
+ * <p>Loaded plugin: metadata, jar info, classloader, plugin instance, and registered contributions.</p>
  *
- * @param id          the plugin id
- * @param version     the plugin version
- * @param apiVersion  the plugin API version
- * @param jarName     the plugin jar filename
- * @param jarCopy     the private jar copy used by the classloader
- * @param jarModified the source jar last-modified time
- * @param jarSize     the source jar size in bytes
- * @param loader      the plugin classloader
- * @param plugin      the plugin instance
- * @param cmds        the registered command instances
- * @param tools       the registered AI tool instances
+ * @param id            the plugin id
+ * @param version       the plugin version
+ * @param apiVersion    the plugin API version
+ * @param jar           the source and private jar info
+ * @param loader        the plugin classloader
+ * @param plugin        the plugin instance
+ * @param contributions the registered commands and AI tools
  */
 record LoadedPlugin(
         String id,
         String version,
         int apiVersion,
-        String jarName,
-        Path jarCopy,
-        FileTime jarModified,
-        long jarSize,
+        PluginJar jar,
         URLClassLoader loader,
         Plugin plugin,
-        List<Cmd> cmds,
-        List<Tool> tools
+        PluginContributions contributions
 ) {
 
     LoadedPlugin {
-        cmds = cmds == null ? List.of() : List.copyOf(cmds);
-        tools = tools == null ? List.of() : List.copyOf(tools);
+        contributions = contributions == null
+                ? new PluginContributions(List.of(), List.of())
+                : contributions;
+    }
+
+    String jarName() {
+        return jar.name();
+    }
+
+    Path jarCopy() {
+        return jar.copy();
+    }
+
+    FileTime jarModified() {
+        return jar.modified();
+    }
+
+    long jarSize() {
+        return jar.size();
+    }
+
+    List<Cmd> cmds() {
+        return contributions.cmds();
+    }
+
+    List<Tool> tools() {
+        return contributions.tools();
     }
 
     /**
@@ -55,14 +71,16 @@ record LoadedPlugin(
      * @return the plugin status
      */
     PluginStatus status() {
-        List<String> commands = cmds.stream()
+        List<String> cmds = cmds().stream()
                 .flatMap(cmd -> {
                     CmdMapping mapping = cmd.getClass().getAnnotation(CmdMapping.class);
                     return mapping == null ? Stream.empty() : Arrays.stream(mapping.value());
                 })
                 .distinct()
                 .toList();
-        return new PluginStatus(jarName, id, version, apiVersion,
-                commands, PluginStatus.State.LOADED, null);
+        List<String> tools = tools().stream()
+                .map(tool -> tool.definition().getName())
+                .toList();
+        return PluginStatus.loaded(jarName(), id, version, apiVersion, cmds, tools);
     }
 }

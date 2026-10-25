@@ -49,8 +49,8 @@ function renderPlugins() {
             ? ''
             : ` <span class="muted">api ${escapeHtml(plugin.apiVersion)}</span>`;
         const version = `<div class="plugin-version">${versionText}${api}</div>`;
-        const commands = plugin.commands && plugin.commands.length
-            ? `<div class="plugin-commands">${plugin.commands
+        const cmds = plugin.cmds && plugin.cmds.length
+            ? `<div class="plugin-cmds">${plugin.cmds
                 .map(name => `<code>${escapeHtml(name)}</code>`).join('')}</div>`
             : '<span class="muted">-</span>';
         const error = plugin.error
@@ -61,7 +61,7 @@ function renderPlugins() {
                 <td><code>${jar}</code></td>
                 <td>${id}</td>
                 <td class="col-center">${version}</td>
-                <td>${commands}</td>
+                <td>${cmds}</td>
                 <td class="col-center">${pluginBadge(plugin.state)}${error}</td>
                 <td class="actions">${pluginActions(plugin)}</td>
             </tr>`;

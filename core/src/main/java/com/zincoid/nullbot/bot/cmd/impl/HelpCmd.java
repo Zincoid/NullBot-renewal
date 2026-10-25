@@ -61,7 +61,7 @@ public class HelpCmd implements Cmd {
                     .findFirst()
                     .orElseThrow(() -> new CmdWarnException(
                             ctx.render(Text.HELP_PLUGIN_NOT_FOUND, name)));
-            List<String> names = plugin.commands().stream()
+            List<String> names = plugin.cmds().stream()
                     .map(registry::get)
                     .filter(Objects::nonNull)
                     .map(Cmd::name)
@@ -73,7 +73,7 @@ public class HelpCmd implements Cmd {
             return;
         }
         Set<String> pluginNames = plugins.stream()
-                .flatMap(plugin -> plugin.commands().stream())
+                .flatMap(plugin -> plugin.cmds().stream())
                 .collect(Collectors.toSet());
         List<String> builtins = registry.getNames().stream()
                 .filter(name -> !pluginNames.contains(name))
