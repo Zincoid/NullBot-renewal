@@ -397,13 +397,13 @@ public class PluginLoader {
             if (plugin.apiVersion() != API_VERSION)
                 throw new PluginException("Unsupported apiVersion: " + plugin.apiVersion()
                         + ", expected " + API_VERSION);
-            List<Cmd> provided = plugin.cmds();
-            List<Cmd> cmds = provided == null ? List.of() : List.copyOf(provided);
             Path dataDir = dir.resolve(id);
             Files.createDirectories(dataDir);
             state.setId(jar.getFileName().toString(), id);
             plugin.start(contexts.create(dataDir));
             started = true;
+            List<Cmd> provided = plugin.cmds();
+            List<Cmd> cmds = provided == null ? List.of() : List.copyOf(provided);
             if (!registry.register(cmds))
                 throw new PluginException("Command name conflict");
             return new LoadedPlugin(id, plugin.version(), plugin.apiVersion(),

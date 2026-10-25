@@ -37,16 +37,16 @@ public interface Plugin {
     }
 
     /**
-     * 插件提供的指令。
-     * <p>Commands provided by the plugin.</p>
+     * 插件提供的指令，在 {@link #start(PluginContext)} 之后调用。
+     * <p>Commands provided by the plugin, requested after {@link #start(PluginContext)}.</p>
      *
      * @return the commands, may be empty
      */
     List<Cmd> cmds();
 
     /**
-     * 插件启动，在指令注册前调用。
-     * <p>Starts the plugin before its commands are registered.</p>
+     * 插件启动，在获取和注册指令前调用。
+     * <p>Starts the plugin before its commands are requested and registered.</p>
      *
      * @param context the host services exposed to the plugin
      */
