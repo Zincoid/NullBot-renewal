@@ -4,26 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.zincoid</groupId>
-        <artifactId>nullbot-parent</artifactId>
+        <artifactId>plugins</artifactId>
         <version>1.0.0</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>query-plugin</artifactId>
     <name>NullBot Query Plugin</name>
     <description>AA, PRTS, and SauceNAO query command plugin</description>
 
     <dependencies>
-        <dependency>
-            <groupId>com.zincoid</groupId>
-            <artifactId>core</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -62,22 +51,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-to-plugins</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <mkdir dir="${project.basedir}/../../workspace/plugins"/>
-                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${project.basedir}/../../workspace/plugins/${project.build.finalName}.jar"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
