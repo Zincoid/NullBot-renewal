@@ -14,6 +14,7 @@ import java.util.List;
  * @param daily        the daily usage series, zero-filled
  * @param cmds         the top commands
  * @param groups       the top groups
+ * @param topUsers     the top users
  */
 public record UsageView(
         int days,
@@ -22,7 +23,8 @@ public record UsageView(
         long activeGroups,
         List<Day> daily,
         List<Rank> cmds,
-        List<Rank> groups
+        List<Rank> groups,
+        List<Rank> topUsers
 ) {
 
     /**
@@ -39,7 +41,7 @@ public record UsageView(
      * 用量排行项。
      * <p>Usage ranking entry.</p>
      *
-     * @param key   the command name or group id
+     * @param key   the command name, group id, or user id
      * @param name  the display name
      * @param count the usage count
      */

@@ -104,4 +104,25 @@ public interface UsageMapper extends BaseMapper<Usage> {
     List<UsageRankRow> groups(@Param("start") LocalDate start,
                               @Param("end") LocalDate end,
                               @Param("limit") int limit);
+
+    /**
+     * 汇总指定日期范围内使用最多的用户。
+     * <p>Summarizes the most active users in the date range.</p>
+     *
+     * @param start inclusive start date
+     * @param end   inclusive end date
+     * @param limit maximum number of rows
+     * @return the user ranking rows
+     */
+    @Select("""
+            SELECT `user_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
+            FROM `usage`
+            WHERE `time` BETWEEN #{start} AND #{end}
+            GROUP BY `user_id`
+            ORDER BY `count` DESC, `name`
+            LIMIT #{limit}
+            """)
+    List<UsageRankRow> users(@Param("start") LocalDate start,
+                             @Param("end") LocalDate end,
+                             @Param("limit") int limit);
 }

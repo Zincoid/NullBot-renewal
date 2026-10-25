@@ -3,8 +3,10 @@ package com.zincoid.nullbot.console.controller;
 import com.zincoid.nullbot.console.dto.UsageView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.module.common.GroupService;
+import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.system.UsageService;
 import com.zincoid.nullbot.platform.persistence.po.Group;
+import com.zincoid.nullbot.platform.persistence.po.User;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,7 @@ public class UsageController {
 
     private final UsageService usageService;
     private final GroupService groupService;
+    private final UserService userService;
 
     // ════ Query ══════════════════
 
@@ -77,6 +80,18 @@ public class UsageController {
                                 : groupNames.getOrDefault(rank.key(), rank.key()),
                         rank.count()))
                 .toList();
-        return new UsageView(days, stats.total(), stats.users(), stats.groups(), daily, cmds, groups);
+        List<String> userIds = stats.topUsers().stream()
+                .map(UsageService.Rank::key)
+                .toList();
+        Map<String, String> userNames = userIds.isEmpty()
+                ? Map.of()
+                : userService.listByIds(userIds).stream()
+                .collect(Collectors.toMap(User::getId,
+                        user -> user.getName() == null ? user.getId() : user.getName()));
+        List<UsageView.Rank> topUsers = stats.topUsers().stream()
+                .map(rank -> new UsageView.Rank(rank.key(),
+                        userNames.getOrDefault(rank.key(), rank.key()), rank.count()))
+                .toList();
+        return new UsageView(days, stats.total(), stats.users(), stats.groups(), daily, cmds, groups, topUsers);
     }
 }

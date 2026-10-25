@@ -51,7 +51,7 @@ public interface UsageService extends IService<Usage> {
      * 用量排行项。
      * <p>Usage ranking entry.</p>
      *
-     * @param key   the command name or group id
+     * @param key   the command name, group id, or user id
      * @param count the usage count
      */
     record Rank(String key, long count) {
@@ -67,8 +67,9 @@ public interface UsageService extends IService<Usage> {
      * @param daily     daily usage rows with data
      * @param cmds      top commands
      * @param topGroups top groups
+     * @param topUsers  top users
      */
     record Stats(long total, long users, long groups, List<Daily> daily,
-                 List<Rank> cmds, List<Rank> topGroups) {
+                 List<Rank> cmds, List<Rank> topGroups, List<Rank> topUsers) {
     }
 }

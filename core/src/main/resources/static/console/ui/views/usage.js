@@ -69,6 +69,8 @@ function renderUsage(data) {
         rank => rank.name || rank.key);
     renderRanks($('group-ranks'), data.groups, t('usage.noGroups'),
         rank => rank.key === '0' ? t('usage.dm') : (rank.name || rank.key));
+    renderRanks($('user-ranks'), data.topUsers, t('usage.noUsers'),
+        rank => rank.name || rank.key);
 }
 
 function usageSvg(days) {

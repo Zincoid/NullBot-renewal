@@ -40,10 +40,11 @@ public class UsageServiceImpl extends ServiceImpl<UsageMapper, Usage> implements
                 .toList();
         List<Rank> cmds = ranks(baseMapper.cmds(start, end, top));
         List<Rank> topGroups = ranks(baseMapper.groups(start, end, top));
+        List<Rank> topUsers = ranks(baseMapper.users(start, end, top));
         long total = summary == null ? 0 : count(summary.getTotal());
         long users = summary == null ? 0 : count(summary.getUsers());
         long groups = summary == null ? 0 : count(summary.getGroups());
-        return new Stats(total, users, groups, daily, cmds, topGroups);
+        return new Stats(total, users, groups, daily, cmds, topGroups, topUsers);
     }
 
     // ════ Helpers ═════════════════
