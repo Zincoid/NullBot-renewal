@@ -8,6 +8,7 @@
 - **指令框架**：可配置前缀、别名、限权（banned/restricted/normal/manager/admin）、限流、关键词触发、输入等待、帮助与调用统计。
 - **AI 对话**：兼容 OpenAI 接口；群聊 @、私聊、戳一戳均可触发，支持按群/用户设置提示词、推理强度与注入防护，并提供工具调用（读消息、看图、搜索收藏、发送、网页、撤回、禁言、调用指令）。
 - **消息能力**：图片/视频/音频/语录收藏与随机发送、入退群通知、防撤回、聊天历史、自动聊天。
+- **图片渲染**：JTE 预编译模板配合 JairoSVG 输出 PNG，内置 `Usage`、`Info`、`Help` 图片卡片，插件可复用同一渲染管线。
 - **Web 控制台**：概览、角色与群设置、关键词、语录、文件、配置、插件管理、系统信息，以及常驻实时日志（SSE）。
 - **外部插件**：JAR 热插拔，支持上传、启停、重载、删除与独立数据目录。
 
@@ -69,17 +70,38 @@ java -jar launcher/target/launcher-stdin.jar
 
 ## 插件
 
-插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名，不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`；提供工具时 `apiVersion()` 至少为 `2`。需要生成图片时，可通过 `PluginContext.renderer()` 渲染：`renderer().svg(...)` 直接输出 PNG，`renderer().template("card.jte", Map.of(...))` 使用预编译 JTE 模板，结果以 `base64://` 图片发送。模板用 `jte-maven-plugin`（配置可参考 `core/pom.xml`，JTE 版本与宿主一致）从 `src/main/resources/templates/*.jte` 预编译进插件 JAR，模板参数名与 `.jte` 的 `@param` 一致；使用渲染能力时 `apiVersion()` 返回 `3`。插件字体可放在 `src/main/resources/fonts/` 下（TTF/OTF），加载时自动注册；也可调用 `PluginContext.renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。开发时依赖 `core`（`provided`），可参考 `plugins/hello-plugin`（`Hello --image` 为插件模板示例）。
+插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名，不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`；提供工具时 `apiVersion()` 至少为 `2`。开发时依赖 `core`（`provided`），可参考 `plugins/hello-plugin`。
+
+### 插件渲染
+
+`PluginContext.renderer()` 提供图片渲染能力：
+
+- `svg(String)`：原始 SVG → PNG
+- `template(String, Map)`：预编译 JTE 模板 → PNG
+- `font(byte[])`：注册 TTF/OTF 字体
+
+模板用 `jte-maven-plugin`（配置可参考 `core/pom.xml`，JTE 版本与宿主一致）从 `src/main/resources/templates/*.jte` 预编译进插件 JAR；模板参数名与 `.jte` 的 `@param` 一致。结果通常以 `base64://` 图片发送。使用渲染能力时 `apiVersion()` 返回 `3`。
+
+插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册；也可调用 `renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。`plugins/hello-plugin` 的 `Hello --image` 是完整模板示例。
+
+### 插件运行
 
 启用插件后，把 JAR 放入 `nullbot.plugin.dir`，或在控制台“插件”页上传；支持运行时启用、停用、重载与删除。插件数据目录由宿主创建，可通过 `PluginContext.dataDir()` 获取。
 
 ## 指令
 
-默认前缀为 `#`，可通过 `#Config cmd_prefix <值>` 或控制台修改。`#Help` 列出全部内置指令与已加载插件。
+默认前缀为 `#`，可通过 `#Config cmd_prefix <值>` 或控制台修改。`#Help` 以图片列出全部内置指令与已加载插件；`#Help -p=<插件>` 查看指定插件的指令。
 
 - 群聊中 @机器人 或私聊直接发消息会进入 AI 对话；戳一戳也会触发。
 - 插件示例：`#Hello`、`#Anime`、`#Guess`、`#Quiz`、`#Wife`、`#PUBG`、`#AA`、`#PRTS`、`#Trace`、`#SB6657`、`#Symmetry`。
 - 内置图片指令：`#Usage`（别名 `#用量`）渲染当前用户的历史指令用量卡片；`#Info` 渲染系统信息；`#Help`（别名 `#帮助`）渲染指令与插件列表。
+
+## 字体
+
+内置渲染使用以下 OFL 字体，文件和许可证位于 `core/src/main/resources/fonts/`：
+
+- JetBrains Mono：标题、标签和数值
+- Noto Sans Mono CJK SC：包含中文的值文本，保证中英混排正常显示
 
 ## 许可
 

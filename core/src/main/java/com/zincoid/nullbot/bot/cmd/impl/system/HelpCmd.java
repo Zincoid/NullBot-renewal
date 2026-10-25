@@ -86,8 +86,8 @@ public class HelpCmd implements Cmd {
                 ? Text.HELP_NONE.of(ctx.language())
                 : plugins.stream().map(PluginStatus::id).collect(Collectors.joining(", "));
         String hint = ctx.language() == Language.EN
-                ? "Help -p=name"
-                : "Help -p=插件名";
+                ? "View plugin commands: Help -p=name"
+                : "查看插件指令：Help -p=插件名";
         sendImage(ctx, "HELP", "BUILT-IN COMMANDS", builtins, "PLUGINS", pluginIds, hint);
         log.info("Help sent: {} built-in commands, {} plugins", builtins.size(), plugins.size());
     }
