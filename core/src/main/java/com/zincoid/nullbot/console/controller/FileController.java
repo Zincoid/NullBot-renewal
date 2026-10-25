@@ -4,6 +4,7 @@ import com.zincoid.nullbot.console.dto.FileUpdate;
 import com.zincoid.nullbot.console.dto.FileView;
 import com.zincoid.nullbot.console.dto.PageView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
+import com.zincoid.nullbot.console.util.ConsoleDownloads;
 import com.zincoid.nullbot.console.util.ConsoleValidation;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
@@ -11,13 +12,8 @@ import com.zincoid.nullbot.platform.persistence.po.File;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,8 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * 控制台文件接口：分页、上传、修改、删除与内容读取。
@@ -86,9 +80,9 @@ public class FileController {
             @RequestParam(required = false) String description,
             @RequestParam("file") MultipartFile file) {
         BizType bizType = bizType(type);
-        if (file.isEmpty()) throw new ConsoleException(HttpStatus.BAD_REQUEST, "Empty file");
+        MultipartFile upload = ConsoleValidation.requiredFile(file);
         String text = ConsoleValidation.text(description, 255, "description");
-        File saved = fileService.save(UPLOADER, bizType, file, text);
+        File saved = fileService.save(UPLOADER, bizType, upload, text);
         return ResponseEntity.status(HttpStatus.CREATED).body(FileView.of(saved));
     }
 
@@ -125,20 +119,7 @@ public class FileController {
     @GetMapping("/{id}/content")
     public ResponseEntity<Resource> content(@PathVariable Long id) {
         File file = file(id);
-        MediaType mediaType = MediaTypeFactory.getMediaType(file.getStored())
-                .orElse(MediaType.APPLICATION_OCTET_STREAM);
-        String name = file.getOriginal() == null
-                ? ""
-                : file.getOriginal().replaceAll("\\p{Cntrl}", "").trim();
-        if (name.isEmpty()) name = "file";
-        ContentDisposition disposition = ContentDisposition.attachment()
-                .filename(name, StandardCharsets.UTF_8)
-                .build();
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
-                .header("X-Content-Type-Options", "nosniff")
-                .body(new FileSystemResource(fileService.path(file)));
+        return ConsoleDownloads.attachment(fileService.path(file), file.getOriginal(), file.getStored());
     }
 
     // ════ Delete ═════════════════

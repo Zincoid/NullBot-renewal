@@ -1,12 +1,12 @@
 package com.zincoid.nullbot.console.controller;
 
 import com.zincoid.nullbot.bot.plugin.PluginException;
-import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.bot.plugin.loader.PluginLoader;
 import com.zincoid.nullbot.bot.plugin.loader.PluginStatus;
 import com.zincoid.nullbot.console.dto.PluginListView;
 import com.zincoid.nullbot.console.dto.PluginView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
+import com.zincoid.nullbot.console.util.ConsoleValidation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
@@ -67,18 +67,17 @@ public class PluginController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PluginView> install(
             @RequestParam(value = "file", required = false) MultipartFile file) {
-        if (file == null || file.isEmpty())
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Empty file");
-        String original = FilenameUtils.getName(file.getOriginalFilename());
-        String jarName = name(original == null ? null : original.trim());
-        try (InputStream in = file.getInputStream()) {
+        MultipartFile upload = ConsoleValidation.requiredFile(file);
+        String original = FilenameUtils.getName(upload.getOriginalFilename());
+        String jarName = ConsoleValidation.pluginJar(original == null ? null : original.trim());
+        try (InputStream in = upload.getInputStream()) {
             PluginStatus status = pluginLoader.install(jarName, in);
             return ResponseEntity.status(HttpStatus.CREATED).body(PluginView.of(status));
         } catch (PluginException e) {
             throw pluginError(e);
         } catch (IOException e) {
             throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Cannot read uploaded file: " + e.getMessage());
+                    "Cannot read uploaded file: " + e.getMessage(), e);
         }
     }
 
@@ -91,7 +90,7 @@ public class PluginController {
      */
     @PostMapping("/{jar}/enable")
     public ResponseEntity<Void> enable(@PathVariable String jar) {
-        pluginLoader.enable(name(jar));
+        pluginLoader.enable(ConsoleValidation.pluginJar(jar));
         return ResponseEntity.noContent().build();
     }
 
@@ -104,7 +103,7 @@ public class PluginController {
      */
     @PostMapping("/{jar}/disable")
     public ResponseEntity<Void> disable(@PathVariable String jar) {
-        pluginLoader.disable(name(jar));
+        pluginLoader.disable(ConsoleValidation.pluginJar(jar));
         return ResponseEntity.noContent().build();
     }
 
@@ -117,7 +116,7 @@ public class PluginController {
      */
     @PostMapping("/{jar}/reload")
     public ResponseEntity<Void> reload(@PathVariable String jar) {
-        pluginLoader.reload(name(jar));
+        pluginLoader.reload(ConsoleValidation.pluginJar(jar));
         return ResponseEntity.noContent().build();
     }
 
@@ -143,7 +142,7 @@ public class PluginController {
      */
     @DeleteMapping("/{jar}")
     public ResponseEntity<Void> delete(@PathVariable String jar) {
-        String jarName = name(jar);
+        String jarName = ConsoleValidation.pluginJar(jar);
         try {
             if (!pluginLoader.delete(jarName))
                 throw new ConsoleException(HttpStatus.NOT_FOUND, "Plugin not found: " + jarName);
@@ -155,16 +154,10 @@ public class PluginController {
 
     // ════ Helpers ═════════════════
 
-    private static String name(String jar) {
-        if (!PluginJarName.isValid(jar))
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Invalid plugin jar: " + jar);
-        return jar;
-    }
-
     private static ConsoleException pluginError(PluginException e) {
         HttpStatus status = e.getCause() instanceof IOException
                 ? HttpStatus.INTERNAL_SERVER_ERROR
                 : HttpStatus.CONFLICT;
-        return new ConsoleException(status, e.getMessage());
+        return new ConsoleException(status, e.getMessage(), e);
     }
 }

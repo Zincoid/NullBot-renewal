@@ -63,14 +63,14 @@ public class PluginDataService {
                     // The entry vanished between listing and reading its attributes.
                 } catch (IOException e) {
                     throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
-                            "Cannot read plugin data entry: " + e.getMessage());
+                            "Cannot read plugin data entry: " + e.getMessage(), e);
                 }
             });
         } catch (NoSuchFileException e) {
             throw new ConsoleException(HttpStatus.NOT_FOUND, "Directory not found: " + path);
         } catch (IOException e) {
             throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Cannot list plugin data directory: " + e.getMessage());
+                    "Cannot list plugin data directory: " + e.getMessage(), e);
         }
         entries.sort(Comparator.comparing((PluginDataView.Entry value) -> !"dir".equals(value.type()))
                 .thenComparing(PluginDataView.Entry::name, String.CASE_INSENSITIVE_ORDER));
@@ -100,7 +100,7 @@ public class PluginDataService {
             throw new ConsoleException(HttpStatus.CONFLICT, "Folder already exists: " + folder);
         } catch (IOException e) {
             throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Cannot create folder: " + e.getMessage());
+                    "Cannot create folder: " + e.getMessage(), e);
         }
     }
 
@@ -131,10 +131,8 @@ public class PluginDataService {
                     throw new IOException("Target is a directory");
                 write(file, dir, target);
                 items.add(new PluginDataResult.Item(targetName, true, null));
-            } catch (ConsoleException e) {
-                items.add(new PluginDataResult.Item(label, false, e.getMessage()));
-            } catch (IOException e) {
-                items.add(new PluginDataResult.Item(label, false, e.getMessage()));
+            } catch (IOException | ConsoleException e) {
+                items.add(failed(label, e));
             }
         }
         return new PluginDataResult(items);
@@ -166,10 +164,8 @@ public class PluginDataService {
                     throw new IOException("Not found");
                 deleteRecursively(root, target, targetName);
                 items.add(new PluginDataResult.Item(targetName, true, null));
-            } catch (ConsoleException e) {
-                items.add(new PluginDataResult.Item(label, false, e.getMessage()));
-            } catch (IOException e) {
-                items.add(new PluginDataResult.Item(label, false, e.getMessage()));
+            } catch (IOException | ConsoleException e) {
+                items.add(failed(label, e));
             }
         }
         return new PluginDataResult(items);
@@ -211,7 +207,7 @@ public class PluginDataService {
             return root.toRealPath();
         } catch (IOException e) {
             throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Cannot access plugin data directory: " + e.getMessage());
+                    "Cannot access plugin data directory: " + e.getMessage(), e);
         }
     }
 
@@ -254,7 +250,7 @@ public class PluginDataService {
             throw new ConsoleException(HttpStatus.NOT_FOUND, "Path not found: " + relative);
         } catch (IOException e) {
             throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Cannot resolve path: " + e.getMessage());
+                    "Cannot resolve path: " + e.getMessage(), e);
         }
     }
 
@@ -285,6 +281,12 @@ public class PluginDataService {
 
     private static String relative(Path root, Path path) {
         return root.relativize(path).toString().replace('\\', '/');
+    }
+
+    private static PluginDataResult.Item failed(String name, Exception e) {
+        String message = e.getMessage();
+        return new PluginDataResult.Item(name, false,
+                message == null || message.isBlank() ? e.getClass().getSimpleName() : message);
     }
 
     private static void write(MultipartFile file, Path dir, Path target) throws IOException {

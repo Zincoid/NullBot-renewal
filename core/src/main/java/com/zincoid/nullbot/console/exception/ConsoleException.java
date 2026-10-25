@@ -17,4 +17,9 @@ public class ConsoleException extends BotException {
         super(message);
         this.status = status;
     }
+
+    public ConsoleException(HttpStatus status, String message, Throwable cause) {
+        super(message, cause);
+        this.status = status;
+    }
 }

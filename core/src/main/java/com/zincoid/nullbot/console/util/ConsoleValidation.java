@@ -1,8 +1,10 @@
 package com.zincoid.nullbot.console.util;
 
+import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.platform.util.PageUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 控制台请求参数的通用校验。
@@ -44,6 +46,32 @@ public final class ConsoleValidation {
         if (value == null)
             throw new ConsoleException(HttpStatus.BAD_REQUEST, "Missing " + field);
         return value;
+    }
+
+    /**
+     * 校验插件 JAR 文件名。
+     * <p>Validates a plugin jar filename.</p>
+     *
+     * @param jar the plugin jar filename, nullable
+     * @return the same filename
+     */
+    public static String pluginJar(String jar) {
+        if (!PluginJarName.isValid(jar))
+            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Invalid plugin jar: " + jar);
+        return jar;
+    }
+
+    /**
+     * 校验上传文件存在且非空。
+     * <p>Validates that an uploaded file is present and non-empty.</p>
+     *
+     * @param file the uploaded file, nullable
+     * @return the same file
+     */
+    public static MultipartFile requiredFile(MultipartFile file) {
+        if (file == null || file.isEmpty())
+            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Empty file");
+        return file;
     }
 
     /**

@@ -1,21 +1,17 @@
 package com.zincoid.nullbot.console.controller;
 
-import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.console.dto.PluginDataDelete;
 import com.zincoid.nullbot.console.dto.PluginDataFolder;
 import com.zincoid.nullbot.console.dto.PluginDataResult;
 import com.zincoid.nullbot.console.dto.PluginDataView;
-import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.console.service.PluginDataService;
+import com.zincoid.nullbot.console.util.ConsoleDownloads;
+import com.zincoid.nullbot.console.util.ConsoleValidation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -56,7 +51,7 @@ public class PluginDataController {
     @GetMapping
     public PluginDataView list(@PathVariable String jar,
                                @RequestParam(required = false) String path) {
-        return dataService.list(name(jar), path);
+        return dataService.list(ConsoleValidation.pluginJar(jar), path);
     }
 
     // ════ Modify ═════════════════
@@ -71,10 +66,9 @@ public class PluginDataController {
      */
     @PostMapping("/folders")
     public ResponseEntity<PluginDataView.Entry> createFolder(
-            @PathVariable String jar, @RequestBody(required = false) PluginDataFolder request) {
-        if (request == null)
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Missing request body");
-        PluginDataView.Entry entry = dataService.createFolder(name(jar), request.path(), request.name());
+            @PathVariable String jar, @RequestBody PluginDataFolder request) {
+        PluginDataView.Entry entry = dataService.createFolder(
+                ConsoleValidation.pluginJar(jar), request.path(), request.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(entry);
     }
 
@@ -92,7 +86,7 @@ public class PluginDataController {
             @PathVariable String jar,
             @RequestParam(required = false) String path,
             @RequestParam(value = "files", required = false) List<MultipartFile> files) {
-        return dataService.upload(name(jar), path, files);
+        return dataService.upload(ConsoleValidation.pluginJar(jar), path, files);
     }
 
     // ════ Delete ═════════════════
@@ -107,10 +101,8 @@ public class PluginDataController {
      */
     @PostMapping("/delete")
     public PluginDataResult delete(
-            @PathVariable String jar, @RequestBody(required = false) PluginDataDelete request) {
-        if (request == null)
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Missing request body");
-        return dataService.delete(name(jar), request.path(), request.names());
+            @PathVariable String jar, @RequestBody PluginDataDelete request) {
+        return dataService.delete(ConsoleValidation.pluginJar(jar), request.path(), request.names());
     }
 
     // ════ Download ═══════════════
@@ -126,27 +118,8 @@ public class PluginDataController {
     @GetMapping("/download")
     public ResponseEntity<Resource> download(
             @PathVariable String jar, @RequestParam(required = false) String path) {
-        Path target = dataService.file(name(jar), path);
-        String name = target.getFileName() == null ? "file" : target.getFileName().toString();
-        String filename = name.replaceAll("\\p{Cntrl}", "").trim();
-        if (filename.isEmpty()) filename = "file";
-        MediaType mediaType = MediaTypeFactory.getMediaType(filename)
-                .orElse(MediaType.APPLICATION_OCTET_STREAM);
-        ContentDisposition disposition = ContentDisposition.attachment()
-                .filename(filename, StandardCharsets.UTF_8)
-                .build();
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
-                .header("X-Content-Type-Options", "nosniff")
-                .body(new FileSystemResource(target));
-    }
-
-    // ════ Helpers ════════════════
-
-    private static String name(String jar) {
-        if (!PluginJarName.isValid(jar))
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Invalid plugin jar: " + jar);
-        return jar;
+        Path target = dataService.file(ConsoleValidation.pluginJar(jar), path);
+        String filename = target.getFileName() == null ? null : target.getFileName().toString();
+        return ConsoleDownloads.attachment(target, filename, filename);
     }
 }
