@@ -5,6 +5,8 @@ import com.zincoid.nullbot.bot.cmd.CmdRegistry;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginException;
 import com.zincoid.nullbot.bot.plugin.PluginJarName;
+import com.zincoid.nullbot.module.ai.tool.Tool;
+import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
 import com.zincoid.nullbot.platform.configuration.PluginProperties;
 import com.zincoid.nullbot.platform.util.AtomicFiles;
 import jakarta.annotation.PreDestroy;
@@ -49,14 +51,16 @@ import java.util.stream.Stream;
 public class PluginLoader {
 
     /**
-     * 当前插件 API 版本，插件返回不同值会被拒绝。
-     * <p>Current plugin API version; plugins returning another value are rejected.</p>
+     * 当前插件 API 版本，支持 1 与 2；2 增加 AI 工具。
+     * <p>Current plugin API version, supporting 1 and 2; version 2 adds AI tools.</p>
      */
-    private static final int API_VERSION = 1;
+    private static final int API_VERSION = 2;
+    private static final int MIN_API_VERSION = 1;
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
 
-    private final CmdRegistry registry;
+    private final CmdRegistry cmdRegistry;
+    private final ToolRegistry toolRegistry;
     private final PluginProperties properties;
     private final PluginContextFactory contexts;
 
@@ -69,14 +73,17 @@ public class PluginLoader {
      * 创建插件加载器并固定插件目录。
      * <p>Creates the plugin loader and resolves the plugin directory.</p>
      *
-     * @param registry   the command registry
-     * @param properties the plugin properties
-     * @param contexts   the plugin context factory
+     * @param cmdRegistry  the command registry
+     * @param toolRegistry the AI tool registry
+     * @param properties   the plugin properties
+     * @param contexts     the plugin context factory
      */
-    public PluginLoader(CmdRegistry registry,
+    public PluginLoader(CmdRegistry cmdRegistry,
+                        ToolRegistry toolRegistry,
                         PluginProperties properties,
                         PluginContextFactory contexts) {
-        this.registry = registry;
+        this.cmdRegistry = cmdRegistry;
+        this.toolRegistry = toolRegistry;
         this.properties = properties;
         this.contexts = contexts;
         this.dir = Path.of(properties.getDir()).toAbsolutePath().normalize();
@@ -340,7 +347,8 @@ public class PluginLoader {
     }
 
     private void unloadInternal(LoadedPlugin item) {
-        registry.unregister(item.cmds());
+        cmdRegistry.unregister(item.cmds());
+        toolRegistry.unregister(item.tools());
         try {
             item.plugin().stop();
         } catch (Exception e) {
@@ -359,8 +367,8 @@ public class PluginLoader {
             LoadedPlugin item = loadJar(jar);
             loaded.add(item);
             failures.remove(name);
-            log.info("Plugin loaded: id={}, version={}, cmds={}",
-                    item.id(), item.version(), item.cmds().size());
+            log.info("Plugin loaded: id={}, version={}, cmds={}, tools={}",
+                    item.id(), item.version(), item.cmds().size(), item.tools().size());
         } catch (PluginException e) {
             failures.put(name, message(e));
             log.error("Plugin load failed: {} - {}", name, message(e), e);
@@ -373,6 +381,10 @@ public class PluginLoader {
         Path copy = null;
         Plugin plugin = null;
         boolean started = false;
+        List<Cmd> cmds = List.of();
+        List<Tool> tools = List.of();
+        boolean cmdsRegistered = false;
+        boolean toolsRegistered = false;
         try {
             FileTime modified = Files.getLastModifiedTime(jar);
             long size = Files.size(jar);
@@ -394,21 +406,32 @@ public class PluginLoader {
                 throw new PluginException("Invalid plugin id: " + id);
             if (loaded.stream().anyMatch(item -> item.id().equals(id)))
                 throw new PluginException("Duplicate plugin id: " + id);
-            if (plugin.apiVersion() != API_VERSION)
-                throw new PluginException("Unsupported apiVersion: " + plugin.apiVersion()
-                        + ", expected " + API_VERSION);
+            int apiVersion = plugin.apiVersion();
+            if (apiVersion < MIN_API_VERSION || apiVersion > API_VERSION)
+                throw new PluginException("Unsupported apiVersion: " + apiVersion
+                        + ", expected " + MIN_API_VERSION + "-" + API_VERSION);
             Path dataDir = dir.resolve(id);
             Files.createDirectories(dataDir);
             state.setId(jar.getFileName().toString(), id);
             plugin.start(contexts.create(dataDir));
             started = true;
             List<Cmd> provided = plugin.cmds();
-            List<Cmd> cmds = provided == null ? List.of() : List.copyOf(provided);
-            if (!registry.register(cmds))
+            cmds = provided == null ? List.of() : List.copyOf(provided);
+            List<Tool> providedTools = plugin.tools();
+            tools = providedTools == null ? List.of() : List.copyOf(providedTools);
+            if (apiVersion < 2 && !tools.isEmpty())
+                throw new PluginException("Plugins providing tools must declare apiVersion 2: " + id);
+            if (!cmdRegistry.register(cmds))
                 throw new PluginException("Command name conflict");
-            return new LoadedPlugin(id, plugin.version(), plugin.apiVersion(),
-                    jar.getFileName().toString(), copy, modified, size, loader, plugin, cmds);
+            cmdsRegistered = true;
+            if (!toolRegistry.register(tools))
+                throw new PluginException("Tool name conflict");
+            toolsRegistered = true;
+            return new LoadedPlugin(id, plugin.version(), apiVersion,
+                    jar.getFileName().toString(), copy, modified, size, loader, plugin, cmds, tools);
         } catch (Exception | LinkageError | ServiceConfigurationError e) {
+            if (toolsRegistered) toolRegistry.unregister(tools);
+            if (cmdsRegistered) cmdRegistry.unregister(cmds);
             if (started) {
                 try {
                     plugin.stop();

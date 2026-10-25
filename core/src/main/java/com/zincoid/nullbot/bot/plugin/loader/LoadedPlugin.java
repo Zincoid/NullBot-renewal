@@ -3,6 +3,7 @@ package com.zincoid.nullbot.bot.plugin.loader;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.plugin.Plugin;
+import com.zincoid.nullbot.module.ai.tool.Tool;
 
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -12,9 +13,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * 已加载插件：元数据、源 JAR 指纹、私有副本、类加载器、插件实例与注册指令。
+ * 已加载插件：元数据、源 JAR 指纹、私有副本、类加载器、插件实例、注册指令与 AI 工具。
  * <p>Loaded plugin: metadata, source jar stamp, private copy, classloader, plugin instance,
- * and registered commands.</p>
+ * registered commands, and AI tools.</p>
  *
  * @param id          the plugin id
  * @param version     the plugin version
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
  * @param loader      the plugin classloader
  * @param plugin      the plugin instance
  * @param cmds        the registered command instances
+ * @param tools       the registered AI tool instances
  */
 record LoadedPlugin(
         String id,
@@ -37,11 +39,13 @@ record LoadedPlugin(
         long jarSize,
         URLClassLoader loader,
         Plugin plugin,
-        List<Cmd> cmds
+        List<Cmd> cmds,
+        List<Tool> tools
 ) {
 
     LoadedPlugin {
         cmds = cmds == null ? List.of() : List.copyOf(cmds);
+        tools = tools == null ? List.of() : List.copyOf(tools);
     }
 
     /**

@@ -69,7 +69,7 @@ java -jar launcher/target/launcher-stdin.jar
 
 ## 插件
 
-插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名。开发时依赖 `core`（`provided`），可参考 `plugins/hello-plugin`。
+插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名，不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`；提供工具时 `apiVersion()` 返回 `2`。开发时依赖 `core`（`provided`），可参考 `plugins/hello-plugin`。
 
 启用插件后，把 JAR 放入 `nullbot.plugin.dir`，或在控制台“插件”页上传；支持运行时启用、停用、重载与删除。插件数据目录由宿主创建，可通过 `PluginContext.dataDir()` 获取。
 

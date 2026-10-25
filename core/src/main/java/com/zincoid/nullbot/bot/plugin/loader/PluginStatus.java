@@ -35,8 +35,8 @@ public record PluginStatus(
     public enum State {
 
         /**
-         * 已加载并注册指令。
-         * <p>Loaded with commands registered.</p>
+         * 已加载并注册指令与工具。
+         * <p>Loaded with commands and tools registered.</p>
          */
         LOADED,
 
