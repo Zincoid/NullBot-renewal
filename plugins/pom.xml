@@ -19,6 +19,7 @@
         <module>query-plugin</module>
         <module>symmetry-plugin</module>
         <module>game-plugin</module>
+        <module>gallery-plugin</module>
     </modules>
 
     <dependencies>

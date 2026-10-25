@@ -38,7 +38,7 @@ public class RegisterHandler implements CmdHandler {
     // ════ Helpers ═════════════════
 
     private void registerGroup(BotClient client, String groupId) {
-        groupService.register(groupId, client.getGroupInfo(groupId).name());
+        groupService.register(groupId, displayName(groupId, client.getGroupInfo(groupId).name()));
     }
 
     private void registerUser(BotClient client, String userId) {
@@ -46,6 +46,14 @@ public class RegisterHandler implements CmdHandler {
     }
 
     private void registerUser(String userId, String nickname) {
-        userService.register(userId, nickname);
+        userService.register(userId, displayName(userId, nickname));
+    }
+
+    /**
+     * 外部昵称允许为空白，此时回退为平台 ID。
+     * <p>External nicknames may be blank; fall back to the platform ID in that case.</p>
+     */
+    private static String displayName(String id, String name) {
+        return name == null || name.isBlank() ? id : name;
     }
 }

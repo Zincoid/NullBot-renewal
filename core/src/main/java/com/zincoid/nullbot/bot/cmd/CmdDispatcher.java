@@ -5,6 +5,8 @@ import com.zincoid.nullbot.bot.cmd.chain.CmdHandler;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
+import com.zincoid.nullbot.module.config.Conf;
+import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class CmdDispatcher {
     private final CmdParser parser;
     private final List<CmdHandler> handlers;
     private final LanguageService languageService;
+    private final ConfigService configService;
 
     /**
      * 入站事件解析为指令时进行分发。
@@ -70,6 +73,19 @@ public class CmdDispatcher {
         log.info("Command start: {}", req.name());
         new CmdChain(handlers).doHandle(ctx);
         log.info("Command done: {}", req.name());
+    }
+
+    /**
+     * 按 AI 工具请求分发指令；是否校验限权由配置决定。
+     * <p>Dispatches an AI tool command request; access checking is controlled by configuration.</p>
+     *
+     * @param client the outbound port
+     * @param event  the inbound event
+     * @param req    the explicit command request
+     */
+    public void dispatchAi(BotClient client, BotEvent event, CmdRequest req) {
+        boolean checkAccess = configService.getBool(Conf.AI_CMD_ACCESS_CHECK);
+        dispatch(client, event, req, checkAccess);
     }
 
     // ════ Helpers ═════════════════

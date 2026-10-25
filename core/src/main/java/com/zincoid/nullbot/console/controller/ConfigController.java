@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -122,6 +123,8 @@ public class ConfigController {
                 || conf == Conf.AI_MAX_TOKENS
                 || conf == Conf.AI_MAX_TOOL_CALLS)
             return integer(value);
+        if (conf == Conf.AI_CMD_ACCESS_CHECK)
+            return bool(value);
         return value;
     }
 
@@ -132,5 +135,11 @@ public class ConfigController {
         } catch (NumberFormatException e) {
             throw new ConsoleException(HttpStatus.BAD_REQUEST, "Invalid integer: " + value);
         }
+    }
+
+    private static String bool(String value) {
+        if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))
+            return value.toLowerCase(Locale.ROOT);
+        throw new ConsoleException(HttpStatus.BAD_REQUEST, "Invalid boolean: " + value);
     }
 }

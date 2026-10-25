@@ -43,6 +43,14 @@ public class ConfigServiceImpl extends ServiceImpl<ConfigMapper, Config> impleme
         }
     }
 
+    @Override
+    public boolean getBool(Conf conf) {
+        String raw = getString(conf);
+        if ("true".equalsIgnoreCase(raw)) return true;
+        if ("false".equalsIgnoreCase(raw)) return false;
+        throw new ConfigException("Malformed value: " + raw);
+    }
+
     // ════ Update ══════════════════
 
     @Override

@@ -125,7 +125,7 @@ public record ChatContext(
 
     @Override
     public ToolRes cmd(String name, List<String> params) {
-        cmdDispatcher.dispatch(client, event, new CmdRequest(name, params));
+        cmdDispatcher.dispatchAi(client, event, new CmdRequest(name, params));
         return ToolRes.of("Command executed: " + name);
     }
 }

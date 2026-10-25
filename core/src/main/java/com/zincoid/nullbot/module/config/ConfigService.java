@@ -39,6 +39,16 @@ public interface ConfigService extends IService<Config> {
      */
     int getInt(Conf conf);
 
+    /**
+     * 返回配置项的生效值并转换为布尔值。
+     * <p>Returns the effective value of the configuration entry as a boolean.</p>
+     *
+     * @param conf configuration entry
+     * @return the stored value as a boolean, or the converted default value when absent
+     * @throws ConfigException when the value is neither true nor false
+     */
+    boolean getBool(Conf conf);
+
     // ════ Update ══════════════════
 
     /**
