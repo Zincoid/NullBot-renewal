@@ -14,7 +14,7 @@ public class HelloTool implements Tool {
 
     @Override
     public ToolDefinition definition() {
-        return ToolDefinition.builder("hello_echo", "Returns a greeting from the hello plugin.")
+        return ToolDefinition.builder("hello", "Returns a greeting from the hello plugin.")
                 .addString("text", "text to include in the greeting")
                 .build();
     }
