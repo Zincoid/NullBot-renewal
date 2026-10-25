@@ -1,7 +1,7 @@
 @param String title
 @param String subtitle
 
-<svg width="480" height="180" viewBox="0 0 480 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="720" height="270" viewBox="0 0 480 180" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#4C8DFF" stop-opacity="0.22"/>

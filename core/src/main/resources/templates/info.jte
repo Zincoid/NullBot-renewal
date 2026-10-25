@@ -7,7 +7,7 @@
 @param String os
 @param String time
 
-<svg width="560" height="400" viewBox="0 0 560 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="840" height="600" viewBox="0 0 560 400" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#4C8DFF" stop-opacity="0.20"/>

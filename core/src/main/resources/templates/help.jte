@@ -8,7 +8,7 @@
 @param String footer
 @param String hint
 
-<svg width="960" height="${height}" viewBox="0 0 960 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1440" height="${height * 3 / 2}" viewBox="0 0 960 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#4C8DFF" stop-opacity="0.20"/>
