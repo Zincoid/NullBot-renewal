@@ -277,7 +277,37 @@
             'plugins.deleted': '插件已卸载：{jar}',
             'plugins.actionFailed': '插件操作失败：{msg}',
             'plugins.loadFailed': '加载插件列表失败：{msg}',
-            'plugins.globalDisabled': '插件加载已在配置中关闭（nullbot.plugin.enabled=false），当前只能查看插件目录。',
+            'plugins.globalDisabled': '插件加载已在配置中关闭（nullbot.plugin.enabled=false），插件不会被加载，但仍可管理插件数据。',
+            'plugins.data': '数据',
+            'plugins.dataTitle': '插件数据',
+            'plugins.dataSubtitle': '{id} · {jar}',
+            'plugins.dataRoot': '根目录',
+            'plugins.dataUp': '上一级',
+            'plugins.dataNewFolder': '新建文件夹',
+            'plugins.dataFolderPlaceholder': '文件夹名称',
+            'plugins.dataFolderRequired': '文件夹名称不能为空',
+            'plugins.dataFolderCreated': '文件夹已创建：{name}',
+            'plugins.dataCreate': '创建',
+            'plugins.dataUpload': '上传',
+            'plugins.dataUploading': '正在上传 {n} 个文件…',
+            'plugins.dataUploadDone': '上传完成：成功 {ok} 个，失败 {fail} 个',
+            'plugins.dataOverwriteConfirm': '{n} 个同名文件将被覆盖：{names}。继续上传？',
+            'plugins.dataDownloadFailed': '下载失败：{msg}',
+            'plugins.dataDelete': '删除所选',
+            'plugins.dataDeleteCount': '删除所选（{n}）',
+            'plugins.dataDeleteConfirm': '删除选中的 {n} 项？文件夹及其全部内容将被永久删除。',
+            'plugins.dataDeleteDone': '删除完成：成功 {ok} 项，失败 {fail} 项',
+            'plugins.dataName': '名称',
+            'plugins.dataType': '类型',
+            'plugins.dataTypeDir': '文件夹',
+            'plugins.dataTypeFile': '文件',
+            'plugins.dataSize': '大小',
+            'plugins.dataModified': '修改时间',
+            'plugins.dataEmpty': '此文件夹为空',
+            'plugins.dataLoadFailed': '加载插件数据失败：{msg}',
+            'plugins.dataCount': '共 {n} 项',
+            'plugins.dataOpen': '打开',
+            'plugins.dataItemErrors': '部分操作失败：{errors}',
 
             'about.title': '关于',
             'about.subtitle': '应用与构建信息',
@@ -581,7 +611,37 @@
             'plugins.deleted': 'Plugin uninstalled: {jar}',
             'plugins.actionFailed': 'Plugin action failed: {msg}',
             'plugins.loadFailed': 'Failed to load plugins: {msg}',
-            'plugins.globalDisabled': 'Plugin loading is disabled (nullbot.plugin.enabled=false); the plugin directory is read-only here.',
+            'plugins.globalDisabled': 'Plugin loading is disabled (nullbot.plugin.enabled=false); plugins will not be loaded, but their data can still be managed.',
+            'plugins.data': 'Data',
+            'plugins.dataTitle': 'Plugin data',
+            'plugins.dataSubtitle': '{id} · {jar}',
+            'plugins.dataRoot': 'Root',
+            'plugins.dataUp': 'Up',
+            'plugins.dataNewFolder': 'New folder',
+            'plugins.dataFolderPlaceholder': 'Folder name',
+            'plugins.dataFolderRequired': 'Folder name is required',
+            'plugins.dataFolderCreated': 'Folder created: {name}',
+            'plugins.dataCreate': 'Create',
+            'plugins.dataUpload': 'Upload',
+            'plugins.dataUploading': 'Uploading {n} file(s)...',
+            'plugins.dataUploadDone': 'Upload finished: {ok} succeeded, {fail} failed',
+            'plugins.dataOverwriteConfirm': '{n} existing file(s) will be overwritten: {names}. Continue?',
+            'plugins.dataDownloadFailed': 'Download failed: {msg}',
+            'plugins.dataDelete': 'Delete selected',
+            'plugins.dataDeleteCount': 'Delete selected ({n})',
+            'plugins.dataDeleteConfirm': 'Delete {n} selected item(s)? Folders and all their contents will be permanently deleted.',
+            'plugins.dataDeleteDone': 'Delete finished: {ok} succeeded, {fail} failed',
+            'plugins.dataName': 'Name',
+            'plugins.dataType': 'Type',
+            'plugins.dataTypeDir': 'Folder',
+            'plugins.dataTypeFile': 'File',
+            'plugins.dataSize': 'Size',
+            'plugins.dataModified': 'Modified',
+            'plugins.dataEmpty': 'This folder is empty',
+            'plugins.dataLoadFailed': 'Failed to load plugin data: {msg}',
+            'plugins.dataCount': '{n} item(s)',
+            'plugins.dataOpen': 'Open',
+            'plugins.dataItemErrors': 'Some operations failed: {errors}',
 
             'about.title': 'About',
             'about.subtitle': 'Application and build information',
@@ -832,15 +892,30 @@
         document.body.append(dialog);
     }
 
+    function bindBackdropClick(element, close) {
+        let pressed = false;
+        let released = false;
+        element.addEventListener('pointerdown', event => {
+            pressed = event.target === element;
+            released = false;
+        });
+        element.addEventListener('pointerup', event => {
+            released = event.target === element;
+        });
+        element.addEventListener('click', event => {
+            if (pressed && released && event.target === element) close();
+            pressed = false;
+            released = false;
+        });
+    }
+
     function bindAbout() {
         const toggle = document.getElementById('about-toggle');
         const dialog = document.getElementById('about-dialog');
         if (!toggle || !dialog) return;
         toggle.addEventListener('click', openAbout);
         dialog.addEventListener('close', closeAbout);
-        dialog.addEventListener('click', event => {
-            if (event.target === dialog) dialog.close();
-        });
+        bindBackdropClick(dialog, () => dialog.close());
         dialog.querySelectorAll('[data-close]').forEach(button =>
             button.addEventListener('click', () => dialog.close()));
     }

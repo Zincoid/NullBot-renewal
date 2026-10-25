@@ -7,7 +7,7 @@ import java.util.List;
  * <p>Plugin status: jar, metadata, commands, and load result.</p>
  *
  * @param jar        the plugin jar filename
- * @param id         the plugin id, null when not loaded
+ * @param id         the plugin id from the loaded instance or persisted mapping, null when unknown
  * @param version    the plugin version, null when not loaded
  * @param apiVersion the plugin API version, null when not loaded
  * @param commands   the registered command aliases

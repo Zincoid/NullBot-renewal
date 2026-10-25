@@ -9,22 +9,29 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * 插件禁用状态存储：读写插件目录中的 {@code disabled.txt}。
- * <p>Plugin disabled-state store: reads and writes {@code disabled.txt} in the plugin directory.</p>
+ * 插件状态存储：读写插件目录中的 {@code disabled.txt} 与 {@code plugin-ids.txt}。
+ * <p>Plugin state store: reads and writes {@code disabled.txt} and {@code plugin-ids.txt}
+ * in the plugin directory.</p>
  */
 @Slf4j
 final class PluginStateStore {
 
     private static final String FILE_NAME = "disabled.txt";
+    private static final String IDS_FILE = "plugin-ids.txt";
     private static final Pattern JAR_NAME = Pattern.compile("[A-Za-z0-9._-]{1,128}\\.jar");
+    private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
 
     private final Path dir;
     private final Set<String> disabled = new HashSet<>();
+    private final Map<String, String> ids = new HashMap<>();
 
     private boolean loaded;
 
@@ -33,25 +40,52 @@ final class PluginStateStore {
     }
 
     /**
-     * 读取禁用列表，首次调用时生效。
-     * <p>Reads the disabled list on the first call.</p>
+     * 读取插件状态文件，首次调用时生效。
+     * <p>Reads the plugin state files on the first call.</p>
      */
     synchronized void load() {
         if (loaded) return;
-        Path file = dir.resolve(FILE_NAME);
         try {
             Files.createDirectories(dir);
-            if (Files.isRegularFile(file)) {
-                for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
-                    String name = line.trim();
-                    if (!name.isEmpty() && !name.startsWith("#") && JAR_NAME.matcher(name).matches())
-                        disabled.add(name);
-                }
+        } catch (IOException e) {
+            log.warn("Cannot create plugin directory: {}", dir, e);
+        }
+        loadDisabled();
+        loadIds();
+        loaded = true;
+    }
+
+    private void loadDisabled() {
+        Path file = dir.resolve(FILE_NAME);
+        try {
+            if (!Files.isRegularFile(file)) return;
+            for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+                String name = line.trim();
+                if (!name.isEmpty() && !name.startsWith("#") && JAR_NAME.matcher(name).matches())
+                    disabled.add(name);
             }
         } catch (IOException e) {
             log.warn("Cannot read plugin state: {}", file, e);
         }
-        loaded = true;
+    }
+
+    private void loadIds() {
+        Path file = dir.resolve(IDS_FILE);
+        try {
+            if (!Files.isRegularFile(file)) return;
+            for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+                String value = line.trim();
+                if (value.isEmpty() || value.startsWith("#")) continue;
+                int split = value.indexOf('=');
+                if (split <= 0) continue;
+                String jar = value.substring(0, split).trim();
+                String id = value.substring(split + 1).trim();
+                if (JAR_NAME.matcher(jar).matches() && PLUGIN_ID.matcher(id).matches())
+                    ids.put(jar, id);
+            }
+        } catch (IOException e) {
+            log.warn("Cannot read plugin ids: {}", file, e);
+        }
     }
 
     /**
@@ -64,6 +98,52 @@ final class PluginStateStore {
     synchronized boolean isDisabled(String jarName) {
         load();
         return disabled.contains(jarName);
+    }
+
+    /**
+     * 返回 JAR 最近一次解析到的插件 ID。
+     * <p>Returns the plugin id last resolved for the jar.</p>
+     *
+     * @param jarName the plugin jar filename
+     * @return the plugin id, or null when unknown
+     */
+    synchronized String pluginId(String jarName) {
+        load();
+        return ids.get(jarName);
+    }
+
+    /**
+     * 记录 JAR 与插件 ID 的映射；写失败只记录警告。
+     * <p>Records the jar-to-plugin-id mapping; write failures are only logged.</p>
+     *
+     * @param jarName  the plugin jar filename
+     * @param pluginId the plugin id
+     */
+    synchronized void setId(String jarName, String pluginId) {
+        load();
+        if (jarName == null || pluginId == null
+                || !JAR_NAME.matcher(jarName).matches()
+                || !PLUGIN_ID.matcher(pluginId).matches()
+                || pluginId.equals(ids.get(jarName))) return;
+        Map<String, String> next = new HashMap<>(ids);
+        next.put(jarName, pluginId);
+        ids.put(jarName, pluginId);
+        writeIds(next);
+    }
+
+    /**
+     * 删除 JAR 的插件 ID 映射；写失败只记录警告。
+     * <p>Removes the jar-to-plugin-id mapping; write failures are only logged.</p>
+     *
+     * @param jarName the plugin jar filename
+     */
+    synchronized void removeId(String jarName) {
+        load();
+        if (!ids.containsKey(jarName)) return;
+        Map<String, String> next = new HashMap<>(ids);
+        next.remove(jarName);
+        ids.remove(jarName);
+        writeIds(next);
     }
 
     /**
@@ -89,15 +169,43 @@ final class PluginStateStore {
         try {
             Files.createDirectories(dir);
             Path temp = Files.createTempFile(dir, "disabled-", ".tmp");
-            Files.write(temp, names.stream().sorted().toList(), StandardCharsets.UTF_8);
             try {
-                Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.ATOMIC_MOVE);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
+                Files.write(temp, names.stream().sorted().toList(), StandardCharsets.UTF_8);
+                moveReplace(temp, file);
+            } finally {
+                Files.deleteIfExists(temp);
             }
         } catch (IOException e) {
             throw new PluginException("Cannot write plugin state: " + file, e);
+        }
+    }
+
+    private void writeIds(Map<String, String> next) {
+        Path file = dir.resolve(IDS_FILE);
+        try {
+            Files.createDirectories(dir);
+            Path temp = Files.createTempFile(dir, "ids-", ".tmp");
+            try {
+                List<String> lines = next.entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(entry -> entry.getKey() + "=" + entry.getValue())
+                        .toList();
+                Files.write(temp, lines, StandardCharsets.UTF_8);
+                moveReplace(temp, file);
+            } finally {
+                Files.deleteIfExists(temp);
+            }
+        } catch (IOException e) {
+            log.warn("Cannot write plugin ids: {}", file, e);
+        }
+    }
+
+    private static void moveReplace(Path temp, Path file) throws IOException {
+        try {
+            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 }

@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -134,18 +135,33 @@ public class PluginLoader {
         for (Path jar : scanJars()) {
             String name = jar.getFileName().toString();
             if (!seen.add(name)) continue;
+            String id = state.pluginId(name);
             if (state.isDisabled(name)) {
-                result.add(new PluginStatus(name, null, null, null, List.of(),
+                result.add(new PluginStatus(name, id, null, null, List.of(),
                         PluginStatus.State.DISABLED, null));
                 continue;
             }
             String error = failures.get(name);
-            result.add(new PluginStatus(name, null, null, null, List.of(),
+            result.add(new PluginStatus(name, id, null, null, List.of(),
                     error == null ? PluginStatus.State.AVAILABLE : PluginStatus.State.FAILED,
                     error));
         }
         result.sort(Comparator.comparing(PluginStatus::jar));
         return result;
+    }
+
+    /**
+     * 返回插件数据目录，不创建目录。
+     * <p>Returns the plugin data directory without creating it.</p>
+     *
+     * @param jarName the plugin jar filename
+     * @return the data directory, or empty when the plugin id is unknown
+     */
+    public synchronized Optional<Path> dataDir(String jarName) {
+        String name = validateJarName(jarName);
+        LoadedPlugin current = findLoaded(name);
+        String id = current == null ? state.pluginId(name) : current.id();
+        return Optional.ofNullable(id).map(dir::resolve);
     }
 
     /**
@@ -273,7 +289,7 @@ public class PluginLoader {
         try {
             loadPlugin(name, target);
         } catch (PluginException e) {
-            PluginStatus status = new PluginStatus(name, null, null, null, List.of(),
+            PluginStatus status = new PluginStatus(name, state.pluginId(name), null, null, List.of(),
                     PluginStatus.State.FAILED, failures.getOrDefault(name, message(e)));
             log.info("Plugin installed: {} ({})", name, status.state());
             return status;
@@ -304,6 +320,7 @@ public class PluginLoader {
         }
         if (current != null) unloadInternal(current);
         failures.remove(name);
+        state.removeId(name);
         try {
             state.setDisabled(name, false);
         } catch (PluginException e) {
@@ -388,6 +405,7 @@ public class PluginLoader {
             List<Cmd> cmds = provided == null ? List.of() : List.copyOf(provided);
             Path dataDir = dir.resolve(id);
             Files.createDirectories(dataDir);
+            state.setId(jar.getFileName().toString(), id);
             plugin.start(contexts.create(dataDir));
             started = true;
             if (!registry.register(cmds))

@@ -1453,23 +1453,34 @@
     }
 
     function pluginActions(plugin) {
-        if (!pluginEnabled) return '<span class="muted">-</span>';
         const jar = escapeHtml(plugin.jar);
+        const data = plugin.id
+            ? `<button class="small btn-data" data-plugin-action="data" data-jar="${jar}">${escapeHtml(t('plugins.data'))}</button>`
+            : '';
+        if (!pluginEnabled) return data || '<span class="muted">-</span>';
         const remove = `<button class="small danger btn-delete" data-plugin-action="delete" data-jar="${jar}">${escapeHtml(t('plugins.delete'))}</button>`;
+        const tail = data
+            ? ` <span class="actions-divider" aria-hidden="true"></span> ${data}`
+            : '';
         if (plugin.state === 'LOADED') {
             return `<button class="small btn-reset" data-plugin-action="reload" data-jar="${jar}">${escapeHtml(t('plugins.reload'))}</button>
                     <button class="small btn-toggle btn-disable" data-plugin-action="disable" data-jar="${jar}">${escapeHtml(t('plugins.disable'))}</button>
-                    ${remove}`;
+                    ${remove}${tail}`;
         }
         if (plugin.state === 'DISABLED' || plugin.state === 'FAILED' || plugin.state === 'AVAILABLE') {
             const label = plugin.state === 'FAILED' ? t('plugins.retry') : t('plugins.enable');
             return `<button class="small btn-toggle btn-enable" data-plugin-action="enable" data-jar="${jar}">${escapeHtml(label)}</button>
-                    ${remove}`;
+                    ${remove}${tail}`;
         }
-        return '<span class="muted">-</span>';
+        return data || '<span class="muted">-</span>';
     }
 
     async function pluginAction(action, jar) {
+        if (action === 'data') {
+            const plugin = pluginItems.find(item => item.jar === jar);
+            if (plugin) openPluginData(plugin);
+            return;
+        }
         if (pluginBusy) return;
         if (action === 'disable' && !await confirmAction(t('plugins.disableConfirm', {jar}))) return;
         if (action === 'delete' && !await confirmAction(t('plugins.deleteConfirm', {jar}))) return;
@@ -1541,6 +1552,361 @@
             pluginBusy = false;
             button.disabled = false;
         }
+    }
+
+    // ═══ Plugin data ═════════════════
+
+    const pluginDataState = {
+        jar: '',
+        id: '',
+        path: '',
+        entries: [],
+        selection: new Set(),
+        busy: false,
+        error: '',
+        generation: 0
+    };
+
+    function openPluginData(plugin) {
+        if (!plugin || !plugin.id) return;
+        pluginDataState.generation++;
+        pluginDataState.jar = plugin.jar;
+        pluginDataState.id = plugin.id;
+        pluginDataState.path = '';
+        pluginDataState.entries = [];
+        pluginDataState.selection.clear();
+        pluginDataState.busy = false;
+        pluginDataState.error = '';
+        $('plugin-data-folder-form').hidden = true;
+        $('plugin-data-folder-name').value = '';
+        $('plugin-data-crumbs').innerHTML = '';
+        $('plugin-data-count').textContent = '';
+        $('plugin-data-body').innerHTML = '';
+        setStatus($('plugin-data-status'), '');
+        $('plugin-data-dialog').showModal();
+        loadPluginData();
+    }
+
+    function resetPluginData() {
+        pluginDataState.generation++;
+        pluginDataState.jar = '';
+        pluginDataState.id = '';
+        pluginDataState.path = '';
+        pluginDataState.entries = [];
+        pluginDataState.selection.clear();
+        pluginDataState.busy = false;
+        pluginDataState.error = '';
+        $('plugin-data-folder-form').hidden = true;
+        $('plugin-data-folder-name').value = '';
+        $('plugin-data-files').value = '';
+        $('plugin-data-body').innerHTML = '';
+        $('plugin-data-crumbs').innerHTML = '';
+        $('plugin-data-count').textContent = '';
+        setStatus($('plugin-data-status'), '');
+    }
+
+    async function loadPluginData() {
+        const jar = pluginDataState.jar;
+        const path = pluginDataState.path;
+        const generation = pluginDataState.generation;
+        if (!jar) return;
+        pluginDataState.busy = true;
+        pluginDataState.error = '';
+        updatePluginDataToolbar();
+        $('plugin-data-body').innerHTML = emptyRow(6, t('common.loading'));
+        setStatus($('plugin-data-status'), '');
+        try {
+            const params = new URLSearchParams();
+            if (path) params.set('path', path);
+            const query = params.toString();
+            const data = await api('/plugins/' + encodeURIComponent(jar) + '/data'
+                + (query ? '?' + query : ''));
+            if (pluginDataState.generation !== generation
+                    || pluginDataState.jar !== jar || pluginDataState.path !== path) return;
+            pluginDataState.entries = data && Array.isArray(data.entries) ? data.entries : [];
+            pluginDataState.selection.clear();
+            renderPluginData();
+        } catch (e) {
+            if (pluginDataState.generation !== generation
+                    || pluginDataState.jar !== jar || pluginDataState.path !== path) return;
+            pluginDataState.entries = [];
+            pluginDataState.selection.clear();
+            pluginDataState.error = e.message;
+            renderPluginData();
+            toast(t('plugins.dataLoadFailed', {msg: e.message}), 'error');
+        } finally {
+            if (pluginDataState.generation === generation
+                    && pluginDataState.jar === jar && pluginDataState.path === path) {
+                pluginDataState.busy = false;
+                updatePluginDataToolbar();
+            }
+        }
+    }
+
+    function renderPluginData() {
+        const state = pluginDataState;
+        $('plugin-data-subtitle').textContent = t('plugins.dataSubtitle', {
+            id: state.id,
+            jar: state.jar
+        });
+        renderPluginDataCrumbs();
+        $('plugin-data-count').textContent = t('plugins.dataCount', {n: state.entries.length});
+        const body = $('plugin-data-body');
+        if (state.error) {
+            body.innerHTML = emptyRow(6, t('plugins.dataLoadFailed', {msg: state.error}));
+        } else if (!state.entries.length) {
+            body.innerHTML = emptyRow(6, t('plugins.dataEmpty'));
+        } else {
+            body.innerHTML = state.entries
+                .map((entry, index) => pluginDataRow(entry, index))
+                .join('');
+        }
+        updatePluginDataToolbar();
+    }
+
+    function renderPluginDataCrumbs() {
+        const nav = $('plugin-data-crumbs');
+        nav.innerHTML = '';
+        const parts = pluginDataState.path ? pluginDataState.path.split('/') : [];
+        const paths = [''];
+        let current = '';
+        parts.forEach(part => {
+            current = current ? current + '/' + part : part;
+            paths.push(current);
+        });
+        paths.forEach((path, index) => {
+            if (index) {
+                const sep = document.createElement('span');
+                sep.className = 'plugin-data-sep';
+                sep.textContent = '/';
+                nav.appendChild(sep);
+            }
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'plugin-data-crumb';
+            button.textContent = index === 0 ? t('plugins.dataRoot') : parts[index - 1];
+            button.addEventListener('click', () => navigatePluginData(path));
+            nav.appendChild(button);
+        });
+    }
+
+    function pluginDataRow(entry, index) {
+        const name = escapeHtml(entry.name);
+        const title = escapeHtml(entry.name);
+        const selected = pluginDataState.selection.has(entry.name);
+        const isDir = entry.type === 'dir';
+        const nameCell = isDir
+            ? `<button type="button" class="file-name file-name--link"
+                       data-action="open" data-index="${index}" title="${title}"
+                       aria-label="${escapeHtml(t('plugins.dataOpen'))}: ${title}">${name}</button>`
+            : `<span class="file-name" title="${title}">${name}</span>`;
+        const action = isDir
+            ? '<span class="muted">-</span>'
+            : `<button type="button" class="small btn-download" data-action="download"
+                       data-index="${index}">${escapeHtml(t('common.download'))}</button>`;
+        return `
+            <tr>
+                <td class="check-col"><input type="checkbox" class="plugin-data-select"
+                        data-index="${index}" aria-label="${escapeHtml(t('files.select'))}"
+                        ${selected ? 'checked' : ''}></td>
+                <td>${nameCell}</td>
+                <td class="nowrap">${escapeHtml(isDir ? t('plugins.dataTypeDir') : t('plugins.dataTypeFile'))}</td>
+                <td class="nowrap">${isDir ? '-' : formatBytes(entry.size)}</td>
+                <td class="nowrap">${escapeHtml(formatTime(entry.modified))}</td>
+                <td class="actions">${action}</td>
+            </tr>`;
+    }
+
+    function updatePluginDataToolbar() {
+        const state = pluginDataState;
+        const busy = state.busy;
+        const total = state.entries.length;
+        const selected = state.selection.size;
+        $('plugin-data-up').disabled = busy || !state.path;
+        $('plugin-data-refresh').disabled = busy;
+        $('plugin-data-new-folder').disabled = busy;
+        $('plugin-data-upload').disabled = busy;
+        $('plugin-data-delete').disabled = busy || selected === 0;
+        $('plugin-data-delete').textContent = selected
+            ? t('plugins.dataDeleteCount', {n: selected})
+            : t('plugins.dataDelete');
+        const selectAll = $('plugin-data-select-all');
+        const selectedOnPage = state.entries.filter(entry => state.selection.has(entry.name)).length;
+        selectAll.disabled = busy || total === 0;
+        selectAll.checked = total > 0 && selectedOnPage === total;
+        selectAll.indeterminate = selectedOnPage > 0 && selectedOnPage < total;
+        document.querySelectorAll('#plugin-data-body input.plugin-data-select').forEach(input => {
+            input.disabled = busy;
+        });
+    }
+
+    function navigatePluginData(path) {
+        if (pluginDataState.busy) return;
+        pluginDataState.path = path || '';
+        pluginDataState.selection.clear();
+        $('plugin-data-folder-form').hidden = true;
+        $('plugin-data-folder-name').value = '';
+        loadPluginData();
+    }
+
+    function pluginDataParentPath() {
+        const parts = pluginDataState.path ? pluginDataState.path.split('/') : [];
+        parts.pop();
+        return parts.join('/');
+    }
+
+    async function createPluginDataFolder(event) {
+        event.preventDefault();
+        if (pluginDataState.busy) return;
+        const name = $('plugin-data-folder-name').value.trim();
+        if (!name) {
+            setStatus($('plugin-data-status'), t('plugins.dataFolderRequired'), 'error');
+            return;
+        }
+        const jar = pluginDataState.jar;
+        const generation = pluginDataState.generation;
+        pluginDataState.busy = true;
+        updatePluginDataToolbar();
+        try {
+            await api('/plugins/' + encodeURIComponent(jar) + '/data/folders', {
+                method: 'POST',
+                body: JSON.stringify({path: pluginDataState.path, name})
+            });
+            if (pluginDataState.generation !== generation || pluginDataState.jar !== jar) return;
+            $('plugin-data-folder-form').hidden = true;
+            $('plugin-data-folder-name').value = '';
+            toast(t('plugins.dataFolderCreated', {name}), 'ok');
+            await loadPluginData();
+        } catch (e) {
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+                setStatus($('plugin-data-status'), e.message, 'error');
+        } finally {
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+                pluginDataState.busy = false;
+                updatePluginDataToolbar();
+            }
+        }
+    }
+
+    async function uploadPluginData() {
+        const input = $('plugin-data-files');
+        const files = Array.from(input.files || []);
+        if (!files.length || pluginDataState.busy) {
+            input.value = '';
+            return;
+        }
+        const existing = new Set(pluginDataState.entries
+            .filter(entry => entry.type === 'file')
+            .map(entry => entry.name.toLowerCase()));
+        const collisions = files.filter(file => existing.has(file.name.toLowerCase()));
+        if (collisions.length) {
+            const names = collisions.slice(0, 3).map(file => file.name).join(', ');
+            const more = collisions.length > 3 ? ` +${collisions.length - 3}` : '';
+            const confirmed = await confirmAction(t('plugins.dataOverwriteConfirm', {
+                n: collisions.length,
+                names: names + more
+            }));
+            if (!confirmed) {
+                input.value = '';
+                return;
+            }
+        }
+        const jar = pluginDataState.jar;
+        const path = pluginDataState.path;
+        const generation = pluginDataState.generation;
+        pluginDataState.busy = true;
+        updatePluginDataToolbar();
+        setStatus($('plugin-data-status'), t('plugins.dataUploading', {n: files.length}));
+        try {
+            const form = new FormData();
+            files.forEach(file => form.append('files', file));
+            const params = new URLSearchParams();
+            if (path) params.set('path', path);
+            const query = params.toString();
+            const result = await api('/plugins/' + encodeURIComponent(jar) + '/data/files'
+                + (query ? '?' + query : ''), {method: 'POST', body: form});
+            const items = result && Array.isArray(result.items) ? result.items : [];
+            const ok = items.filter(item => item.ok).length;
+            const fail = items.length - ok;
+            toast(t('plugins.dataUploadDone', {ok, fail}), fail ? 'error' : 'ok');
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+                await loadPluginData();
+                if (fail) setStatus($('plugin-data-status'), pluginDataErrorSummary(items), 'error');
+            }
+        } catch (e) {
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+                setStatus($('plugin-data-status'), e.message, 'error');
+            toast(t('plugins.dataUploadDone', {ok: 0, fail: files.length}), 'error');
+        } finally {
+            input.value = '';
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+                pluginDataState.busy = false;
+                updatePluginDataToolbar();
+            }
+        }
+    }
+
+    async function deletePluginDataSelection() {
+        if (pluginDataState.busy || pluginDataState.selection.size === 0) return;
+        const names = Array.from(pluginDataState.selection);
+        if (!await confirmAction(t('plugins.dataDeleteConfirm', {n: names.length}))) return;
+        const jar = pluginDataState.jar;
+        const generation = pluginDataState.generation;
+        pluginDataState.busy = true;
+        updatePluginDataToolbar();
+        try {
+            const result = await api('/plugins/' + encodeURIComponent(jar) + '/data/delete', {
+                method: 'POST',
+                body: JSON.stringify({path: pluginDataState.path, names})
+            });
+            const items = result && Array.isArray(result.items) ? result.items : [];
+            const ok = items.filter(item => item.ok).length;
+            const fail = items.length - ok;
+            toast(t('plugins.dataDeleteDone', {ok, fail}), fail ? 'error' : 'ok');
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+                pluginDataState.selection.clear();
+                await loadPluginData();
+                if (fail) setStatus($('plugin-data-status'), pluginDataErrorSummary(items), 'error');
+            }
+        } catch (e) {
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+                setStatus($('plugin-data-status'), e.message, 'error');
+            toast(t('plugins.dataDeleteDone', {ok: 0, fail: names.length}), 'error');
+        } finally {
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+                pluginDataState.busy = false;
+                updatePluginDataToolbar();
+            }
+        }
+    }
+
+    async function downloadPluginData(entry) {
+        if (!entry || entry.type === 'dir') return;
+        const jar = pluginDataState.jar;
+        const path = pluginDataState.path ? pluginDataState.path + '/' + entry.name : entry.name;
+        try {
+            const blob = await apiBlob('/plugins/' + encodeURIComponent(jar)
+                + '/data/download?path=' + encodeURIComponent(path));
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = entry.name;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
+        } catch (e) {
+            toast(t('plugins.dataDownloadFailed', {msg: e.message}), 'error');
+        }
+    }
+
+    function pluginDataErrorSummary(items) {
+        const failed = items.filter(item => !item.ok);
+        const parts = failed.slice(0, 3).map(item => item.error
+            ? item.name + ': ' + item.error
+            : item.name);
+        const more = failed.length > 3 ? ` (+${failed.length - 3})` : '';
+        return t('plugins.dataItemErrors', {errors: parts.join('; ') + more});
     }
 
     // ═══ Navigation ══════════════════
@@ -1621,14 +1987,29 @@
             `<option value="">${escapeHtml(t('files.allTypes'))}</option>` + bizOptions(filter);
     }
 
+    function bindBackdropClick(element, close) {
+        let pressed = false;
+        let released = false;
+        element.addEventListener('pointerdown', event => {
+            pressed = event.target === element;
+            released = false;
+        });
+        element.addEventListener('pointerup', event => {
+            released = event.target === element;
+        });
+        element.addEventListener('click', event => {
+            if (pressed && released && event.target === element) close();
+            pressed = false;
+            released = false;
+        });
+    }
+
     function bindDialogs() {
         document.querySelectorAll('dialog').forEach(dialog => {
             if (dialog.id === 'confirm-dialog') return;
             dialog.querySelectorAll('[data-close]').forEach(button =>
                 button.addEventListener('click', () => dialog.close()));
-            dialog.addEventListener('click', event => {
-                if (event.target === dialog) dialog.close();
-            });
+            bindBackdropClick(dialog, () => dialog.close());
             dialog.addEventListener('close', () => {
                 if (dialog.id === 'file-dialog') editingFile = null;
                 if (dialog.id === 'preview-dialog') {
@@ -1641,14 +2022,13 @@
                     currentKeywords = [];
                     resetKeywordForm();
                 }
+                if (dialog.id === 'plugin-data-dialog') resetPluginData();
             });
         });
         $('preview-download').addEventListener('click', () => {
             if (previewFile) downloadFile(previewFile);
         });
-        $('preview-body').addEventListener('click', event => {
-            if (event.target === event.currentTarget) $('preview-dialog').close();
-        });
+        bindBackdropClick($('preview-body'), () => $('preview-dialog').close());
     }
 
     function bindEvents() {
@@ -1659,9 +2039,7 @@
 
         $('confirm-ok').onclick = () => finishConfirm(true);
         $('confirm-cancel').onclick = () => finishConfirm(false);
-        $('confirm-dialog').addEventListener('click', event => {
-            if (event.target === $('confirm-dialog')) finishConfirm(false);
-        });
+        bindBackdropClick($('confirm-dialog'), () => finishConfirm(false));
         $('confirm-dialog').addEventListener('cancel', event => {
             event.preventDefault();
             finishConfirm(false);
@@ -1889,6 +2267,58 @@
             const button = event.target.closest('button[data-plugin-action]');
             if (button) pluginAction(button.dataset.pluginAction, button.dataset.jar);
         });
+
+        $('plugin-data-up').onclick = () => navigatePluginData(pluginDataParentPath());
+        $('plugin-data-refresh').onclick = () => loadPluginData();
+        $('plugin-data-new-folder').onclick = () => {
+            if (pluginDataState.busy) return;
+            $('plugin-data-folder-form').hidden = false;
+            $('plugin-data-folder-name').focus();
+        };
+        $('plugin-data-folder-cancel').onclick = () => {
+            $('plugin-data-folder-form').hidden = true;
+            $('plugin-data-folder-name').value = '';
+            setStatus($('plugin-data-status'), '');
+        };
+        $('plugin-data-folder-form').addEventListener('submit', createPluginDataFolder);
+        $('plugin-data-upload').onclick = () => {
+            if (!pluginDataState.busy) $('plugin-data-files').click();
+        };
+        $('plugin-data-files').addEventListener('change', uploadPluginData);
+        $('plugin-data-delete').onclick = deletePluginDataSelection;
+        $('plugin-data-select-all').addEventListener('change', event => {
+            const checked = event.target.checked;
+            pluginDataState.entries.forEach(entry => {
+                if (checked) pluginDataState.selection.add(entry.name);
+                else pluginDataState.selection.delete(entry.name);
+            });
+            document.querySelectorAll('#plugin-data-body input.plugin-data-select').forEach(input => {
+                input.checked = checked;
+            });
+            updatePluginDataToolbar();
+        });
+        $('plugin-data-body').addEventListener('click', event => {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+            const entry = pluginDataState.entries[Number(button.dataset.index)];
+            if (!entry) return;
+            if (button.dataset.action === 'open') {
+                navigatePluginData(pluginDataState.path
+                    ? pluginDataState.path + '/' + entry.name
+                    : entry.name);
+            } else if (button.dataset.action === 'download') {
+                downloadPluginData(entry);
+            }
+        });
+        $('plugin-data-body').addEventListener('change', event => {
+            const input = event.target.closest('input.plugin-data-select');
+            if (!input) return;
+            const entry = pluginDataState.entries[Number(input.dataset.index)];
+            if (!entry) return;
+            if (input.checked) pluginDataState.selection.add(entry.name);
+            else pluginDataState.selection.delete(entry.name);
+            updatePluginDataToolbar();
+        });
     }
 
     function init() {
@@ -1929,6 +2359,7 @@
             resetKeywordForm();
             renderKeywords();
         }
+        if (pluginDataState.jar && $('plugin-data-dialog').open) renderPluginData();
         renderView();
     });
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>NullBot 控制台</title>
     <script src="common.js"></script>
     <link rel="preconnect" href="https://fonts.loli.net">
@@ -671,6 +672,69 @@
                 <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
             </div>
         </form>
+    </div>
+</dialog>
+
+<!-- ═══ Plugin data dialog ═══════ -->
+<dialog id="plugin-data-dialog">
+    <div class="dialog-head">
+        <div>
+            <h2 data-i18n="plugins.dataTitle">插件数据</h2>
+            <p class="muted" id="plugin-data-subtitle"></p>
+        </div>
+        <button type="button" class="dialog-close" data-close
+                data-i18n-aria-label="common.close" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+        <div class="plugin-data-bar">
+            <button type="button" id="plugin-data-up" class="small"
+                    data-i18n="plugins.dataUp">上一级</button>
+            <nav id="plugin-data-crumbs" class="plugin-data-crumbs"></nav>
+        </div>
+        <div class="toolbar plugin-data-toolbar">
+            <button type="button" id="plugin-data-new-folder" class="small btn-data"
+                    data-i18n="plugins.dataNewFolder">新建文件夹</button>
+            <button type="button" id="plugin-data-upload" class="small btn-upload"
+                    data-i18n="plugins.dataUpload">上传</button>
+            <input id="plugin-data-files" type="file" multiple hidden>
+            <button type="button" id="plugin-data-delete" class="small danger btn-delete"
+                    data-i18n="plugins.dataDelete" disabled>删除所选</button>
+            <span class="plugin-data-spacer"></span>
+            <span id="plugin-data-count" class="muted"></span>
+            <button type="button" id="plugin-data-refresh" class="icon-only"
+                    data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh"
+                    title="刷新" aria-label="刷新">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                    <path d="M21 3v6h-6"/>
+                </svg>
+            </button>
+        </div>
+        <form id="plugin-data-folder-form" class="plugin-data-folder" hidden>
+            <input id="plugin-data-folder-name" maxlength="255" autocomplete="off"
+                   data-i18n-placeholder="plugins.dataFolderPlaceholder" placeholder="文件夹名称">
+            <button type="submit" class="primary" data-i18n="plugins.dataCreate">创建</button>
+            <button type="button" id="plugin-data-folder-cancel"
+                    data-i18n="common.cancel">取消</button>
+        </form>
+        <p id="plugin-data-status" class="status"></p>
+        <div class="table-wrap plugin-data-table">
+            <table>
+                <thead>
+                <tr>
+                    <th class="check-col"><input type="checkbox" id="plugin-data-select-all"
+                                                 data-i18n-aria-label="files.selectAll" aria-label="全选"></th>
+                    <th data-i18n="plugins.dataName">名称</th>
+                    <th data-i18n="plugins.dataType">类型</th>
+                    <th data-i18n="plugins.dataSize">大小</th>
+                    <th data-i18n="plugins.dataModified">修改时间</th>
+                    <th data-i18n="common.actions">操作</th>
+                </tr>
+                </thead>
+                <tbody id="plugin-data-body"></tbody>
+            </table>
+        </div>
     </div>
 </dialog>
 
