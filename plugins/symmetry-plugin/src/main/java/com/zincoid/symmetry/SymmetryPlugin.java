@@ -13,7 +13,7 @@ public class SymmetryPlugin implements Plugin {
 
     @Override
     public String id() {
-        return "Symmetry";
+        return "symmetry";
     }
 
     @Override

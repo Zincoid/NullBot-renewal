@@ -11,7 +11,6 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -26,7 +25,7 @@ import java.util.Map;
 @CmdMapping({"PUBG", "吃鸡地图"})
 public class PubgCmd implements Cmd {
 
-    private static final Map<String, String> MAPS = maps();
+    static final Map<String, String> MAPS = maps();
 
     private final PubgPlugin plugin;
 
@@ -56,9 +55,7 @@ public class PubgCmd implements Cmd {
         String file = MAPS.get(name.toLowerCase(Locale.ROOT));
         if (file == null)
             throw new CmdWarnException(text(ctx, "暂不支持该地图：%s", "Unsupported map: %s").formatted(name));
-        Path path = plugin.mapsDir().resolve(file);
-        if (!Files.isRegularFile(path))
-            throw new CmdWarnException(text(ctx, "地图资源缺失：%s", "Map resource missing: %s").formatted(file));
+        Path path = plugin.mapPath(file);
         ctx.send(MsgContent.builder().image(path.toUri().toString()).build());
         log.info("PUBG map sent: {}", file);
     }

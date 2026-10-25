@@ -22,7 +22,7 @@ public class GamePlugin implements Plugin {
 
     @Override
     public String id() {
-        return "Game";
+        return "game";
     }
 
     @Override

@@ -13,7 +13,7 @@ public class SB6657Plugin implements Plugin {
 
     @Override
     public String id() {
-        return "SB6657";
+        return "sb6657";
     }
 
     @Override
