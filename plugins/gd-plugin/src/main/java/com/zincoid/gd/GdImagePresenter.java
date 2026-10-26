@@ -62,30 +62,34 @@ final class GdImagePresenter implements GdPresenter {
     @Override
     public MsgContent search(Language language, SearchView view) {
         try {
-            List<String> rows = new ArrayList<>();
+            List<String> ranks = new ArrayList<>();
+            List<String> names = new ArrayList<>();
+            List<String> difficulties = new ArrayList<>();
+            List<String> authors = new ArrayList<>();
+            List<String> stars = new ArrayList<>();
             for (int i = 0; i < view.levels().size(); i++) {
                 SearchView.LevelSummary level = view.levels().get(i);
-                String row = String.format(Locale.ROOT, "%02d. %-28s %-14s %-16s %s %d",
-                        i + 1,
-                        truncate(level.name(), 28),
-                        truncate(level.difficulty(), 14),
-                        truncate(level.author(), 16),
-                        STAR,
-                        level.stars());
-                rows.add(row);
+                ranks.add(String.format(Locale.ROOT, "%02d.", i + 1));
+                names.add(escape(truncateToWidth(level.name(), 280, 15)));
+                difficulties.add(escape(truncateToWidth(level.difficulty(), 160, 15)));
+                authors.add(escape(truncateToWidth(level.author(), 170, 15)));
+                stars.add(escape(STAR + " " + level.stars()));
             }
-            rows = rows.stream().map(GdImagePresenter::escape).toList();
-            int height = 190 + (rows.size() + 1) * 34 + 60;
-            Map<String, Object> model = Map.of(
-                    "title", escape(GdText.SEARCH_TITLE.of(
-                            language, truncate(view.query(), 24), view.page())),
-                    "headLevel", GdText.HEAD_LEVEL.of(language),
-                    "headDifficulty", GdText.DIFFICULTY.of(language),
-                    "headAuthor", GdText.AUTHOR.of(language),
-                    "headStars", GdText.STARS.of(language),
-                    "rows", rows,
-                    "prompt", escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds())),
-                    "height", height
+            int height = 190 + (ranks.size() + 1) * 34 + 60;
+            Map<String, Object> model = Map.ofEntries(
+                    Map.entry("title", escape(GdText.SEARCH_TITLE.of(
+                            language, truncate(view.query(), 24), view.page()))),
+                    Map.entry("headLevel", GdText.HEAD_LEVEL.of(language)),
+                    Map.entry("headDifficulty", GdText.DIFFICULTY.of(language)),
+                    Map.entry("headAuthor", GdText.AUTHOR.of(language)),
+                    Map.entry("headStars", GdText.STARS.of(language)),
+                    Map.entry("ranks", ranks),
+                    Map.entry("names", names),
+                    Map.entry("difficulties", difficulties),
+                    Map.entry("authors", authors),
+                    Map.entry("stars", stars),
+                    Map.entry("prompt", escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds()))),
+                    Map.entry("height", height)
             );
             return image(renderer.template("search.jte", model));
         } catch (RuntimeException e) {
@@ -117,15 +121,15 @@ final class GdImagePresenter implements GdPresenter {
             }
             GddlLine gddl = gddlLine(language, view);
             List<TextLine> textLines = new ArrayList<>();
-            textLines.add(new TextLine(escape(stats1), 0, 14, "#E7ECF5"));
-            textLines.add(new TextLine(escape(stats2), 30, 14, "#E7ECF5"));
-            textLines.add(new TextLine(escape(truncateToWidth(gddl.main(), 480, 14)), 40, 14, "#4C8DFF"));
+            textLines.add(new TextLine(escape(stats1), 0, 14, "#E6E9EE"));
+            textLines.add(new TextLine(escape(stats2), 30, 14, "#E6E9EE"));
+            textLines.add(new TextLine(escape(truncateToWidth(gddl.main(), 480, 14)), 40, 14, "#CDD3DC"));
             if (!gddl.extra().isBlank())
-                textLines.add(new TextLine(escape(truncateToWidth(gddl.extra(), 480, 13)), 26, 13, "#6EA8FE"));
+                textLines.add(new TextLine(escape(truncateToWidth(gddl.extra(), 480, 13)), 26, 13, "#C9CFD8"));
             if (!song.isBlank())
-                textLines.add(new TextLine(escape(song), 32, 13, "#C5CCDA"));
+                textLines.add(new TextLine(escape(song), 32, 13, "#C9CFD8"));
             if (!description.isBlank())
-                textLines.add(new TextLine(escape(truncateToWidth(description, 480, 13)), 30, 13, "#8FA0B8"));
+                textLines.add(new TextLine(escape(truncateToWidth(description, 480, 13)), 30, 13, "#C9CFD8"));
             Map<String, Object> model = Map.ofEntries(
                     Map.entry("title", escape(truncateToWidth(view.name(), 760, 30))),
                     Map.entry("levelId", String.valueOf(view.id())),

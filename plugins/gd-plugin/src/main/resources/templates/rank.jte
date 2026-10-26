@@ -18,59 +18,58 @@
 <svg width="1440" height="${height * 3 / 2}" viewBox="0 0 960 ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#4C8DFF" stop-opacity="0.20"/>
-            <stop offset="1" stop-color="#4C8DFF" stop-opacity="0"/>
+            <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.035"/>
+            <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
         </linearGradient>
     </defs>
 
-    <rect width="960" height="${height}" fill="#0B0D12"/>
+    <rect width="960" height="${height}" fill="#0E0F11"/>
     <rect width="960" height="${height}" fill="url(#glow)"/>
-    <rect x="0" y="0" width="6" height="${height}" fill="#4C8DFF"/>
 
     <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13"
-          letter-spacing="2.4" fill="#8FA0B8"># GD / B20_</text>
+          letter-spacing="2.4" fill="#C9CFD8"># GD / B20_</text>
     <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="24"
-          fill="#FFFFFF">${user}</text>
+          fill="#F2F3F5">${user}</text>
     <text x="40" y="142" font-family="JetBrains Maple Mono" font-size="13"
-          fill="#8FA0B8">${labelB20}</text>
+          fill="#C9CFD8">${labelB20}</text>
     <text x="38" y="198" font-family="JetBrains Maple Mono" font-weight="bold" font-size="54"
-          fill="#4C8DFF">${score}</text>
+          fill="#A7C6FF">${score}</text>
     <text x="40" y="232" font-family="JetBrains Maple Mono" font-size="14"
-          fill="#E7ECF5">${stats1}</text>
+          fill="#E6E9EE">${stats1}</text>
     <text x="40" y="258" font-family="JetBrains Maple Mono" font-size="14"
-          fill="#C5CCDA">${stats2}</text>
-    <rect x="40" y="282" width="880" height="1" fill="#232A36"/>
+          fill="#CDD3DC">${stats2}</text>
+    <rect x="40" y="282" width="880" height="1" fill="#2A2D33"/>
 
     <text x="40" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
-          fill="#8FA0B8">#</text>
+          fill="#C9CFD8">#</text>
     <text x="76" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
-          fill="#8FA0B8">${headLevel}</text>
+          fill="#C9CFD8">${headLevel}</text>
     <text x="500" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" fill="#8FA0B8">ID</text>
+          font-weight="bold" font-size="12" fill="#C9CFD8">ID</text>
     <text x="590" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" fill="#8FA0B8">${headTier}</text>
+          font-weight="bold" font-size="12" fill="#C9CFD8">${headTier}</text>
     <text x="700" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" fill="#8FA0B8">${headProgress}</text>
+          font-weight="bold" font-size="12" fill="#C9CFD8">${headProgress}</text>
     <text x="800" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" fill="#8FA0B8">rt</text>
+          font-weight="bold" font-size="12" fill="#C9CFD8">rt</text>
 
     @for(int i = 0; i < ranks.size(); i++)
         <text x="40" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="14"
-              fill="#E7ECF5">${ranks.get(i)}</text>
+              fill="#E6E9EE">${ranks.get(i)}</text>
         <text x="76" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="14"
-              fill="#E7ECF5">${names.get(i)}</text>
+              fill="#E6E9EE">${names.get(i)}</text>
         <text x="500" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="14" fill="#E7ECF5">${ids.get(i)}</text>
+              font-size="14" fill="#E6E9EE">${ids.get(i)}</text>
         <text x="590" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="14" fill="#E7ECF5">${tiers.get(i)}</text>
+              font-size="14" fill="#E6E9EE">${tiers.get(i)}</text>
         <text x="700" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="14" fill="#E7ECF5">${progresses.get(i)}</text>
+              font-size="14" fill="#E6E9EE">${progresses.get(i)}</text>
         <text x="800" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="14" fill="#E7ECF5">${rts.get(i)}</text>
+              font-size="14" fill="#E6E9EE">${rts.get(i)}</text>
     @endfor
 
     <text x="40" y="${height - 36}" font-family="JetBrains Maple Mono" font-size="12"
-          fill="#8FA0B8">${note}</text>
+          fill="#C9CFD8">${note}</text>
     <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="11" letter-spacing="1.2" fill="#4C8DFF">GDDL</text>
+          font-weight="bold" font-size="11" letter-spacing="1.2" fill="#C9CFD8">GDDL</text>
 </svg>
