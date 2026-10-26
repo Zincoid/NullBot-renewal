@@ -1,5 +1,5 @@
 @param String avatar
-@param java.util.List<java.util.List<com.zincoid.say.QuoteCard.Segment>> lines
+@param java.util.List<java.util.List<com.zincoid.nullbot.module.render.svg.layout.SvgText.Segment>> lines
 @param String author
 
 <svg width="1320" height="500" viewBox="0 0 1320 500" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -22,12 +22,12 @@
     @for(int i = 0; i < lines.size(); i++)
         @if(!lines.get(i).isEmpty())
             <text x="500" y="${260 - ((lines.size() - 1) * 46 + 56) / 2 + i * 46}"
-                  font-family="${lines.get(i).get(0).emoji() ? "Noto Emoji" : "Noto Serif CJK SC"}"
+                  font-family="${lines.get(i).get(0).family()}"
                   font-size="34" font-style="${lines.get(i).get(0).emoji() ? "normal" : "italic"}"
                   fill="#F2F3F5">${lines.get(i).get(0).text()}</text>
             @for(int j = 1; j < lines.get(i).size(); j++)
                 <text y="${260 - ((lines.size() - 1) * 46 + 56) / 2 + i * 46}"
-                      font-family="${lines.get(i).get(j).emoji() ? "Noto Emoji" : "Noto Serif CJK SC"}"
+                      font-family="${lines.get(i).get(j).family()}"
                       font-size="34" font-style="${lines.get(i).get(j).emoji() ? "normal" : "italic"}"
                       fill="#F2F3F5">${lines.get(i).get(j).text()}</text>
             @endfor

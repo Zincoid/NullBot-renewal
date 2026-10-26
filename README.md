@@ -96,7 +96,7 @@ java -jar launcher/target/launcher-stdin.jar
 
 需要手动排列 SVG 文本时，可以复用 core 的 `SvgText`/`SvgLine`/`SvgPositionedLine`：支持字体宽度测量、按宽度截断、多行垂直居中和文本转义；`SvgTable`/`SvgColumn`/`SvgCell` 负责表头、列宽、对齐和单元格定位。
 
-图片可复用 core 的 `ImageData`：`dataUri`/`imageDataUri`、`cover`/`square` 居中裁剪缩放、`imageDataUri(BufferedImage)` PNG 编码，支持 WebP 解码。
+图片可复用 core 的 `ImageData`：`dataUri`/`imageDataUri`、`cover`/`square` 居中裁剪缩放、`imageDataUri(BufferedImage)` PNG 编码，支持 WebP 解码。中英与 emoji 混排可用 `SvgText.fontSegments` 自动分段并选择字体。
 
 插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册；也可调用 `renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。`plugins/hello-plugin` 的 `Hello --image` 是完整模板示例。
 
@@ -166,6 +166,7 @@ GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默�
 | 字体 | 用途 |
 | --- | --- |
 | JetBrains Maple Mono NF（OFL） | 核心渲染管线的默认字体，中英文混排；粗体通过 `font-weight="bold"` 合成 |
+| Noto Emoji（OFL） | `Say` 语录卡片中的 emoji 文本 |
 
 JetBrains Maple Mono NF 由 JetBrains Mono 与 Maple Mono 合成，并包含 Nerd Font 图标。
 
@@ -174,7 +175,6 @@ JetBrains Maple Mono NF 由 JetBrains Mono 与 Maple Mono 合成，并包含 Ner
 | 字体 | 插件 | 用途 |
 | --- | --- | --- |
 | Noto Serif CJK SC（OFL） | `say-plugin` | `Say` 语录卡片，斜体中英混排 |
-| Noto Emoji（OFL） | `say-plugin` | `Say` 语录卡片中的 emoji 文本 |
 | Bernard MT Condensed | `hello-plugin` | `Hello --image` 标题示例 |
 
 字体注册是 JVM 全局的，插件卸载后不会撤销。`Bernard MT Condensed` 为商业字体，分发前请确认授权。

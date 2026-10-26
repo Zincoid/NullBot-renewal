@@ -25,9 +25,11 @@ public class FontRegistry {
      * <p>The font families used for rendering.</p>
      */
     public static final String JETBRAINS_MAPLE_MONO = "JetBrains Maple Mono";
+    public static final String NOTO_EMOJI = "Noto Emoji";
 
     private static final Map<String, String> FONTS = Map.of(
-            JETBRAINS_MAPLE_MONO, "fonts/JetBrainsMapleMonoNF-Regular.ttf"
+            JETBRAINS_MAPLE_MONO, "fonts/JetBrainsMapleMonoNF-Regular.ttf",
+            NOTO_EMOJI, "fonts/NotoEmoji-VariableFont_wght.ttf"
     );
 
     @PostConstruct

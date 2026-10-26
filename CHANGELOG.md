@@ -42,6 +42,7 @@
 - 新增 core SVG 文本排版工具 `SvgText`/`SvgLine`/`SvgPositionedLine`，GD 插件复用并移除私有的测量、截断与居中代码。
 - 新增 core SVG 表格排版工具 `SvgTable`/`SvgColumn`/`SvgCell`，GD 搜索与 B20 卡片复用并移除模板中的固定列坐标。
 - 新增 core 图片数据工具 `ImageData`，统一 data URI、WebP/PNG 解码、居中裁剪、头像方形缩放与 PNG 编码；GD、Usage、Say 和 AI `view` 工具复用。
+- 抽取 emoji 字体分段到 core `SvgText.fontSegments`，将 Noto Emoji 移入 core 字体注册；`Say` 模板改用 `SvgText.Segment`。
 - `Usage` 卡片在计数上方显示用户昵称与用户 ID，昵称过长时自动截断并保留 ID。
 - `gd-plugin` 排除未使用的 Netty native QUIC 依赖，并在 shade 中合并 LICENSE/NOTICE 与 Netty 版本元数据，消除重复资源警告。
 - 对齐 GD 搜索与 B20 列表的右侧列，并收紧关卡详情卡片底部留白。

@@ -1,6 +1,7 @@
 package com.zincoid.say;
 
 import com.zincoid.nullbot.module.render.PluginRenderer;
+import com.zincoid.nullbot.module.render.svg.layout.SvgText;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 
 import java.text.BreakIterator;
@@ -17,6 +18,7 @@ public final class QuoteCard {
 
     private static final int MAX_UNITS = 40;
     private static final int MAX_LINES = 7;
+    private static final String TEXT_FAMILY = "Noto Serif CJK SC";
 
     private QuoteCard() {
     }
@@ -44,8 +46,8 @@ public final class QuoteCard {
         if (quote.getId() != null) author += " (" + quote.getUserId() + ")";
         return renderer.template("say.jte", Map.of(
                 "avatar", avatar,
-                "lines", lines.stream().map(QuoteCard::segments).toList(),
-                "author", escape(author)
+                "lines", lines.stream().map(line -> SvgText.fontSegments(line, TEXT_FAMILY)).toList(),
+                "author", SvgText.escape(author)
         ));
     }
 
@@ -98,44 +100,5 @@ public final class QuoteCard {
         return Character.isIdeographic(codePoint)
                 || (codePoint >= 0x2010 && codePoint <= 0x205E)
                 || codePoint >= 0x2E00;
-    }
-
-    private static List<Segment> segments(String text) {
-        List<Segment> segments = new ArrayList<>();
-        int i = 0;
-        while (i < text.length()) {
-            boolean emoji = emoji(text.codePointAt(i));
-            int end = i + Character.charCount(text.codePointAt(i));
-            while (end < text.length() && emoji(text.codePointAt(end)) == emoji) {
-                end += Character.charCount(text.codePointAt(end));
-            }
-            segments.add(new Segment(escape(text.substring(i, end)), emoji));
-            i = end;
-        }
-        return segments;
-    }
-
-    private static boolean emoji(int codePoint) {
-        return codePoint == 0x200D
-                || codePoint == 0xFE0F
-                || (codePoint >= 0x1F000 && codePoint <= 0x1FAFF)
-                || (codePoint >= 0x2600 && codePoint <= 0x27BF)
-                || (codePoint >= 0x2B00 && codePoint <= 0x2BFF)
-                || codePoint == 0x20E3
-                || (codePoint >= 0xE0020 && codePoint <= 0xE007F);
-    }
-
-    private static String escape(String value) {
-        return value.replace("&", "&amp;").replace("<", "&lt;");
-    }
-
-    /**
-     * 语录卡片中的一段文本；emoji 段使用表情字体。
-     * <p>A run of quote text; emoji runs use the emoji font.</p>
-     *
-     * @param text the escaped text
-     * @param emoji whether the run is rendered with the emoji font
-     */
-    public record Segment(String text, boolean emoji) {
     }
 }
