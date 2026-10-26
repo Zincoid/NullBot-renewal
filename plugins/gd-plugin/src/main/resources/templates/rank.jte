@@ -21,25 +21,19 @@
 
     <text x="40" y="50" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
           fill="#8FA0B8"># GD / B20_</text>
-    <text x="38" y="100" font-family="Noto Sans Mono CJK SC" font-size="24"
-          fill="#FFFFFF">${user}</text>
-    <text x="40" y="142" font-family="Noto Sans Mono CJK SC" font-size="13"
-          fill="#8FA0B8">${labelB20}</text>
+    ${com.zincoid.gd.GdSvgText.render(user, 38, 100, 24, "#FFFFFF", null)}
+    ${com.zincoid.gd.GdSvgText.render(labelB20, 40, 142, 13, "#8FA0B8", null)}
     <text x="38" y="198" font-family="JetBrains Mono Bold" font-size="54"
           fill="#4C8DFF">${score}</text>
-    <text x="40" y="232" font-family="Noto Sans Mono CJK SC" font-size="14"
-          fill="#E7ECF5">${stats1}</text>
-    <text x="40" y="258" font-family="Noto Sans Mono CJK SC" font-size="14"
-          fill="#C5CCDA">${stats2}</text>
+    ${com.zincoid.gd.GdSvgText.render(stats1, 40, 232, 14, "#E7ECF5", null)}
+    ${com.zincoid.gd.GdSvgText.render(stats2, 40, 258, 14, "#C5CCDA", null)}
     <rect x="40" y="282" width="880" height="1" fill="#232A36"/>
 
     @for(int i = 0; i < rows.size(); i++)
-        <text x="40" y="${318 + i * 32}" font-family="Noto Sans Mono CJK SC" font-size="14"
-              fill="#E7ECF5">${rows.get(i)}</text>
+        ${com.zincoid.gd.GdSvgText.render(rows.get(i), 40, 318 + i * 32, 14, "#E7ECF5", null)}
     @endfor
 
-    <text x="40" y="${height - 36}" font-family="Noto Sans Mono CJK SC" font-size="12"
-          fill="#8FA0B8">${note}</text>
+    ${com.zincoid.gd.GdSvgText.render(note, 40, height - 36, 12, "#8FA0B8", null)}
     <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Mono Bold"
           font-size="11" letter-spacing="1.2" fill="#4C8DFF">GDDL</text>
 </svg>

@@ -24,6 +24,7 @@
 ### Changed
 
 - GD 关卡详情卡片的缩略图改为圆角，右侧信息按缩略图垂直居中。
+- GD 搜索结果、关卡详情与 B20 卡片中的英文统一使用 JetBrains Mono，中文继续使用 Noto Sans Mono CJK SC。
 - 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 各新增 `XxxText` 文案枚举，帮助与提示按中英成对维护；`game` 的问答、猜图与老婆文案从核心 `Text` 迁入 `GameText`。
 - 渲染字体：内置 JetBrains Mono 与 Noto Sans Mono CJK SC（均为 OFL），移除 Monorama；`Usage`、`Info`、`Help` 统一为深色卡片风格，值文本支持中英混排。
 - 将 `Say`/`说` 指令从 `game-plugin` 拆分到独立的 `say-plugin`（插件 ID `say`），模板与字体随插件分发。

@@ -63,13 +63,12 @@ final class GdImagePresenter implements GdPresenter {
                         level.stars());
                 rows.add(row);
             }
-            rows = rows.stream().map(GdImagePresenter::escape).toList();
             int height = 190 + rows.size() * 34 + 60;
             Map<String, Object> model = Map.of(
-                    "title", escape(GdText.SEARCH_TITLE.of(
-                            language, truncate(view.query(), 24), view.page())),
+                    "title", GdText.SEARCH_TITLE.of(
+                            language, truncate(view.query(), 24), view.page()),
                     "rows", rows,
-                    "prompt", escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds())),
+                    "prompt", GdText.SEARCH_PROMPT.of(language, view.waitSeconds()),
                     "height", height
             );
             return image(renderer.template("search.jte", model));
@@ -97,22 +96,22 @@ final class GdImagePresenter implements GdPresenter {
                     : GdText.SONG.of(language) + ": " + view.song();
             GddlLine gddl = gddlLine(language, view);
             List<TextLine> textLines = new ArrayList<>();
-            textLines.add(new TextLine(escape(stats1), 0, 14, "#E7ECF5"));
-            textLines.add(new TextLine(escape(stats2), 30, 14, "#E7ECF5"));
-            textLines.add(new TextLine(escape(truncate(gddl.main(), 58)), 40, 14, "#4C8DFF"));
+            textLines.add(new TextLine(stats1, 0, 14, "#E7ECF5"));
+            textLines.add(new TextLine(stats2, 30, 14, "#E7ECF5"));
+            textLines.add(new TextLine(truncate(gddl.main(), 58), 40, 14, "#4C8DFF"));
             if (!gddl.extra().isBlank())
-                textLines.add(new TextLine(escape(truncate(gddl.extra(), 58)), 26, 13, "#6EA8FE"));
+                textLines.add(new TextLine(truncate(gddl.extra(), 58), 26, 13, "#6EA8FE"));
             if (!song.isBlank())
-                textLines.add(new TextLine(escape(truncate(song, 64)), 32, 13, "#C5CCDA"));
+                textLines.add(new TextLine(truncate(song, 64), 32, 13, "#C5CCDA"));
             if (!description.isBlank())
-                textLines.add(new TextLine(escape(truncate(description, 72)), 30, 13, "#8FA0B8"));
+                textLines.add(new TextLine(truncate(description, 72), 30, 13, "#8FA0B8"));
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", escape(truncate(view.name(), 42))),
+                    Map.entry("title", truncate(view.name(), 42)),
                     Map.entry("levelId", String.valueOf(view.id())),
-                    Map.entry("meta", escape(truncate(meta, 72))),
+                    Map.entry("meta", truncate(meta, 72)),
                     Map.entry("lines", layoutLines(textLines)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
-                    Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
+                    Map.entry("noThumbnail", GdText.NO_THUMBNAIL.of(language)),
                     Map.entry("height", 470)
             );
             return image(renderer.template("level.jte", model));
@@ -139,7 +138,6 @@ final class GdImagePresenter implements GdPresenter {
                         play.rt());
                 rows.add(row);
             }
-            rows = rows.stream().map(GdImagePresenter::escape).toList();
             String stats1 = GdText.COMPLETED.of(language) + " " + view.beatenTotal()
                     + " · " + GdText.IN_PROGRESS.of(language) + " " + view.beatingTotal();
             String stats2 = GdText.HIGHEST_TIER.of(language) + " " + view.highestTier()
@@ -148,14 +146,14 @@ final class GdImagePresenter implements GdPresenter {
                 stats2 += " (" + GdText.FEWER_THAN_20.of(language) + ")";
             int height = 360 + rows.size() * 32 + 50;
             Map<String, Object> model = Map.of(
-                    "user", escape("GDDL: " + truncate(view.userName(), 40)
-                            + " (ID " + view.userId() + ")"),
-                    "labelB20", escape(GdText.B20.of(language)),
+                    "user", "GDDL: " + truncate(view.userName(), 40)
+                            + " (ID " + view.userId() + ")",
+                    "labelB20", GdText.B20.of(language),
                     "score", format(view.score()),
-                    "stats1", escape(stats1),
-                    "stats2", escape(stats2),
+                    "stats1", stats1,
+                    "stats2", stats2,
                     "rows", rows,
-                    "note", escape(GdText.RANK_NOTE.of(language)),
+                    "note", GdText.RANK_NOTE.of(language),
                     "height", height
             );
             return image(renderer.template("rank.jte", model));
@@ -197,7 +195,7 @@ final class GdImagePresenter implements GdPresenter {
     private record TextLine(String text, int gapBefore, int size, String color) {
     }
 
-    private static List<Map<String, String>> layoutLines(List<TextLine> source) {
+    private static List<GdSvgText.Line> layoutLines(List<TextLine> source) {
         int[] offsets = new int[source.size()];
         for (int i = 1; i < source.size(); i++)
             offsets[i] = offsets[i - 1] + source.get(i).gapBefore();
@@ -205,14 +203,11 @@ final class GdImagePresenter implements GdPresenter {
         double descent = source.getLast().size() * LINE_DESCENT_RATIO;
         double top = LEVEL_THUMBNAIL_CENTER_Y
                 - (offsets[offsets.length - 1] + descent - ascent) / 2;
-        List<Map<String, String>> lines = new ArrayList<>(source.size());
+        List<GdSvgText.Line> lines = new ArrayList<>(source.size());
         for (int i = 0; i < source.size(); i++) {
             TextLine line = source.get(i);
-            lines.add(Map.of(
-                    "text", line.text(),
-                    "y", String.valueOf(Math.round(top + offsets[i])),
-                    "size", String.valueOf(line.size()),
-                    "color", line.color()));
+            lines.add(new GdSvgText.Line(
+                    line.text(), (int) Math.round(top + offsets[i]), line.size(), line.color()));
         }
         return lines;
     }
@@ -286,13 +281,5 @@ final class GdImagePresenter implements GdPresenter {
         if (value == null) return "";
         if (value.codePointCount(0, value.length()) <= max) return value;
         return value.substring(0, value.offsetByCodePoints(0, max)) + "…";
-    }
-
-    private static String escape(String value) {
-        if (value == null) return "";
-        return value.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
     }
 }

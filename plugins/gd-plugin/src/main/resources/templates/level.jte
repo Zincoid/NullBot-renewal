@@ -1,7 +1,7 @@
 @param String title
 @param String levelId
 @param String meta
-@param java.util.List<java.util.Map<String, String>> lines
+@param java.util.List<com.zincoid.gd.GdSvgText.Line> lines
 @param String thumbnail
 @param String noThumbnail
 @param int height
@@ -23,12 +23,10 @@
 
     <text x="40" y="50" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
           fill="#8FA0B8"># GD / LEVEL_</text>
-    <text x="38" y="100" font-family="Noto Sans Mono CJK SC" font-size="30"
-          fill="#FFFFFF">${title}</text>
+    ${com.zincoid.gd.GdSvgText.render(title, 38, 100, 30, "#FFFFFF", null)}
     <text x="920" y="100" text-anchor="end" font-family="JetBrains Mono Bold" font-size="14"
           fill="#8FA0B8">#${levelId}</text>
-    <text x="40" y="132" font-family="Noto Sans Mono CJK SC" font-size="14"
-          fill="#C5CCDA">${meta}</text>
+    ${com.zincoid.gd.GdSvgText.render(meta, 40, 132, 14, "#C5CCDA", null)}
     <rect x="40" y="148" width="880" height="1" fill="#232A36"/>
 
     <rect x="40" y="170" width="360" height="203" rx="8" fill="#161A23" stroke="#232A36"/>
@@ -36,17 +34,15 @@
         <image x="40" y="170" width="360" height="203" preserveAspectRatio="xMidYMid slice"
                clip-path="url(#thumbnailClip)" href="${thumbnail}"/>
     @else
-        <text x="220" y="278" text-anchor="middle" font-family="Noto Sans Mono CJK SC"
-              font-size="14" fill="#8FA0B8">${noThumbnail}</text>
+        ${com.zincoid.gd.GdSvgText.render(noThumbnail, 220, 278, 14, "#8FA0B8", "middle")}
     @endif
 
-    @for(java.util.Map<String, String> line : lines)
-        <text x="430" y="${line.get("y")}" font-family="Noto Sans Mono CJK SC"
-              font-size="${line.get("size")}" fill="${line.get("color")}">${line.get("text")}</text>
+    @for(com.zincoid.gd.GdSvgText.Line line : lines)
+        ${com.zincoid.gd.GdSvgText.render(line, 430)}
     @endfor
 
     <text x="40" y="${height - 36}" font-family="JetBrains Mono Bold" font-size="11"
           letter-spacing="1.2" fill="#8FA0B8">GDDL / NULLBOT</text>
-    <text x="920" y="${height - 36}" text-anchor="end" font-family="Noto Sans Mono CJK SC"
+    <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Mono"
           font-size="12" fill="#8FA0B8">GD LEVEL</text>
 </svg>
