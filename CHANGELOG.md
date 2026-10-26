@@ -11,7 +11,7 @@
 - 插件 API 3：`PluginContext.renderer()` 统一提供原始 SVG、预编译 JTE 模板与字体注册；插件 JAR 内 `fonts/` 下的 TTF/OTF 在加载时自动注册，`PluginRenderer.font` 支持动态注册；兼容 API 1 与 2。
 - 新增 `say-plugin`：`Say`/`说` 指令将随机语录渲染为图片，左侧作者头像渐隐，右侧带引号展示语录；作者右对齐、字号略小于语录，支持通过 `@用户` 或用户 ID 指定作者。
 - 新增 `gd-plugin`：`GD`/`几何冲刺` 指令以图片卡片输出关卡搜索列表、关卡详情与 GDDL B20 评分；关卡详情内嵌社区缩略图（WebP 自动转为 PNG），数据通过 JDash 5.1.0 与 GDDL API 获取。
-- `GD rank` 按 `rt = tier^E × (进度/100)^1.5` 取最高的 20 条计算 B20，`E` 默认 1.5，可配置为 2；仅统计 GDDL 提交记录（`beaten`/`beating`）。
+- GD 插件按 `rt = tier^E × (进度/100)^1.5` 取最高的 20 条计算 B20，`E` 默认 1.5，可配置为 2；仅统计 GDDL 提交记录（`beaten`/`beating`）。
 - `gd-plugin` 的 GDDL/缩略图请求支持配置连接超时、请求超时、重试次数与 HTTP 代理，并缓存成功获取的缩略图。
 - `gd-plugin` 新增 `config.properties.example` 配置模板，列出代理、超时、缓存与 B20 配置项。
 - `say-plugin` 新增 Noto Serif CJK SC 与 Noto Emoji（均为 OFL）字体资源，用于 `Say` 语录卡片渲染。
@@ -31,6 +31,7 @@
 - GD B20 卡片新增表头（序号、关卡、ID、Tier、进度、rt），并将行改为固定列对齐。
 - GD 关卡详情页的下载、点赞、长度、物体统计改用 Nerd Font 图标，并调整统计列间距。
 - GD 关卡详情页歌曲名右侧显示歌曲 ID；标题、meta、GDDL、歌曲与描述改为按可用宽度截断，修复长描述溢出。
+- GD 插件将 `rank` 子命令改名为 `gddl`，新增 `--bind`/`--unbind` 用户绑定功能；`#GD gddl` 不带用户名时查询绑定账号，绑定保存在插件数据目录的 `gddl-bindings.properties`，已有绑定不会被覆盖。
 - `Info` 卡片左侧标签与右侧数值字体统一为 14px。
 - `Usage` 卡片计数补零位数从 8 位改为 7 位。
 - 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 各新增 `XxxText` 文案枚举，帮助与提示按中英成对维护；`game` 的问答、猜图与老婆文案从核心 `Text` 迁入 `GameText`。

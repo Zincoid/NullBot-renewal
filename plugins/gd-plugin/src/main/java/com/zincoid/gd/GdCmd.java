@@ -68,9 +68,9 @@ public class GdCmd implements Cmd {
         String sub = args.next("").toLowerCase(Locale.ROOT);
         if (sub.isBlank()) throw new CmdInfoException(getHelp(ctx.language()));
         switch (sub) {
-            case "search", "搜索" -> search(ctx, args, targetId, userId, group);
-            case "level", "关卡" -> level(ctx, args);
-            case "rank", "排名" -> rank(ctx, args);
+            case "search" -> search(ctx, args, targetId, userId, group);
+            case "level" -> level(ctx, args);
+            case "gddl" -> gddl(ctx, args, userId);
             default -> throw new CmdWarnException(
                     GdText.UNKNOWN_SUBCOMMAND.of(ctx.language(), sub));
         }
@@ -253,14 +253,82 @@ public class GdCmd implements Cmd {
         }
     }
 
-    // ════ Rank ════════════════════
+    // ════ GDDL ════════════════════
 
-    private void rank(CmdContext ctx, CmdArgs args) {
-        String raw = args.rest("").trim();
-        if (raw.isEmpty())
-            throw new CmdWarnException(GdText.MISSING_USER.of(ctx.language()));
+    private void gddl(CmdContext ctx, CmdArgs args, String userId) {
+        boolean bind = args.hasOpt("bind", "b");
+        boolean unbind = args.hasOpt("unbind", "u");
+        if (bind && unbind)
+            throw new CmdWarnException(GdText.BIND_CONFLICT.of(ctx.language()));
+
         boolean all = args.hasOpt("all", "a");
+        if (bind) {
+            bindUser(ctx, userId, bindName(ctx, args));
+            return;
+        }
+        if (unbind) {
+            unbindUser(ctx, userId);
+            return;
+        }
+        String raw = args.rest("").trim();
+        if (raw.isEmpty()) {
+            GdBindings.Binding binding = plugin.bindings().get(userId);
+            if (binding == null)
+                throw new CmdInfoException(GdText.NO_BINDING.of(ctx.language()));
+            showRank(ctx, new GddlUser(binding.id(), binding.name()), all);
+            return;
+        }
+        showRank(ctx, resolveUser(ctx, raw), all);
+    }
+
+    private static String bindName(CmdContext ctx, CmdArgs args) {
+        String value = args.getOpt("bind", "b", "").trim();
+        String rest = args.rest("").trim();
+        if (value.isEmpty()) value = rest;
+        else if (!rest.isEmpty()) value = value + " " + rest;
+        if (value.isEmpty())
+            throw new CmdWarnException(GdText.MISSING_USER.of(ctx.language()));
+        return value;
+    }
+
+    private void bindUser(CmdContext ctx, String userId, String raw) {
+        GdBindings.Binding current = plugin.bindings().get(userId);
+        if (current != null)
+            throw new CmdInfoException(GdText.BIND_ALREADY.of(
+                    ctx.language(), current.name(), current.id()));
         GddlUser user = resolveUser(ctx, raw);
+        GdBindings.Binding existing;
+        try {
+            existing = plugin.bindings().bind(userId, user.id(), user.name());
+        } catch (GdException e) {
+            log.warn("GDDL binding save failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.BIND_SAVE_FAILED.of(ctx.language()));
+        }
+        if (existing != null)
+            throw new CmdInfoException(GdText.BIND_ALREADY.of(
+                    ctx.language(), existing.name(), existing.id()));
+        log.info("GDDL binding saved: user={}, gddl={} ({})", userId, user.id(), user.name());
+        throw new CmdInfoException(GdText.BIND_SUCCESS.of(
+                ctx.language(), user.name(), user.id()));
+    }
+
+    private void unbindUser(CmdContext ctx, String userId) {
+        GdBindings.Binding existing;
+        try {
+            existing = plugin.bindings().unbind(userId);
+        } catch (GdException e) {
+            log.warn("GDDL binding removal failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.BIND_SAVE_FAILED.of(ctx.language()));
+        }
+        if (existing == null)
+            throw new CmdInfoException(GdText.UNBIND_NONE.of(ctx.language()));
+        log.info("GDDL binding removed: user={}, gddl={} ({})",
+                userId, existing.id(), existing.name());
+        throw new CmdInfoException(GdText.UNBIND_SUCCESS.of(
+                ctx.language(), existing.name(), existing.id()));
+    }
+
+    private void showRank(CmdContext ctx, GddlUser user, boolean all) {
         ScoreResult score;
         try {
             score = plugin.service().userScore(user.id(), user.name());

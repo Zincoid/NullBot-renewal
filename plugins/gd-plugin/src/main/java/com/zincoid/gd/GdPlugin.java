@@ -17,6 +17,7 @@ public class GdPlugin implements Plugin {
     private volatile PluginContext context;
     private volatile GdService service;
     private volatile GdPresenter presenter;
+    private volatile GdBindings bindings;
 
     @Override
     public String id() {
@@ -43,6 +44,7 @@ public class GdPlugin implements Plugin {
         GdConfig loaded = GdConfig.load(context.dataDir());
         this.context = context;
         this.service = new GdService(loaded);
+        this.bindings = GdBindings.load(context.dataDir());
         GdPresenter text = new GdTextPresenter();
         try {
             this.presenter = new GdImagePresenter(context.renderer(), text);
@@ -62,6 +64,7 @@ public class GdPlugin implements Plugin {
     public void stop() {
         this.presenter = null;
         this.service = null;
+        this.bindings = null;
         this.context = null;
     }
 
@@ -97,6 +100,18 @@ public class GdPlugin implements Plugin {
      */
     GdPresenter presenter() {
         GdPresenter value = presenter;
+        if (value == null) throw new GdException("Plugin not started");
+        return value;
+    }
+
+    /**
+     * 返回 GDDL 用户绑定存储。
+     * <p>Returns the GDDL user binding store.</p>
+     *
+     * @return the binding store
+     */
+    GdBindings bindings() {
+        GdBindings value = bindings;
         if (value == null) throw new GdException("Plugin not started");
         return value;
     }

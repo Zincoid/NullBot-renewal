@@ -189,7 +189,7 @@ final class GdImagePresenter implements GdPresenter {
             );
             return image(renderer.template("rank.jte", model));
         } catch (RuntimeException e) {
-            log.warn("GD rank card render failed; falling back to text", e);
+            log.warn("GD B20 card render failed; falling back to text", e);
             return fallback.rank(language, view);
         }
     }

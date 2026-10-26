@@ -17,7 +17,9 @@ public enum GdText {
             用法：
               GD search <关键词> [选项]
               GD level <关卡ID>
-              GD rank <GDDL用户名|ID> [--all]
+              GD gddl [GDDL用户名|ID] [--all]
+              GD gddl --bind=<GDDL用户名|ID>
+              GD gddl --unbind
 
             选项：
               --diff, -d      难度：easy,normal,hard,harder,insane,demon（逗号分隔）
@@ -25,11 +27,15 @@ public enum GdText {
               --length, -l    长度：tiny,short,medium,long,xl,platformer（逗号分隔）
               --filter        标签：star,no-star,featured,original,two-player,coins,epic,custom-song
               --page, -p      页码，从 1 开始
+              --bind, -b      绑定当前聊天用户的 GDDL 账号（--bind=名字|ID，不可覆盖）
+              --unbind, -u    解除当前聊天用户的 GDDL 绑定
               --all, -a       显示完整 B20 列表
 
             别名：几何冲刺
             权限：>=0(normal)
-            说明：B20 = 取 rt = tier^E × (进度/100)^1.5 最高的 20 条求平均；
+            说明：不带用户名时查看当前绑定账号的 B20。
+                  GDDL 绑定保存在插件数据目录；每个聊天用户只能绑定一个账号，更换需先解绑。
+                  B20 = 取 rt = tier^E × (进度/100)^1.5 最高的 20 条求平均；
                   E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
                   用户评分仅统计 GDDL 提交记录（beaten/beating），未提交的关卡不计入。""",
             """
@@ -39,7 +45,9 @@ public enum GdText {
             Usage:
               GD search <keyword> [options]
               GD level <level id>
-              GD rank <GDDL username|id> [--all]
+              GD gddl [GDDL username|id] [--all]
+              GD gddl --bind=<GDDL username|id>
+              GD gddl --unbind
 
             Options:
               --diff, -d      difficulties: easy,normal,hard,harder,insane,demon (comma separated)
@@ -47,11 +55,15 @@ public enum GdText {
               --length, -l    lengths: tiny,short,medium,long,xl,platformer (comma separated)
               --filter        tags: star,no-star,featured,original,two-player,coins,epic,custom-song
               --page, -p      page number, starting at 1
+              --bind, -b      bind a GDDL account to the current chat user (--bind=username|id, no overwrite)
+              --unbind, -u    remove the current chat user's GDDL binding
               --all, -a       show the full B20 list
 
             Aliases: 几何冲刺
             Access: >=0(normal)
-            Notes: B20 = average of the best 20 rt values, where
+            Notes: Without a username, shows the bound account's B20.
+                   GDDL bindings are stored in the plugin data directory; each chat user can bind one account and must unbind before changing it.
+                   B20 = average of the best 20 rt values, where
                    rt = tier^E × (progress/100)^1.5 and E defaults to 1.5.
                    Set score.tier-exponent=2 in the plugin config to use squared tiers.
                    User scores only count GDDL submissions (beaten/beating)."""),
@@ -78,6 +90,17 @@ public enum GdText {
     GDDL_USER_NOT_FOUND("未找到 GDDL 用户：%s", "GDDL user not found: %s"),
     MULTIPLE_USERS("找到多个 GDDL 用户：%s。请使用用户 ID 查询",
             "Multiple GDDL users found: %s. Use the user id instead"),
+    BIND_ALREADY("已绑定 GDDL 用户 %s (%d)，如需更换请先解绑",
+            "Already bound to GDDL user %s (%d); unbind first"),
+    BIND_SUCCESS("已绑定 GDDL 用户 %s (%d)", "Bound GDDL user %s (%d)"),
+    UNBIND_NONE("当前聊天用户没有绑定 GDDL 账号",
+            "No GDDL account is bound to this chat user"),
+    UNBIND_SUCCESS("已解绑 GDDL 用户 %s (%d)", "Unbound GDDL user %s (%d)"),
+    NO_BINDING("请先使用 GD gddl --bind=<用户名|ID> 绑定 GDDL 用户",
+            "Bind a GDDL user first with GD gddl --bind=<username|id>"),
+    BIND_CONFLICT("--bind 与 --unbind 不能同时使用",
+            "--bind and --unbind cannot be used together"),
+    BIND_SAVE_FAILED("保存 GDDL 绑定失败", "Failed to save GDDL binding"),
     INVALID_DIFFICULTY("无效的难度：%s", "Invalid difficulty: %s"),
     INVALID_DEMON("无效的恶魔难度：%s", "Invalid demon difficulty: %s"),
     INVALID_LENGTH("无效的长度：%s", "Invalid length: %s"),
