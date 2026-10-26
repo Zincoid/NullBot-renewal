@@ -11,6 +11,7 @@
 - 插件 API 3：`PluginContext.renderer()` 统一提供原始 SVG、预编译 JTE 模板与字体注册；插件 JAR 内 `fonts/` 下的 TTF/OTF 在加载时自动注册，`PluginRenderer.font` 支持动态注册；兼容 API 1 与 2。
 - 新增 `say-plugin`：`Say`/`说` 指令将随机语录渲染为图片，左侧作者头像渐隐，右侧带引号展示语录；作者右对齐、字号略小于语录，支持通过 `@用户` 或用户 ID 指定作者。
 - `say-plugin` 新增 Noto Serif CJK SC 与 Noto Emoji（均为 OFL）字体资源，用于 `Say` 语录卡片渲染。
+- `Say`/`说` 支持 `--id=<语录ID>` / `-i=<语录ID>` 获取指定语录。
 - `hello-plugin` 的 `Hello` 指令新增 `--image` 图片卡片输出示例。
 - 控制台插件页展示插件注册的 AI 工具。
 - 控制台概览新增用户调用排行。

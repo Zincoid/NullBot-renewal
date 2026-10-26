@@ -65,12 +65,19 @@ public class SayCmd implements Cmd {
     }
 
     private void handle(CmdContext ctx, MsgContent content, CmdArgs args) {
-        String userId = content.atIds().stream().findFirst().orElse(null);
-        if (userId == null && args.hasNext()) userId = args.next();
-        Quote quote = userId == null
-                ? plugin.context().quotes().random()
-                : plugin.context().quotes().random(userId);
-        if (quote == null) throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
+        Quote quote;
+        if (args.hasOpt("id", "i")) {
+            long id = quoteId(ctx, args);
+            quote = plugin.context().quotes().getById(id);
+            if (quote == null) throw new CmdInfoException(ctx.render(Text.QUOTE_NOT_FOUND, id));
+        } else {
+            String userId = content.atIds().stream().findFirst().orElse(null);
+            if (userId == null && args.hasNext()) userId = args.next();
+            quote = userId == null
+                    ? plugin.context().quotes().random()
+                    : plugin.context().quotes().random(userId);
+            if (quote == null) throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
+        }
 
         String avatar = avatar(ctx, quote.getUserId());
         String text = quote.getText().strip();
@@ -111,6 +118,17 @@ public class SayCmd implements Cmd {
     }
 
     // ════ Helpers ═════════════════
+
+    private static long quoteId(CmdContext ctx, CmdArgs args) {
+        String value = args.getOpt("id", "i", "");
+        if ("true".equals(value)) value = args.next("");
+        if (value.isBlank()) throw new CmdWarnException(ctx.render(Text.ARG_MISSING));
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED), e);
+        }
+    }
 
     private static String avatar(CmdContext ctx, String userId) {
         if (userId == null || userId.isBlank()) return "";
@@ -270,11 +288,13 @@ public class SayCmd implements Cmd {
                 Say
                 Renders a random quote with the author avatar.
                 Usage: Say [user id | @user]
+                       Say --id=<quote id>
                 Aliases: 说
                 Access: >=0(normal)""" : """
                 Say
                 随机渲染一条语录卡片，左侧为作者头像渐隐。
                 用法：Say [用户ID | @用户]
+                      Say --id=语录ID
                 别名：说
                 权限：>=0(normal)""";
     }
