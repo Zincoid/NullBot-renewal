@@ -111,15 +111,15 @@ public class SayCmd implements Cmd {
     public String getHelp(Language language) {
         return language == Language.EN ? """
                 Say
-                Renders a random quote with the author avatar.
+                Renders a random quote card.
                 Usage: Say [user id | @user]
-                       Say --id=<quote id>
+                       Say [--id=<quote id> | -i=<quote id>]
                 Aliases: 说
                 Access: >=0(normal)""" : """
                 Say
-                随机渲染一条语录卡片，左侧为作者头像渐隐。
+                随机渲染一条语录卡片。
                 用法：Say [用户ID | @用户]
-                      Say --id=语录ID
+                      Say [--id=语录ID | -i=语录ID]
                 别名：说
                 权限：>=0(normal)""";
     }
