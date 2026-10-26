@@ -15,6 +15,7 @@ import java.util.List;
  * @param sample       the number of records averaged
  * @param top          the records in the B20
  * @param limit        the number of records to display
+ * @param avatar       the GDDL avatar image bytes, nullable
  */
 record RankView(
         long userId,
@@ -25,7 +26,8 @@ record RankView(
         int highestTier,
         int sample,
         List<Play> top,
-        int limit
+        int limit,
+        byte[] avatar
 ) {
 
     /**

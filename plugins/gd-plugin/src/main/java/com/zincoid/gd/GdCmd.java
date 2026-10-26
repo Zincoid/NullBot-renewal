@@ -275,7 +275,7 @@ public class GdCmd implements Cmd {
             GdBindings.Binding binding = plugin.bindings().get(userId);
             if (binding == null)
                 throw new CmdInfoException(GdText.NO_BINDING.of(ctx.language()));
-            showRank(ctx, new GddlUser(binding.id(), binding.name()), all);
+            showRank(ctx, new GddlUser(binding.id(), binding.name(), binding.avatar()), all);
             return;
         }
         showRank(ctx, resolveUser(ctx, raw), all);
@@ -299,7 +299,7 @@ public class GdCmd implements Cmd {
         GddlUser user = resolveUser(ctx, raw);
         GdBindings.Binding existing;
         try {
-            existing = plugin.bindings().bind(userId, user.id(), user.name());
+            existing = plugin.bindings().bind(userId, user.id(), user.name(), user.avatar());
         } catch (GdException e) {
             log.warn("GDDL binding save failed: user={}", userId, e);
             throw new CmdWarnException(GdText.BIND_SAVE_FAILED.of(ctx.language()));
@@ -329,19 +329,29 @@ public class GdCmd implements Cmd {
     }
 
     private void showRank(CmdContext ctx, GddlUser user, boolean all) {
+        GddlUser current = user;
+        if (current.avatar() == null || current.avatar().isBlank()) {
+            try {
+                GddlUser loaded = plugin.service().user(current.id());
+                if (loaded != null) current = loaded;
+            } catch (GdException e) {
+                log.warn("GDDL user refresh failed: user={}", current.id(), e);
+            }
+        }
         ScoreResult score;
         try {
-            score = plugin.service().userScore(user.id(), user.name());
+            score = plugin.service().userScore(current.id(), current.name());
         } catch (GdException e) {
-            log.warn("GDDL score query failed: user={}", user.id(), e);
+            log.warn("GDDL score query failed: user={}", current.id(), e);
             throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));
         }
         if (score.b20().sample() == 0)
             throw new CmdInfoException(GdText.NO_RECORDS.of(ctx.language()));
-        RankView view = GdViewMapper.rank(score, all);
+        byte[] avatar = plugin.service().avatar(current.id(), current.avatar());
+        RankView view = GdViewMapper.rank(score, all, avatar);
         ctx.send(plugin.presenter().rank(ctx.language(), view));
         log.info("GD B20 sent: user={}, sample={}, score={}",
-                user.id(), view.sample(), String.format(Locale.ROOT, "%.2f", view.score()));
+                current.id(), view.sample(), String.format(Locale.ROOT, "%.2f", view.score()));
     }
 
     private GddlUser resolveUser(CmdContext ctx, String raw) {

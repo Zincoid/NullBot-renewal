@@ -1,6 +1,7 @@
 @param String user
 @param String labelB20
 @param String score
+@param String avatar
 @param String stats1
 @param String stats2
 @param String headLevel
@@ -21,6 +22,9 @@
             <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.035"/>
             <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
         </linearGradient>
+        <clipPath id="avatarClip">
+            <rect x="840" y="36" width="80" height="80" rx="16"/>
+        </clipPath>
     </defs>
 
     <rect width="960" height="${height}" fill="#0E0F11"/>
@@ -28,6 +32,15 @@
 
     <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13"
           letter-spacing="2.4" fill="#C9CFD8"># GD / B20_</text>
+    @if(!avatar.isBlank())
+        <image x="840" y="36" width="80" height="80" preserveAspectRatio="xMidYMid slice"
+               clip-path="url(#avatarClip)" href="${avatar}"/>
+        <rect x="840" y="36" width="80" height="80" rx="16" fill="none" stroke="#2A2D33"/>
+    @else
+        <rect x="840" y="36" width="80" height="80" rx="16" fill="#17181A" stroke="#2A2D33"/>
+        <text x="880" y="91" text-anchor="middle" font-family="JetBrains Maple Mono"
+              font-size="28" fill="#C9CFD8">&#xF007;</text>
+    @endif
     <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="24"
           fill="#F2F3F5">${user}</text>
     <text x="40" y="142" font-family="JetBrains Maple Mono" font-size="13"
@@ -44,13 +57,13 @@
           fill="#C9CFD8">#</text>
     <text x="76" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
           fill="#C9CFD8">${headLevel}</text>
-    <text x="500" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+    <text x="560" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
           font-weight="bold" font-size="12" fill="#C9CFD8">ID</text>
-    <text x="590" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+    <text x="680" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
           font-weight="bold" font-size="12" fill="#C9CFD8">${headTier}</text>
-    <text x="700" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" fill="#C9CFD8">${headProgress}</text>
     <text x="800" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" fill="#C9CFD8">${headProgress}</text>
+    <text x="920" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
           font-weight="bold" font-size="12" fill="#C9CFD8">rt</text>
 
     @for(int i = 0; i < ranks.size(); i++)
@@ -58,13 +71,13 @@
               fill="#E6E9EE">${ranks.get(i)}</text>
         <text x="76" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="14"
               fill="#E6E9EE">${names.get(i)}</text>
-        <text x="500" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+        <text x="560" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
               font-size="14" fill="#E6E9EE">${ids.get(i)}</text>
-        <text x="590" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+        <text x="680" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
               font-size="14" fill="#E6E9EE">${tiers.get(i)}</text>
-        <text x="700" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="14" fill="#E6E9EE">${progresses.get(i)}</text>
         <text x="800" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+              font-size="14" fill="#E6E9EE">${progresses.get(i)}</text>
+        <text x="920" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
               font-size="14" fill="#E6E9EE">${rts.get(i)}</text>
     @endfor
 

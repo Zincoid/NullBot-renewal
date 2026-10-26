@@ -33,6 +33,8 @@
 - GD 关卡详情页歌曲名右侧显示歌曲 ID；标题、meta、GDDL、歌曲与描述改为按可用宽度截断，修复长描述溢出。
 - GD 插件将 `rank` 子命令改名为 `gddl`，新增 `--bind`/`--unbind` 用户绑定功能；`#GD gddl` 不带用户名时查询绑定账号，绑定保存在插件数据目录的 `gddl-bindings.properties`，已有绑定不会被覆盖。
 - GD 卡片试点中性配色：移除左侧色条和蓝色 glow，提高正文/标签对比，蓝色仅保留给 B20 分数等核心数据。
+- 对齐 GD 搜索与 B20 列表的右侧列，并收紧关卡详情卡片底部留白。
+- GD B20 卡片右上角显示 GDDL 用户头像，新增 `gddl.avatar-base` 配置项。
 - `Info` 卡片左侧标签与右侧数值字体统一为 14px。
 - `Usage` 卡片计数补零位数从 8 位改为 7 位。
 - 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 各新增 `XxxText` 文案枚举，帮助与提示按中英成对维护；`game` 的问答、猜图与老婆文案从核心 `Text` 迁入 `GameText`。

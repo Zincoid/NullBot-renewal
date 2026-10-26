@@ -3,7 +3,11 @@
 @param String headDifficulty
 @param String headAuthor
 @param String headStars
-@param java.util.List<String> rows
+@param java.util.List<String> ranks
+@param java.util.List<String> names
+@param java.util.List<String> difficulties
+@param java.util.List<String> authors
+@param java.util.List<String> stars
 @param String prompt
 @param int height
 
@@ -28,16 +32,24 @@
           fill="#C9CFD8">#</text>
     <text x="76" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
           fill="#C9CFD8">${headLevel}</text>
-    <text x="337" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+    <text x="380" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
           fill="#C9CFD8">${headDifficulty}</text>
-    <text x="472" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+    <text x="560" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
           fill="#C9CFD8">${headAuthor}</text>
-    <text x="625" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
-          fill="#C9CFD8">${headStars}</text>
+    <text x="920" y="158" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" fill="#C9CFD8">${headStars}</text>
 
-    @for(int i = 0; i < rows.size(); i++)
+    @for(int i = 0; i < ranks.size(); i++)
         <text x="40" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
-              fill="#E6E9EE">${rows.get(i)}</text>
+              fill="#E6E9EE">${ranks.get(i)}</text>
+        <text x="76" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+              fill="#E6E9EE">${names.get(i)}</text>
+        <text x="380" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+              fill="#E6E9EE">${difficulties.get(i)}</text>
+        <text x="560" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+              fill="#E6E9EE">${authors.get(i)}</text>
+        <text x="920" y="${192 + i * 34}" text-anchor="end" font-family="JetBrains Maple Mono"
+              font-size="15" fill="#E6E9EE">${stars.get(i)}</text>
     @endfor
 
     <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-size="13"

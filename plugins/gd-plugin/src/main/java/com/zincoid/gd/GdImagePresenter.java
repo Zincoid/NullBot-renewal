@@ -137,7 +137,7 @@ final class GdImagePresenter implements GdPresenter {
                     Map.entry("lines", layoutLines(textLines)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
                     Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
-                    Map.entry("height", 470)
+                    Map.entry("height", 430)
             );
             return image(renderer.template("level.jte", model));
         } catch (RuntimeException e) {
@@ -188,6 +188,7 @@ final class GdImagePresenter implements GdPresenter {
                     Map.entry("tiers", tiers),
                     Map.entry("progresses", progresses),
                     Map.entry("rts", rts),
+                    Map.entry("avatar", avatar(view.avatar())),
                     Map.entry("note", escape(GdText.RANK_NOTE.of(language))),
                     Map.entry("height", height)
             );
@@ -248,6 +249,33 @@ final class GdImagePresenter implements GdPresenter {
                     "color", line.color()));
         }
         return lines;
+    }
+
+    private static String avatar(byte[] image) {
+        if (image == null || image.length == 0) return "";
+        try {
+            BufferedImage source = ImageIO.read(new ByteArrayInputStream(image));
+            if (source == null || source.getWidth() <= 0 || source.getHeight() <= 0)
+                return "";
+            int size = Math.min(source.getWidth(), source.getHeight());
+            int sx = (source.getWidth() - size) / 2;
+            int sy = (source.getHeight() - size) / 2;
+            BufferedImage target = new BufferedImage(160, 160, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = target.createGraphics();
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            graphics.setRenderingHint(RenderingHints.KEY_RENDERING,
+                    RenderingHints.VALUE_RENDER_QUALITY);
+            graphics.drawImage(source, 0, 0, 160, 160,
+                    sx, sy, sx + size, sy + size, null);
+            graphics.dispose();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(target, "png", out);
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(out.toByteArray());
+        } catch (IOException | RuntimeException e) {
+            log.warn("GD avatar conversion failed", e);
+            return "";
+        }
     }
 
     private static String thumbnail(byte[] webp) {

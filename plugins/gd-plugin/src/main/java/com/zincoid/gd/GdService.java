@@ -32,6 +32,7 @@ final class GdService {
     private static final int MAX_BEATING = 200;
     private static final int MAX_JSON_BYTES = 2 * 1024 * 1024;
     private static final int MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
+    private static final int MAX_AVATAR_BYTES = 2 * 1024 * 1024;
     private static final Duration JDASH_TIMEOUT = Duration.ofSeconds(20);
 
     private final GdConfig config;
@@ -40,6 +41,7 @@ final class GdService {
     private final Map<Long, CacheEntry<Optional<GddlLevel>>> levelCache = new ConcurrentHashMap<>();
     private final Map<Long, CacheEntry<ScoreResult>> scoreCache = new ConcurrentHashMap<>();
     private final Map<Long, CacheEntry<byte[]>> thumbnailCache = new ConcurrentHashMap<>();
+    private final Map<String, CacheEntry<byte[]>> avatarCache = new ConcurrentHashMap<>();
 
     /**
      * 创建数据服务。
@@ -149,7 +151,7 @@ final class GdService {
             if (search == null || search.data() == null) return List.of();
             return search.data().stream()
                     .filter(item -> item != null && item.name() != null)
-                    .map(item -> new GddlUser(item.id(), item.name()))
+                    .map(item -> new GddlUser(item.id(), item.name(), item.avatar()))
                     .toList();
         } catch (RuntimeException e) {
             throw new GdException("GDDL user search failed", e);
@@ -170,7 +172,8 @@ final class GdService {
         if (!response.ok()) throw new GdException("GDDL returned HTTP " + response.status());
         try {
             UserItem item = JsonUtils.parse(response.text(), UserItem.class);
-            return item == null || item.name() == null ? null : new GddlUser(item.id(), item.name());
+            return item == null || item.name() == null
+                    ? null : new GddlUser(item.id(), item.name(), item.avatar());
         } catch (RuntimeException e) {
             throw new GdException("GDDL user query failed", e);
         }
@@ -293,6 +296,42 @@ final class GdService {
         }
     }
 
+    /**
+     * 获取 GDDL 用户头像。
+     * <p>Fetches the GDDL user avatar.</p>
+     *
+     * @param userId  the GDDL user id
+     * @param avatarId the avatar uuid, nullable
+     * @return the image bytes, or null when unavailable
+     */
+    byte[] avatar(long userId, String avatarId) {
+        if (avatarId == null || avatarId.isBlank()) return null;
+        String key = userId + ":" + avatarId;
+        CacheEntry<byte[]> cached = avatarCache.get(key);
+        if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
+        try {
+            GdHttp.Response response = http.get(
+                    config.gddlAvatarBase() + userId + "/" + avatarId + ".png?size=160",
+                    "image/*", MAX_AVATAR_BYTES);
+            if (response.status() == 404) return null;
+            if (!response.ok())
+                throw new GdException("Avatar CDN returned HTTP " + response.status());
+            if (response.body().length == 0 || !response.contentType().startsWith("image/"))
+                return null;
+            byte[] bytes = response.body();
+            if (avatarCache.size() > 128) avatarCache.clear();
+            avatarCache.put(key, new CacheEntry<>(bytes));
+            return bytes;
+        } catch (RuntimeException e) {
+            if (cached != null) {
+                log.warn("GD avatar refresh failed; using stale: user={}", userId, e);
+                return cached.value();
+            }
+            log.warn("GD avatar fetch failed: user={}", userId, e);
+            return null;
+        }
+    }
+
     // ════ Helpers ═════════════════
 
     private static boolean isNotFound(Throwable error) {
@@ -335,7 +374,7 @@ final class GdService {
 
     // ════ GDDL DTO ════════════════
 
-    record GddlUser(long id, String name) {
+    record GddlUser(long id, String name, String avatar) {
     }
 
     record GddlLevel(
@@ -366,7 +405,8 @@ final class GdService {
 
     record UserItem(
             @JsonProperty("ID") long id,
-            @JsonProperty("Name") String name
+            @JsonProperty("Name") String name,
+            @JsonProperty("avatar") String avatar
     ) {
     }
 

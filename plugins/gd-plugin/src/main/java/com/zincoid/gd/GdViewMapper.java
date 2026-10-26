@@ -80,11 +80,12 @@ final class GdViewMapper {
      * 把 B20 结果映射为排行视图。
      * <p>Maps the B20 result to a rank view.</p>
      *
-     * @param score the score result
-     * @param all   whether to display the full B20 list
+     * @param score  the score result
+     * @param all    whether to display the full B20 list
+     * @param avatar the GDDL avatar image bytes, nullable
      * @return the rank view
      */
-    static RankView rank(ScoreResult score, boolean all) {
+    static RankView rank(ScoreResult score, boolean all, byte[] avatar) {
         List<RankView.Play> top = score.b20().top().stream()
                 .map(scored -> new RankView.Play(
                         scored.play().levelId(),
@@ -104,7 +105,8 @@ final class GdViewMapper {
                 score.highestTier(),
                 score.b20().sample(),
                 top,
-                limit
+                limit,
+                avatar
         );
     }
 

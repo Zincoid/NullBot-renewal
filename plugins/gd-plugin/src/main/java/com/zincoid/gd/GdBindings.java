@@ -19,6 +19,7 @@ final class GdBindings {
 
     private static final String ID_SUFFIX = ".id";
     private static final String NAME_SUFFIX = ".name";
+    private static final String AVATAR_SUFFIX = ".avatar";
 
     private final Path file;
     private final Properties properties = new Properties();
@@ -58,7 +59,8 @@ final class GdBindings {
         String name = properties.getProperty(userId + NAME_SUFFIX);
         if (id == null || name == null) return null;
         try {
-            return new Binding(Long.parseLong(id), name);
+            return new Binding(Long.parseLong(id), name,
+                    properties.getProperty(userId + AVATAR_SUFFIX));
         } catch (NumberFormatException e) {
             log.warn("Invalid GDDL binding for user {}: {}", userId, id);
             return null;
@@ -72,18 +74,22 @@ final class GdBindings {
      * @param userId the platform user id
      * @param gddlId the GDDL user id
      * @param name   the GDDL user name
+     * @param avatar the GDDL avatar uuid, nullable
      * @return the existing binding, or null when the new binding is saved
      */
-    synchronized Binding bind(String userId, long gddlId, String name) {
+    synchronized Binding bind(String userId, long gddlId, String name, String avatar) {
         Binding existing = get(userId);
         if (existing != null) return existing;
         properties.setProperty(userId + ID_SUFFIX, Long.toString(gddlId));
         properties.setProperty(userId + NAME_SUFFIX, name);
+        if (avatar != null && !avatar.isBlank())
+            properties.setProperty(userId + AVATAR_SUFFIX, avatar);
         try {
             save();
         } catch (IOException e) {
             properties.remove(userId + ID_SUFFIX);
             properties.remove(userId + NAME_SUFFIX);
+            properties.remove(userId + AVATAR_SUFFIX);
             throw new GdException("Failed to save GDDL binding", e);
         }
         return null;
@@ -101,11 +107,14 @@ final class GdBindings {
         if (existing == null) return null;
         properties.remove(userId + ID_SUFFIX);
         properties.remove(userId + NAME_SUFFIX);
+        properties.remove(userId + AVATAR_SUFFIX);
         try {
             save();
         } catch (IOException e) {
             properties.setProperty(userId + ID_SUFFIX, Long.toString(existing.id()));
             properties.setProperty(userId + NAME_SUFFIX, existing.name());
+            if (existing.avatar() != null && !existing.avatar().isBlank())
+                properties.setProperty(userId + AVATAR_SUFFIX, existing.avatar());
             throw new GdException("Failed to save GDDL binding", e);
         }
         return existing;
@@ -121,9 +130,10 @@ final class GdBindings {
      * 一条 GDDL 用户绑定。
      * <p>A GDDL user binding.</p>
      *
-     * @param id   the GDDL user id
-     * @param name the GDDL user name
+     * @param id     the GDDL user id
+     * @param name   the GDDL user name
+     * @param avatar the GDDL avatar uuid, nullable
      */
-    record Binding(long id, String name) {
+    record Binding(long id, String name, String avatar) {
     }
 }

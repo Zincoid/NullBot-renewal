@@ -17,6 +17,7 @@ http.retries=1
 
 http.user-agent=NullBot-GD/1.0
 gddl.api-base=https://gdladder.com/api
+gddl.avatar-base=https://cdn.gdladder.com/avatars/
 thumbnail.base=https://levelthumbs.prevter.me/thumbnail/
 
 # GDDL、B20 与缩略图缓存时间，单位为秒。

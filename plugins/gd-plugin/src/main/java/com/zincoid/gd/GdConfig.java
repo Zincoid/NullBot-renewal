@@ -16,6 +16,7 @@ import java.util.Properties;
  *
  * @param userAgent      HTTP user agent
  * @param gddlBase       GDDL API base URL
+ * @param gddlAvatarBase GDDL avatar CDN base URL
  * @param thumbnailBase  thumbnail service base URL
  * @param connectTimeout HTTP connect timeout
  * @param requestTimeout HTTP request timeout
@@ -28,6 +29,7 @@ import java.util.Properties;
 record GdConfig(
         String userAgent,
         String gddlBase,
+        String gddlAvatarBase,
         String thumbnailBase,
         Duration connectTimeout,
         Duration requestTimeout,
@@ -43,6 +45,7 @@ record GdConfig(
     private static final Duration DEFAULT_CACHE_TTL = Duration.ofMinutes(10);
     private static final double DEFAULT_TIER_EXPONENT = 1.5;
     private static final String DEFAULT_GDDL_BASE = "https://gdladder.com/api";
+    private static final String DEFAULT_GDDL_AVATAR_BASE = "https://cdn.gdladder.com/avatars/";
     private static final String DEFAULT_THUMBNAIL_BASE = "https://levelthumbs.prevter.me/thumbnail/";
 
     /**
@@ -66,6 +69,8 @@ record GdConfig(
                 properties.getProperty("http.user-agent", "NullBot-GD/1.0"));
         String gddlBase = env("GD_GDDL_API_BASE",
                 properties.getProperty("gddl.api-base", DEFAULT_GDDL_BASE));
+        String gddlAvatarBase = env("GD_GDDL_AVATAR_BASE",
+                properties.getProperty("gddl.avatar-base", DEFAULT_GDDL_AVATAR_BASE));
         String thumbnailBase = env("GD_THUMBNAIL_BASE",
                 properties.getProperty("thumbnail.base", DEFAULT_THUMBNAIL_BASE));
         Duration connectTimeout = seconds(env("GD_HTTP_CONNECT_TIMEOUT",
@@ -85,6 +90,7 @@ record GdConfig(
         return new GdConfig(
                 userAgent.isBlank() ? "NullBot-GD/1.0" : userAgent,
                 trimSlash(gddlBase, DEFAULT_GDDL_BASE),
+                ensureSlash(gddlAvatarBase, DEFAULT_GDDL_AVATAR_BASE),
                 ensureSlash(thumbnailBase, DEFAULT_THUMBNAIL_BASE),
                 connectTimeout,
                 requestTimeout,
