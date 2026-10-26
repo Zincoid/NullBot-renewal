@@ -106,9 +106,11 @@ final class GdTextPresenter implements GdPresenter {
                     ? GdText.GDDL_QUERY_FAILED.of(language)
                     : GdText.GDDL_NOT_RATED.of(language)).append('\n');
         }
-        if (view.song() != null && !view.song().isBlank())
-            body.append(GdText.SONG.of(language)).append(": ")
-                    .append(view.song()).append('\n');
+        if (view.song() != null && !view.song().isBlank()) {
+            body.append(GdText.SONG.of(language)).append(": ").append(view.song());
+            if (view.songId() != null) body.append(" · ID ").append(view.songId());
+            body.append('\n');
+        }
         String description = clean(view.description());
         if (!description.isEmpty())
             body.append(GdText.DESCRIPTION.of(language)).append(": ").append(description);

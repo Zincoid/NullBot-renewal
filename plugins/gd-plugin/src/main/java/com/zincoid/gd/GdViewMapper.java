@@ -62,6 +62,8 @@ final class GdViewMapper {
                 level.likes(),
                 lengthLabel(level.length()),
                 level.objectCount(),
+                level.songId().orElseGet(() -> level.song()
+                        .map(jdash.common.entity.GDSong::id).orElse(null)),
                 song,
                 level.description(),
                 tier(gddl),

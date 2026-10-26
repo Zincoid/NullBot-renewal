@@ -40,15 +40,16 @@ public record ChatContext(
     @Override
     public ToolRes send(String text, List<Long> fileIds, String replyId) {
         MsgContent.Builder builder = MsgContent.builder();
-        if (text != null && !text.isBlank())
-            builder.text(text);
+        String compact = ChatText.compact(text);
+        if (!compact.isBlank())
+            builder.text(compact);
         int attached = 0;
         for (Long id : fileIds) {
             File file = fileService.getById(id);
             if (file == null) continue;
             if (attach(builder, file)) attached++;
         }
-        if ((text == null || text.isBlank()) && attached == 0)
+        if (compact.isBlank() && attached == 0)
             return ToolRes.error("No valid media: " + fileIds);
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);

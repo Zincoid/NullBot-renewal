@@ -16,7 +16,7 @@
     <rect width="560" height="320" fill="url(#glow)"/>
     <rect x="0" y="0" width="6" height="320" fill="#4C8DFF"/>
 
-    <text x="34" y="52" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
+    <text x="34" y="52" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13" letter-spacing="2.4"
           fill="#8FA0B8"># USAGE_</text>
     <rect x="34" y="80" width="492" height="1" fill="#232A36"/>
 
@@ -24,8 +24,8 @@
            clip-path="url(#avatarClip)" href="${avatar}"/>
     <rect x="50" y="120" width="160" height="160" rx="20" fill="none" stroke="#232A36"/>
 
-    <text x="242" y="230" font-family="JetBrains Mono Bold" font-size="56"
+    <text x="242" y="230" font-family="JetBrains Maple Mono" font-weight="bold" font-size="56"
           letter-spacing="0" fill="#FFFFFF">${times}</text>
-    <text x="246" y="262" font-family="JetBrains Mono Regular" font-size="13" letter-spacing="1.6"
+    <text x="246" y="262" font-family="JetBrains Maple Mono" font-size="13" letter-spacing="1.6"
           fill="#C5CCDA">TOTAL COMMANDS</text>
 </svg>

@@ -1,4 +1,8 @@
 @param String title
+@param String headLevel
+@param String headDifficulty
+@param String headAuthor
+@param String headStars
 @param java.util.List<String> rows
 @param String prompt
 @param int height
@@ -15,16 +19,30 @@
     <rect width="960" height="${height}" fill="url(#glow)"/>
     <rect x="0" y="0" width="6" height="${height}" fill="#4C8DFF"/>
 
-    <text x="40" y="50" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
-          fill="#8FA0B8"># GD / SEARCH_</text>
-    ${com.zincoid.gd.GdSvgText.render(title, 38, 100, 28, "#FFFFFF", null)}
+    <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13"
+          letter-spacing="2.4" fill="#8FA0B8"># GD / SEARCH_</text>
+    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="28"
+          fill="#FFFFFF">${title}</text>
     <rect x="40" y="124" width="880" height="1" fill="#232A36"/>
 
+    <text x="40" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">#</text>
+    <text x="76" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">${headLevel}</text>
+    <text x="337" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">${headDifficulty}</text>
+    <text x="472" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">${headAuthor}</text>
+    <text x="625" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">${headStars}</text>
+
     @for(int i = 0; i < rows.size(); i++)
-        ${com.zincoid.gd.GdSvgText.render(rows.get(i), 40, 158 + i * 34, 15, "#E7ECF5", null)}
+        <text x="40" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+              fill="#E7ECF5">${rows.get(i)}</text>
     @endfor
 
-    ${com.zincoid.gd.GdSvgText.render(prompt, 40, height - 40, 13, "#8FA0B8", null)}
-    <text x="920" y="${height - 40}" text-anchor="end" font-family="JetBrains Mono Bold"
-          font-size="11" letter-spacing="1.2" fill="#4C8DFF">GDDL</text>
+    <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-size="13"
+          fill="#8FA0B8">${prompt}</text>
+    <text x="920" y="${height - 40}" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="11" letter-spacing="1.2" fill="#4C8DFF">GDDL</text>
 </svg>

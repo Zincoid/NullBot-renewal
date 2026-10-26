@@ -19,41 +19,41 @@
     <rect width="560" height="400" fill="url(#glow)"/>
     <rect x="0" y="0" width="6" height="400" fill="#4C8DFF"/>
 
-    <text x="34" y="52" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
+    <text x="34" y="52" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13" letter-spacing="2.4"
           fill="#8FA0B8"># SYSTEM INFO_</text>
-    <text x="32" y="105" font-family="JetBrains Mono Bold" font-size="32"
+    <text x="32" y="105" font-family="JetBrains Maple Mono" font-weight="bold" font-size="32"
           fill="#FFFFFF">${app}</text>
-    <text x="34" y="132" font-family="Noto Sans Mono CJK SC" font-size="15"
+    <text x="34" y="132" font-family="JetBrains Maple Mono" font-size="15"
           fill="#C5CCDA">${version}</text>
     <rect x="34" y="154" width="492" height="1" fill="#232A36"/>
 
-    <text x="34" y="186" font-family="JetBrains Mono Bold" font-size="11" letter-spacing="1.2"
-          fill="#8FA0B8">BUILD</text>
-    <text x="180" y="186" font-family="Noto Sans Mono CJK SC" font-size="14"
+    <text x="34" y="186" font-family="JetBrains Maple Mono" font-weight="bold"
+          font-size="14" letter-spacing="1.2" fill="#8FA0B8">BUILD</text>
+    <text x="180" y="186" font-family="JetBrains Maple Mono" font-size="14"
           fill="#E7ECF5">${build}</text>
 
-    <text x="34" y="222" font-family="JetBrains Mono Bold" font-size="11" letter-spacing="1.2"
-          fill="#8FA0B8">JAVA</text>
-    <text x="180" y="222" font-family="Noto Sans Mono CJK SC" font-size="14"
+    <text x="34" y="222" font-family="JetBrains Maple Mono" font-weight="bold"
+          font-size="14" letter-spacing="1.2" fill="#8FA0B8">JAVA</text>
+    <text x="180" y="222" font-family="JetBrains Maple Mono" font-size="14"
           fill="#E7ECF5">${javaVersion}</text>
 
-    <text x="34" y="258" font-family="JetBrains Mono Bold" font-size="11" letter-spacing="1.2"
-          fill="#8FA0B8">SPRING BOOT</text>
-    <text x="180" y="258" font-family="Noto Sans Mono CJK SC" font-size="14"
+    <text x="34" y="258" font-family="JetBrains Maple Mono" font-weight="bold"
+          font-size="14" letter-spacing="1.2" fill="#8FA0B8">SPRING BOOT</text>
+    <text x="180" y="258" font-family="JetBrains Maple Mono" font-size="14"
           fill="#E7ECF5">${spring}</text>
 
-    <text x="34" y="294" font-family="JetBrains Mono Bold" font-size="11" letter-spacing="1.2"
-          fill="#8FA0B8">UPTIME</text>
-    <text x="180" y="294" font-family="Noto Sans Mono CJK SC" font-size="14"
+    <text x="34" y="294" font-family="JetBrains Maple Mono" font-weight="bold"
+          font-size="14" letter-spacing="1.2" fill="#8FA0B8">UPTIME</text>
+    <text x="180" y="294" font-family="JetBrains Maple Mono" font-size="14"
           fill="#E7ECF5">${uptime}</text>
 
-    <text x="34" y="330" font-family="JetBrains Mono Bold" font-size="11" letter-spacing="1.2"
-          fill="#8FA0B8">OS</text>
-    <text x="180" y="330" font-family="Noto Sans Mono CJK SC" font-size="13"
+    <text x="34" y="330" font-family="JetBrains Maple Mono" font-weight="bold"
+          font-size="14" letter-spacing="1.2" fill="#8FA0B8">OS</text>
+    <text x="180" y="330" font-family="JetBrains Maple Mono" font-size="14"
           fill="#E7ECF5">${os}</text>
 
-    <text x="34" y="366" font-family="JetBrains Mono Bold" font-size="11" letter-spacing="1.2"
-          fill="#8FA0B8">TIME</text>
-    <text x="180" y="366" font-family="Noto Sans Mono CJK SC" font-size="14"
+    <text x="34" y="366" font-family="JetBrains Maple Mono" font-weight="bold"
+          font-size="14" letter-spacing="1.2" fill="#8FA0B8">TIME</text>
+    <text x="180" y="366" font-family="JetBrains Maple Mono" font-size="14"
           fill="#E7ECF5">${time}</text>
 </svg>

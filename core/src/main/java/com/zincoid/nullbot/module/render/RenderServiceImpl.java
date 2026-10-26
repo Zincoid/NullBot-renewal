@@ -31,7 +31,7 @@ public class RenderServiceImpl implements RenderService {
                 + Base64.getEncoder().encodeToString(avatar);
         return renderer.template("usage.jte", Map.of(
                 "avatar", dataUri,
-                "times", String.format(Locale.ROOT, "%08d", times)
+                "times", String.format(Locale.ROOT, "%07d", times)
         ));
     }
 

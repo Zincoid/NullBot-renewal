@@ -88,6 +88,7 @@ public enum GdText {
             "GD search does not support filtering by auto difficulty"),
 
     SEARCH_TITLE("搜索 \"%s\" · 第 %d 页", "Search \"%s\" · page %d"),
+    HEAD_LEVEL("关卡", "Level"),
     SEARCH_PROMPT("回复序号查看详情，end 取消（%d 秒）",
             "Reply with a number to view details, or end to cancel (%d s)"),
     AUTHOR("作者", "Author"),
@@ -100,6 +101,7 @@ public enum GdText {
     DESCRIPTION("描述", "Description"),
     STARS("星", "Stars"),
     TIER("Tier", "Tier"),
+    PROGRESS("进度", "Progress"),
     RATING("Rating", "Rating"),
     ENJOYMENT("Enjoyment", "Enjoyment"),
     RATINGS("个评分", "ratings"),

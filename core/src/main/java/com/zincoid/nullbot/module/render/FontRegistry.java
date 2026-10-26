@@ -24,14 +24,10 @@ public class FontRegistry {
      * 渲染字体族。
      * <p>The font families used for rendering.</p>
      */
-    public static final String JETBRAINS_MONO_REGULAR = "JetBrains Mono Regular";
-    public static final String JETBRAINS_MONO_BOLD = "JetBrains Mono Bold";
-    public static final String NOTO_SANS_MONO_CJK_SC = "Noto Sans Mono CJK SC";
+    public static final String JETBRAINS_MAPLE_MONO = "JetBrains Maple Mono";
 
     private static final Map<String, String> FONTS = Map.of(
-            JETBRAINS_MONO_REGULAR, "fonts/JetBrainsMono-Regular.ttf",
-            JETBRAINS_MONO_BOLD, "fonts/JetBrainsMono-Bold.ttf",
-            NOTO_SANS_MONO_CJK_SC, "fonts/NotoSansMonoCJKsc-Regular.otf"
+            JETBRAINS_MAPLE_MONO, "fonts/JetBrainsMapleMonoNF-Regular.ttf"
     );
 
     @PostConstruct

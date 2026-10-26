@@ -135,7 +135,7 @@ public class ChatPipeline {
                         poke.userId(), poke.userId(), incoming);
             }
             ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
-            String content = reply.getContent();
+            String content = ChatText.compact(reply.getContent());
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
                     AiMessage.assistant(content).withReasoning(reply.getReasoning()));

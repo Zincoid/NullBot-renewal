@@ -3,7 +3,15 @@
 @param String score
 @param String stats1
 @param String stats2
-@param java.util.List<String> rows
+@param String headLevel
+@param String headTier
+@param String headProgress
+@param java.util.List<String> ranks
+@param java.util.List<String> names
+@param java.util.List<String> ids
+@param java.util.List<String> tiers
+@param java.util.List<String> progresses
+@param java.util.List<String> rts
 @param String note
 @param int height
 
@@ -19,21 +27,50 @@
     <rect width="960" height="${height}" fill="url(#glow)"/>
     <rect x="0" y="0" width="6" height="${height}" fill="#4C8DFF"/>
 
-    <text x="40" y="50" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
-          fill="#8FA0B8"># GD / B20_</text>
-    ${com.zincoid.gd.GdSvgText.render(user, 38, 100, 24, "#FFFFFF", null)}
-    ${com.zincoid.gd.GdSvgText.render(labelB20, 40, 142, 13, "#8FA0B8", null)}
-    <text x="38" y="198" font-family="JetBrains Mono Bold" font-size="54"
+    <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13"
+          letter-spacing="2.4" fill="#8FA0B8"># GD / B20_</text>
+    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="24"
+          fill="#FFFFFF">${user}</text>
+    <text x="40" y="142" font-family="JetBrains Maple Mono" font-size="13"
+          fill="#8FA0B8">${labelB20}</text>
+    <text x="38" y="198" font-family="JetBrains Maple Mono" font-weight="bold" font-size="54"
           fill="#4C8DFF">${score}</text>
-    ${com.zincoid.gd.GdSvgText.render(stats1, 40, 232, 14, "#E7ECF5", null)}
-    ${com.zincoid.gd.GdSvgText.render(stats2, 40, 258, 14, "#C5CCDA", null)}
+    <text x="40" y="232" font-family="JetBrains Maple Mono" font-size="14"
+          fill="#E7ECF5">${stats1}</text>
+    <text x="40" y="258" font-family="JetBrains Maple Mono" font-size="14"
+          fill="#C5CCDA">${stats2}</text>
     <rect x="40" y="282" width="880" height="1" fill="#232A36"/>
 
-    @for(int i = 0; i < rows.size(); i++)
-        ${com.zincoid.gd.GdSvgText.render(rows.get(i), 40, 318 + i * 32, 14, "#E7ECF5", null)}
+    <text x="40" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">#</text>
+    <text x="76" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+          fill="#8FA0B8">${headLevel}</text>
+    <text x="500" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" fill="#8FA0B8">ID</text>
+    <text x="590" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" fill="#8FA0B8">${headTier}</text>
+    <text x="700" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" fill="#8FA0B8">${headProgress}</text>
+    <text x="800" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" fill="#8FA0B8">rt</text>
+
+    @for(int i = 0; i < ranks.size(); i++)
+        <text x="40" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="14"
+              fill="#E7ECF5">${ranks.get(i)}</text>
+        <text x="76" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="14"
+              fill="#E7ECF5">${names.get(i)}</text>
+        <text x="500" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+              font-size="14" fill="#E7ECF5">${ids.get(i)}</text>
+        <text x="590" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+              font-size="14" fill="#E7ECF5">${tiers.get(i)}</text>
+        <text x="700" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+              font-size="14" fill="#E7ECF5">${progresses.get(i)}</text>
+        <text x="800" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+              font-size="14" fill="#E7ECF5">${rts.get(i)}</text>
     @endfor
 
-    ${com.zincoid.gd.GdSvgText.render(note, 40, height - 36, 12, "#8FA0B8", null)}
-    <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Mono Bold"
-          font-size="11" letter-spacing="1.2" fill="#4C8DFF">GDDL</text>
+    <text x="40" y="${height - 36}" font-family="JetBrains Maple Mono" font-size="12"
+          fill="#8FA0B8">${note}</text>
+    <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="11" letter-spacing="1.2" fill="#4C8DFF">GDDL</text>
 </svg>

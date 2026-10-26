@@ -159,8 +159,9 @@ GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默�
 
 | 字体 | 用途 |
 | --- | --- |
-| JetBrains Mono | 标题、标签和数值 |
-| Noto Sans Mono CJK SC | 含中文的值文本，保证中英混排 |
+| JetBrains Maple Mono NF（OFL） | 核心渲染管线的默认字体，中英文混排；粗体通过 `font-weight="bold"` 合成 |
+
+JetBrains Maple Mono NF 由 JetBrains Mono 与 Maple Mono 合成，并包含 Nerd Font 图标。
 
 插件字体会随插件 JAR 放在各自插件的 `fonts/` 下，并在加载时自动注册：
 

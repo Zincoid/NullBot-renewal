@@ -13,6 +13,7 @@ package com.zincoid.gd;
  * @param likes         the like count
  * @param length        the displayed level length
  * @param objects       the object count
+ * @param songId        the song id, nullable
  * @param song          the song description, nullable
  * @param description   the level description, nullable
  * @param tier          the GDDL tier, nullable
@@ -33,6 +34,7 @@ record LevelView(
         int likes,
         String length,
         int objects,
+        Long songId,
         String song,
         String description,
         Integer tier,

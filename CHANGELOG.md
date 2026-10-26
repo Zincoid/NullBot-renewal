@@ -24,9 +24,17 @@
 ### Changed
 
 - GD 关卡详情卡片的缩略图改为圆角，右侧信息按缩略图垂直居中。
-- GD 搜索结果、关卡详情与 B20 卡片中的英文统一使用 JetBrains Mono，中文继续使用 Noto Sans Mono CJK SC。
+- 核心渲染字体统一为 JetBrains Maple Mono NF（OFL），移除 JetBrains Mono 与 Noto Sans Mono CJK SC；粗体改为通过 `font-weight` 合成。
+- 核心字体常量改为 `FontRegistry.JETBRAINS_MAPLE_MONO`，外部插件若引用旧字体常量需同步调整。
+- GD 卡片使用 core 的 JetBrains Maple Mono 与 Nerd Font 星形图标，移除中英文逐字排版逻辑。
+- GD 搜索结果卡片新增表头（序号、关卡、难度、作者、星）。
+- GD B20 卡片新增表头（序号、关卡、ID、Tier、进度、rt），并将行改为固定列对齐。
+- GD 关卡详情页的下载、点赞、长度、物体统计改用 Nerd Font 图标，并调整统计列间距。
+- GD 关卡详情页歌曲名右侧显示歌曲 ID；标题、meta、GDDL、歌曲与描述改为按可用宽度截断，修复长描述溢出。
+- `Info` 卡片左侧标签与右侧数值字体统一为 14px。
+- `Usage` 卡片计数补零位数从 8 位改为 7 位。
 - 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 各新增 `XxxText` 文案枚举，帮助与提示按中英成对维护；`game` 的问答、猜图与老婆文案从核心 `Text` 迁入 `GameText`。
-- 渲染字体：内置 JetBrains Mono 与 Noto Sans Mono CJK SC（均为 OFL），移除 Monorama；`Usage`、`Info`、`Help` 统一为深色卡片风格，值文本支持中英混排。
+- 渲染卡片：`Usage`、`Info`、`Help` 统一为深色卡片风格，值文本支持中英混排。
 - 将 `Say`/`说` 指令从 `game-plugin` 拆分到独立的 `say-plugin`（插件 ID `say`），模板与字体随插件分发。
 - `say-plugin` 的 `Say` 语录卡片改用 Noto Serif CJK SC 斜体，移除分隔线；作者行使用双倍宽破折号（U+2E3A）并加粗，同时加大与语录的间距。
 - 优化 `Usage` 用量卡片的布局与视觉样式。
@@ -40,6 +48,8 @@
 
 ### Fixed
 
+- AI 最终回复和 `send` 工具消息在发送前移除代码块外的连续空行，避免 QQ 中出现多余空行。
+- 修复等宽字体在 SVG 图片中列错位的问题：栅格化启用 fractional metrics，避免字形宽度被逐字取整为 8/10px。
 - 修复日志 SSE 长连接未关闭导致优雅停机卡住的问题；停机时主动关闭日志流。
 - `gd-plugin` 的 GDDL 与缩略图请求改用 HTTP/1.1、缩短超时并增加一次重试；关卡详情并行拉取 GDDL 与缩略图，单个服务超时不再阻塞整张卡片。
 - 修复控制台状态标签（如“已加载”）在窄列中换行的问题，并将插件 ID 列居中显示。

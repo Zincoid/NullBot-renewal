@@ -2,6 +2,7 @@ package com.zincoid.gd;
 
 import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
+import com.zincoid.nullbot.module.render.FontRegistry;
 import com.zincoid.nullbot.module.render.PluginRenderer;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,6 +34,13 @@ final class GdImagePresenter implements GdPresenter {
     private static final double LEVEL_THUMBNAIL_CENTER_Y = 271.5;
     private static final double LINE_ASCENT_RATIO = 0.9;
     private static final double LINE_DESCENT_RATIO = 0.25;
+    private static final FontRenderContext FONT_CONTEXT = new FontRenderContext(null, true, true);
+    // Nerd Font icons.
+    private static final String STAR = "\uF005";
+    private static final String ICON_DOWNLOAD = "\uF019";
+    private static final String ICON_LIKES = "\uF004";
+    private static final String ICON_LENGTH = "\uF017";
+    private static final String ICON_OBJECTS = "\uF1B2";
 
     private final PluginRenderer renderer;
     private final GdPresenter fallback;
@@ -55,20 +65,26 @@ final class GdImagePresenter implements GdPresenter {
             List<String> rows = new ArrayList<>();
             for (int i = 0; i < view.levels().size(); i++) {
                 SearchView.LevelSummary level = view.levels().get(i);
-                String row = String.format(Locale.ROOT, "%02d. %-28s %-14s %-16s ★%d",
+                String row = String.format(Locale.ROOT, "%02d. %-28s %-14s %-16s %s %d",
                         i + 1,
                         truncate(level.name(), 28),
                         truncate(level.difficulty(), 14),
                         truncate(level.author(), 16),
+                        STAR,
                         level.stars());
                 rows.add(row);
             }
-            int height = 190 + rows.size() * 34 + 60;
+            rows = rows.stream().map(GdImagePresenter::escape).toList();
+            int height = 190 + (rows.size() + 1) * 34 + 60;
             Map<String, Object> model = Map.of(
-                    "title", GdText.SEARCH_TITLE.of(
-                            language, truncate(view.query(), 24), view.page()),
+                    "title", escape(GdText.SEARCH_TITLE.of(
+                            language, truncate(view.query(), 24), view.page())),
+                    "headLevel", GdText.HEAD_LEVEL.of(language),
+                    "headDifficulty", GdText.DIFFICULTY.of(language),
+                    "headAuthor", GdText.AUTHOR.of(language),
+                    "headStars", GdText.STARS.of(language),
                     "rows", rows,
-                    "prompt", GdText.SEARCH_PROMPT.of(language, view.waitSeconds()),
+                    "prompt", escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds())),
                     "height", height
             );
             return image(renderer.template("search.jte", model));
@@ -83,35 +99,40 @@ final class GdImagePresenter implements GdPresenter {
         try {
             String meta = GdText.AUTHOR.of(language) + ": " + view.author()
                     + " · " + GdText.DIFFICULTY.of(language) + ": " + view.difficulty()
-                    + " · ★" + view.stars();
-            String stats1 = GdText.DOWNLOADS.of(language) + ": " + number(view.downloads())
-                    + " · " + GdText.LIKES.of(language) + ": " + number(view.likes());
-            String stats2 = GdText.LENGTH.of(language) + ": " + view.length()
-                    + " · " + GdText.OBJECTS.of(language) + ": " + number(view.objects());
-            String description = clean(view.description(), 60);
+                    + " · " + STAR + " " + view.stars();
+            String stats1 = ICON_DOWNLOAD + " " + pad(number(view.downloads()))
+                    + "  " + ICON_LIKES + " " + number(view.likes());
+            String stats2 = ICON_LENGTH + " " + pad(view.length())
+                    + "  " + ICON_OBJECTS + " " + number(view.objects());
+            String description = clean(view.description(), 120);
             if (!description.isEmpty())
                 description = GdText.DESCRIPTION.of(language) + ": " + description;
-            String song = view.song() == null || view.song().isBlank()
-                    ? ""
-                    : GdText.SONG.of(language) + ": " + view.song();
+            String song = "";
+            if (view.song() != null && !view.song().isBlank()) {
+                String prefix = GdText.SONG.of(language) + ": ";
+                String suffix = view.songId() == null ? "" : " · ID " + view.songId();
+                int titleWidth = (int) Math.max(0,
+                        480 - textWidth(prefix, 13) - textWidth(suffix, 13));
+                song = prefix + truncateToWidth(view.song(), titleWidth, 13) + suffix;
+            }
             GddlLine gddl = gddlLine(language, view);
             List<TextLine> textLines = new ArrayList<>();
-            textLines.add(new TextLine(stats1, 0, 14, "#E7ECF5"));
-            textLines.add(new TextLine(stats2, 30, 14, "#E7ECF5"));
-            textLines.add(new TextLine(truncate(gddl.main(), 58), 40, 14, "#4C8DFF"));
+            textLines.add(new TextLine(escape(stats1), 0, 14, "#E7ECF5"));
+            textLines.add(new TextLine(escape(stats2), 30, 14, "#E7ECF5"));
+            textLines.add(new TextLine(escape(truncateToWidth(gddl.main(), 480, 14)), 40, 14, "#4C8DFF"));
             if (!gddl.extra().isBlank())
-                textLines.add(new TextLine(truncate(gddl.extra(), 58), 26, 13, "#6EA8FE"));
+                textLines.add(new TextLine(escape(truncateToWidth(gddl.extra(), 480, 13)), 26, 13, "#6EA8FE"));
             if (!song.isBlank())
-                textLines.add(new TextLine(truncate(song, 64), 32, 13, "#C5CCDA"));
+                textLines.add(new TextLine(escape(song), 32, 13, "#C5CCDA"));
             if (!description.isBlank())
-                textLines.add(new TextLine(truncate(description, 72), 30, 13, "#8FA0B8"));
+                textLines.add(new TextLine(escape(truncateToWidth(description, 480, 13)), 30, 13, "#8FA0B8"));
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", truncate(view.name(), 42)),
+                    Map.entry("title", escape(truncateToWidth(view.name(), 760, 30))),
                     Map.entry("levelId", String.valueOf(view.id())),
-                    Map.entry("meta", truncate(meta, 72)),
+                    Map.entry("meta", escape(truncateToWidth(meta, 870, 14))),
                     Map.entry("lines", layoutLines(textLines)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
-                    Map.entry("noThumbnail", GdText.NO_THUMBNAIL.of(language)),
+                    Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
                     Map.entry("height", 470)
             );
             return image(renderer.template("level.jte", model));
@@ -124,19 +145,21 @@ final class GdImagePresenter implements GdPresenter {
     @Override
     public MsgContent rank(Language language, RankView view) {
         try {
-            List<String> rows = new ArrayList<>();
+            List<String> ranks = new ArrayList<>();
+            List<String> names = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            List<String> tiers = new ArrayList<>();
+            List<String> progresses = new ArrayList<>();
+            List<String> rts = new ArrayList<>();
             int limit = Math.min(view.limit(), view.top().size());
             for (int i = 0; i < limit; i++) {
                 RankView.Play play = view.top().get(i);
-                String row = String.format(Locale.ROOT, "%02d. %-30s (%d)  %s %d  %d%%  rt %.2f",
-                        i + 1,
-                        truncate(play.name(), 30),
-                        play.levelId(),
-                        GdText.TIER.of(language),
-                        play.tier(),
-                        play.progress(),
-                        play.rt());
-                rows.add(row);
+                ranks.add(String.format(Locale.ROOT, "%02d.", i + 1));
+                names.add(escape(truncate(play.name(), 30)));
+                ids.add(String.valueOf(play.levelId()));
+                tiers.add(String.valueOf(play.tier()));
+                progresses.add(play.progress() + "%");
+                rts.add(format(play.rt()));
             }
             String stats1 = GdText.COMPLETED.of(language) + " " + view.beatenTotal()
                     + " · " + GdText.IN_PROGRESS.of(language) + " " + view.beatingTotal();
@@ -144,17 +167,25 @@ final class GdImagePresenter implements GdPresenter {
                     + " · " + GdText.SAMPLE.of(language) + " " + view.sample();
             if (view.sample() < GdScore.B20_SIZE)
                 stats2 += " (" + GdText.FEWER_THAN_20.of(language) + ")";
-            int height = 360 + rows.size() * 32 + 50;
-            Map<String, Object> model = Map.of(
-                    "user", "GDDL: " + truncate(view.userName(), 40)
-                            + " (ID " + view.userId() + ")",
-                    "labelB20", GdText.B20.of(language),
-                    "score", format(view.score()),
-                    "stats1", stats1,
-                    "stats2", stats2,
-                    "rows", rows,
-                    "note", GdText.RANK_NOTE.of(language),
-                    "height", height
+            int height = 360 + (ranks.size() + 1) * 32 + 50;
+            Map<String, Object> model = Map.ofEntries(
+                    Map.entry("user", escape("GDDL: " + truncate(view.userName(), 40)
+                            + " (ID " + view.userId() + ")")),
+                    Map.entry("labelB20", escape(GdText.B20.of(language))),
+                    Map.entry("score", format(view.score())),
+                    Map.entry("stats1", escape(stats1)),
+                    Map.entry("stats2", escape(stats2)),
+                    Map.entry("headLevel", GdText.HEAD_LEVEL.of(language)),
+                    Map.entry("headTier", GdText.TIER.of(language)),
+                    Map.entry("headProgress", GdText.PROGRESS.of(language)),
+                    Map.entry("ranks", ranks),
+                    Map.entry("names", names),
+                    Map.entry("ids", ids),
+                    Map.entry("tiers", tiers),
+                    Map.entry("progresses", progresses),
+                    Map.entry("rts", rts),
+                    Map.entry("note", escape(GdText.RANK_NOTE.of(language))),
+                    Map.entry("height", height)
             );
             return image(renderer.template("rank.jte", model));
         } catch (RuntimeException e) {
@@ -195,7 +226,7 @@ final class GdImagePresenter implements GdPresenter {
     private record TextLine(String text, int gapBefore, int size, String color) {
     }
 
-    private static List<GdSvgText.Line> layoutLines(List<TextLine> source) {
+    private static List<Map<String, String>> layoutLines(List<TextLine> source) {
         int[] offsets = new int[source.size()];
         for (int i = 1; i < source.size(); i++)
             offsets[i] = offsets[i - 1] + source.get(i).gapBefore();
@@ -203,11 +234,14 @@ final class GdImagePresenter implements GdPresenter {
         double descent = source.getLast().size() * LINE_DESCENT_RATIO;
         double top = LEVEL_THUMBNAIL_CENTER_Y
                 - (offsets[offsets.length - 1] + descent - ascent) / 2;
-        List<GdSvgText.Line> lines = new ArrayList<>(source.size());
+        List<Map<String, String>> lines = new ArrayList<>(source.size());
         for (int i = 0; i < source.size(); i++) {
             TextLine line = source.get(i);
-            lines.add(new GdSvgText.Line(
-                    line.text(), (int) Math.round(top + offsets[i]), line.size(), line.color()));
+            lines.add(Map.of(
+                    "text", line.text(),
+                    "y", String.valueOf(Math.round(top + offsets[i])),
+                    "size", String.valueOf(line.size()),
+                    "color", line.color()));
         }
         return lines;
     }
@@ -264,6 +298,28 @@ final class GdImagePresenter implements GdPresenter {
         return String.format(Locale.ROOT, "%,d", value);
     }
 
+    private static String pad(String value) {
+        return String.format(Locale.ROOT, "%-12s", value);
+    }
+
+    private static String truncateToWidth(String value, int maxWidth, float fontSize) {
+        if (value == null || value.isEmpty()) return "";
+        if (textWidth(value, fontSize) <= maxWidth) return value;
+        int end = value.length();
+        while (end > 0) {
+            end = value.offsetByCodePoints(end, -1);
+            String candidate = value.substring(0, end) + "…";
+            if (textWidth(candidate, fontSize) <= maxWidth) return candidate;
+        }
+        return "…";
+    }
+
+    private static double textWidth(String value, float fontSize) {
+        if (value == null || value.isEmpty()) return 0;
+        Font font = new Font(FontRegistry.JETBRAINS_MAPLE_MONO, Font.PLAIN, 1).deriveFont(fontSize);
+        return font.getStringBounds(value, FONT_CONTEXT).getWidth();
+    }
+
     private static String decimal(Double value) {
         return value == null || value.isNaN() ? "-" : format(value);
     }
@@ -281,5 +337,13 @@ final class GdImagePresenter implements GdPresenter {
         if (value == null) return "";
         if (value.codePointCount(0, value.length()) <= max) return value;
         return value.substring(0, value.offsetByCodePoints(0, max)) + "…";
+    }
+
+    private static String escape(String value) {
+        if (value == null) return "";
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 }
