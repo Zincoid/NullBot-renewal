@@ -10,6 +10,8 @@
 - 图片渲染：JTE 预编译模板填充数据，SVG 经 JairoSVG 输出 PNG；内置 `Usage`/`用量` 历史用量卡片、`Info` 系统信息和 `Help`/`帮助` 指令列表，`Help -p=<插件>` 支持查看指定插件。
 - 插件 API 3：`PluginContext.renderer()` 统一提供原始 SVG、预编译 JTE 模板与字体注册；插件 JAR 内 `fonts/` 下的 TTF/OTF 在加载时自动注册，`PluginRenderer.font` 支持动态注册；兼容 API 1 与 2。
 - 新增 `say-plugin`：`Say`/`说` 指令将随机语录渲染为图片，左侧作者头像渐隐，右侧带引号展示语录；作者右对齐、字号略小于语录，支持通过 `@用户` 或用户 ID 指定作者。
+- 新增 `gd-plugin`：`GD`/`几何冲刺` 指令以图片卡片输出关卡搜索列表、关卡详情与 GDDL B20 评分；关卡详情内嵌社区缩略图（WebP 自动转为 PNG），数据通过 JDash 5.1.0 与 GDDL API 获取。
+- `GD rank` 按 `rt = tier^E × (进度/100)^1.5` 取最高的 20 条计算 B20，`E` 默认 1.5，可配置为 2；仅统计 GDDL 提交记录（`beaten`/`beating`）。
 - `say-plugin` 新增 Noto Serif CJK SC 与 Noto Emoji（均为 OFL）字体资源，用于 `Say` 语录卡片渲染。
 - `Say`/`说` 支持 `--id=<语录ID>` / `-i=<语录ID>` 获取指定语录。
 - `hello-plugin` 的 `Hello` 指令新增 `--image` 图片卡片输出示例。
@@ -34,6 +36,7 @@
 ### Fixed
 
 - 修复日志 SSE 长连接未关闭导致优雅停机卡住的问题；停机时主动关闭日志流。
+- `gd-plugin` 的 GDDL 与缩略图请求改用 HTTP/1.1、缩短超时并增加一次重试；关卡详情并行拉取 GDDL 与缩略图，单个服务超时不再阻塞整张卡片。
 - 修复控制台状态标签（如“已加载”）在窄列中换行的问题，并将插件 ID 列居中显示。
 - 收紧 `Say` 语录卡片的换行宽度，避免卡片变窄后文字贴近右边缘。
 - 修复 `Say` 语录卡片中的 emoji 显示为方框的问题：新增 Noto Emoji 字体，语录与作者行按文本段混排渲染。

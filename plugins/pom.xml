@@ -21,6 +21,7 @@
         <module>game-plugin</module>
         <module>say-plugin</module>
         <module>gallery-plugin</module>
+        <module>gd-plugin</module>
     </modules>
 
     <dependencies>
