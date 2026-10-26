@@ -35,7 +35,7 @@ import java.util.Map;
 public class SayCmd implements Cmd {
 
     private static final int MAX_AVATAR_BYTES = 5 * 1024 * 1024;
-    private static final int MAX_UNITS = 46;
+    private static final int MAX_UNITS = 40;
     private static final int MAX_LINES = 7;
 
     private final GamePlugin plugin;
@@ -61,15 +61,16 @@ public class SayCmd implements Cmd {
         if (quote == null) throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
 
         String avatar = avatar(ctx, quote.getUserId());
-        List<String> lines = wrap(quote.getText());
+        String text = quote.getText().strip();
+        if (!text.startsWith("“")) text = "“" + text;
+        if (!text.endsWith("”")) text += "”";
+        List<String> lines = wrap(text);
         if (lines.size() > MAX_LINES) {
             lines = new ArrayList<>(lines.subList(0, MAX_LINES));
             int last = lines.size() - 1;
-            lines.set(last, lines.get(last) + "…");
+            lines.set(last, truncated(lines.get(last)));
         }
         lines = new ArrayList<>(lines.stream().map(SayCmd::escape).toList());
-        if (!lines.getFirst().startsWith("“")) lines.set(0, "“" + lines.getFirst());
-        if (!lines.getLast().endsWith("”")) lines.set(lines.size() - 1, lines.getLast() + "”");
 
         String author = escape(quote.getNickname() == null ? "" : quote.getNickname());
         if (quote.getId() != null) author += " (" + quote.getUserId() + ")";
@@ -137,14 +138,30 @@ public class SayCmd implements Cmd {
         return lines;
     }
 
+    private static String truncated(String line) {
+        String suffix = "…”";
+        if (line.endsWith("”")) line = line.substring(0, line.length() - 1);
+        while (!line.isEmpty() && units(line) + units(suffix) > MAX_UNITS) {
+            line = line.substring(0, line.offsetByCodePoints(line.length(), -1));
+        }
+        return line + suffix;
+    }
+
     private static int units(String value) {
         int units = 0;
         for (int i = 0; i < value.length(); ) {
             int codePoint = value.codePointAt(i);
-            units += Character.isIdeographic(codePoint) || codePoint >= 0x2E80 ? 2 : 1;
+            units += wide(codePoint) ? 2 : 1;
             i += Character.charCount(codePoint);
         }
         return units;
+    }
+
+    private static boolean wide(int codePoint) {
+        return Character.isIdeographic(codePoint)
+                || codePoint >= 0x2E80
+                || (codePoint >= 0x2010 && codePoint <= 0x205E)
+                || (codePoint >= 0x2E00 && codePoint <= 0x2E7F);
     }
 
     private static String escape(String value) {

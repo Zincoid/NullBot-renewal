@@ -7,6 +7,9 @@
             <stop offset="0" stop-color="#4C8DFF" stop-opacity="0.20"/>
             <stop offset="1" stop-color="#4C8DFF" stop-opacity="0"/>
         </linearGradient>
+        <clipPath id="avatarClip">
+            <rect x="50" y="120" width="160" height="160" rx="20"/>
+        </clipPath>
     </defs>
 
     <rect width="560" height="320" fill="#0B0D12"/>
@@ -17,12 +20,12 @@
           fill="#8FA0B8"># USAGE_</text>
     <rect x="34" y="80" width="492" height="1" fill="#232A36"/>
 
-    <image x="34" y="110" width="160" height="160" preserveAspectRatio="xMidYMid slice"
-           href="${avatar}"/>
-    <rect x="34" y="110" width="160" height="160" fill="none" stroke="#232A36"/>
+    <image x="50" y="120" width="160" height="160" preserveAspectRatio="xMidYMid slice"
+           clip-path="url(#avatarClip)" href="${avatar}"/>
+    <rect x="50" y="120" width="160" height="160" rx="20" fill="none" stroke="#232A36"/>
 
-    <text x="226" y="220" font-family="JetBrains Mono Bold" font-size="56"
+    <text x="242" y="230" font-family="JetBrains Mono Bold" font-size="56"
           letter-spacing="0" fill="#FFFFFF">${times}</text>
-    <text x="230" y="252" font-family="JetBrains Mono Regular" font-size="13" letter-spacing="1.6"
+    <text x="246" y="262" font-family="JetBrains Mono Regular" font-size="13" letter-spacing="1.6"
           fill="#C5CCDA">TOTAL COMMANDS</text>
 </svg>
