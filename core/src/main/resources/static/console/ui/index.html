@@ -590,26 +590,13 @@
             <form id="group-setting-form" class="form">
                 <section class="form-section">
                     <h3 class="form-section__title" data-i18n="group.sectionBasic">基础</h3>
-                    <div class="form-grid">
-                        <label class="field"><span data-i18n="group.language">语言</span>
-                            <select id="gs-language">
-                                <option value="0" data-i18n="group.languageAuto">auto（跟随全局）</option>
-                                <option value="1" data-i18n="group.languageZh">zh（中文）</option>
-                                <option value="2" data-i18n="group.languageEn">en（英文）</option>
-                            </select>
-                        </label>
-                        <label class="field"><span data-i18n="group.effort">AI 强度</span>
-                            <select id="gs-effort">
-                                <option value="0" data-i18n="group.effort0">最低</option>
-                                <option value="1" data-i18n="group.effort1">低</option>
-                                <option value="2" data-i18n="group.effort2">中</option>
-                                <option value="3" data-i18n="group.effort3">高</option>
-                                <option value="4" data-i18n="group.effort4">极高</option>
-                                <option value="5" data-i18n="group.effort5">最大</option>
-                                <option value="6" data-i18n="group.effort6">极限</option>
-                            </select>
-                        </label>
-                    </div>
+                    <label class="field"><span data-i18n="group.language">语言</span>
+                        <select id="gs-language">
+                            <option value="0" data-i18n="group.languageAuto">auto（跟随全局）</option>
+                            <option value="1" data-i18n="group.languageZh">zh（中文）</option>
+                            <option value="2" data-i18n="group.languageEn">en（英文）</option>
+                        </select>
+                    </label>
                 </section>
                 <section class="form-section">
                     <h3 class="form-section__title" data-i18n="group.sectionNotice">通知</h3>
@@ -645,14 +632,25 @@
                 </section>
                 <section class="form-section">
                     <h3 class="form-section__title" data-i18n="group.sectionAi">AI 对话</h3>
-                    <div class="checks">
-                        <label><span data-i18n="group.autoChat">自动回复</span><input id="gs-auto-chat" type="checkbox"></label>
-                        <label><span data-i18n="group.guard">防注入</span><input id="gs-guard" type="checkbox"></label>
-                    </div>
                     <div class="form-grid">
+                        <label class="field"><span data-i18n="group.effort">AI 强度</span>
+                            <select id="gs-effort">
+                                <option value="0" data-i18n="group.effort0">最低</option>
+                                <option value="1" data-i18n="group.effort1">低</option>
+                                <option value="2" data-i18n="group.effort2">中</option>
+                                <option value="3" data-i18n="group.effort3">高</option>
+                                <option value="4" data-i18n="group.effort4">极高</option>
+                                <option value="5" data-i18n="group.effort5">最大</option>
+                                <option value="6" data-i18n="group.effort6">极限</option>
+                            </select>
+                        </label>
                         <label class="field"><span data-i18n="group.chatFrequency">自动回复频率（0~1）</span>
                             <input id="gs-chat-frequency" type="number" min="0" max="1" step="any">
                         </label>
+                    </div>
+                    <div class="checks">
+                        <label><span data-i18n="group.autoChat">自动回复</span><input id="gs-auto-chat" type="checkbox"></label>
+                        <label><span data-i18n="group.guard">防注入</span><input id="gs-guard" type="checkbox"></label>
                     </div>
                     <label class="field"><span data-i18n="group.prompt">群提示词</span>
                         <textarea id="gs-prompt" rows="5"
@@ -712,25 +710,28 @@
     </div>
     <div class="dialog-body">
         <form id="user-setting-form" class="form">
-            <label class="field"><span data-i18n="accounts.aiPrompt">私聊提示词</span>
-                <textarea id="us-prompt" rows="5"
-                          data-i18n-placeholder="accounts.aiPromptPlaceholder"
-                          placeholder="留空使用默认提示词"></textarea>
-            </label>
-            <label class="field"><span data-i18n="group.effort">AI 强度</span>
-                <select id="us-effort">
-                    <option value="0" data-i18n="group.effort0">最低</option>
-                    <option value="1" data-i18n="group.effort1">低</option>
-                    <option value="2" data-i18n="group.effort2">中</option>
-                    <option value="3" data-i18n="group.effort3">高</option>
-                    <option value="4" data-i18n="group.effort4">极高</option>
-                    <option value="5" data-i18n="group.effort5">最大</option>
-                    <option value="6" data-i18n="group.effort6">极限</option>
-                </select>
-            </label>
-            <div class="checks">
-                <label><span data-i18n="group.guard">防注入</span><input id="us-guard" type="checkbox"></label>
-            </div>
+            <section class="form-section">
+                <h3 class="form-section__title" data-i18n="group.sectionAi">AI 对话</h3>
+                <label class="field"><span data-i18n="group.effort">AI 强度</span>
+                    <select id="us-effort">
+                        <option value="0" data-i18n="group.effort0">最低</option>
+                        <option value="1" data-i18n="group.effort1">低</option>
+                        <option value="2" data-i18n="group.effort2">中</option>
+                        <option value="3" data-i18n="group.effort3">高</option>
+                        <option value="4" data-i18n="group.effort4">极高</option>
+                        <option value="5" data-i18n="group.effort5">最大</option>
+                        <option value="6" data-i18n="group.effort6">极限</option>
+                    </select>
+                </label>
+                <div class="checks">
+                    <label><span data-i18n="group.guard">防注入</span><input id="us-guard" type="checkbox"></label>
+                </div>
+                <label class="field"><span data-i18n="accounts.aiPrompt">私聊提示词</span>
+                    <textarea id="us-prompt" rows="5"
+                              data-i18n-placeholder="accounts.aiPromptPlaceholder"
+                              placeholder="留空使用默认提示词"></textarea>
+                </label>
+            </section>
             <p id="us-status" class="status"></p>
             <div class="dialog-foot">
                 <button type="button" data-close data-i18n="common.cancel">取消</button>
