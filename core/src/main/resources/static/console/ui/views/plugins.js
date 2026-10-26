@@ -63,7 +63,7 @@ function renderPlugins() {
         return `
             <tr>
                 <td><code>${jar}</code></td>
-                <td>${id}</td>
+                <td class="col-center">${id}</td>
                 <td class="col-center">${version}</td>
                 <td>${cmds}</td>
                 <td>${tools}</td>

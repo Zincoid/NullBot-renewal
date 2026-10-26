@@ -310,6 +310,7 @@ td select.access-select {
     color: var(--color-primary);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
+    white-space: nowrap;
 }
 
 .badge.off {
