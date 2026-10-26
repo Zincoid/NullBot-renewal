@@ -28,6 +28,10 @@ import java.util.Map;
 @Slf4j
 final class GdImagePresenter implements GdPresenter {
 
+    private static final double LEVEL_THUMBNAIL_CENTER_Y = 271.5;
+    private static final double LINE_ASCENT_RATIO = 0.9;
+    private static final double LINE_DESCENT_RATIO = 0.25;
+
     private final PluginRenderer renderer;
     private final GdPresenter fallback;
 
@@ -92,16 +96,21 @@ final class GdImagePresenter implements GdPresenter {
                     ? ""
                     : GdText.SONG.of(language) + ": " + view.song();
             GddlLine gddl = gddlLine(language, view);
+            List<TextLine> textLines = new ArrayList<>();
+            textLines.add(new TextLine(escape(stats1), 0, 14, "#E7ECF5"));
+            textLines.add(new TextLine(escape(stats2), 30, 14, "#E7ECF5"));
+            textLines.add(new TextLine(escape(truncate(gddl.main(), 58)), 40, 14, "#4C8DFF"));
+            if (!gddl.extra().isBlank())
+                textLines.add(new TextLine(escape(truncate(gddl.extra(), 58)), 26, 13, "#6EA8FE"));
+            if (!song.isBlank())
+                textLines.add(new TextLine(escape(truncate(song, 64)), 32, 13, "#C5CCDA"));
+            if (!description.isBlank())
+                textLines.add(new TextLine(escape(truncate(description, 72)), 30, 13, "#8FA0B8"));
             Map<String, Object> model = Map.ofEntries(
                     Map.entry("title", escape(truncate(view.name(), 42))),
                     Map.entry("levelId", String.valueOf(view.id())),
                     Map.entry("meta", escape(truncate(meta, 72))),
-                    Map.entry("stats1", escape(stats1)),
-                    Map.entry("stats2", escape(stats2)),
-                    Map.entry("gddl", escape(truncate(gddl.main(), 58))),
-                    Map.entry("gddlExtra", escape(truncate(gddl.extra(), 58))),
-                    Map.entry("song", escape(truncate(song, 64))),
-                    Map.entry("description", escape(truncate(description, 72))),
+                    Map.entry("lines", layoutLines(textLines)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
                     Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
                     Map.entry("height", 470)
@@ -183,6 +192,29 @@ final class GdImagePresenter implements GdPresenter {
     }
 
     private record GddlLine(String main, String extra) {
+    }
+
+    private record TextLine(String text, int gapBefore, int size, String color) {
+    }
+
+    private static List<Map<String, String>> layoutLines(List<TextLine> source) {
+        int[] offsets = new int[source.size()];
+        for (int i = 1; i < source.size(); i++)
+            offsets[i] = offsets[i - 1] + source.get(i).gapBefore();
+        double ascent = source.getFirst().size() * LINE_ASCENT_RATIO;
+        double descent = source.getLast().size() * LINE_DESCENT_RATIO;
+        double top = LEVEL_THUMBNAIL_CENTER_Y
+                - (offsets[offsets.length - 1] + descent - ascent) / 2;
+        List<Map<String, String>> lines = new ArrayList<>(source.size());
+        for (int i = 0; i < source.size(); i++) {
+            TextLine line = source.get(i);
+            lines.add(Map.of(
+                    "text", line.text(),
+                    "y", String.valueOf(Math.round(top + offsets[i])),
+                    "size", String.valueOf(line.size()),
+                    "color", line.color()));
+        }
+        return lines;
     }
 
     private static String thumbnail(byte[] webp) {

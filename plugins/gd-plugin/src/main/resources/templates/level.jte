@@ -1,12 +1,7 @@
 @param String title
 @param String levelId
 @param String meta
-@param String stats1
-@param String stats2
-@param String gddl
-@param String gddlExtra
-@param String song
-@param String description
+@param java.util.List<java.util.Map<String, String>> lines
 @param String thumbnail
 @param String noThumbnail
 @param int height
@@ -17,6 +12,9 @@
             <stop offset="0" stop-color="#4C8DFF" stop-opacity="0.20"/>
             <stop offset="1" stop-color="#4C8DFF" stop-opacity="0"/>
         </linearGradient>
+        <clipPath id="thumbnailClip">
+            <rect x="40" y="170" width="360" height="203" rx="8"/>
+        </clipPath>
     </defs>
 
     <rect width="960" height="${height}" fill="#0B0D12"/>
@@ -36,30 +34,16 @@
     <rect x="40" y="170" width="360" height="203" rx="8" fill="#161A23" stroke="#232A36"/>
     @if(!thumbnail.isBlank())
         <image x="40" y="170" width="360" height="203" preserveAspectRatio="xMidYMid slice"
-               href="${thumbnail}"/>
+               clip-path="url(#thumbnailClip)" href="${thumbnail}"/>
     @else
         <text x="220" y="278" text-anchor="middle" font-family="Noto Sans Mono CJK SC"
               font-size="14" fill="#8FA0B8">${noThumbnail}</text>
     @endif
 
-    <text x="430" y="196" font-family="Noto Sans Mono CJK SC" font-size="14"
-          fill="#E7ECF5">${stats1}</text>
-    <text x="430" y="228" font-family="Noto Sans Mono CJK SC" font-size="14"
-          fill="#E7ECF5">${stats2}</text>
-    <text x="430" y="280" font-family="Noto Sans Mono CJK SC" font-size="14"
-          fill="#4C8DFF">${gddl}</text>
-    @if(!gddlExtra.isBlank())
-        <text x="430" y="306" font-family="Noto Sans Mono CJK SC" font-size="13"
-              fill="#6EA8FE">${gddlExtra}</text>
-    @endif
-    @if(!song.isBlank())
-        <text x="430" y="342" font-family="Noto Sans Mono CJK SC" font-size="13"
-              fill="#C5CCDA">${song}</text>
-    @endif
-    @if(!description.isBlank())
-        <text x="430" y="378" font-family="Noto Sans Mono CJK SC" font-size="13"
-              fill="#8FA0B8">${description}</text>
-    @endif
+    @for(java.util.Map<String, String> line : lines)
+        <text x="430" y="${line.get("y")}" font-family="Noto Sans Mono CJK SC"
+              font-size="${line.get("size")}" fill="${line.get("color")}">${line.get("text")}</text>
+    @endfor
 
     <text x="40" y="${height - 36}" font-family="JetBrains Mono Bold" font-size="11"
           letter-spacing="1.2" fill="#8FA0B8">GDDL / NULLBOT</text>
