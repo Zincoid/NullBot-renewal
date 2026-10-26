@@ -92,10 +92,6 @@ label.field.inline select {
     gap: var(--spacing-md);
 }
 
-.form-grid__full {
-    grid-column: 1 / -1;
-}
-
 .form-actions {
     display: flex;
     align-items: center;
@@ -150,6 +146,22 @@ label.field.inline select {
 
 .checks input[type="checkbox"]:checked::after {
     transform: translateX(20px);
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.form-section__title {
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--color-border-light);
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.08em;
 }
 
 /* ═══ Buttons ═════════════════════ */
