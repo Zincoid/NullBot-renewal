@@ -29,15 +29,7 @@ public class ZincoidCmd extends GalleryImageCmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Zincoid
-                Sends a random Zincoid's photo.
-                Usage: Zincoid/zn/锌
-                Access: >=2(admin)""" : """
-                Zincoid
-                随机发送一张 Zincoid 女装照片。
-                用法：Zincoid/zn/锌
-                权限：>=2(admin)""";
+        return GalleryText.ZINCOID_HELP.of(language);
     }
 
     @Override

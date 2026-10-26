@@ -48,13 +48,13 @@ public class PubgCmd implements Cmd {
     private void handle(CmdContext ctx, CmdArgs args) {
         String name = args.hasNext() ? args.next().trim() : "";
         if (name.isEmpty()) {
-            ctx.send(text(ctx, "可用地图：%s", "Available maps: %s")
-                    .formatted(String.join(" / ", MAPS.keySet())));
+            ctx.send(PubgText.AVAILABLE_MAPS.of(
+                    ctx.language(), String.join(" / ", MAPS.keySet())));
             return;
         }
         String file = MAPS.get(name.toLowerCase(Locale.ROOT));
         if (file == null)
-            throw new CmdWarnException(text(ctx, "暂不支持该地图：%s", "Unsupported map: %s").formatted(name));
+            throw new CmdWarnException(PubgText.UNSUPPORTED_MAP.of(ctx.language(), name));
         Path path = plugin.mapPath(file);
         ctx.send(MsgContent.builder().image(path.toUri().toString()).build());
         log.info("PUBG map sent: {}", file);
@@ -78,26 +78,10 @@ public class PubgCmd implements Cmd {
         maps.put(name.toLowerCase(Locale.ROOT), file);
     }
 
-    private static String text(CmdContext ctx, String zh, String en) {
-        return ctx.language() == Language.EN ? en : zh;
-    }
-
     // ════ Cmd ═════════════════════
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                PUBG
-                Sends a PUBG resource map.
-                Usage: PUBG <map>
-                Maps: 艾伦格/米拉玛/维寒迪/帝斯顿/荣都/泰戈
-                Aliases: 吃鸡地图
-                Access: >=0(normal)""" : """
-                PUBG
-                发送 PUBG 资源地图。
-                用法：PUBG <地图>
-                地图：艾伦格/米拉玛/维寒迪/帝斯顿/荣都/泰戈
-                别名：吃鸡地图
-                权限：>=0(normal)""";
+        return PubgText.HELP.of(language);
     }
 }

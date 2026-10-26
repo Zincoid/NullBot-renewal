@@ -11,7 +11,6 @@ import com.zincoid.nullbot.bot.cmd.input.InputResult;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.config.Conf;
-import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,22 +55,22 @@ public class GuessCmd implements Cmd {
         String prefix = plugin.context().config().getString(Conf.CMD_PREFIX);
         if (args.hasOpt("forfeit", "f")) {
             if (!games.containsKey(groupId))
-                throw new CmdInfoException(ctx.render(Text.GUESS_NOT_PLAYING));
+                throw new CmdInfoException(GameText.GUESS_NOT_PLAYING.of(ctx.language()));
             plugin.context().inputs().cancelWait(InputMode.GS, groupId);
             log.info("Guess forfeited: group={}", groupId);
             return;
         }
         if (games.containsKey(groupId))
-            throw new CmdInfoException(ctx.render(Text.GUESS_ALREADY_PLAYING));
+            throw new CmdInfoException(GameText.GUESS_ALREADY_PLAYING.of(ctx.language()));
 
         Guess guess = create(ctx, args);
         if (games.putIfAbsent(groupId, guess) != null)
-            throw new CmdInfoException(ctx.render(Text.GUESS_ALREADY_PLAYING));
+            throw new CmdInfoException(GameText.GUESS_ALREADY_PLAYING.of(ctx.language()));
         try {
             ctx.send(MsgContent.builder()
-                    .text(ctx.render(Text.GUESS_START))
+                    .text(GameText.GUESS_START.of(ctx.language()))
                     .imageBase64(guess.cropped)
-                    .text(ctx.render(Text.GUESS_HINT, prefix, prefix, prefix))
+                    .text(GameText.GUESS_HINT.of(ctx.language(), prefix, prefix, prefix))
                     .build());
             log.info("Guess started: group={}, answer={}", groupId, guess.answer);
             play(ctx, groupId, guess, prefix);
@@ -90,14 +89,15 @@ public class GuessCmd implements Cmd {
             List<InputResult> inputs = plugin.context().inputs().request(
                     InputMode.GS, groupId, pattern, WAIT_TIMEOUT_SECONDS);
             if (inputs.isEmpty() || forfeit.equals(inputs.getFirst().message().trim())) {
-                end(ctx, groupId, guess, ctx.render(Text.GUESS_END, guess.answer));
+                end(ctx, groupId, guess,
+                        GameText.GUESS_END.of(ctx.language(), guess.answer));
                 return;
             }
             InputResult input = inputs.getFirst();
             String answer = input.message().substring(prefix.length()).trim();
             if (guess.answer.equals(answer)) {
                 ctx.send(MsgContent.builder()
-                        .text(ctx.render(Text.GUESS_CORRECT,
+                        .text(GameText.GUESS_CORRECT.of(ctx.language(),
                                 nickname(ctx, input.userId()), guess.answer, guess.times))
                         .image(guess.resource.path().toUri().toString())
                         .build());
@@ -106,11 +106,12 @@ public class GuessCmd implements Cmd {
             }
             ctx.send(MsgContent.builder()
                     .at(input.userId())
-                    .text(ctx.render(Text.GUESS_WRONG))
+                    .text(GameText.GUESS_WRONG.of(ctx.language()))
                     .build());
             log.info("Guess wrong: group={}, user={}", groupId, input.userId());
         }
-        end(ctx, groupId, guess, ctx.render(Text.GUESS_FAIL, MAX_RETRIES, guess.answer));
+        end(ctx, groupId, guess,
+                GameText.GUESS_FAIL.of(ctx.language(), MAX_RETRIES, guess.answer));
     }
 
     private void end(CmdContext ctx, String groupId, Guess guess, String text) {
@@ -127,7 +128,7 @@ public class GuessCmd implements Cmd {
         String keyword = args.rest("").trim();
         GameResources.Resource resource = plugin.resources().random(keyword);
         if (resource == null)
-            throw new CmdInfoException(ctx.render(Text.GUESS_NO_IMAGES));
+            throw new CmdInfoException(GameText.GUESS_NO_IMAGES.of(ctx.language()));
         return new Guess(resource, resource.character(), crop(ctx, resource));
     }
 
@@ -138,10 +139,10 @@ public class GuessCmd implements Cmd {
         try {
             image = ImageIO.read(resource.path().toFile());
         } catch (IOException | RuntimeException e) {
-            throw new CmdWarnException(ctx.render(Text.GUESS_CROP_FAILED));
+            throw new CmdWarnException(GameText.GUESS_CROP_FAILED.of(ctx.language()));
         }
         if (image == null)
-            throw new CmdWarnException(ctx.render(Text.GUESS_CROP_FAILED));
+            throw new CmdWarnException(GameText.GUESS_CROP_FAILED.of(ctx.language()));
 
         int width = image.getWidth();
         int height = image.getHeight();
@@ -161,7 +162,7 @@ public class GuessCmd implements Cmd {
             if (transparentRatio(sub) <= TRANSPARENT_RATIO)
                 return encode(ctx, sub);
         }
-        throw new CmdWarnException(ctx.render(Text.GUESS_CROP_FAILED));
+        throw new CmdWarnException(GameText.GUESS_CROP_FAILED.of(ctx.language()));
     }
 
     private static String encode(CmdContext ctx, BufferedImage image) {
@@ -170,7 +171,7 @@ public class GuessCmd implements Cmd {
                 throw new IOException("No PNG writer");
             return Base64.getEncoder().encodeToString(out.toByteArray());
         } catch (IOException e) {
-            throw new CmdWarnException(ctx.render(Text.GUESS_CROP_FAILED));
+            throw new CmdWarnException(GameText.GUESS_CROP_FAILED.of(ctx.language()));
         }
     }
 
@@ -193,21 +194,7 @@ public class GuessCmd implements Cmd {
     @Override
     public String getHelp(Language language) {
         String prefix = plugin.context().config().getString(Conf.CMD_PREFIX);
-        return language == Language.EN ? """
-                Guess
-                Plays a multiplayer image-guessing game.
-                Usage: Guess [keyword]
-                Options: -f/--forfeit  forfeit the game
-                Notes: picks a random image by exact category or character name and sends a cropped part; answer with "%sanswer" or give up with "%s%s".
-                Aliases: 猜
-                Access: >=0(normal)""".formatted(prefix, prefix, prefix) : """
-                Guess
-                多人猜图。
-                用法：Guess [关键词]
-                选项：-f/--forfeit  放弃游戏
-                说明：按分类或角色名精确随机抽取图片并发送裁剪图；回答格式为 %s答案，发送 %s%s 放弃。
-                别名：猜
-                权限：>=0(normal)""".formatted(prefix, prefix, prefix);
+        return GameText.GUESS_HELP.of(language, prefix, prefix, prefix);
     }
 
     // ════ Helpers ═════════════════

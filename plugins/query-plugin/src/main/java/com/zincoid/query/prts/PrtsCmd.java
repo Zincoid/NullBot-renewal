@@ -10,6 +10,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.query.QueryException;
 import com.zincoid.query.QueryPlugin;
+import com.zincoid.query.QueryText;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -49,8 +50,7 @@ public class PrtsCmd implements Cmd {
     private void handle(CmdContext ctx, CmdArgs args) {
         String first = args.next("");
         if (first.isBlank())
-            throw new CmdWarnException(text(ctx,
-                    "缺少查询关键词", "Missing query keyword"));
+            throw new CmdWarnException(QueryText.PRTS_MISSING_KEYWORD.of(ctx.language()));
         Option option = Option.from(first);
         String keyword;
         if (option != null) {
@@ -60,17 +60,14 @@ public class PrtsCmd implements Cmd {
             keyword = (first + " " + args.rest("")).trim();
         }
         if (keyword.isEmpty())
-            throw new CmdWarnException(text(ctx,
-                    "缺少查询关键词", "Missing query keyword"));
+            throw new CmdWarnException(QueryText.PRTS_MISSING_KEYWORD.of(ctx.language()));
 
         Document document;
         try {
             document = plugin.prts().document(keyword);
         } catch (QueryException e) {
             log.warn("PRTS query failed: {}", keyword, e);
-            throw new CmdWarnException(text(ctx,
-                    "PRTS 查询失败，请检查关键词或网络",
-                    "PRTS query failed; check the keyword or network"));
+            throw new CmdWarnException(QueryText.PRTS_QUERY_FAILED.of(ctx.language()));
         }
 
         String body = switch (option) {
@@ -81,11 +78,8 @@ public class PrtsCmd implements Cmd {
             case PARADOX -> sectionText(document, "悖论模拟");
         };
         if (body == null || body.isBlank())
-            throw new CmdWarnException(text(ctx,
-                    "未找到栏目：%s", "Section not found: %s").formatted(option.label(ctx.language())));
-        if (body == null || body.isBlank())
-            throw new CmdWarnException(text(ctx,
-                    "未找到内容", "No content found"));
+            throw new CmdWarnException(QueryText.PRTS_SECTION_NOT_FOUND.of(
+                    ctx.language(), option.label(ctx.language())));
 
         String header = "PRTS " + keyword;
         if (option != Option.SUMMARY) header += " [" + option.label(ctx.language()) + "]";
@@ -96,11 +90,11 @@ public class PrtsCmd implements Cmd {
     // ════ Extract ═════════════════
 
     private static String summaryText(CmdContext ctx, Document document) {
-        boolean en = ctx.language() == Language.EN;
+        Language language = ctx.language();
         StringBuilder summary = new StringBuilder();
-        append(summary, en ? "[Traits]" : "【特性】", sectionText(document, "特性"));
-        append(summary, en ? "[Stats]" : "【属性】", sectionText(document, "属性"));
-        append(summary, en ? "[Talents]" : "【天赋】", sectionText(document, "天赋"));
+        append(summary, QueryText.PRTS_TRAITS.of(language), sectionText(document, "特性"));
+        append(summary, QueryText.PRTS_STATS.of(language), sectionText(document, "属性"));
+        append(summary, QueryText.PRTS_TALENTS.of(language), sectionText(document, "天赋"));
         if (!summary.isEmpty()) return summary.toString();
         return sectionText(document, "干员信息", true);
     }
@@ -181,12 +175,7 @@ public class PrtsCmd implements Cmd {
 
     private static String truncate(CmdContext ctx, String text) {
         if (text.length() <= MAX_TEXT) return text;
-        String suffix = ctx.language() == Language.EN ? "\n… (truncated)" : "\n…（内容过长已截断）";
-        return text.substring(0, MAX_TEXT) + suffix;
-    }
-
-    private static String text(CmdContext ctx, String zh, String en) {
-        return ctx.language() == Language.EN ? en : zh;
+        return text.substring(0, MAX_TEXT) + QueryText.PRTS_TRUNCATED.of(ctx.language());
     }
 
     // ════ Options ═════════════════
@@ -226,24 +215,6 @@ public class PrtsCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                PRTS
-                Queries a PRTS operator page.
-                Usage: PRTS [section] <keyword>
-                Sections: 语音/档案/密录/悖论, default summary
-                Example: PRTS 能天使
-                         PRTS 档案 能天使
-                Aliases: PRTS查询
-                Access: >=0(normal)
-                Note: output is plain text and may be truncated.""" : """
-                PRTS
-                查询 PRTS 干员页面。
-                用法：PRTS [栏目] <关键词>
-                栏目：语音/档案/密录/悖论，默认概要
-                示例：PRTS 能天使
-                      PRTS 档案 能天使
-                别名：PRTS查询
-                权限：>=0(normal)
-                说明：输出为纯文本，过长会截断。""";
+        return QueryText.PRTS_HELP.of(language);
     }
 }

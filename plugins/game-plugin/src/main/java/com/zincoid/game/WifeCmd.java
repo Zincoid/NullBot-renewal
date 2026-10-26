@@ -68,7 +68,7 @@ public class WifeCmd implements Cmd {
                 .filter(member -> !member.userId().equals(event.selfId()))
                 .toList();
         if (members.isEmpty())
-            throw new CmdInfoException(ctx.render(Text.WIFE_NO_MEMBERS));
+            throw new CmdInfoException(GameText.WIFE_NO_MEMBERS.of(ctx.language()));
         setMember(ctx, event, members.get(
                 ThreadLocalRandom.current().nextInt(members.size())).userId());
     }
@@ -84,8 +84,8 @@ public class WifeCmd implements Cmd {
     private void sendMember(CmdContext ctx, GroupMsgEvent event, Pick pick, boolean picked) {
         MsgContent.Builder builder = MsgContent.builder()
                 .at(event.userId())
-                .text(ctx.render(picked ? Text.WIFE_MEMBER_ALREADY : Text.WIFE_MEMBER_PICKED,
-                        pick.name(), pick.id()));
+                .text((picked ? GameText.WIFE_MEMBER_ALREADY : GameText.WIFE_MEMBER_PICKED)
+                        .of(ctx.language(), pick.name(), pick.id()));
         if (pick.image() != null) builder.image(pick.image());
         ctx.send(builder.build());
     }
@@ -107,7 +107,7 @@ public class WifeCmd implements Cmd {
             throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED));
         GameResources.Resource wife = plugin.resources().random(keyword);
         if (wife == null)
-            throw new CmdInfoException(ctx.render(Text.WIFE_NO_RESULT));
+            throw new CmdInfoException(GameText.WIFE_NO_RESULT.of(ctx.language()));
         Pick pick = new Pick(wife.path().toString(), wife.character(),
                 wife.path().toUri().toString(), wife.category(), LocalDate.now());
         animePicks.put(event.userId(), pick);
@@ -117,8 +117,8 @@ public class WifeCmd implements Cmd {
 
     private void sendAnime(CmdContext ctx, GroupMsgEvent event, Pick pick, boolean picked) {
         String text = picked
-                ? ctx.render(Text.WIFE_ANIME_ALREADY, pick.name())
-                : ctx.render(Text.WIFE_ANIME_PICKED, pick.category(), pick.name());
+                ? GameText.WIFE_ANIME_ALREADY.of(ctx.language(), pick.name())
+                : GameText.WIFE_ANIME_PICKED.of(ctx.language(), pick.category(), pick.name());
         MsgContent.Builder builder = MsgContent.builder()
                 .at(event.userId())
                 .text(text);
@@ -130,30 +130,14 @@ public class WifeCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Wife
-                Picks today's wife.
-                Usage: Wife [keyword]
-                Options: -m/--member=<user id> picks a group member (manager)
-                         -a/--anime=<keyword> picks an anime wife (manager)
-                Notes: no argument picks a random group member; a keyword exactly matches a category or character name.
-                Aliases: 今日老婆
-                Access: >=0(normal)""" : """
-                Wife
-                今日老婆。
-                用法：Wife [关键词]
-                选项：-m/--member=<用户ID>  指定群友老婆（需 manager）
-                      -a/--anime=<关键词>  指定二次元老婆（需 manager）
-                说明：无参数随机群友；带关键词按分类或角色名精确匹配。
-                别名：今日老婆
-                权限：>=0(normal)""";
+        return GameText.WIFE_HELP.of(language);
     }
 
     // ════ Helpers ═════════════════
 
     private void requireManager(CmdContext ctx, String userId) {
         if (plugin.context().users().getAccess(userId).getValue() < Access.MANAGER.getValue())
-            throw new CmdWarnException(ctx.render(Text.WIFE_NOT_ALLOWED));
+            throw new CmdWarnException(GameText.WIFE_NOT_ALLOWED.of(ctx.language()));
     }
 
     private static String optValue(CmdContext ctx, CmdArgs args, String name, String alias) {

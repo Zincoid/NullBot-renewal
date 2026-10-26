@@ -53,9 +53,7 @@ public class SayCmd implements Cmd {
             png = QuoteCard.render(plugin.context().renderer(), quote, avatar);
         } catch (RuntimeException e) {
             log.warn("Say image render failed: quote={}", quote.getId(), e);
-            throw new CmdWarnException(ctx.language() == Language.EN
-                    ? "Failed to render the quote image"
-                    : "语录图片生成失败", e);
+            throw new CmdWarnException(SayText.RENDER_FAILED.of(ctx.language()), e);
         }
         ctx.send(MsgContent.builder().imageBase64(png).build());
         log.info("Say sent: quote={}", quote.getId());
@@ -109,18 +107,6 @@ public class SayCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Say
-                Renders a random quote card.
-                Usage: Say [user id | @user]
-                       Say [--id=<quote id> | -i=<quote id>]
-                Aliases: 说
-                Access: >=0(normal)""" : """
-                Say
-                随机渲染一条语录卡片。
-                用法：Say [用户ID | @用户]
-                      Say [--id=语录ID | -i=语录ID]
-                别名：说
-                权限：>=0(normal)""";
+        return SayText.HELP.of(language);
     }
 }

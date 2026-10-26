@@ -48,9 +48,7 @@ public class HelloCmd implements Cmd {
             ));
         } catch (RuntimeException e) {
             log.warn("Hello image render failed", e);
-            throw new CmdWarnException(ctx.language() == Language.EN
-                    ? "Failed to render the hello image"
-                    : "Hello 图片生成失败", e);
+            throw new CmdWarnException(HelloText.IMAGE_FAILED.of(ctx.language()), e);
         }
         ctx.send(MsgContent.builder()
                 .imageBase64(png)
@@ -62,16 +60,6 @@ public class HelloCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Hello
-                Sends a hello message, or an image card with --image.
-                Usage: Hello [--image|-i]
-                Aliases: 你好
-                Access: >=0(normal)""" : """
-                Hello
-                发送示例消息；使用 --image 输出图片卡片。
-                用法：Hello [--image|-i]
-                别名：你好
-                权限：>=0(normal)""";
+        return HelloText.HELP.of(language);
     }
 }

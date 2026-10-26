@@ -103,58 +103,6 @@ public enum Text {
     CMD_UNSUPPORTED_GROUP_POKE("指令不支持群戳一戳事件", "Command does not support group poke events"),
     CMD_UNSUPPORTED_PRIVATE_POKE("指令不支持私聊戳一戳事件", "Command does not support private poke events"),
 
-    // ════ Quiz ═══════════════════
-
-    QUIZ_ALREADY_IN_GAME("你已经在问答中了", "You are already in a quiz"),
-    QUIZ_GENERATING("⏳ 正在生成问题...", "⏳ Generating question..."),
-    QUIZ_QUESTION("""
-            请回答问题：
-            %s
-
-            发送选项字母。
-            时限：%d 秒。""", """
-            Answer the question:
-            %s
-
-            Send the option letter.
-            Time limit: %ds."""),
-    QUIZ_TIMEOUT("%s 超时了！答案是 %s。", "%s timed out! The answer is %s."),
-    QUIZ_CORRECT("%s 回答正确！", "%s answered correctly!"),
-    QUIZ_WRONG("%s 回答错误！答案是 %s。", "%s answered wrong! The answer is %s."),
-    QUIZ_GENERATE_FAILED("生成问题失败", "Failed to generate question"),
-    QUIZ_EMPTY_RESPONSE("AI 返回为空", "Empty response"),
-    QUIZ_MALFORMED_RESPONSE("AI 返回格式错误", "Malformed response"),
-    QUIZ_DEFAULT_TOPIC("二次元", "anime"),
-
-    // ════ Wife ═══════════════════
-
-    WIFE_MEMBER_ALREADY("\n今天已经选过了哦💦...\n你的群友老婆是\n%s(%s)",
-            "\nAlready picked today💦...\nYour group wife is\n%s(%s)"),
-    WIFE_MEMBER_PICKED("\n你的今日群友老婆是✨\n%s(%s)",
-            "\nYour group wife of the day is✨\n%s(%s)"),
-    WIFE_ANIME_ALREADY("\n今天已经选过了哦💦...\n你的二次元老婆是\n%s",
-            "\nAlready picked today💦...\nYour anime wife is\n%s"),
-    WIFE_ANIME_PICKED("\n你的今日二次元老婆是✨\n%s - %s",
-            "\nYour anime wife of the day is✨\n%s - %s"),
-    WIFE_NO_RESULT("暂无角色", "No character found"),
-    WIFE_NO_MEMBERS("群成员不足", "Not enough group members"),
-    WIFE_NOT_ALLOWED("你不能用。", "You cannot use this option"),
-
-    // ════ Guess ══════════════════
-
-    GUESS_START("✨猜图题目如下！", "✨Guess the image!"),
-    GUESS_HINT("注: 请发送\"%s答案\"，发送\"%s%s\"放弃",
-            "Note: send \"%sanswer\"; send \"%s%s\" to give up."),
-    GUESS_END("游戏结束啦💦\n答案是...%s！", "Game over💦\nThe answer is... %s!"),
-    GUESS_FAIL("已经错%d次啦💦\n答案是...%s！", "Wrong %d times💦\nThe answer is... %s!"),
-    GUESS_CORRECT("%s 猜对啦✨\n答案是...%s！\n一共猜了%s次",
-            "%s guessed right✨\nThe answer is... %s!\nGuessed %s times"),
-    GUESS_WRONG(" 猜错啦！", " Wrong guess!"),
-    GUESS_ALREADY_PLAYING("已在游戏中", "Game already in progress"),
-    GUESS_NOT_PLAYING("未在游戏中", "Not in a game"),
-    GUESS_NO_IMAGES("暂无可用图片", "No images available"),
-    GUESS_CROP_FAILED("图片裁剪失败", "Failed to crop image"),
-
     // ════ Media ══════════════════
 
     IMAGE_SAVED_ONE("💾 图片已保存：id=%d", "💾 Image saved: id=%d"),

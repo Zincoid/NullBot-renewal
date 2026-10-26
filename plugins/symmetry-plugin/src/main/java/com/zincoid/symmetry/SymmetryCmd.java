@@ -90,9 +90,9 @@ public class SymmetryCmd implements Cmd {
             }
         }
         if (sources.isEmpty()) {
-            throw replyId != null
-                    ? warn(ctx, "引用中没有图片", "No image in the reply")
-                    : warn(ctx, "缺少图片引用/ID/@用户", "Missing image reply, id, or mention");
+            throw new CmdWarnException((replyId != null
+                    ? SymmetryText.NO_IMAGE_IN_REPLY
+                    : SymmetryText.MISSING_SOURCE).of(ctx.language()));
         }
         int sent = 0;
         for (String source : sources) {
@@ -105,7 +105,8 @@ public class SymmetryCmd implements Cmd {
                 log.warn("Symmetry image failed: {}", e.getMessage());
             }
         }
-        if (sent == 0) throw warn(ctx, "图片处理失败", "Image processing failed");
+        if (sent == 0)
+            throw new CmdWarnException(SymmetryText.IMAGE_FAILED.of(ctx.language()));
         log.info("Symmetry sent: mode={}, images={}", mode, sent);
     }
 
@@ -117,7 +118,7 @@ public class SymmetryCmd implements Cmd {
             detail = ctx.client().getMsg(replyId);
         } catch (RuntimeException e) {
             log.warn("Cannot read replied message: {}", replyId, e);
-            throw warn(ctx, "无法读取引用消息", "Cannot read the replied message");
+            throw new CmdWarnException(SymmetryText.READ_FAILED.of(ctx.language()));
         }
         return detail.content().segments().stream()
                 .filter(MsgSegment.Image.class::isInstance)
@@ -133,10 +134,10 @@ public class SymmetryCmd implements Cmd {
             info = ctx.client().getUserInfo(userId);
         } catch (RuntimeException e) {
             log.warn("Cannot fetch avatar: {}", userId, e);
-            throw warn(ctx, "无法获取用户头像", "Cannot fetch the user avatar");
+            throw new CmdWarnException(SymmetryText.AVATAR_FAILED.of(ctx.language()));
         }
         if (info == null || info.avatar() == null || info.avatar().isBlank())
-            throw warn(ctx, "该用户没有头像", "The user has no avatar");
+            throw new CmdWarnException(SymmetryText.NO_AVATAR.of(ctx.language()));
         return info.avatar();
     }
 
@@ -260,10 +261,6 @@ public class SymmetryCmd implements Cmd {
         return new AffineTransform(1, 0, 0, -1, 0, height);
     }
 
-    private static CmdWarnException warn(CmdContext ctx, String zh, String en) {
-        return new CmdWarnException(ctx.language() == Language.EN ? en : zh);
-    }
-
     enum Mode {
         LEFT, RIGHT, TOP, BOTTOM;
 
@@ -283,24 +280,6 @@ public class SymmetryCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Symmetry
-                Mirrors one half of an image onto the other side.
-                Usage:
-                1. [reply image] Symmetry [mode]
-                2. Symmetry [mode] [attached image]
-                3. Symmetry [mode] <QQ id | @user>
-                Mode: left/right/top/bottom (default left)
-                Aliases: 图像对称/对称
-                Access: >=0(normal)""" : """
-                Symmetry
-                将图片的一半镜像到另一侧。
-                用法：
-                1. [引用图片] Symmetry [方式]
-                2. Symmetry [方式] [附加图片]
-                3. Symmetry [方式] <QQ号 | @用户>
-                方式：左/右/上/下（默认左）
-                别名：图像对称/对称
-                权限：>=0(normal)""";
+        return SymmetryText.HELP.of(language);
     }
 }

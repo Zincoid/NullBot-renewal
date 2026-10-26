@@ -74,6 +74,8 @@ java -jar launcher/target/launcher-stdin.jar
 
 插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册。`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名；不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`。
 
+插件内用户可见文案放在插件自己的 `XxxText` 枚举中，中文与英文成对维护，通过 `of(Language)` 选取当前语言；可参考 `plugins/gd-plugin` 的 `GdText`。
+
 | `apiVersion()` | 能力 |
 | --- | --- |
 | `1`（默认） | 指令 |

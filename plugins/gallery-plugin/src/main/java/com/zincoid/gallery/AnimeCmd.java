@@ -18,16 +18,6 @@ public class AnimeCmd extends GalleryImageCmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Anime
-                Sends a random anime image.
-                Usage: Anime
-                Aliases: 二次元
-                Access: >=0(normal)""" : """
-                Anime
-                随机发送一张二次元图片。
-                用法：Anime
-                别名：二次元
-                权限：>=0(normal)""";
+        return GalleryText.ANIME_HELP.of(language);
     }
 }

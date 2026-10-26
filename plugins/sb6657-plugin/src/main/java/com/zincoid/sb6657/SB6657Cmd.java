@@ -53,10 +53,10 @@ public class SB6657Cmd implements Cmd {
             data = fetch();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw error(ctx, "请求被中断", "Request interrupted");
+            throw new CmdWarnException(SB6657Text.INTERRUPTED.of(ctx.language()));
         } catch (Exception e) {
             log.warn("SB6657 request failed", e);
-            throw error(ctx, "接口请求失败", "API request failed");
+            throw new CmdWarnException(SB6657Text.REQUEST_FAILED.of(ctx.language()));
         }
         ctx.send(data.barrage());
         log.info("SB6657 sent: id={}", data.id());
@@ -81,25 +81,11 @@ public class SB6657Cmd implements Cmd {
         return resp.data();
     }
 
-    private static CmdWarnException error(CmdContext ctx, String zh, String en) {
-        return new CmdWarnException(ctx.language() == Language.EN ? en : zh);
-    }
-
     // ════ Cmd ═════════════════════
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                SB6657
-                Sends a random 玩机器 meme.
-                Usage: SB6657
-                Aliases: 6657/玩机器/玩机器烂梗
-                Access: >=0(normal)""" : """
-                SB6657
-                随机发送一条玩机器烂梗。
-                用法：SB6657
-                别名：6657/玩机器/玩机器烂梗
-                权限：>=0(normal)""";
+        return SB6657Text.HELP.of(language);
     }
 
     private record MachineResp(Integer code, String msg, MachineData data) {

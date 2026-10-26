@@ -13,7 +13,6 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
-import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.exception.PlatformException;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -65,22 +64,25 @@ public class QuizCmd implements Cmd {
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         String userId = event.userId();
         if (!inGame.add(userId))
-            throw new CmdInfoException(ctx.render(Text.QUIZ_ALREADY_IN_GAME));
+            throw new CmdInfoException(GameText.QUIZ_ALREADY_IN_GAME.of(ctx.language()));
         try {
-            String topic = args.rest(ctx.render(Text.QUIZ_DEFAULT_TOPIC)).trim();
-            ctx.send(Text.QUIZ_GENERATING);
+            String topic = args.rest(GameText.QUIZ_DEFAULT_TOPIC.of(ctx.language())).trim();
+            ctx.send(GameText.QUIZ_GENERATING.of(ctx.language()));
             QuizData data = generate(ctx, topic);
-            String question = ctx.render(Text.QUIZ_QUESTION, data.question(), data.timeout());
+            String question = GameText.QUIZ_QUESTION.of(
+                    ctx.language(), data.question(), data.timeout());
             ctx.send(MsgContent.builder().at(userId).text(question).build());
             List<InputResult> inputs = plugin.context().inputs().request(
                     InputMode.PS, userId, "[A-Za-z]", data.timeout());
             if (inputs.isEmpty()) {
-                ctx.send(Text.QUIZ_TIMEOUT, event.nickname(), data.answer());
+                ctx.send(GameText.QUIZ_TIMEOUT.of(
+                        ctx.language(), event.nickname(), data.answer()));
                 return;
             }
             if (data.answer().equalsIgnoreCase(inputs.getFirst().message()))
-                ctx.send(Text.QUIZ_CORRECT, event.nickname());
-            else ctx.send(Text.QUIZ_WRONG, event.nickname(), data.answer());
+                ctx.send(GameText.QUIZ_CORRECT.of(ctx.language(), event.nickname()));
+            else ctx.send(GameText.QUIZ_WRONG.of(
+                    ctx.language(), event.nickname(), data.answer()));
         } finally {
             inGame.remove(userId);
         }
@@ -89,7 +91,7 @@ public class QuizCmd implements Cmd {
     // ════ Helpers ═════════════════
 
     private QuizData generate(CmdContext ctx, String topic) {
-        String language = ctx.language() == Language.EN ? "English" : "Chinese";
+        String language = GameText.QUIZ_LANGUAGE_NAME.of(ctx.language());
         ModelRes res;
         try {
             res = plugin.context().model().invoke(ModelReq.of(
@@ -98,28 +100,28 @@ public class QuizCmd implements Cmd {
                     MAX_TOKENS));
         } catch (RuntimeException e) {
             log.warn("Quiz generation failed: {}", e.getMessage());
-            throw new CmdWarnException(ctx.render(Text.QUIZ_GENERATE_FAILED));
+            throw new CmdWarnException(GameText.QUIZ_GENERATE_FAILED.of(ctx.language()));
         }
         String raw = res.getContent();
         if (raw == null || raw.isBlank())
-            throw new CmdWarnException(ctx.render(Text.QUIZ_EMPTY_RESPONSE));
+            throw new CmdWarnException(GameText.QUIZ_EMPTY_RESPONSE.of(ctx.language()));
         try {
             QuizData data = JsonUtils.parse(extractJson(ctx, raw), QuizData.class);
             String answer = data.answer() == null
                     ? "" : data.answer().trim().toUpperCase(Locale.ROOT);
             String question = data.question() == null ? "" : data.question().trim();
             if (!answer.matches("[A-Z]") || question.isEmpty())
-                throw new CmdWarnException(ctx.render(Text.QUIZ_MALFORMED_RESPONSE));
+                throw new CmdWarnException(GameText.QUIZ_MALFORMED_RESPONSE.of(ctx.language()));
             int timeout = Math.clamp(data.timeout(), MIN_TIMEOUT, MAX_TIMEOUT);
             return new QuizData(answer, timeout, question);
         } catch (PlatformException e) {
-            throw new CmdWarnException(ctx.render(Text.QUIZ_MALFORMED_RESPONSE));
+            throw new CmdWarnException(GameText.QUIZ_MALFORMED_RESPONSE.of(ctx.language()));
         }
     }
 
     private static String extractJson(CmdContext ctx, String raw) {
         int start = raw.indexOf('{');
-        if (start < 0) throw new CmdWarnException(ctx.render(Text.QUIZ_MALFORMED_RESPONSE));
+        if (start < 0) throw new CmdWarnException(GameText.QUIZ_MALFORMED_RESPONSE.of(ctx.language()));
         return raw.substring(start);
     }
 
@@ -127,17 +129,7 @@ public class QuizCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                Quiz
-                Starts a single-player quiz.
-                Usage: Quiz [topic]
-                Aliases: 问答
-                Access: >=0(normal)""" : """
-                Quiz
-                开始一轮单人问答。
-                用法：Quiz [topic]
-                别名：问答
-                权限：>=0(normal)""";
+        return GameText.QUIZ_HELP.of(language);
     }
 
     private record QuizData(String answer, int timeout, String question) {

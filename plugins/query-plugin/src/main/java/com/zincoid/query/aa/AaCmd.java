@@ -10,6 +10,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.query.QueryException;
 import com.zincoid.query.QueryPlugin;
+import com.zincoid.query.QueryText;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -48,25 +49,20 @@ public class AaCmd implements Cmd {
         String option = args.next("智能");
         AaMetric metric = AaMetric.from(option);
         if (metric == null)
-            throw new CmdWarnException(text(ctx,
-                    "未知查询项：%s（可选：智能/历史/性价比/速度/编程/成本/定价）",
-                    "Unknown metric: %s (expected Intelligence/History/Value/Speed/Coding/Cost/Pricing)")
-                    .formatted(option));
+            throw new CmdWarnException(
+                    QueryText.AA_UNKNOWN_METRIC.of(ctx.language(), option));
         int limit = limit(ctx, args);
         if (plugin.config().aaApiKey().isBlank())
-            throw new CmdWarnException(text(ctx,
-                    "未配置 AA API Key", "AA API key is not configured"));
+            throw new CmdWarnException(QueryText.AA_NO_API_KEY.of(ctx.language()));
         List<AaModel> models;
         try {
             models = plugin.aa().top(metric, limit);
         } catch (QueryException e) {
             log.warn("AA query failed", e);
-            throw new CmdWarnException(text(ctx,
-                    "AA 查询失败，请检查 API Key 或网络",
-                    "AA query failed; check the API key or network"));
+            throw new CmdWarnException(QueryText.AA_QUERY_FAILED.of(ctx.language()));
         }
         if (models.isEmpty()) {
-            ctx.send(text(ctx, "没有可用数据", "No data available"));
+            ctx.send(QueryText.AA_NO_DATA.of(ctx.language()));
             return;
         }
         ctx.send(format(ctx, metric, models));
@@ -89,18 +85,20 @@ public class AaCmd implements Cmd {
     }
 
     private static String value(CmdContext ctx, AaMetric metric, AaModel model) {
-        boolean en = ctx.language() == Language.EN;
+        Language language = ctx.language();
         return switch (metric) {
-            case INTELLIGENCE -> (en ? "Intelligence " : "智能 ") + number(model.intelligence());
+            case INTELLIGENCE -> QueryText.AA_INTELLIGENCE.of(language)
+                    + " " + number(model.intelligence());
             case HISTORY -> model.releaseDate() + " · "
-                    + (en ? "Intelligence " : "智能 ") + number(model.intelligence());
-            case VALUE -> (en ? "Intelligence " : "智能 ") + number(model.intelligence())
-                    + " · " + (en ? "Cost " : "成本 ") + moneyCost(model.costPerTask());
+                    + QueryText.AA_INTELLIGENCE.of(language) + " " + number(model.intelligence());
+            case VALUE -> QueryText.AA_INTELLIGENCE.of(language) + " " + number(model.intelligence())
+                    + " · " + QueryText.AA_COST.of(language) + " " + moneyCost(model.costPerTask());
             case SPEED -> number(model.outputSpeed()) + " tok/s";
-            case CODING -> (en ? "Coding " : "编程 ") + number(model.coding());
-            case COST -> moneyCost(model.costPerTask()) + (en ? "/task" : "/任务");
-            case PRICING -> (en ? "Input " : "输入 ") + money(model.inputPrice())
-                    + " · " + (en ? "Output " : "输出 ") + money(model.outputPrice());
+            case CODING -> QueryText.AA_CODING.of(language)
+                    + " " + number(model.coding());
+            case COST -> moneyCost(model.costPerTask()) + QueryText.AA_PER_TASK.of(language);
+            case PRICING -> QueryText.AA_INPUT.of(language) + " " + money(model.inputPrice())
+                    + " · " + QueryText.AA_OUTPUT.of(language) + " " + money(model.outputPrice());
         };
     }
 
@@ -127,35 +125,14 @@ public class AaCmd implements Cmd {
         try {
             return Math.clamp(Integer.parseInt(raw), 1, MAX_LIMIT);
         } catch (NumberFormatException e) {
-            throw new CmdWarnException(text(ctx,
-                    "数量格式错误：%s", "Malformed count: %s").formatted(raw));
+            throw new CmdWarnException(QueryText.AA_MALFORMED_COUNT.of(ctx.language(), raw));
         }
-    }
-
-    private static String text(CmdContext ctx, String zh, String en) {
-        return ctx.language() == Language.EN ? en : zh;
     }
 
     // ════ Cmd ═════════════════════
 
     @Override
     public String getHelp(Language language) {
-        return language == Language.EN ? """
-                AA
-                Shows Artificial Analysis model rankings.
-                Usage: AA [metric] [count]
-                Metrics: 智能/历史/性价比/速度/编程/成本/定价
-                Count: 1..25, default 10
-                Aliases: 模型查询
-                Access: >=0(normal)
-                Note: requires AA_API_KEY or aa.api-key in the query plugin config.""" : """
-                AA
-                查看 Artificial Analysis 模型排行。
-                用法：AA [查询项] [数量]
-                查询项：智能/历史/性价比/速度/编程/成本/定价
-                数量：1~25，默认 10
-                别名：模型查询
-                权限：>=0(normal)
-                说明：需要在 query 插件配置 AA_API_KEY 或 aa.api-key。""";
+        return QueryText.AA_HELP.of(language);
     }
 }

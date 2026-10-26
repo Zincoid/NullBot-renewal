@@ -23,6 +23,7 @@
 
 ### Changed
 
+- 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 各新增 `XxxText` 文案枚举，帮助与提示按中英成对维护；`game` 的问答、猜图与老婆文案从核心 `Text` 迁入 `GameText`。
 - 渲染字体：内置 JetBrains Mono 与 Noto Sans Mono CJK SC（均为 OFL），移除 Monorama；`Usage`、`Info`、`Help` 统一为深色卡片风格，值文本支持中英混排。
 - 将 `Say`/`说` 指令从 `game-plugin` 拆分到独立的 `say-plugin`（插件 ID `say`），模板与字体随插件分发。
 - `say-plugin` 的 `Say` 语录卡片改用 Noto Serif CJK SC 斜体，移除分隔线；作者行使用双倍宽破折号（U+2E3A）并加粗，同时加大与语录的间距。
