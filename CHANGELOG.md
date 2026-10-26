@@ -39,6 +39,8 @@
 - `Say` 卡片同步中性配色并移除左侧蓝色色条。
 - `GD search` 支持回复 `next` 翻到下一页，最后一页会提示。
 - 提高 GD 搜索、关卡详情与 B20 卡片的整体字号，改善可读性。
+- 新增 core SVG 文本排版工具 `SvgText`/`SvgLine`/`SvgPositionedLine`，GD 插件复用并移除私有的测量、截断与居中代码。
+- 新增 core SVG 表格排版工具 `SvgTable`/`SvgColumn`/`SvgCell`，GD 搜索与 B20 卡片复用并移除模板中的固定列坐标。
 - `gd-plugin` 排除未使用的 Netty native QUIC 依赖，并在 shade 中合并 LICENSE/NOTICE 与 Netty 版本元数据，消除重复资源警告。
 - 对齐 GD 搜索与 B20 列表的右侧列，并收紧关卡详情卡片底部留白。
 - GD B20 卡片右上角显示 GDDL 用户头像，新增 `gddl.avatar-base` 配置项。

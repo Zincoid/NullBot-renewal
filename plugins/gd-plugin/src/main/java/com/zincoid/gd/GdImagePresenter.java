@@ -2,18 +2,21 @@ package com.zincoid.gd;
 
 import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.module.render.FontRegistry;
 import com.zincoid.nullbot.module.render.PluginRenderer;
+import com.zincoid.nullbot.module.render.svg.layout.SvgAlign;
+import com.zincoid.nullbot.module.render.svg.layout.SvgCell;
+import com.zincoid.nullbot.module.render.svg.layout.SvgColumn;
+import com.zincoid.nullbot.module.render.svg.layout.SvgLine;
+import com.zincoid.nullbot.module.render.svg.layout.SvgTable;
+import com.zincoid.nullbot.module.render.svg.layout.SvgText;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.font.FontRenderContext;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,9 +35,6 @@ import java.util.Map;
 final class GdImagePresenter implements GdPresenter {
 
     private static final double LEVEL_THUMBNAIL_CENTER_Y = 271.5;
-    private static final double LINE_ASCENT_RATIO = 0.9;
-    private static final double LINE_DESCENT_RATIO = 0.25;
-    private static final FontRenderContext FONT_CONTEXT = new FontRenderContext(null, true, true);
     // Nerd Font icons.
     private static final String STAR = "\uF005";
     private static final String ICON_DOWNLOAD = "\uF019";
@@ -62,33 +62,30 @@ final class GdImagePresenter implements GdPresenter {
     @Override
     public MsgContent search(Language language, SearchView view) {
         try {
-            List<String> ranks = new ArrayList<>();
-            List<String> names = new ArrayList<>();
-            List<String> difficulties = new ArrayList<>();
-            List<String> authors = new ArrayList<>();
-            List<String> stars = new ArrayList<>();
+            List<List<String>> rows = new ArrayList<>();
             for (int i = 0; i < view.levels().size(); i++) {
                 SearchView.LevelSummary level = view.levels().get(i);
-                ranks.add(String.format(Locale.ROOT, "%02d.", i + 1));
-                names.add(escape(truncateToWidth(level.name(), 290, 16)));
-                difficulties.add(escape(truncateToWidth(level.difficulty(), 170, 16)));
-                authors.add(escape(truncateToWidth(level.author(), 190, 16)));
-                stars.add(escape(STAR + " " + level.stars()));
+                rows.add(List.of(
+                        String.format(Locale.ROOT, "%02d.", i + 1),
+                        level.name(),
+                        level.difficulty(),
+                        level.author(),
+                        STAR + " " + level.stars()));
             }
-            int height = 190 + (ranks.size() + 1) * 34 + 60;
+            List<SvgColumn> columns = List.of(
+                    new SvgColumn("#", 40, SvgAlign.START),
+                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 300, SvgAlign.START),
+                    new SvgColumn(GdText.DIFFICULTY.of(language), 180, SvgAlign.START),
+                    new SvgColumn(GdText.AUTHOR.of(language), 300, SvgAlign.START),
+                    new SvgColumn(GdText.STARS.of(language), 60, SvgAlign.END));
+            List<SvgCell> cells = SvgTable.build(
+                    40, 158, 192, 34, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
+            int height = 190 + (rows.size() + 1) * 34 + 60;
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", escape(GdText.SEARCH_TITLE.of(
+                    Map.entry("title", SvgText.escape(GdText.SEARCH_TITLE.of(
                             language, truncate(view.query(), 24), view.page()))),
-                    Map.entry("headLevel", GdText.HEAD_LEVEL.of(language)),
-                    Map.entry("headDifficulty", GdText.DIFFICULTY.of(language)),
-                    Map.entry("headAuthor", GdText.AUTHOR.of(language)),
-                    Map.entry("headStars", GdText.STARS.of(language)),
-                    Map.entry("ranks", ranks),
-                    Map.entry("names", names),
-                    Map.entry("difficulties", difficulties),
-                    Map.entry("authors", authors),
-                    Map.entry("stars", stars),
-                    Map.entry("prompt", escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds()))),
+                    Map.entry("cells", cells),
+                    Map.entry("prompt", SvgText.escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds()))),
                     Map.entry("height", height)
             );
             return image(renderer.template("search.jte", model));
@@ -116,27 +113,27 @@ final class GdImagePresenter implements GdPresenter {
                 String prefix = GdText.SONG.of(language) + ": ";
                 String suffix = view.songId() == null ? "" : " · ID " + view.songId();
                 int titleWidth = (int) Math.max(0,
-                        480 - textWidth(prefix, 15) - textWidth(suffix, 15));
-                song = prefix + truncateToWidth(view.song(), titleWidth, 15) + suffix;
+                        480 - SvgText.width(prefix, 15) - SvgText.width(suffix, 15));
+                song = prefix + SvgText.fit(view.song(), titleWidth, 15) + suffix;
             }
             GddlLine gddl = gddlLine(language, view);
-            List<TextLine> textLines = new ArrayList<>();
-            textLines.add(new TextLine(escape(stats1), 0, 15, "#E6E9EE"));
-            textLines.add(new TextLine(escape(stats2), 30, 15, "#E6E9EE"));
-            textLines.add(new TextLine(escape(truncateToWidth(gddl.main(), 480, 15)), 40, 15, "#CDD3DC"));
+            List<SvgLine> textLines = new ArrayList<>();
+            textLines.add(new SvgLine(SvgText.escape(stats1), 0, 15, "#E6E9EE"));
+            textLines.add(new SvgLine(SvgText.escape(stats2), 30, 15, "#E6E9EE"));
+            textLines.add(new SvgLine(SvgText.escape(SvgText.fit(gddl.main(), 480, 15)), 40, 15, "#CDD3DC"));
             if (!gddl.extra().isBlank())
-                textLines.add(new TextLine(escape(truncateToWidth(gddl.extra(), 480, 15)), 26, 15, "#C9CFD8"));
+                textLines.add(new SvgLine(SvgText.escape(SvgText.fit(gddl.extra(), 480, 15)), 26, 15, "#C9CFD8"));
             if (!song.isBlank())
-                textLines.add(new TextLine(escape(song), 32, 15, "#C9CFD8"));
+                textLines.add(new SvgLine(SvgText.escape(song), 32, 15, "#C9CFD8"));
             if (!description.isBlank())
-                textLines.add(new TextLine(escape(truncateToWidth(description, 480, 15)), 30, 15, "#C9CFD8"));
+                textLines.add(new SvgLine(SvgText.escape(SvgText.fit(description, 480, 15)), 30, 15, "#C9CFD8"));
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", escape(truncateToWidth(view.name(), 760, 32))),
+                    Map.entry("title", SvgText.escape(SvgText.fit(view.name(), 760, 32))),
                     Map.entry("levelId", String.valueOf(view.id())),
-                    Map.entry("meta", escape(truncateToWidth(meta, 870, 15))),
-                    Map.entry("lines", layoutLines(textLines)),
+                    Map.entry("meta", SvgText.escape(SvgText.fit(meta, 870, 15))),
+                    Map.entry("lines", SvgText.center(textLines, LEVEL_THUMBNAIL_CENTER_Y)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
-                    Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
+                    Map.entry("noThumbnail", SvgText.escape(GdText.NO_THUMBNAIL.of(language))),
                     Map.entry("height", 450)
             );
             return image(renderer.template("level.jte", model));
@@ -149,48 +146,45 @@ final class GdImagePresenter implements GdPresenter {
     @Override
     public MsgContent rank(Language language, RankView view) {
         try {
-            List<String> ranks = new ArrayList<>();
-            List<String> names = new ArrayList<>();
-            List<String> ids = new ArrayList<>();
-            List<String> tiers = new ArrayList<>();
-            List<String> progresses = new ArrayList<>();
-            List<String> rts = new ArrayList<>();
+            List<List<String>> rows = new ArrayList<>();
             int limit = Math.min(view.limit(), view.top().size());
             for (int i = 0; i < limit; i++) {
                 RankView.Play play = view.top().get(i);
-                ranks.add(String.format(Locale.ROOT, "%02d.", i + 1));
-                names.add(escape(truncateToWidth(play.name(), 390, 16)));
-                ids.add(String.valueOf(play.levelId()));
-                tiers.add(String.valueOf(play.tier()));
-                progresses.add(play.progress() + "%");
-                rts.add(format(play.rt()));
+                rows.add(List.of(
+                        String.format(Locale.ROOT, "%02d.", i + 1),
+                        play.name(),
+                        String.valueOf(play.levelId()),
+                        String.valueOf(play.tier()),
+                        play.progress() + "%",
+                        format(play.rt())));
             }
+            List<SvgColumn> columns = List.of(
+                    new SvgColumn("#", 40, SvgAlign.START),
+                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 390, SvgAlign.START),
+                    new SvgColumn("ID", 90, SvgAlign.END),
+                    new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.END),
+                    new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.END),
+                    new SvgColumn("rt", 120, SvgAlign.END));
+            List<SvgCell> cells = SvgTable.build(
+                    40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
             String stats1 = GdText.COMPLETED.of(language) + " " + view.beatenTotal()
                     + " · " + GdText.IN_PROGRESS.of(language) + " " + view.beatingTotal();
             String stats2 = GdText.HIGHEST_TIER.of(language) + " " + view.highestTier()
                     + " · " + GdText.SAMPLE.of(language) + " " + view.sample();
             if (view.sample() < GdScore.B20_SIZE)
                 stats2 += " (" + GdText.FEWER_THAN_20.of(language) + ")";
-            int height = 360 + (ranks.size() + 1) * 32 + 50;
+            int height = 360 + (rows.size() + 1) * 32 + 50;
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("user", escape(truncateToWidth(
+                    Map.entry("user", SvgText.escape(SvgText.fit(
                             "GDDL: " + view.userName() + " (ID " + view.userId() + ")",
                             760, 26))),
-                    Map.entry("labelB20", escape(GdText.B20.of(language))),
+                    Map.entry("labelB20", SvgText.escape(GdText.B20.of(language))),
                     Map.entry("score", format(view.score())),
-                    Map.entry("stats1", escape(stats1)),
-                    Map.entry("stats2", escape(stats2)),
-                    Map.entry("headLevel", GdText.HEAD_LEVEL.of(language)),
-                    Map.entry("headTier", GdText.TIER.of(language)),
-                    Map.entry("headProgress", GdText.PROGRESS.of(language)),
-                    Map.entry("ranks", ranks),
-                    Map.entry("names", names),
-                    Map.entry("ids", ids),
-                    Map.entry("tiers", tiers),
-                    Map.entry("progresses", progresses),
-                    Map.entry("rts", rts),
+                    Map.entry("stats1", SvgText.escape(stats1)),
+                    Map.entry("stats2", SvgText.escape(stats2)),
+                    Map.entry("cells", cells),
                     Map.entry("avatar", avatar(view.avatar())),
-                    Map.entry("note", escape(GdText.RANK_NOTE.of(language))),
+                    Map.entry("note", SvgText.escape(GdText.RANK_NOTE.of(language))),
                     Map.entry("height", height)
             );
             return image(renderer.template("rank.jte", model));
@@ -227,29 +221,6 @@ final class GdImagePresenter implements GdPresenter {
     }
 
     private record GddlLine(String main, String extra) {
-    }
-
-    private record TextLine(String text, int gapBefore, int size, String color) {
-    }
-
-    private static List<Map<String, String>> layoutLines(List<TextLine> source) {
-        int[] offsets = new int[source.size()];
-        for (int i = 1; i < source.size(); i++)
-            offsets[i] = offsets[i - 1] + source.get(i).gapBefore();
-        double ascent = source.getFirst().size() * LINE_ASCENT_RATIO;
-        double descent = source.getLast().size() * LINE_DESCENT_RATIO;
-        double top = LEVEL_THUMBNAIL_CENTER_Y
-                - (offsets[offsets.length - 1] + descent - ascent) / 2;
-        List<Map<String, String>> lines = new ArrayList<>(source.size());
-        for (int i = 0; i < source.size(); i++) {
-            TextLine line = source.get(i);
-            lines.add(Map.of(
-                    "text", line.text(),
-                    "y", String.valueOf(Math.round(top + offsets[i])),
-                    "size", String.valueOf(line.size()),
-                    "color", line.color()));
-        }
-        return lines;
     }
 
     private static String avatar(byte[] image) {
@@ -335,24 +306,6 @@ final class GdImagePresenter implements GdPresenter {
         return String.format(Locale.ROOT, "%-12s", value);
     }
 
-    private static String truncateToWidth(String value, int maxWidth, float fontSize) {
-        if (value == null || value.isEmpty()) return "";
-        if (textWidth(value, fontSize) <= maxWidth) return value;
-        int end = value.length();
-        while (end > 0) {
-            end = value.offsetByCodePoints(end, -1);
-            String candidate = value.substring(0, end) + "…";
-            if (textWidth(candidate, fontSize) <= maxWidth) return candidate;
-        }
-        return "…";
-    }
-
-    private static double textWidth(String value, float fontSize) {
-        if (value == null || value.isEmpty()) return 0;
-        Font font = new Font(FontRegistry.JETBRAINS_MAPLE_MONO, Font.PLAIN, 1).deriveFont(fontSize);
-        return font.getStringBounds(value, FONT_CONTEXT).getWidth();
-    }
-
     private static String decimal(Double value) {
         return value == null || value.isNaN() ? "-" : format(value);
     }
@@ -370,13 +323,5 @@ final class GdImagePresenter implements GdPresenter {
         if (value == null) return "";
         if (value.codePointCount(0, value.length()) <= max) return value;
         return value.substring(0, value.offsetByCodePoints(0, max)) + "…";
-    }
-
-    private static String escape(String value) {
-        if (value == null) return "";
-        return value.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
     }
 }

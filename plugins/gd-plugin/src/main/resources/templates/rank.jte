@@ -4,15 +4,7 @@
 @param String avatar
 @param String stats1
 @param String stats2
-@param String headLevel
-@param String headTier
-@param String headProgress
-@param java.util.List<String> ranks
-@param java.util.List<String> names
-@param java.util.List<String> ids
-@param java.util.List<String> tiers
-@param java.util.List<String> progresses
-@param java.util.List<String> rts
+@param java.util.List<com.zincoid.nullbot.module.render.svg.layout.SvgCell> cells
 @param String note
 @param int height
 
@@ -53,32 +45,10 @@
           fill="#CDD3DC">${stats2}</text>
     <rect x="40" y="282" width="880" height="1" fill="#2A2D33"/>
 
-    <text x="40" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
-          fill="#C9CFD8">#</text>
-    <text x="76" y="310" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
-          fill="#C9CFD8">${headLevel}</text>
-    <text x="560" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="14" fill="#C9CFD8">ID</text>
-    <text x="680" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="14" fill="#C9CFD8">${headTier}</text>
-    <text x="800" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="14" fill="#C9CFD8">${headProgress}</text>
-    <text x="920" y="310" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="14" fill="#C9CFD8">rt</text>
-
-    @for(int i = 0; i < ranks.size(); i++)
-        <text x="40" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="16"
-              fill="#E6E9EE">${ranks.get(i)}</text>
-        <text x="76" y="${346 + i * 32}" font-family="JetBrains Maple Mono" font-size="16"
-              fill="#E6E9EE">${names.get(i)}</text>
-        <text x="560" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="16" fill="#E6E9EE">${ids.get(i)}</text>
-        <text x="680" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="16" fill="#E6E9EE">${tiers.get(i)}</text>
-        <text x="800" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="16" fill="#E6E9EE">${progresses.get(i)}</text>
-        <text x="920" y="${346 + i * 32}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="16" fill="#E6E9EE">${rts.get(i)}</text>
+    @for(com.zincoid.nullbot.module.render.svg.layout.SvgCell cell : cells)
+        <text x="${cell.x()}" y="${cell.y()}" text-anchor="${cell.anchor()}"
+              font-family="JetBrains Maple Mono" font-size="${cell.size()}"
+              fill="${cell.color()}">${cell.text()}</text>
     @endfor
 
     <text x="40" y="${height - 36}" font-family="JetBrains Maple Mono" font-size="14"

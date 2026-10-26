@@ -94,6 +94,8 @@ java -jar launcher/target/launcher-stdin.jar
 
 模板用 `jte-maven-plugin`（配置可参考 `core/pom.xml`，JTE 版本与宿主一致）从 `src/main/resources/templates/*.jte` 预编译进插件 JAR；模板参数名与 `.jte` 的 `@param` 一致。结果通常以 `base64://` 图片发送。使用渲染能力时 `apiVersion()` 返回 `3`。
 
+需要手动排列 SVG 文本时，可以复用 core 的 `SvgText`/`SvgLine`/`SvgPositionedLine`：支持字体宽度测量、按宽度截断、多行垂直居中和文本转义；`SvgTable`/`SvgColumn`/`SvgCell` 负责表头、列宽、对齐和单元格定位。
+
 插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册；也可调用 `renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。`plugins/hello-plugin` 的 `Hello --image` 是完整模板示例。
 
 ### 运行

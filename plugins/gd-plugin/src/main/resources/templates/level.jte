@@ -1,7 +1,7 @@
 @param String title
 @param String levelId
 @param String meta
-@param java.util.List<java.util.Map<String, String>> lines
+@param java.util.List<com.zincoid.nullbot.module.render.svg.layout.SvgPositionedLine> lines
 @param String thumbnail
 @param String noThumbnail
 @param int height
@@ -39,9 +39,9 @@
               font-size="15" fill="#C9CFD8">${noThumbnail}</text>
     @endif
 
-    @for(java.util.Map<String, String> line : lines)
-        <text x="430" y="${line.get("y")}" font-family="JetBrains Maple Mono"
-              font-size="${line.get("size")}" fill="${line.get("color")}">${line.get("text")}</text>
+    @for(com.zincoid.nullbot.module.render.svg.layout.SvgPositionedLine line : lines)
+        <text x="430" y="${line.y()}" font-family="JetBrains Maple Mono"
+              font-size="${line.size()}" fill="${line.color()}">${line.text()}</text>
     @endfor
 
     <text x="40" y="${height - 36}" font-family="JetBrains Maple Mono" font-weight="bold"
