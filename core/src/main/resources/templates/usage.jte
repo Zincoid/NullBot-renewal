@@ -1,4 +1,5 @@
 @param String avatar
+@param String user
 @param String times
 
 <svg width="840" height="480" viewBox="0 0 560 320" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,6 +24,8 @@
            clip-path="url(#avatarClip)" href="${avatar}"/>
     <rect x="50" y="120" width="160" height="160" rx="20" fill="none" stroke="#2A2D33"/>
 
+    <text x="242" y="170" font-family="JetBrains Maple Mono" font-size="16"
+          fill="#E6E9EE">${user}</text>
     <text x="242" y="230" font-family="JetBrains Maple Mono" font-weight="bold" font-size="56"
           letter-spacing="0" fill="#A7C6FF">${times}</text>
     <text x="246" y="262" font-family="JetBrains Maple Mono" font-size="13" letter-spacing="1.6"

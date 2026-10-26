@@ -48,8 +48,9 @@ public class UsageCmd implements Cmd {
 
     private void handle(CmdContext ctx, String userId) {
         long total = total(ctx, userId);
-        byte[] avatar = avatar(ctx, userId);
-        byte[] png = render(ctx, avatar, total);
+        UserInfo info = userInfo(ctx, userId);
+        byte[] avatar = avatar(ctx, info);
+        byte[] png = render(ctx, avatar, info.nickname(), userId, total);
         ctx.send(MsgContent.builder()
                 .imageBase64(png)
                 .build());
@@ -67,10 +68,23 @@ public class UsageCmd implements Cmd {
         }
     }
 
-    private byte[] avatar(CmdContext ctx, String userId) {
+    private UserInfo userInfo(CmdContext ctx, String userId) {
         try {
             UserInfo info = ctx.client().getUserInfo(userId);
-            if (info == null || info.avatar() == null || info.avatar().isBlank())
+            if (info == null)
+                throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED));
+            return info;
+        } catch (CmdWarnException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            log.warn("Usage user info failed: user={}", userId, e);
+            throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED), e);
+        }
+    }
+
+    private byte[] avatar(CmdContext ctx, UserInfo info) {
+        try {
+            if (info.avatar() == null || info.avatar().isBlank())
                 throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED));
             byte[] bytes = HttpUtils.getBytes(info.avatar(), MAX_AVATAR_BYTES);
             String mime = MimeUtils.mime(bytes);
@@ -80,14 +94,14 @@ public class UsageCmd implements Cmd {
         } catch (CmdWarnException e) {
             throw e;
         } catch (RuntimeException e) {
-            log.warn("Usage avatar failed: user={}", userId, e);
+            log.warn("Usage avatar failed: user={}", info.userId(), e);
             throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED), e);
         }
     }
 
-    private byte[] render(CmdContext ctx, byte[] avatar, long total) {
+    private byte[] render(CmdContext ctx, byte[] avatar, String nickname, String userId, long total) {
         try {
-            return renderService.usage(avatar, total);
+            return renderService.usage(avatar, nickname, userId, total);
         } catch (RuntimeException e) {
             log.warn("Usage render failed: count={}", total, e);
             throw new CmdWarnException(ctx.render(Text.USAGE_RENDER_FAILED), e);

@@ -14,11 +14,13 @@ public interface RenderService {
      * 渲染用户用量卡片。
      * <p>Renders the user usage card.</p>
      *
-     * @param avatar the avatar image bytes
-     * @param times  the total command usage count
+     * @param avatar   the avatar image bytes
+     * @param nickname the user nickname, nullable
+     * @param userId   the user id
+     * @param times    the total command usage count
      * @return the PNG image bytes
      */
-    byte[] usage(byte[] avatar, long times);
+    byte[] usage(byte[] avatar, String nickname, String userId, long times);
 
     /**
      * 用指定模板和参数渲染 PNG。

@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.render;
 
 import com.zincoid.nullbot.module.render.image.ImageData;
+import com.zincoid.nullbot.module.render.svg.layout.SvgText;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +21,22 @@ public class RenderServiceImpl implements RenderService {
     // ════ Usage ═══════════════════
 
     @Override
-    public byte[] usage(byte[] avatar, long times) {
+    public byte[] usage(byte[] avatar, String nickname, String userId, long times) {
         if (avatar == null || avatar.length == 0) throw new RenderException("Missing key: avatar");
         if (times < 0) throw new RenderException("Invalid usage count: " + times);
         String dataUri = ImageData.imageDataUri(avatar);
         if (dataUri.isBlank())
             throw new RenderException("Unsupported avatar image");
+        String id = userId == null ? "" : userId;
+        boolean hasNickname = nickname != null && !nickname.isBlank();
+        String name = hasNickname ? nickname : id;
+        String suffix = hasNickname && !id.isBlank() ? " (" + id + ")" : "";
+        int maxNameWidth = (int) Math.max(0, 270 - SvgText.width(suffix, 16));
+        String user = SvgText.escape(SvgText.fit(name, maxNameWidth, 16))
+                + SvgText.escape(suffix);
         return renderer.template("usage.jte", Map.of(
                 "avatar", dataUri,
+                "user", user,
                 "times", String.format(Locale.ROOT, "%07d", times)
         ));
     }
