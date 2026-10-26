@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  * <p>Random quote command.</p>
  */
 @Slf4j
-@CmdMapping({"QuoteRand", "quote", "SayRand", "say", "随机语录", "语录"})
+@CmdMapping({"QuoteRand", "quote", "quot", "随机语录", "语录"})
 @Component
 @RequiredArgsConstructor
 public class QuoteRandCmd implements Cmd {
@@ -80,12 +80,12 @@ public class QuoteRandCmd implements Cmd {
                 QuoteRand
                 Sends a random quote.
                 Usage: QuoteRand [user id | @user]
-                Aliases: quote/SayRand/say/随机语录/语录
+                Aliases: quote/quot/随机语录/语录
                 Access: >=-1(restricted)""" : """
                 QuoteRand
                 随机发送一条语录。
                 用法：QuoteRand [user id | @user]
-                别名：quote/SayRand/say/随机语录/语录
+                别名：quote/quot/随机语录/语录
                 权限：>=-1(restricted)""";
     }
 

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * 删除语录指令。
  * <p>Delete quote command.</p>
  */
-@CmdMapping({"QuoteDel", "SayDel", "删除语录"})
+@CmdMapping({"QuoteDel", "删除语录"})
 @Component
 @RequiredArgsConstructor
 public class QuoteDelCmd implements Cmd {
@@ -61,12 +61,12 @@ public class QuoteDelCmd implements Cmd {
                 QuoteDel
                 Deletes a quote.
                 Usage: QuoteDel [quote id]
-                Aliases: SayDel/删除语录
+                Aliases: 删除语录
                 Access: >=1(manager)""" : """
                 QuoteDel
                 删除一条语录。
                 用法：QuoteDel [quote id]
-                别名：SayDel/删除语录
+                别名：删除语录
                 权限：>=1(manager)""";
     }
 }

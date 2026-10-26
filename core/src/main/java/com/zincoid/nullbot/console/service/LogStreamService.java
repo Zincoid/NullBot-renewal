@@ -2,7 +2,10 @@ package com.zincoid.nullbot.console.service;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.zincoid.nullbot.console.dto.LogView;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -44,6 +47,25 @@ public class LogStreamService {
         }
         log.info("Log stream subscribed: {}", id);
         return emitter;
+    }
+
+    /**
+     * 关闭所有日志流，避免优雅停机等待长连接超时。
+     * <p>Closes all log streams so graceful shutdown does not wait for long-lived connections to time out.</p>
+     */
+    @EventListener(ContextClosedEvent.class)
+    @PreDestroy
+    public void close() {
+        int count = emitters.size();
+        emitters.values().forEach(emitter -> {
+            try {
+                emitter.complete();
+            } catch (RuntimeException e) {
+                log.debug("Log stream close failed", e);
+            }
+        });
+        emitters.clear();
+        if (count > 0) log.info("Log streams closed: {}", count);
     }
 
     /**

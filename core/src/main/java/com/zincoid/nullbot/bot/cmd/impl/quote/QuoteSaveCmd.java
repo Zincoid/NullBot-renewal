@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  * 保存语录指令。
  * <p>Save quote command.</p>
  */
-@CmdMapping({"QuoteSave", "SaySave", "保存语录"})
+@CmdMapping({"QuoteSave", "保存语录"})
 @Component
 @RequiredArgsConstructor
 public class QuoteSaveCmd implements Cmd {
@@ -86,12 +86,12 @@ public class QuoteSaveCmd implements Cmd {
                 QuoteSave
                 Saves a quote.
                 Usage: [reply] QuoteSave
-                Aliases: SaySave/保存语录
+                Aliases: 保存语录
                 Access: >=0(normal)""" : """
                 QuoteSave
                 保存引用消息的文本为语录。
                 用法：[回复] QuoteSave
-                别名：SaySave/保存语录
+                别名：保存语录
                 权限：>=0(normal)""";
     }
 
