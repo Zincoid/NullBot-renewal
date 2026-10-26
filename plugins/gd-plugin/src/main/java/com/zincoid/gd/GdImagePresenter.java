@@ -137,7 +137,7 @@ final class GdImagePresenter implements GdPresenter {
                     Map.entry("lines", layoutLines(textLines)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
                     Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
-                    Map.entry("height", 430)
+                    Map.entry("height", 450)
             );
             return image(renderer.template("level.jte", model));
         } catch (RuntimeException e) {
