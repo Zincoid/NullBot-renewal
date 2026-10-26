@@ -11,14 +11,13 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 import com.zincoid.nullbot.platform.util.HttpUtils;
-import com.zincoid.nullbot.platform.util.MimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Base64;
 
 /**
  * 语录图片指令：随机抽一条语录，左侧头像渐隐，右侧渲染语录。
@@ -94,9 +93,7 @@ public class SayCmd implements Cmd {
             UserInfo info = ctx.client().getUserInfo(userId);
             if (info == null || info.avatar() == null || info.avatar().isBlank()) return "";
             byte[] bytes = HttpUtils.getBytes(info.avatar(), MAX_AVATAR_BYTES);
-            String mime = MimeUtils.mime(bytes);
-            if (mime == null || !mime.startsWith("image/")) return "";
-            return "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
+            return ImageData.imageDataUri(bytes);
         } catch (RuntimeException e) {
             log.warn("Say avatar failed: author={}", userId, e);
             return "";

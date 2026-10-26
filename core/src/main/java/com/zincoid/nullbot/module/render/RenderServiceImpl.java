@@ -1,10 +1,9 @@
 package com.zincoid.nullbot.module.render;
 
-import com.zincoid.nullbot.platform.util.MimeUtils;
+import com.zincoid.nullbot.module.render.image.ImageData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
 
@@ -24,11 +23,9 @@ public class RenderServiceImpl implements RenderService {
     public byte[] usage(byte[] avatar, long times) {
         if (avatar == null || avatar.length == 0) throw new RenderException("Missing key: avatar");
         if (times < 0) throw new RenderException("Invalid usage count: " + times);
-        String mime = MimeUtils.mime(avatar);
-        if (mime == null || !mime.startsWith("image/"))
+        String dataUri = ImageData.imageDataUri(avatar);
+        if (dataUri.isBlank())
             throw new RenderException("Unsupported avatar image");
-        String dataUri = "data:" + mime + ";base64,"
-                + Base64.getEncoder().encodeToString(avatar);
         return renderer.template("usage.jte", Map.of(
                 "avatar", dataUri,
                 "times", String.format(Locale.ROOT, "%07d", times)

@@ -96,6 +96,8 @@ java -jar launcher/target/launcher-stdin.jar
 
 需要手动排列 SVG 文本时，可以复用 core 的 `SvgText`/`SvgLine`/`SvgPositionedLine`：支持字体宽度测量、按宽度截断、多行垂直居中和文本转义；`SvgTable`/`SvgColumn`/`SvgCell` 负责表头、列宽、对齐和单元格定位。
 
+图片可复用 core 的 `ImageData`：`dataUri`/`imageDataUri`、`cover`/`square` 居中裁剪缩放、`imageDataUri(BufferedImage)` PNG 编码，支持 WebP 解码。
+
 插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册；也可调用 `renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。`plugins/hello-plugin` 的 `Hello --image` 是完整模板示例。
 
 ### 运行

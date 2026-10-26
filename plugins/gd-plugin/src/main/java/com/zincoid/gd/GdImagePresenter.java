@@ -1,8 +1,8 @@
 package com.zincoid.gd;
 
-import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.render.PluginRenderer;
+import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.module.render.svg.layout.SvgAlign;
 import com.zincoid.nullbot.module.render.svg.layout.SvgCell;
 import com.zincoid.nullbot.module.render.svg.layout.SvgColumn;
@@ -12,17 +12,7 @@ import com.zincoid.nullbot.module.render.svg.layout.SvgText;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -132,7 +122,7 @@ final class GdImagePresenter implements GdPresenter {
                     Map.entry("levelId", String.valueOf(view.id())),
                     Map.entry("meta", SvgText.escape(SvgText.fit(meta, 870, 15))),
                     Map.entry("lines", SvgText.center(textLines, LEVEL_THUMBNAIL_CENTER_Y)),
-                    Map.entry("thumbnail", thumbnail(view.thumbnail())),
+                    Map.entry("thumbnail", ImageData.cover(view.thumbnail(), 720, 405)),
                     Map.entry("noThumbnail", SvgText.escape(GdText.NO_THUMBNAIL.of(language))),
                     Map.entry("height", 450)
             );
@@ -183,7 +173,7 @@ final class GdImagePresenter implements GdPresenter {
                     Map.entry("stats1", SvgText.escape(stats1)),
                     Map.entry("stats2", SvgText.escape(stats2)),
                     Map.entry("cells", cells),
-                    Map.entry("avatar", avatar(view.avatar())),
+                    Map.entry("avatar", ImageData.square(view.avatar(), 160)),
                     Map.entry("note", SvgText.escape(GdText.RANK_NOTE.of(language))),
                     Map.entry("height", height)
             );
@@ -221,81 +211,6 @@ final class GdImagePresenter implements GdPresenter {
     }
 
     private record GddlLine(String main, String extra) {
-    }
-
-    private static String avatar(byte[] image) {
-        if (image == null || image.length == 0) return "";
-        try {
-            BufferedImage source = ImageIO.read(new ByteArrayInputStream(image));
-            if (source == null || source.getWidth() <= 0 || source.getHeight() <= 0)
-                return "";
-            int size = Math.min(source.getWidth(), source.getHeight());
-            int sx = (source.getWidth() - size) / 2;
-            int sy = (source.getHeight() - size) / 2;
-            BufferedImage target = new BufferedImage(160, 160, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = target.createGraphics();
-            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            graphics.setRenderingHint(RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_QUALITY);
-            graphics.drawImage(source, 0, 0, 160, 160,
-                    sx, sy, sx + size, sy + size, null);
-            graphics.dispose();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ImageIO.write(target, "png", out);
-            return "data:image/png;base64," + Base64.getEncoder().encodeToString(out.toByteArray());
-        } catch (IOException | RuntimeException e) {
-            log.warn("GD avatar conversion failed", e);
-            return "";
-        }
-    }
-
-    private static String thumbnail(byte[] webp) {
-        if (webp == null || webp.length == 0) return "";
-        ImageReader reader;
-        try {
-            reader = new WebPImageReaderSpi().createReaderInstance();
-        } catch (IOException e) {
-            log.warn("GD thumbnail conversion failed", e);
-            return "";
-        }
-        if (reader == null) return "";
-        try (ImageInputStream input = ImageIO.createImageInputStream(
-                new ByteArrayInputStream(webp))) {
-            if (input == null) return "";
-            reader.setInput(input, true, true);
-            BufferedImage source = reader.read(0);
-            if (source == null || source.getWidth() <= 0 || source.getHeight() <= 0) return "";
-            double ratio = 16.0 / 9.0;
-            int sx = 0;
-            int sy = 0;
-            int sw = source.getWidth();
-            int sh = source.getHeight();
-            if (sw / (double) sh > ratio) {
-                sw = (int) (sh * ratio);
-                sx = (source.getWidth() - sw) / 2;
-            } else {
-                sh = (int) (sw / ratio);
-                sy = (source.getHeight() - sh) / 2;
-            }
-            BufferedImage target = new BufferedImage(720, 405, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = target.createGraphics();
-            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-            graphics.setRenderingHint(RenderingHints.KEY_RENDERING,
-                    RenderingHints.VALUE_RENDER_QUALITY);
-            graphics.drawImage(source, 0, 0, 720, 405,
-                    sx, sy, sx + sw, sy + sh, null);
-            graphics.dispose();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ImageIO.write(target, "png", out);
-            return "data:image/png;base64," + Base64.getEncoder().encodeToString(out.toByteArray());
-        } catch (IOException | RuntimeException e) {
-            log.warn("GD thumbnail conversion failed", e);
-            return "";
-        } finally {
-            reader.dispose();
-        }
     }
 
     private static String number(int value) {

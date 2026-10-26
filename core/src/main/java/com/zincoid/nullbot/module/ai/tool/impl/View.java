@@ -5,13 +5,13 @@ import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import com.zincoid.nullbot.platform.util.MimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -47,7 +47,9 @@ public class View implements Tool {
         String mime = mime(file, bytes);
         if (mime == null || !mime.startsWith("image/"))
             return ToolRes.error("Not an image: " + file.getOriginal());
-        String data = "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
+        String data = ImageData.imageDataUri(bytes);
+        if (data.isBlank())
+            return ToolRes.error("Not an image: " + file.getOriginal());
         return ToolRes.of("Image attached: " + file.getOriginal(), List.of(data));
     }
 
