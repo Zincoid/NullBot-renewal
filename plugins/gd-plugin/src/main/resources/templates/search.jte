@@ -22,38 +22,38 @@
     <rect width="960" height="${height}" fill="#0E0F11"/>
     <rect width="960" height="${height}" fill="url(#glow)"/>
 
-    <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13"
+    <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           letter-spacing="2.4" fill="#C9CFD8"># GD / SEARCH_</text>
-    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="28"
+    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="30"
           fill="#F2F3F5">${title}</text>
     <rect x="40" y="124" width="880" height="1" fill="#2A2D33"/>
 
-    <text x="40" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+    <text x="40" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           fill="#C9CFD8">#</text>
-    <text x="76" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+    <text x="76" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           fill="#C9CFD8">${headLevel}</text>
-    <text x="380" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+    <text x="380" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           fill="#C9CFD8">${headDifficulty}</text>
-    <text x="560" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="12"
+    <text x="560" y="158" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           fill="#C9CFD8">${headAuthor}</text>
     <text x="920" y="158" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" fill="#C9CFD8">${headStars}</text>
+          font-weight="bold" font-size="14" fill="#C9CFD8">${headStars}</text>
 
     @for(int i = 0; i < ranks.size(); i++)
-        <text x="40" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+        <text x="40" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="16"
               fill="#E6E9EE">${ranks.get(i)}</text>
-        <text x="76" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+        <text x="76" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="16"
               fill="#E6E9EE">${names.get(i)}</text>
-        <text x="380" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+        <text x="380" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="16"
               fill="#E6E9EE">${difficulties.get(i)}</text>
-        <text x="560" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="15"
+        <text x="560" y="${192 + i * 34}" font-family="JetBrains Maple Mono" font-size="16"
               fill="#E6E9EE">${authors.get(i)}</text>
         <text x="920" y="${192 + i * 34}" text-anchor="end" font-family="JetBrains Maple Mono"
-              font-size="15" fill="#E6E9EE">${stars.get(i)}</text>
+              font-size="16" fill="#E6E9EE">${stars.get(i)}</text>
     @endfor
 
-    <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-size="13"
+    <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-size="14"
           fill="#C9CFD8">${prompt}</text>
     <text x="920" y="${height - 40}" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="11" letter-spacing="1.2" fill="#C9CFD8">GDDL</text>
+          font-weight="bold" font-size="12" letter-spacing="1.2" fill="#C9CFD8">GDDL</text>
 </svg>

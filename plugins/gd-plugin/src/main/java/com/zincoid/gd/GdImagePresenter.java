@@ -70,9 +70,9 @@ final class GdImagePresenter implements GdPresenter {
             for (int i = 0; i < view.levels().size(); i++) {
                 SearchView.LevelSummary level = view.levels().get(i);
                 ranks.add(String.format(Locale.ROOT, "%02d.", i + 1));
-                names.add(escape(truncateToWidth(level.name(), 280, 15)));
-                difficulties.add(escape(truncateToWidth(level.difficulty(), 160, 15)));
-                authors.add(escape(truncateToWidth(level.author(), 170, 15)));
+                names.add(escape(truncateToWidth(level.name(), 290, 16)));
+                difficulties.add(escape(truncateToWidth(level.difficulty(), 170, 16)));
+                authors.add(escape(truncateToWidth(level.author(), 190, 16)));
                 stars.add(escape(STAR + " " + level.stars()));
             }
             int height = 190 + (ranks.size() + 1) * 34 + 60;
@@ -116,24 +116,24 @@ final class GdImagePresenter implements GdPresenter {
                 String prefix = GdText.SONG.of(language) + ": ";
                 String suffix = view.songId() == null ? "" : " · ID " + view.songId();
                 int titleWidth = (int) Math.max(0,
-                        480 - textWidth(prefix, 13) - textWidth(suffix, 13));
-                song = prefix + truncateToWidth(view.song(), titleWidth, 13) + suffix;
+                        480 - textWidth(prefix, 15) - textWidth(suffix, 15));
+                song = prefix + truncateToWidth(view.song(), titleWidth, 15) + suffix;
             }
             GddlLine gddl = gddlLine(language, view);
             List<TextLine> textLines = new ArrayList<>();
-            textLines.add(new TextLine(escape(stats1), 0, 14, "#E6E9EE"));
-            textLines.add(new TextLine(escape(stats2), 30, 14, "#E6E9EE"));
-            textLines.add(new TextLine(escape(truncateToWidth(gddl.main(), 480, 14)), 40, 14, "#CDD3DC"));
+            textLines.add(new TextLine(escape(stats1), 0, 15, "#E6E9EE"));
+            textLines.add(new TextLine(escape(stats2), 30, 15, "#E6E9EE"));
+            textLines.add(new TextLine(escape(truncateToWidth(gddl.main(), 480, 15)), 40, 15, "#CDD3DC"));
             if (!gddl.extra().isBlank())
-                textLines.add(new TextLine(escape(truncateToWidth(gddl.extra(), 480, 13)), 26, 13, "#C9CFD8"));
+                textLines.add(new TextLine(escape(truncateToWidth(gddl.extra(), 480, 15)), 26, 15, "#C9CFD8"));
             if (!song.isBlank())
-                textLines.add(new TextLine(escape(song), 32, 13, "#C9CFD8"));
+                textLines.add(new TextLine(escape(song), 32, 15, "#C9CFD8"));
             if (!description.isBlank())
-                textLines.add(new TextLine(escape(truncateToWidth(description, 480, 13)), 30, 13, "#C9CFD8"));
+                textLines.add(new TextLine(escape(truncateToWidth(description, 480, 15)), 30, 15, "#C9CFD8"));
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", escape(truncateToWidth(view.name(), 760, 30))),
+                    Map.entry("title", escape(truncateToWidth(view.name(), 760, 32))),
                     Map.entry("levelId", String.valueOf(view.id())),
-                    Map.entry("meta", escape(truncateToWidth(meta, 870, 14))),
+                    Map.entry("meta", escape(truncateToWidth(meta, 870, 15))),
                     Map.entry("lines", layoutLines(textLines)),
                     Map.entry("thumbnail", thumbnail(view.thumbnail())),
                     Map.entry("noThumbnail", escape(GdText.NO_THUMBNAIL.of(language))),
@@ -159,7 +159,7 @@ final class GdImagePresenter implements GdPresenter {
             for (int i = 0; i < limit; i++) {
                 RankView.Play play = view.top().get(i);
                 ranks.add(String.format(Locale.ROOT, "%02d.", i + 1));
-                names.add(escape(truncate(play.name(), 30)));
+                names.add(escape(truncateToWidth(play.name(), 390, 16)));
                 ids.add(String.valueOf(play.levelId()));
                 tiers.add(String.valueOf(play.tier()));
                 progresses.add(play.progress() + "%");
@@ -173,8 +173,9 @@ final class GdImagePresenter implements GdPresenter {
                 stats2 += " (" + GdText.FEWER_THAN_20.of(language) + ")";
             int height = 360 + (ranks.size() + 1) * 32 + 50;
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("user", escape("GDDL: " + truncate(view.userName(), 40)
-                            + " (ID " + view.userId() + ")")),
+                    Map.entry("user", escape(truncateToWidth(
+                            "GDDL: " + view.userName() + " (ID " + view.userId() + ")",
+                            760, 26))),
                     Map.entry("labelB20", escape(GdText.B20.of(language))),
                     Map.entry("score", format(view.score())),
                     Map.entry("stats1", escape(stats1)),

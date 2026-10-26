@@ -20,13 +20,13 @@
     <rect width="960" height="${height}" fill="#0E0F11"/>
     <rect width="960" height="${height}" fill="url(#glow)"/>
 
-    <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="13"
+    <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           letter-spacing="2.4" fill="#C9CFD8"># GD / LEVEL_</text>
-    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="30"
+    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="32"
           fill="#F2F3F5">${title}</text>
     <text x="920" y="100" text-anchor="end" font-family="JetBrains Maple Mono" font-weight="bold"
-          font-size="14" fill="#C9CFD8">#${levelId}</text>
-    <text x="40" y="132" font-family="JetBrains Maple Mono" font-size="14"
+          font-size="15" fill="#C9CFD8">#${levelId}</text>
+    <text x="40" y="132" font-family="JetBrains Maple Mono" font-size="15"
           fill="#CDD3DC">${meta}</text>
     <rect x="40" y="148" width="880" height="1" fill="#2A2D33"/>
 
@@ -36,7 +36,7 @@
                clip-path="url(#thumbnailClip)" href="${thumbnail}"/>
     @else
         <text x="220" y="278" text-anchor="middle" font-family="JetBrains Maple Mono"
-              font-size="14" fill="#C9CFD8">${noThumbnail}</text>
+              font-size="15" fill="#C9CFD8">${noThumbnail}</text>
     @endif
 
     @for(java.util.Map<String, String> line : lines)
@@ -45,7 +45,7 @@
     @endfor
 
     <text x="40" y="${height - 36}" font-family="JetBrains Maple Mono" font-weight="bold"
-          font-size="11" letter-spacing="1.2" fill="#C9CFD8">GDDL / NULLBOT</text>
+          font-size="12" letter-spacing="1.2" fill="#C9CFD8">GDDL / NULLBOT</text>
     <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-size="12" fill="#C9CFD8">GD LEVEL</text>
+          font-size="13" fill="#C9CFD8">GD LEVEL</text>
 </svg>
