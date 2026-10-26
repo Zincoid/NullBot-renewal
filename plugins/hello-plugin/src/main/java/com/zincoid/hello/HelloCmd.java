@@ -8,6 +8,7 @@ import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -18,31 +19,27 @@ import java.util.Map;
  */
 @Slf4j
 @CmdMapping({"Hello", "你好"})
+@RequiredArgsConstructor
 public class HelloCmd implements Cmd {
 
     private final HelloPlugin plugin;
-
-    public HelloCmd(HelloPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     // ════ Run ═════════════════════
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
+        log.info("Hello plugin!");
         if (args.hasOpt("image", "i")) {
-            sendImage(ctx);
+            send(ctx);
             return;
         }
-        log.info("Hello plugin!");
-        ctx.send("""
-                Hello from plugin!
-                Data: %s""".formatted(plugin.getContext().dataDir()));
+        ctx.send("Hello from plugin! Data: "
+                + plugin.getContext().dataDir());
     }
 
     // ════ Image ═══════════════════
 
-    private void sendImage(CmdContext ctx) {
+    private void send(CmdContext ctx) {
         byte[] png;
         try {
             png = plugin.getContext().renderer().template("hello.jte", Map.of(

@@ -13,9 +13,9 @@
     <rect width="480" height="180" fill="url(#glow)"/>
     <rect x="0" y="0" width="6" height="180" fill="#4C8DFF"/>
 
-    <text x="34" y="52" font-family="JetBrains Mono Bold" font-size="13" letter-spacing="2.4"
+    <text x="34" y="52" font-family="Bernard MT Condensed" font-size="13" letter-spacing="2.4"
           fill="#8FA0B8">HELLO PLUGIN</text>
-    <text x="32" y="108" font-family="JetBrains Mono Bold" font-size="38"
+    <text x="32" y="108" font-family="JetBrains Mono Bold" font-size="42"
           fill="#FFFFFF">${title}</text>
     <text x="34" y="146" font-family="JetBrains Mono Regular" font-size="16"
           fill="#C5CCDA">${subtitle}</text>

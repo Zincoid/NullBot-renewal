@@ -93,15 +93,17 @@ java -jar launcher/target/launcher-stdin.jar
 默认前缀为 `#`，可通过 `#Config cmd_prefix <值>` 或控制台修改。`#Help` 以图片列出全部内置指令与已加载插件；`#Help -p=<插件>` 查看指定插件的指令。
 
 - 群聊中 @机器人 或私聊直接发消息会进入 AI 对话；戳一戳也会触发。
-- 插件示例：`#Hello`、`#Anime`、`#Guess`、`#Quiz`、`#Wife`、`#PUBG`、`#AA`、`#PRTS`、`#Trace`、`#SB6657`、`#Symmetry`。
+- 插件示例：`#Hello`、`#Say`、`#Anime`、`#Guess`、`#Quiz`、`#Wife`、`#PUBG`、`#AA`、`#PRTS`、`#Trace`、`#SB6657`、`#Symmetry`。
 - 内置图片指令：`#Usage`（别名 `#用量`）渲染当前用户的历史指令用量卡片；`#Info` 渲染系统信息；`#Help`（别名 `#帮助`）渲染指令与插件列表。
+- 语录图片：`#Say`（别名 `#说`）随机渲染语录卡片，可通过 `@用户` 或用户 ID 指定作者。
 
 ## 字体
 
-内置渲染使用以下 OFL 字体，文件和许可证位于 `core/src/main/resources/fonts/`：
+内置渲染使用以下 OFL 字体；核心字体位于 `core/src/main/resources/fonts/`，插件字体会随插件 JAR 放在各自插件的 `fonts/` 下：
 
 - JetBrains Mono：标题、标签和数值
 - Noto Sans Mono CJK SC：包含中文的值文本，保证中英混排正常显示
+- Noto Serif CJK SC：`game-plugin` 的 `Say` 语录卡片，斜体中英混排
 
 ## 许可
 

@@ -31,8 +31,13 @@ public class GamePlugin implements Plugin {
     }
 
     @Override
+    public int apiVersion() {
+        return 3;
+    }
+
+    @Override
     public List<Cmd> cmds() {
-        return List.of(new WifeCmd(this), new GuessCmd(this), new QuizCmd(this));
+        return List.of(new WifeCmd(this), new GuessCmd(this), new QuizCmd(this), new SayCmd(this));
     }
 
     @Override

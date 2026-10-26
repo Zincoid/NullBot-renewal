@@ -4,6 +4,7 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.module.ai.tool.Tool;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * 示例插件：注册 Hello 指令与测试工具。
  * <p>Sample plugin registering the Hello command and a test tool.</p>
  */
+@Getter
 public class HelloPlugin implements Plugin {
 
     private PluginContext context;
@@ -43,9 +45,5 @@ public class HelloPlugin implements Plugin {
     @Override
     public void start(PluginContext context) {
         this.context = context;
-    }
-
-    public PluginContext getContext() {
-        return context;
     }
 }
