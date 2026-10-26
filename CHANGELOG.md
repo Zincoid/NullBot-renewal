@@ -36,6 +36,8 @@
 - Info、Help、Usage、Hello 卡片同步中性配色：移除左侧色条和蓝色 glow；Usage 计数使用浅蓝数据色。
 - 增加 `Info` 卡片底部留白，画布高度从 400 调整为 410。
 - 帮助卡片的插件提示文案移入 `Text`，移除未使用的 `HELP_LIST`、`HELP_PLUGIN`。
+- `Say` 卡片同步中性配色并移除左侧蓝色色条。
+- `gd-plugin` 排除未使用的 Netty native QUIC 依赖，并在 shade 中合并 LICENSE/NOTICE 与 Netty 版本元数据，消除重复资源警告。
 - 对齐 GD 搜索与 B20 列表的右侧列，并收紧关卡详情卡片底部留白。
 - GD B20 卡片右上角显示 GDDL 用户头像，新增 `gddl.avatar-base` 配置项。
 - `Info` 卡片左侧标签与右侧数值字体统一为 14px。
