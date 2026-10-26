@@ -50,9 +50,12 @@ public class GdPlugin implements Plugin {
             log.warn("GD image renderer unavailable; using text output", e);
             this.presenter = text;
         }
-        log.info("GD config: gddl={}, thumbnail={}, cacheTtl={}s, tierExponent={}",
+        log.info("GD config: gddl={}, thumbnail={}, cacheTtl={}s, tierExponent={}, "
+                        + "connectTimeout={}s, requestTimeout={}s, retries={}, proxy={}",
                 loaded.gddlBase(), loaded.thumbnailBase(),
-                loaded.cacheTtl().toSeconds(), loaded.tierExponent());
+                loaded.cacheTtl().toSeconds(), loaded.tierExponent(),
+                loaded.connectTimeout().toSeconds(), loaded.requestTimeout().toSeconds(),
+                loaded.retries(), loaded.proxy().isBlank() ? "none" : "set");
     }
 
     @Override

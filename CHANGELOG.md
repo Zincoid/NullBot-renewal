@@ -12,6 +12,8 @@
 - 新增 `say-plugin`：`Say`/`说` 指令将随机语录渲染为图片，左侧作者头像渐隐，右侧带引号展示语录；作者右对齐、字号略小于语录，支持通过 `@用户` 或用户 ID 指定作者。
 - 新增 `gd-plugin`：`GD`/`几何冲刺` 指令以图片卡片输出关卡搜索列表、关卡详情与 GDDL B20 评分；关卡详情内嵌社区缩略图（WebP 自动转为 PNG），数据通过 JDash 5.1.0 与 GDDL API 获取。
 - `GD rank` 按 `rt = tier^E × (进度/100)^1.5` 取最高的 20 条计算 B20，`E` 默认 1.5，可配置为 2；仅统计 GDDL 提交记录（`beaten`/`beating`）。
+- `gd-plugin` 的 GDDL/缩略图请求支持配置连接超时、请求超时、重试次数与 HTTP 代理，并缓存成功获取的缩略图。
+- `gd-plugin` 新增 `config.properties.example` 配置模板，列出代理、超时、缓存与 B20 配置项。
 - `say-plugin` 新增 Noto Serif CJK SC 与 Noto Emoji（均为 OFL）字体资源，用于 `Say` 语录卡片渲染。
 - `Say`/`说` 支持 `--id=<语录ID>` / `-i=<语录ID>` 获取指定语录。
 - `hello-plugin` 的 `Hello` 指令新增 `--image` 图片卡片输出示例。

@@ -39,6 +39,7 @@ final class GdService {
     private final GDClient gd;
     private final Map<Long, CacheEntry<Optional<GddlLevel>>> levelCache = new ConcurrentHashMap<>();
     private final Map<Long, CacheEntry<ScoreResult>> scoreCache = new ConcurrentHashMap<>();
+    private final Map<Long, CacheEntry<byte[]>> thumbnailCache = new ConcurrentHashMap<>();
 
     /**
      * 创建数据服务。
@@ -48,7 +49,7 @@ final class GdService {
      */
     GdService(GdConfig config) {
         this.config = config;
-        this.http = new GdHttp(config.userAgent());
+        this.http = new GdHttp(config);
         this.gd = GDClient.create();
     }
 
@@ -267,12 +268,29 @@ final class GdService {
      * @return the image bytes, or null when unavailable
      */
     byte[] thumbnail(long levelId) {
-        GdHttp.Response response = http.get(
-                config.thumbnailBase() + levelId, "image/*", MAX_THUMBNAIL_BYTES);
-        if (response.status() == 404) return null;
-        if (!response.ok()) throw new GdException("Thumbnail service returned HTTP " + response.status());
-        if (response.body().length == 0 || !response.contentType().startsWith("image/")) return null;
-        return response.body();
+        CacheEntry<byte[]> cached = thumbnailCache.get(levelId);
+        if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
+        try {
+            GdHttp.Response response = http.get(
+                    config.thumbnailBase() + levelId, "image/*", MAX_THUMBNAIL_BYTES);
+            if (response.status() == 404) return null;
+            if (!response.ok())
+                throw new GdException("Thumbnail service returned HTTP " + response.status());
+            if (response.body().length == 0 || !response.contentType().startsWith("image/"))
+                return null;
+            byte[] bytes = response.body();
+            if (thumbnailCache.size() > 64) thumbnailCache.clear();
+            thumbnailCache.put(levelId, new CacheEntry<>(bytes));
+            return bytes;
+        } catch (RuntimeException e) {
+            if (cached != null) {
+                log.warn("GD thumbnail refresh failed; using stale: id={}", levelId, e);
+                return cached.value();
+            }
+            throw e instanceof GdException gdException
+                    ? gdException
+                    : new GdException("Thumbnail query failed", e);
+        }
     }
 
     // ════ Helpers ═════════════════

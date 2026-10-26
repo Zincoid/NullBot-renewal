@@ -140,7 +140,9 @@ java -jar launcher/target/launcher-stdin.jar
 - `#GD level <关卡ID>`：按 ID 查看关卡详情；卡片内嵌社区缩略图（WebP 自动转为 PNG）。
 - `#GD rank <GDDL用户名|ID> [--all]`：按 GDDL 提交记录计算 B20，默认显示前 5 条，`--all` 显示完整 20 条。
 
-B20 单关 `rt = tier^E × (进度/100)^1.5`，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。其他可选配置：`cache-ttl`（秒，默认 600）、`gddl.api-base`、`thumbnail.base`、`http.user-agent`。
+B20 单关 `rt = tier^E × (进度/100)^1.5`，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。
+
+GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默认 8）、`http.request-timeout`（秒，默认 15）、`http.retries`（默认 1）、`http.proxy`（`host:port`，可选 HTTP 代理，暂不支持认证）、`cache-ttl`（秒，默认 600）、`gddl.api-base`、`thumbnail.base`、`http.user-agent`。服务器网络较慢时可使用代理或镜像地址，并适当增大超时；缩略图成功获取后会按 `cache-ttl` 缓存。配置模板见 `plugins/gd-plugin/config.properties.example`。
 
 ### 图片指令
 

@@ -14,21 +14,32 @@ import java.util.Properties;
  * GD 插件配置：环境变量优先，其次读取数据目录中的 config.properties。
  * <p>GD plugin configuration: environment variables win over config.properties in the data directory.</p>
  *
- * @param userAgent     HTTP user agent
- * @param gddlBase      GDDL API base URL
- * @param thumbnailBase thumbnail service base URL
- * @param cacheTtl      cache lifetime for GDDL data
- * @param tierExponent  exponent applied to the GDDL tier in the B20 formula
+ * @param userAgent      HTTP user agent
+ * @param gddlBase       GDDL API base URL
+ * @param thumbnailBase  thumbnail service base URL
+ * @param connectTimeout HTTP connect timeout
+ * @param requestTimeout HTTP request timeout
+ * @param retries        HTTP retry count after the first attempt
+ * @param proxy          optional HTTP proxy, host:port
+ * @param cacheTtl       cache lifetime for GDDL data and thumbnails
+ * @param tierExponent   exponent applied to the GDDL tier in the B20 formula
  */
 @Slf4j
 record GdConfig(
         String userAgent,
         String gddlBase,
         String thumbnailBase,
+        Duration connectTimeout,
+        Duration requestTimeout,
+        int retries,
+        String proxy,
         Duration cacheTtl,
         double tierExponent
 ) {
 
+    private static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(8);
+    private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(15);
+    private static final int DEFAULT_RETRIES = 1;
     private static final Duration DEFAULT_CACHE_TTL = Duration.ofMinutes(10);
     private static final double DEFAULT_TIER_EXPONENT = 1.5;
     private static final String DEFAULT_GDDL_BASE = "https://gdladder.com/api";
@@ -57,6 +68,16 @@ record GdConfig(
                 properties.getProperty("gddl.api-base", DEFAULT_GDDL_BASE));
         String thumbnailBase = env("GD_THUMBNAIL_BASE",
                 properties.getProperty("thumbnail.base", DEFAULT_THUMBNAIL_BASE));
+        Duration connectTimeout = seconds(env("GD_HTTP_CONNECT_TIMEOUT",
+                properties.getProperty("http.connect-timeout", "")),
+                DEFAULT_CONNECT_TIMEOUT, 1, 120);
+        Duration requestTimeout = seconds(env("GD_HTTP_REQUEST_TIMEOUT",
+                properties.getProperty("http.request-timeout", "")),
+                DEFAULT_REQUEST_TIMEOUT, 1, 300);
+        int retries = retries(env("GD_HTTP_RETRIES",
+                properties.getProperty("http.retries", "")), DEFAULT_RETRIES);
+        String proxy = env("GD_HTTP_PROXY",
+                properties.getProperty("http.proxy", "")).trim();
         Duration cacheTtl = ttl(env("GD_CACHE_TTL",
                 properties.getProperty("cache-ttl", "")), DEFAULT_CACHE_TTL);
         double tierExponent = exponent(env("GD_TIER_EXPONENT",
@@ -65,6 +86,10 @@ record GdConfig(
                 userAgent.isBlank() ? "NullBot-GD/1.0" : userAgent,
                 trimSlash(gddlBase, DEFAULT_GDDL_BASE),
                 ensureSlash(thumbnailBase, DEFAULT_THUMBNAIL_BASE),
+                connectTimeout,
+                requestTimeout,
+                retries,
+                proxy,
                 cacheTtl,
                 tierExponent
         );
@@ -82,6 +107,26 @@ record GdConfig(
         try {
             long seconds = Long.parseLong(raw.trim());
             return seconds >= 30 ? Duration.ofSeconds(seconds) : fallback;
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    private static Duration seconds(String raw, Duration fallback, long min, long max) {
+        if (raw == null || raw.isBlank()) return fallback;
+        try {
+            long value = Long.parseLong(raw.trim());
+            return value >= min && value <= max ? Duration.ofSeconds(value) : fallback;
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    private static int retries(String raw, int fallback) {
+        if (raw == null || raw.isBlank()) return fallback;
+        try {
+            int value = Integer.parseInt(raw.trim());
+            return value >= 0 && value <= 5 ? value : fallback;
         } catch (NumberFormatException e) {
             return fallback;
         }

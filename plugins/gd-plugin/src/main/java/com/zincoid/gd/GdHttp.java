@@ -2,6 +2,8 @@ package com.zincoid.gd;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,31 +12,34 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 /**
- * GD 插件使用的 HTTP 工具：限制超时与响应体大小。
- * <p>HTTP helper for the GD plugin: limits timeouts and response body size.</p>
+ * GD 插件使用的 HTTP 工具：限制超时、重试与响应体大小。
+ * <p>HTTP helper for the GD plugin: limits timeouts, retries, and response body size.</p>
  */
 final class GdHttp {
 
-    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(8);
-    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(15);
-    private static final int ATTEMPTS = 2;
     private static final long RETRY_DELAY_MILLIS = 250;
 
-    private final HttpClient client = HttpClient.newBuilder()
-            .connectTimeout(CONNECT_TIMEOUT)
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .version(HttpClient.Version.HTTP_1_1)
-            .build();
+    private final HttpClient client;
     private final String userAgent;
+    private final Duration requestTimeout;
+    private final int attempts;
 
     /**
      * 创建 HTTP 工具。
      * <p>Creates the HTTP helper.</p>
      *
-     * @param userAgent the user agent header
+     * @param config the plugin configuration
      */
-    GdHttp(String userAgent) {
-        this.userAgent = userAgent;
+    GdHttp(GdConfig config) {
+        HttpClient.Builder builder = HttpClient.newBuilder()
+                .connectTimeout(config.connectTimeout())
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .version(HttpClient.Version.HTTP_1_1);
+        if (!config.proxy().isBlank()) builder.proxy(proxy(config.proxy()));
+        this.client = builder.build();
+        this.userAgent = config.userAgent();
+        this.requestTimeout = config.requestTimeout();
+        this.attempts = config.retries() + 1;
     }
 
     /**
@@ -50,7 +55,7 @@ final class GdHttp {
         HttpRequest.Builder builder;
         try {
             builder = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(REQUEST_TIMEOUT)
+                    .timeout(requestTimeout)
                     .header("User-Agent", userAgent)
                     .GET();
         } catch (IllegalArgumentException e) {
@@ -59,7 +64,7 @@ final class GdHttp {
         if (accept != null && !accept.isBlank()) builder.header("Accept", accept);
         HttpRequest request = builder.build();
         IOException last = null;
-        for (int attempt = 1; attempt <= ATTEMPTS; attempt++) {
+        for (int attempt = 1; attempt <= attempts; attempt++) {
             try {
                 HttpResponse<InputStream> response = client.send(
                         request, HttpResponse.BodyHandlers.ofInputStream());
@@ -78,7 +83,7 @@ final class GdHttp {
                 throw new GdException("HTTP request interrupted", e);
             } catch (IOException e) {
                 last = e;
-                if (attempt < ATTEMPTS) {
+                if (attempt < attempts) {
                     try {
                         Thread.sleep(RETRY_DELAY_MILLIS);
                     } catch (InterruptedException interrupted) {
@@ -89,6 +94,26 @@ final class GdHttp {
             }
         }
         throw new GdException("HTTP request failed", last);
+    }
+
+    private static ProxySelector proxy(String raw) {
+        String value = raw.trim();
+        if (value.startsWith("http://")) value = value.substring("http://".length());
+        else if (value.startsWith("https://")) value = value.substring("https://".length());
+        int split = value.lastIndexOf(':');
+        if (split <= 0 || split == value.length() - 1)
+            throw new GdException("Invalid proxy: " + raw);
+        String host = value.substring(0, split);
+        if (host.startsWith("[") && host.endsWith("]"))
+            host = host.substring(1, host.length() - 1);
+        int port;
+        try {
+            port = Integer.parseInt(value.substring(split + 1));
+        } catch (NumberFormatException e) {
+            throw new GdException("Invalid proxy: " + raw, e);
+        }
+        if (port < 1 || port > 65535) throw new GdException("Invalid proxy: " + raw);
+        return ProxySelector.of(InetSocketAddress.createUnresolved(host, port));
     }
 
     /**
