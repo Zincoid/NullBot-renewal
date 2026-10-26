@@ -11,8 +11,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * 游戏插件：Wife、Guess、Quiz 与 Say 共用一个插件数据目录。
- * <p>Game plugin: Wife, Guess, Quiz, and Say share one plugin data directory.</p>
+ * 游戏插件：Wife、Guess 与 Quiz 共用一个插件数据目录。
+ * <p>Game plugin: Wife, Guess, and Quiz share one plugin data directory.</p>
  */
 @Slf4j
 public class GamePlugin implements Plugin {
@@ -37,7 +37,7 @@ public class GamePlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new WifeCmd(this), new GuessCmd(this), new QuizCmd(this), new SayCmd(this));
+        return List.of(new WifeCmd(this), new GuessCmd(this), new QuizCmd(this));
     }
 
     @Override

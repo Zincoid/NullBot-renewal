@@ -126,7 +126,8 @@ java -jar launcher/target/launcher-stdin.jar
 | --- | --- |
 | `hello` | `#Hello`（别名 `#你好`） |
 | `gallery` | `#Anime`（别名 `#二次元`）、`#Zincoid`（别名 `#zn`、`#锌`） |
-| `game` | `#Wife`（别名 `#今日老婆`）、`#Guess`（别名 `#猜`）、`#Quiz`（别名 `#问答`）、`#Say`（别名 `#说`） |
+| `game` | `#Wife`（别名 `#今日老婆`）、`#Guess`（别名 `#猜`）、`#Quiz`（别名 `#问答`） |
+| `say` | `#Say`（别名 `#说`） |
 | `pubg` | `#PUBG`（别名 `#吃鸡地图`） |
 | `query` | `#AA`（别名 `#模型查询`）、`#PRTS`（别名 `#PRTS查询`）、`#Trace`（别名 `#图溯源`、`#溯源`） |
 | `sb6657` | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
@@ -137,7 +138,7 @@ java -jar launcher/target/launcher-stdin.jar
 - `#Usage` / `#用量`：当前用户的历史指令用量卡片
 - `#Info`：系统信息
 - `#Help` / `#帮助`：内置指令与插件列表；`#Help -p=<插件>` 查看指定插件
-- `#Say` / `#说`：`game-plugin` 提供的随机语录卡片，左侧作者头像渐隐，可通过 `@用户` 或用户 ID 指定作者
+- `#Say` / `#说`：`say-plugin` 提供的随机语录卡片，左侧作者头像渐隐，可通过 `@用户` 或用户 ID 指定作者
 
 ## 字体
 
@@ -152,7 +153,8 @@ java -jar launcher/target/launcher-stdin.jar
 
 | 字体 | 插件 | 用途 |
 | --- | --- | --- |
-| Noto Serif CJK SC（OFL） | `game-plugin` | `Say` 语录卡片，斜体中英混排 |
+| Noto Serif CJK SC（OFL） | `say-plugin` | `Say` 语录卡片，斜体中英混排 |
+| Noto Emoji（OFL） | `say-plugin` | `Say` 语录卡片中的 emoji 文本 |
 | Bernard MT Condensed | `hello-plugin` | `Hello --image` 标题示例 |
 
 字体注册是 JVM 全局的，插件卸载后不会撤销。`Bernard MT Condensed` 为商业字体，分发前请确认授权。

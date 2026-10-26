@@ -15,22 +15,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>gg.jte</groupId>
-                <artifactId>jte-maven-plugin</artifactId>
-                <configuration>
-                    <sourceDirectory>${project.basedir}/src/main/resources/templates</sourceDirectory>
-                    <targetDirectory>${project.build.directory}/generated-sources/jte</targetDirectory>
-                    <contentType>Plain</contentType>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
             </plugin>
