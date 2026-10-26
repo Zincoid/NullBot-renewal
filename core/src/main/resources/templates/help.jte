@@ -1,6 +1,7 @@
 @param String heading
 @param String title
 @param String count
+@param String tip
 @param java.util.List<String> names
 @param int rows
 @param int height
@@ -26,6 +27,8 @@
           fill="#FFFFFF">${title}</text>
     <text x="40" y="130" font-family="Noto Sans Mono CJK SC" font-size="13"
           fill="#C5CCDA">${count}</text>
+    <text x="920" y="130" text-anchor="end" font-family="Noto Sans Mono CJK SC" font-size="12"
+          fill="#8FA0B8">${tip}</text>
     <rect x="40" y="146" width="880" height="1" fill="#232A36"/>
 
     @for(int i = 0; i < names.size(); i++)

@@ -60,6 +60,7 @@ public enum Text {
     HELP_PLUGIN_NOT_FOUND("插件不存在：%s", "Plugin not found: %s"),
     HELP_PLUGIN_MISSING("缺少插件名", "Missing plugin name"),
     HELP_NONE("无", "None"),
+    HELP_DETAIL("指令名 -H 查看详情", "Cmd -H for details"),
     CMD_WARN("⚠️ 警告：%s", "⚠️ Warn: %s"),
     CMD_ERROR("❌ 错误：%s", "❌ Error: %s"),
 

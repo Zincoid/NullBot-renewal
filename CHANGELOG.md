@@ -21,6 +21,7 @@
 - 渲染字体：内置 JetBrains Mono 与 Noto Sans Mono CJK SC（均为 OFL），移除 Monorama；`Usage`、`Info`、`Help` 统一为深色卡片风格，值文本支持中英混排。
 - `game-plugin` 的 `Say` 语录卡片改用 Noto Serif CJK SC 斜体，移除分隔线；作者行使用双倍宽破折号（U+2E3A）并加粗，同时加大与语录的间距。
 - 优化 `Usage` 用量卡片的布局与视觉样式。
+- `Help` 帮助卡片在指令数量行右侧提示通过 `指令名 -H` 查看指令详情。
 - 提高 `Usage`、`Info`、`Help` 等渲染模板的 SVG 输出尺寸，提升图片清晰度。
 - 合并插件渲染入口为 `PluginContext.renderer()`，宿主与插件共用 `JteSvgRenderer` 渲染管线，字体重复注册与模板类读取错误处理更明确。
 - 重构插件加载与注册流程：指令与工具注册统一回滚，插件状态新增工具列表。

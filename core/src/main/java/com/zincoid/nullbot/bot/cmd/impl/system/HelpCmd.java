@@ -102,6 +102,7 @@ public class HelpCmd implements Cmd {
                     "heading", heading,
                     "title", title,
                     "count", names.size() + (names.size() == 1 ? " COMMAND" : " COMMANDS"),
+                    "tip", Text.HELP_DETAIL.of(ctx.language()),
                     "names", names,
                     "rows", rows,
                     "height", height,
