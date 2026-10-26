@@ -74,6 +74,7 @@ public enum GdText {
     SEARCH_FAILED("几何冲刺服务器查询失败，请稍后重试",
             "Geometry Dash request failed; try again later"),
     NO_LEVELS("未找到关卡", "No levels found"),
+    PAGE_LAST("已经是最后一页", "Already on the last page"),
     WAIT_CONFLICT("当前会话已有等待中的操作，请稍后再试",
             "Another input wait is active in this chat; try again later"),
     SELECT_TIMEOUT("选择超时", "Selection timed out"),
@@ -112,8 +113,8 @@ public enum GdText {
 
     SEARCH_TITLE("搜索 \"%s\" · 第 %d 页", "Search \"%s\" · page %d"),
     HEAD_LEVEL("关卡", "Level"),
-    SEARCH_PROMPT("回复序号查看详情，end 取消（%d 秒）",
-            "Reply with a number to view details, or end to cancel (%d s)"),
+    SEARCH_PROMPT("回复序号查看详情，next 下一页，end 取消（%d 秒）",
+            "Reply with a number, next for the next page, or end to cancel (%d s)"),
     AUTHOR("作者", "Author"),
     DIFFICULTY("难度", "Difficulty"),
     DOWNLOADS("下载", "Downloads"),

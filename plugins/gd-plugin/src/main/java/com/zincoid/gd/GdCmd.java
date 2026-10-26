@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class GdCmd implements Cmd {
 
     private static final long WAIT_SECONDS = 30;
-    private static final String WAIT_PATTERN = "\\s*(?:[0-9]+|(?i:end))\\s*";
+    private static final String WAIT_PATTERN = "\\s*(?:[0-9]+|(?i:end|next))\\s*";
 
     private final GdPlugin plugin;
 
@@ -103,7 +103,7 @@ public class GdCmd implements Cmd {
         SearchView view = new SearchView(
                 query, page, GdViewMapper.summaries(levels), WAIT_SECONDS);
         ctx.send(plugin.presenter().search(ctx.language(), view));
-        waitAndShow(ctx, levels, targetId, userId, group);
+        waitAndShow(ctx, query, filter, page, levels, targetId, userId, group);
     }
 
     private LevelSearchFilter filter(CmdContext ctx, CmdArgs args) {
@@ -141,9 +141,12 @@ public class GdCmd implements Cmd {
         return filter;
     }
 
-    private void waitAndShow(CmdContext ctx, List<GDLevel> levels,
+    private void waitAndShow(CmdContext ctx, String query, LevelSearchFilter filter,
+                             int page, List<GDLevel> levels,
                              String targetId, String userId, boolean group) {
         InputMode mode = group ? InputMode.GS : InputMode.PS;
+        int currentPage = page;
+        List<GDLevel> currentLevels = levels;
         while (true) {
             List<InputResult> inputs;
             try {
@@ -162,17 +165,41 @@ public class GdCmd implements Cmd {
             String value = input.message().trim();
             if (value.equalsIgnoreCase("end"))
                 throw new CmdInfoException(GdText.CANCELLED.of(ctx.language()));
+            if (value.equalsIgnoreCase("next")) {
+                try {
+                    List<GDLevel> next = plugin.service().search(query, filter, currentPage);
+                    if (next.isEmpty()) {
+                        ctx.send(GdText.PAGE_LAST.of(ctx.language()));
+                        continue;
+                    }
+                    currentPage++;
+                    if (next.size() == 1) {
+                        showLevel(ctx, next.getFirst());
+                        return;
+                    }
+                    currentLevels = next;
+                    SearchView view = new SearchView(
+                            query, currentPage, GdViewMapper.summaries(next), WAIT_SECONDS);
+                    ctx.send(plugin.presenter().search(ctx.language(), view));
+                    continue;
+                } catch (GdException e) {
+                    log.warn("GD search page failed: query={}, page={}",
+                            query, currentPage + 1, e);
+                    ctx.send(GdText.SEARCH_FAILED.of(ctx.language()));
+                    continue;
+                }
+            }
             int index;
             try {
                 index = Integer.parseInt(value);
             } catch (NumberFormatException e) {
                 continue;
             }
-            if (index < 1 || index > levels.size()) {
+            if (index < 1 || index > currentLevels.size()) {
                 ctx.send(GdText.INDEX_OUT_OF_RANGE.of(ctx.language()));
                 continue;
             }
-            showLevel(ctx, levels.get(index - 1));
+            showLevel(ctx, currentLevels.get(index - 1));
             return;
         }
     }

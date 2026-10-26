@@ -138,7 +138,7 @@ java -jar launcher/target/launcher-stdin.jar
 
 `#GD` / `#几何冲刺`（`gd-plugin`）提供 Geometry Dash 关卡查询与 GDDL B20 评分，搜索结果、关卡详情与 B20 均以图片卡片输出：
 
-- `#GD search <关键词> [--diff=...] [--demon=...] [--length=...] [--filter=...] [--page=N]`：搜索关卡，回复序号查看详情。
+- `#GD search <关键词> [--diff=...] [--demon=...] [--length=...] [--filter=...] [--page=N]`：搜索关卡，回复序号查看详情，回复 `next` 翻到下一页。
 - `#GD level <关卡ID>`：按 ID 查看关卡详情；卡片内嵌社区缩略图（WebP 自动转为 PNG）。
 - `#GD gddl [GDDL用户名|ID] [--all]`：查询指定 GDDL 用户的 B20；省略用户名时查询当前绑定账号。默认显示前 5 条，`--all` 显示完整 20 条。
 - `#GD gddl --bind=<GDDL用户名|ID>`：绑定当前聊天用户的 GDDL 账号；已有绑定不会覆盖。
