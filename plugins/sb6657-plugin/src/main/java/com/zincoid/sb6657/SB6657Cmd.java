@@ -7,16 +7,13 @@ import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.platform.exception.PlatformException;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
+import java.io.IOException;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 
 /**
  * SB6657 指令：从接口随机获取一条玩机器烂梗并发送。
@@ -25,15 +22,6 @@ import java.time.Duration;
 @Slf4j
 @CmdMapping({"SB6657", "6657", "玩机器", "玩机器烂梗"})
 public class SB6657Cmd implements Cmd {
-
-    private static final String API_URL = "https://api.hguofichp.cn/machine/getRandOne";
-    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
-    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(15);
-
-    private static final HttpClient CLIENT = HttpClient.newBuilder()
-            .connectTimeout(CONNECT_TIMEOUT)
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
 
     // ════ Run ═════════════════════
 
@@ -54,7 +42,7 @@ public class SB6657Cmd implements Cmd {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new CmdWarnException(SB6657Text.INTERRUPTED.of(ctx.language()));
-        } catch (Exception e) {
+        } catch (SB6657Exception e) {
             log.warn("SB6657 request failed", e);
             throw new CmdWarnException(SB6657Text.REQUEST_FAILED.of(ctx.language()));
         }
@@ -64,20 +52,25 @@ public class SB6657Cmd implements Cmd {
 
     // ════ Helpers ═════════════════
 
-    private static MachineData fetch() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))
-                .timeout(REQUEST_TIMEOUT)
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-        HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+    private static MachineData fetch() throws InterruptedException {
+        HttpResponse<String> response;
+        try {
+            response = SB6657Http.get();
+        } catch (IOException e) {
+            throw new SB6657Exception("Request failed", e);
+        }
         if (response.statusCode() != 200)
-            throw new IllegalStateException("HTTP " + response.statusCode());
-        MachineResp resp = JsonUtils.parse(response.body(), MachineResp.class);
+            throw new SB6657Exception("HTTP " + response.statusCode());
+        MachineResp resp;
+        try {
+            resp = JsonUtils.parse(response.body(), MachineResp.class);
+        } catch (PlatformException e) {
+            throw new SB6657Exception("Invalid response", e);
+        }
         if (resp == null || resp.code() == null || resp.code() != 200
                 || resp.data() == null || resp.data().barrage() == null
                 || resp.data().barrage().isBlank())
-            throw new IllegalStateException("Invalid response: " + resp);
+            throw new SB6657Exception("Invalid response: " + resp);
         return resp.data();
     }
 
