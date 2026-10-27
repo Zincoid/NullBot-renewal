@@ -108,7 +108,7 @@ QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg
 插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；可注册指令、AI 工具与图片渲染，支持 JAR 热插拔、独立数据目录和运行时启停。
 
 - 开发指南：[PLUGIN.md](PLUGIN.md)
-- 入门示例：[plugins/hello-plugin](plugins/hello-plugin)
+- 入门示例：[plugins/hello-plugin](plugins/hello-plugin)；其 `config.properties` 提供 `hello.data` 测试配置，`#Hello` 的 `Data:` 会输出该键值对
 - 完整示例：[plugins/gd-plugin](plugins/gd-plugin)、[plugins/query-plugin](plugins/query-plugin)
 
 插件默认启用；将 JAR 放入 `nullbot.plugin.dir`（默认 `./plugins`），或在控制台“插件”页上传，成功加载后才会注册指令。执行 `./mvnw package` 后，声明了复制步骤的插件 JAR 会进入 `workspace/plugins/`。控制台“插件数据”弹窗分为“配置”和“文件”两页：配置页编辑 `config.properties` 并可保存后重载插件，文件页管理插件数据文件。

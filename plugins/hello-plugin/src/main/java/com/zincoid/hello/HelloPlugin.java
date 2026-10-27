@@ -5,6 +5,7 @@ import com.zincoid.hello.tool.HelloTool;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
+import com.zincoid.nullbot.bot.plugin.PluginResources;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 
 import java.util.List;
@@ -39,6 +40,7 @@ public class HelloPlugin implements Plugin {
 
     @Override
     public void start(PluginContext context) {
+        PluginResources.extract(HelloPlugin.class, "/config.properties", context.dataDir());
         this.context = context;
     }
 

@@ -384,7 +384,7 @@ core 提供以下排版工具，避免每个插件重复测量、截断和列对
 - 缓存、绑定、用户数据等持久化文件；
 - 解压后的随包资源。
 
-配置读取通常遵循“环境变量优先、其次 `config.properties`”的约定，示例见 `gd-plugin/config` 与 `query-plugin/config`。简单配置可以直接用 `Properties` 读取，不需要引入额外框架。
+配置读取通常遵循“环境变量优先、其次 `config.properties`”的约定，示例见 `gd-plugin/config` 与 `query-plugin/config`；最小示例见 `hello-plugin/config`。简单配置可以直接用 `Properties` 读取，不需要引入额外框架。
 
 插件可把默认配置放在 `src/main/resources/config.properties`，在 `start()` 中调用 `PluginResources.extract(...)`：
 
