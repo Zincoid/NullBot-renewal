@@ -148,6 +148,7 @@ public final class GdImagePresenter implements GdPresenter {
     public MsgContent gddlB20(Language language, GddlB20View view) {
         try {
             List<List<String>> rows = new ArrayList<>();
+            List<List<String>> cellColors = new ArrayList<>();
             int limit = Math.min(view.limit(), view.top().size());
             for (int i = 0; i < limit; i++) {
                 GddlB20View.Play play = view.top().get(i);
@@ -158,6 +159,7 @@ public final class GdImagePresenter implements GdPresenter {
                         GdText.TIER_VALUE.of(language, play.tier(), play.rating()),
                         play.progress() + "%",
                         format(play.rt())));
+                cellColors.add(b20RowColors(play.tier()));
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
@@ -167,7 +169,8 @@ public final class GdImagePresenter implements GdPresenter {
                     new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.MIDDLE),
                     new SvgColumn("rt", 120, SvgAlign.END));
             List<SvgCell> cells = SvgTable.build(
-                    40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
+                    40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE",
+                    cellColors);
             String stats1 = GdText.COMPLETED.of(language) + " " + view.beatenTotal()
                     + " · " + GdText.IN_PROGRESS.of(language) + " " + view.beatingTotal();
             String stats2 = GdText.HIGHEST_TIER.of(language) + " " + view.highestTier()
@@ -201,6 +204,7 @@ public final class GdImagePresenter implements GdPresenter {
     public MsgContent localB20(Language language, LocalB20View view) {
         try {
             List<List<String>> rows = new ArrayList<>();
+            List<List<String>> cellColors = new ArrayList<>();
             int limit = Math.min(view.limit(), view.top().size());
             for (int i = 0; i < limit; i++) {
                 LocalB20View.Play play = view.top().get(i);
@@ -211,6 +215,7 @@ public final class GdImagePresenter implements GdPresenter {
                         GdText.TIER_VALUE.of(language, play.tier(), play.rating()),
                         play.progress() + "%",
                         format(play.rt())));
+                cellColors.add(b20RowColors(play.tier()));
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
@@ -220,7 +225,8 @@ public final class GdImagePresenter implements GdPresenter {
                     new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.MIDDLE),
                     new SvgColumn("rt", 120, SvgAlign.END));
             List<SvgCell> cells = SvgTable.build(
-                    40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
+                    40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE",
+                    cellColors);
             String stats1 = GdText.COMPLETED.of(language) + " " + view.beatenTotal()
                     + " · " + GdText.IN_PROGRESS.of(language) + " " + view.beatingTotal();
             String stats2 = GdText.HIGHEST_TIER.of(language) + " " + view.highestTier()
@@ -321,6 +327,11 @@ public final class GdImagePresenter implements GdPresenter {
 
     private static String statLabel(String icon, GdText text, Language language) {
         return SvgText.escape(icon + " " + text.of(language).toUpperCase(Locale.ROOT));
+    }
+
+    private static List<String> b20RowColors(int tier) {
+        String color = tierAccent(tier);
+        return List.of(color, color, color, color, color, color);
     }
 
     private static String tierAccent(int tier) {

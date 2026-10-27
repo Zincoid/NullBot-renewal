@@ -34,6 +34,32 @@ public final class SvgTable {
                                       List<SvgColumn> columns, List<List<String>> rows,
                                       int headerSize, int rowSize,
                                       String headerColor, String rowColor) {
+        return build(x, headerY, rowY, rowGap, columns, rows,
+                headerSize, rowSize, headerColor, rowColor, null);
+    }
+
+    /**
+     * 构建表格单元格，并允许逐单元格覆盖文字颜色。
+     * <p>Builds table cells with optional per-cell text color overrides.</p>
+     *
+     * @param x           the left x coordinate
+     * @param headerY     the header baseline y coordinate
+     * @param rowY        the first data row baseline y coordinate
+     * @param rowGap      the baseline gap between data rows
+     * @param columns     the columns
+     * @param rows        the data rows
+     * @param headerSize  the header font size
+     * @param rowSize     the data font size
+     * @param headerColor the header fill color
+     * @param rowColor    the default data fill color
+     * @param cellColors  per-row color overrides, nullable; blank entries fall back to rowColor
+     * @return the positioned cells
+     */
+    public static List<SvgCell> build(double x, int headerY, int rowY, int rowGap,
+                                      List<SvgColumn> columns, List<List<String>> rows,
+                                      int headerSize, int rowSize,
+                                      String headerColor, String rowColor,
+                                      List<List<String>> cellColors) {
         if (columns == null || columns.isEmpty()) return List.of();
         double[] starts = new double[columns.size()];
         double cursor = x;
@@ -50,10 +76,17 @@ public final class SvgTable {
         if (rows == null) return cells;
         for (int row = 0; row < rows.size(); row++) {
             List<String> values = rows.get(row);
+            List<String> overrides = cellColors != null && row < cellColors.size()
+                    ? cellColors.get(row) : null;
             int y = rowY + row * rowGap;
             for (int i = 0; i < columns.size(); i++) {
                 String value = values != null && i < values.size() ? values.get(i) : "";
-                add(cells, value, starts[i], columns.get(i), y, rowSize, rowColor);
+                String color = rowColor;
+                if (overrides != null && i < overrides.size()) {
+                    String override = overrides.get(i);
+                    if (override != null && !override.isBlank()) color = override;
+                }
+                add(cells, value, starts[i], columns.get(i), y, rowSize, color);
             }
         }
         return cells;
