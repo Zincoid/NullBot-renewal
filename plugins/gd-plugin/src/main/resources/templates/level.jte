@@ -65,7 +65,7 @@
     <rect x="56" y="431" width="112" height="54" rx="8" fill="${gddl.accent()}"
           fill-opacity="0.14" stroke="${gddl.accent()}" stroke-opacity="0.45"/>
     <text x="112" y="447" text-anchor="middle" font-family="JetBrains Maple Mono"
-          font-size="10" letter-spacing="1.2" fill="${gddl.accent()}">${gddl.label()}</text>
+          font-size="10" fill="${gddl.accent()}">${gddl.label()}</text>
     <text x="112" y="476" text-anchor="middle" font-family="JetBrains Maple Mono"
           font-size="26" font-weight="bold" fill="#F2F3F5">${gddl.tier()}</text>
     <text x="190" y="452" font-family="JetBrains Maple Mono" font-size="15"
