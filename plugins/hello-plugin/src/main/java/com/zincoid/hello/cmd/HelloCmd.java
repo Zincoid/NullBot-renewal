@@ -31,7 +31,7 @@ import java.util.Properties;
 public class HelloCmd implements Cmd {
 
     private static final String DATA_KEY = "hello.data";
-    private static final String DEFAULT_DATA_VALUE = "hello-plugin-test";
+    private static final String DEFAULT_DATA_VALUE = "hello-plugin-default";
 
     private final PluginContext context;
     private final String pluginId;
