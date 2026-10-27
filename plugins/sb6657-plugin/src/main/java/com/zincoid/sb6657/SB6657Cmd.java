@@ -13,7 +13,12 @@ import com.zincoid.nullbot.platform.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 /**
  * SB6657 指令：从接口随机获取一条玩机器烂梗并发送。
@@ -22,6 +27,15 @@ import java.net.http.HttpResponse;
 @Slf4j
 @CmdMapping({"SB6657", "6657", "玩机器", "玩机器烂梗"})
 public class SB6657Cmd implements Cmd {
+
+    private static final String API_URL = "https://api.hguofichp.cn/machine/getRandOne";
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(15);
+
+    private static final HttpClient CLIENT = HttpClient.newBuilder()
+            .connectTimeout(CONNECT_TIMEOUT)
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
 
     // ════ Run ═════════════════════
 
@@ -55,7 +69,13 @@ public class SB6657Cmd implements Cmd {
     private static MachineData fetch() throws InterruptedException {
         HttpResponse<String> response;
         try {
-            response = SB6657Http.get();
+            HttpRequest request = HttpRequest.newBuilder(URI.create(API_URL))
+                    .timeout(REQUEST_TIMEOUT)
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+            response = CLIENT.send(request,
+                    HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new SB6657Exception("Request failed", e);
         }
