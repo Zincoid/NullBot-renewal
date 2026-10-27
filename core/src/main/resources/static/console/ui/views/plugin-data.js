@@ -283,10 +283,13 @@ function pluginDataRow(entry, index) {
                    data-action="open" data-index="${index}" title="${title}"
                    aria-label="${escapeHtml(t('plugins.dataOpen'))}: ${title}">${name}</button>`
         : `<span class="file-name" title="${title}">${name}</span>`;
-    const action = isDir
-        ? '<span class="muted">-</span>'
-        : `<button type="button" class="small btn-download" data-action="download"
-                   data-index="${index}">${escapeHtml(t('common.download'))}</button>`;
+    const actions = [];
+    if (!isDir) {
+        actions.push(`<button type="button" class="small btn-download" data-action="download"
+                   data-index="${index}">${escapeHtml(t('common.download'))}</button>`);
+    }
+    actions.push(`<button type="button" class="small danger btn-delete" data-action="delete"
+                   data-index="${index}">${escapeHtml(t('common.delete'))}</button>`);
     return `
         <tr>
             <td class="check-col"><input type="checkbox" class="plugin-data-select"
@@ -296,7 +299,7 @@ function pluginDataRow(entry, index) {
             <td class="nowrap">${escapeHtml(isDir ? t('plugins.dataTypeDir') : t('plugins.dataTypeFile'))}</td>
             <td class="nowrap">${isDir ? '-' : formatBytes(entry.size)}</td>
             <td class="nowrap">${escapeHtml(formatTime(entry.modified))}</td>
-            <td class="actions">${action}</td>
+            <td class="actions">${actions.join(' ')}</td>
         </tr>`;
 }
 
@@ -463,6 +466,42 @@ async function deletePluginDataSelection() {
     }
 }
 
+async function deletePluginDataEntry(entry) {
+    if (!entry || pluginDataState.busy) return;
+    if (!await confirmAction(t('plugins.dataDeleteOneConfirm', {name: entry.name}))) return;
+    const jar = pluginDataState.jar;
+    const path = pluginDataState.path;
+    const generation = pluginDataState.generation;
+    pluginDataState.busy = true;
+    updatePluginDataToolbar();
+    try {
+        const result = await api('/plugins/' + encodeURIComponent(jar) + '/data/delete', {
+            method: 'POST',
+            body: JSON.stringify({path, names: [entry.name]})
+        });
+        if (pluginDataState.generation !== generation || pluginDataState.jar !== jar) return;
+        const item = result && Array.isArray(result.items) ? result.items[0] : null;
+        if (!item || !item.ok) {
+            const message = item && item.error
+                ? item.error
+                : t('plugins.dataDeleteDone', {ok: 0, fail: 1});
+            toast(t('plugins.dataDeleteFailed', {msg: message}), 'error');
+            return;
+        }
+        pluginDataState.selection.delete(entry.name);
+        toast(t('plugins.dataDeleted', {name: entry.name}), 'ok');
+        await loadPluginData();
+    } catch (e) {
+        if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+            toast(t('plugins.dataDeleteFailed', {msg: e.message}), 'error');
+    } finally {
+        if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+            pluginDataState.busy = false;
+            updatePluginDataToolbar();
+        }
+    }
+}
+
 async function downloadPluginData(entry) {
     if (!entry || entry.type === 'dir') return;
     const jar = pluginDataState.jar;
@@ -532,6 +571,7 @@ export function bind() {
         updatePluginDataToolbar();
     });
     $('plugin-data-body').addEventListener('click', event => {
+        if (pluginDataState.busy) return;
         const button = event.target.closest('button[data-action]');
         if (!button) return;
         const entry = pluginDataState.entries[Number(button.dataset.index)];
@@ -542,6 +582,8 @@ export function bind() {
                 : entry.name);
         } else if (button.dataset.action === 'download') {
             downloadPluginData(entry);
+        } else if (button.dataset.action === 'delete') {
+            deletePluginDataEntry(entry);
         }
     });
     $('plugin-data-body').addEventListener('change', event => {

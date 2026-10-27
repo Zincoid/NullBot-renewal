@@ -15,6 +15,7 @@
 - 插件配置页的“保存并重载”改为带重载图标的按钮，`config.properties` 改为带文件图标的纯文本标签，并与工具栏按钮对齐；配置状态提示移到按钮行左侧。
 - 插件列表中的 JAR 文件名改为普通文本显示。
 - `hello-plugin` 新增测试配置：首次加载自动创建 `config.properties`，`Hello` 指令的 `Data:` 输出改为配置项 `hello.data=<value>`（默认 `hello-plugin-test`）。
+- 控制台插件数据文件列表为每个条目新增独立删除按钮，文件夹支持逐项删除。
 
 ### Fixed
 
