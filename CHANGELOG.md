@@ -2,35 +2,21 @@
 
 本项目的所有重要变更都记录在此文件，格式参考 Keep a Changelog。
 
-## [Unreleased]
-
-### Added
-
-- 新增 `adapter-qq`：QQ 官方机器人 WebSocket 适配器，支持 QQ 群与 C2C 私聊、主动文本与富媒体发送（不携带 `msg_id`，避免被动回复自动 @）、token 自动刷新、断线 Resume 与重连；构建产物为 `launcher-qq.jar`。
-- 适配器使用平台消息 ID 的稳定短 ID 映射，兼容现有 `message.id` 字段长度；支持群信息/成员白名单接口、禁言与撤回，并在无权限时回退。
-
-### Changed
-
-- `#Usage` 在缺少用户头像时改用占位头像渲染，不再直接失败；QQ 官方机器人等无法获取头像的平台也可正常使用。
-- 群聊消息同时 @机器人 并携带指令时优先执行指令，未匹配指令才进入 AI 对话；开头的提及段与引用段不再阻止指令解析。
-- `adapter-qq` 的配置项 `nullbot.qq.api-base` 更名为 `nullbot.qq.api-url`，旧键不再读取。
-- `adapter-qq` 拆分 HTTP/token、OpenAPI、媒体、入站路由与客户端工厂，统一会话目标 `QqTarget`；公开行为不变。
-- `gd-plugin` 将 GDDL B20 从 `#GD gddl` 拆分为独立指令 `#GDDL`，`#GD`/`#几何冲刺` 保留关卡搜索与详情。
-- `gd-plugin` 重做关卡详情卡片：放大缩略图，统计改为带图标和标签的 2×2 信息块，GDDL 独立面板并增加 Tier 强调色，描述支持最多两行，并微调框内文字垂直对齐。
-- `gd-plugin` 加宽 B20 关卡列表的 ID 列，避免长关卡 ID 被截断。
-- `gd-plugin` 将 GDDL 面板宽度对齐缩略图，评分与享受标签缩写为 `Rt.`/`Enj.`，描述移至歌曲下方并支持最多四行。
-- `gd-plugin` 关卡物体数达到 GD 接口上限 65535 时显示为 `65,535+`，避免误认为是精确值。
-
 ## [1.1.0] - 2026-10-27
 
 ### Added
+
+**适配器**
+
+- 新增 `adapter-qq`：QQ 官方机器人 WebSocket 适配器，支持 QQ 群与 C2C 私聊、主动文本与富媒体发送（不携带 `msg_id`，避免被动回复自动 @）、token 自动刷新、断线 Resume 与重连；构建产物为 `launcher-qq.jar`。
+- `adapter-qq` 使用平台消息 ID 的稳定短 ID 映射，兼容现有 `message.id` 字段长度；支持群信息/成员白名单接口、禁言与撤回，并在无权限时回退。
 
 **插件与 API**
 
 - 插件 API 2：`Plugin.tools()` 允许外部插件注册 AI 工具，插件停用或重载时同步注销；`cmds()` 改为默认空实现；兼容 API 1。
 - 插件 API 3：`PluginContext.renderer()` 统一提供原始 SVG、预编译 JTE 模板与字体注册；插件 JAR 内 `fonts/` 下的 TTF/OTF 自动注册；兼容 API 1/2。
 - 新增 `say-plugin`：`Say`/`说` 渲染随机语录卡片，作者头像渐隐、右对齐；支持 `@用户`、用户 ID 与 `--id=<语录ID>`，随插件分发 Noto Serif CJK SC 字体。
-- 新增 `gd-plugin`：`GD`/`几何冲刺` 输出关卡搜索、详情与 GDDL B20 图片卡片；B20 按 `rt = tier^E × (进度/100)^1.5` 取最高 20 条平均，`E` 默认 1.5、可配 2，仅统计 GDDL 提交记录；支持超时、重试、HTTP 代理、缓存与 `config.properties.example`。
+- 新增 `gd-plugin`：`GD`/`几何冲刺` 输出关卡搜索与详情，`GDDL` 输出 GDDL B20 图片卡片；B20 按 `rt = tier^E × (进度/100)^1.5` 取最高 20 条平均，`E` 默认 1.5、可配 2，仅统计 GDDL 提交记录；支持超时、重试、HTTP 代理、缓存与 `config.properties.example`。
 - `hello-plugin` 的 `Hello` 新增 `--image` 图片卡片示例。
 - 控制台插件页展示插件注册的 AI 工具；概览新增用户调用排行。
 - `MsgContent` 新增公共 `BASE64_PREFIX`，`Builder.imageBase64` 重载封装 base64 图片 URL。
@@ -45,6 +31,12 @@
 
 ### Changed
 
+**适配器与指令**
+
+- `adapter-qq` 的配置项 `nullbot.qq.api-base` 更名为 `nullbot.qq.api-url`，旧键不再读取。
+- 群聊消息同时 @机器人 并携带指令时优先执行指令，未匹配指令才进入 AI 对话；开头的提及段与引用段不再阻止指令解析。
+- `adapter-qq` 拆分 HTTP/token、OpenAPI、媒体、入站路由与客户端工厂，统一会话目标 `QqTarget`；公开行为不变。
+
 **渲染与字体**
 
 - 内置插件版本统一为 `1.1.0`，插件 `version()` 与 Maven 项目版本保持一致。
@@ -56,8 +48,11 @@
 
 **GD 插件**
 
-- 搜索与 B20 卡片新增表头并使用固定列对齐；详情页缩略图改为圆角、右侧信息垂直居中，下载/点赞/长度/物体改用 Nerd Font 图标；歌曲名右侧显示歌曲 ID，标题/meta/GDDL/歌曲/描述按宽度截断；整体字号提高并收紧底部留白。
-- GD 搜索支持回复 `next` 翻页；B20 卡片右上角显示 GDDL 头像并新增 `gddl.avatar-base` 配置；`rank` 子命令更名为 `gddl`，新增 `--bind`/`--unbind` 用户绑定。
+- 将 GDDL B20 从 `#GD gddl` 拆分为独立指令 `#GDDL`；`#GD`/`#几何冲刺` 保留关卡搜索与详情。
+- 重做关卡详情卡片：缩略图放大到 400×225，标题旁增加关卡 ID 胶囊；下载、点赞、长度与物体数改为带 Nerd Font 图标和标签的 2×2 统计块；GDDL 使用与缩略图同宽的独立面板，Tier 0–40 从绿到蓝再到红渐变、未评级保持灰色，并缩写为 `Rt.`/`Enj.`；歌曲与描述移至右栏，描述最多四行；标题、meta、歌曲与描述按宽度截断，整体字号提高并调整页脚上下留白。
+- 搜索与 B20 列表新增表头并使用固定列对齐；加宽 B20 的 ID 列，避免长关卡 ID 被截断；B20 卡片右上角显示 GDDL 头像并新增 `gddl.avatar-base` 配置。
+- GD 搜索支持回复 `next` 翻页；`rank` 子命令更名为 `gddl`，新增 `--bind`/`--unbind` 用户绑定。
+- 关卡物体数达到 GD 接口上限 65535 时显示为 `65,535+`，避免误认为是精确值。
 - GDDL 与缩略图请求改用 HTTP/1.1，支持连接/请求超时、重试与 HTTP 代理，关卡详情并行拉取 GDDL 与缩略图；排除未使用的 Netty native QUIC 依赖并合并 shade 元数据。
 
 **插件与工程**
@@ -72,6 +67,7 @@
 
 ### Fixed
 
+- `#Usage` 在缺少用户头像时改用占位头像渲染，不再直接失败；QQ 官方机器人等无法获取头像的平台也可正常使用。
 - AI 最终回复和 `send` 工具消息发送前移除代码块外的连续空行。
 - SVG 栅格化启用 fractional metrics，修复等宽字体逐字取整导致的列错位。
 - 修复日志 SSE 长连接未关闭导致优雅停机卡住，停机时主动关闭日志流。

@@ -34,6 +34,10 @@ public final class GdImagePresenter implements GdPresenter {
     private static final String ICON_LIKES = "\uF004";
     private static final String ICON_LENGTH = "\uF017";
     private static final String ICON_OBJECTS = "\uF1B2";
+    private static final int TIER_MAX = 40;
+    private static final int TIER_GREEN = 0x8FD3A8;
+    private static final int TIER_BLUE = 0xA7C6FF;
+    private static final int TIER_RED = 0xFF8F8F;
 
     private final PluginRenderer renderer;
     private final GdPresenter fallback;
@@ -121,7 +125,7 @@ public final class GdImagePresenter implements GdPresenter {
                     Map.entry("descriptionLines", descriptionLines),
                     Map.entry("thumbnail", ImageData.cover(view.thumbnail(), 800, 450)),
                     Map.entry("noThumbnail", SvgText.escape(GdText.NO_THUMBNAIL.of(language))),
-                    Map.entry("height", 560)
+                    Map.entry("height", 576)
             );
             return image(renderer.template("level.jte", model));
         } catch (RuntimeException e) {
@@ -238,10 +242,18 @@ public final class GdImagePresenter implements GdPresenter {
     }
 
     private static String tierAccent(int tier) {
-        if (tier >= 30) return "#D6B4FF";
-        if (tier >= 20) return "#A7C6FF";
-        if (tier >= 10) return "#8FD3A8";
-        return "#E6C46A";
+        double ratio = Math.max(0, Math.min(TIER_MAX, tier)) / (double) TIER_MAX;
+        int from = ratio <= 0.5 ? TIER_GREEN : TIER_BLUE;
+        int to = ratio <= 0.5 ? TIER_BLUE : TIER_RED;
+        double progress = ratio <= 0.5 ? ratio * 2 : (ratio - 0.5) * 2;
+        int red = mix((from >> 16) & 0xFF, (to >> 16) & 0xFF, progress);
+        int green = mix((from >> 8) & 0xFF, (to >> 8) & 0xFF, progress);
+        int blue = mix(from & 0xFF, to & 0xFF, progress);
+        return String.format(Locale.ROOT, "#%02X%02X%02X", red, green, blue);
+    }
+
+    private static int mix(int from, int to, double ratio) {
+        return (int) Math.round(from + (to - from) * ratio);
     }
 
     private static List<String> wrap(String value, double maxWidth, float size, int maxLines) {

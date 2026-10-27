@@ -84,8 +84,8 @@
         @endfor
     @endif
 
-    <text x="40" y="${height - 32}" font-family="JetBrains Maple Mono" font-weight="bold"
+    <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-weight="bold"
           font-size="12" letter-spacing="1.2" fill="#C9CFD8">GDDL / NULLBOT</text>
-    <text x="920" y="${height - 32}" text-anchor="end" font-family="JetBrains Maple Mono"
+    <text x="920" y="${height - 40}" text-anchor="end" font-family="JetBrains Maple Mono"
           font-size="13" fill="#C9CFD8">GD LEVEL</text>
 </svg>

@@ -2,6 +2,8 @@
 
 基于 Java 27 与 Spring Boot 4 的 QQ 机器人，业务与协议解耦，自带 Web 控制台与外部插件系统。
 
+当前版本：1.1.0 · [变更日志](CHANGELOG.md)
+
 ## 特性
 
 - **适配器解耦**：业务只依赖 `spi` 的事件模型与 `BotClient`/`BotServer` 端口，内置 Shiro（OneBot 11）、QQ 官方机器人与 stdin 三种适配器。
@@ -76,8 +78,9 @@ java -jar launcher/target/launcher-qq.jar \
 | `nullbot.qq.api-url` | `https://api.bot.qq.com` | QQ 官方 OpenAPI 地址 |
 | `nullbot.qq.token-url` | `https://api.bot.qq.com/app/getAppAccessToken` | Access token 获取地址 |
 | `nullbot.qq.intents` | `33554432` | 事件订阅位掩码（群聊与 C2C） |
+| `nullbot.qq.shard` / `shard-count` | `0` / `1` | WebSocket 分片编号与总数，通常无需修改 |
 | `nullbot.qq.text-limit` | `1800` | 单条文本的最大 Unicode code point 数 |
-| `nullbot.plugin.enabled` / `dir` | `false` / `./plugins` | 外部插件开关与目录 |
+| `nullbot.plugin.enabled` / `dir` | `true` / `./plugins` | 外部插件开关与目录 |
 
 MySQL 需手动执行 `schema-mysql.sql`。
 
@@ -87,13 +90,13 @@ MySQL 需手动执行 `schema-mysql.sql`。
 - `adapter-qq`：QQ 官方机器人（`bot.q.qq.com`）WebSocket 接入，支持 QQ 群与 C2C 私聊；产物为 `launcher-qq.jar`。
 - `adapter-stdin`：从标准输入读取事件，便于调试。
 
-QQ 官方机器人适配器目前所有输出都使用主动消息（不带 `msg_id`），以避免被动回复被 QQ 自动 @ 发送者。主动消息受开放平台认证、权限和频控限制，具体额度以平台后台为准；如果机器人没有主动消息权限，发送会失败。群内消息默认只有 @机器人 时才会收到；全量群消息需要在开放平台和群设置中授权。
+QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg_id`），因此不会触发被动回复的自动 @；代价是受开放平台认证、权限与频控限制，额度以平台后台为准，没有主动消息权限时发送会失败。群内消息默认只有 @机器人 时才会收到；全量群消息需要在开放平台和群设置中授权。
 
 受官方接口限制：
 
 - 群信息、群成员列表为白名单/内邀能力，普通机器人通常无法获取；成员没有头像，`#Usage`、`#Say` 等卡片会使用占位头像或省略头像，`#Wife` 成员模式可能没有可选成员。
 - 没有群消息历史；引用回复、`#Save`/`#Recall` 依赖被引用消息的场景受限。适配器会缓存收到的消息，供 `#Save --id=<消息ID>` 等使用。
-- 不处理入退群、戳一戳、防撤回等通知类事件；主动消息权限与入退群通知受平台限制。
+- 不处理入退群、戳一戳、防撤回等通知类事件。
 - 图片上传支持 png/jpg，视频 mp4，语音 silk/mp3/wav；本地文件大于 5 MB 首版不支持；WebP/GIF 可能上传失败。
 - 文本中的 `@用户` 不会高亮，适配器以 `@<openid>` 形式显示；真正的群内 @ 需要 Markdown，首版不支持。
 - 文本中包含 URL 时需要在开放平台配置消息 URL 白名单，否则平台会拒绝发送。
@@ -108,13 +111,13 @@ QQ 官方机器人适配器目前所有输出都使用主动消息（不带 `msg
 - 入门示例：[plugins/hello-plugin](plugins/hello-plugin)
 - 完整示例：[plugins/gd-plugin](plugins/gd-plugin)、[plugins/query-plugin](plugins/query-plugin)
 
-插件需启用并成功加载后才会注册指令：设置 `nullbot.plugin.enabled: true`，将 JAR 放入 `nullbot.plugin.dir`，或在控制台“插件”页上传。执行 `./mvnw package` 后，声明了复制步骤的插件 JAR 会进入 `workspace/plugins/`。
+插件默认启用；将 JAR 放入 `nullbot.plugin.dir`（默认 `./plugins`），或在控制台“插件”页上传，成功加载后才会注册指令。执行 `./mvnw package` 后，声明了复制步骤的插件 JAR 会进入 `workspace/plugins/`。
 
 ## 指令
 
 默认前缀为 `#`，可通过 `#Config cmd_prefix <值>` 或控制台修改。`#Help`（别名 `#帮助`）以图片列出全部内置指令与已加载插件；`#Help -p=<插件>` 查看指定插件的指令；任意指令后跟 `-H`（如 `#Say -H`）查看该指令详情。
 
-群聊中 @机器人、私聊直接发消息或戳一戳都会进入 AI 对话。
+群聊中 @机器人 时优先匹配指令，未命中指令才进入 AI 对话；私聊消息与戳一戳（适配器支持时）也会进入 AI 对话。
 
 ### 内置指令
 
