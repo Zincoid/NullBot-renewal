@@ -295,12 +295,23 @@ public final class GddlService {
             @JsonProperty("RatingCount") Integer ratingCount,
             @JsonProperty("SubmissionCount") Integer submissionCount
     ) {
+
+        /**
+         * 返回 GDDL 记录的具体关卡时长。
+         * <p>Returns the exact level duration recorded by GDDL.</p>
+         *
+         * @return the duration in seconds, or null when unavailable
+         */
+        public Integer seconds() {
+            return meta == null ? null : meta.seconds();
+        }
     }
 
     record Meta(
             @JsonProperty("Name") String name,
             @JsonProperty("Difficulty") String difficulty,
-            @JsonProperty("Publisher") Publisher publisher
+            @JsonProperty("Publisher") Publisher publisher,
+            @JsonProperty("seconds") Integer seconds
     ) {
     }
 

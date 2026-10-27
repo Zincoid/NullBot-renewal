@@ -54,6 +54,10 @@ public final class GdViewMapper {
         String song = level.song()
                 .map(value -> safe(value.title()) + " — " + safe(value.artist()))
                 .orElse(null);
+        String length = lengthLabel(level.length());
+        Integer seconds = gddl == null ? null : gddl.seconds();
+        if (seconds != null && seconds > 0)
+            length += " · " + duration(seconds);
         return new LevelView(
                 level.id(),
                 level.name(),
@@ -62,7 +66,7 @@ public final class GdViewMapper {
                 level.rewards(),
                 level.downloads(),
                 level.likes(),
-                lengthLabel(level.length()),
+                length,
                 level.objectCount(),
                 level.songId().orElseGet(() -> level.song()
                         .map(jdash.common.entity.GDSong::id).orElse(null)),
@@ -173,6 +177,10 @@ public final class GdViewMapper {
             case XL -> "XL";
             case PLATFORMER -> "Platformer";
         };
+    }
+
+    private static String duration(int seconds) {
+        return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
     }
 
     private static Integer tier(GddlLevel level) {

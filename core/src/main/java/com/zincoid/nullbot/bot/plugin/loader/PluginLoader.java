@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -63,6 +64,9 @@ public class PluginLoader {
     private static final int MIN_API_VERSION = 1;
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
+    private static final String TEMP_PREFIX = ".plugin-";
+    private static final String UPLOAD_TEMP_PREFIX = ".upload-";
+    private static final String TEMP_SUFFIX = ".tmp";
 
     private final CmdRegistry cmdRegistry;
     private final ToolRegistry toolRegistry;
@@ -279,7 +283,7 @@ public class PluginLoader {
         }
         Path temp = null;
         try {
-            temp = Files.createTempFile(dir, ".upload-", ".tmp");
+            temp = createTempFile(dir, UPLOAD_TEMP_PREFIX);
             Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
             if (findLoaded(name) != null || Files.exists(target))
                 throw new PluginException("Plugin already exists: " + name);
@@ -415,7 +419,7 @@ public class PluginLoader {
         try {
             FileTime modified = Files.getLastModifiedTime(jar);
             long size = Files.size(jar);
-            copy = Files.createTempFile(dir, ".nullbot-plugin-", ".jar.tmp");
+            copy = createTempFile(dir, TEMP_PREFIX);
             Files.copy(jar, copy, StandardCopyOption.REPLACE_EXISTING);
             checkApiBundled(copy);
             loader = new URLClassLoader(
@@ -579,7 +583,9 @@ public class PluginLoader {
             List<Path> stale = files.filter(Files::isRegularFile)
                     .filter(path -> {
                         String name = path.getFileName().toString();
-                        return name.startsWith(".nullbot-plugin-") && name.endsWith(".jar.tmp");
+                        return (name.startsWith(TEMP_PREFIX)
+                                || name.startsWith(UPLOAD_TEMP_PREFIX))
+                                && name.endsWith(TEMP_SUFFIX);
                     })
                     .toList();
             for (Path path : stale) deleteQuietly(path);
@@ -587,6 +593,18 @@ public class PluginLoader {
         } catch (IOException e) {
             log.warn("Cannot clean plugin temp files: {}", dir, e);
         }
+    }
+
+    private static Path createTempFile(Path dir, String prefix) throws IOException {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String name = prefix + UUID.randomUUID().toString().substring(0, 8) + TEMP_SUFFIX;
+            try {
+                return Files.createFile(dir.resolve(name));
+            } catch (FileAlreadyExistsException ignored) {
+                // Try another short random name.
+            }
+        }
+        throw new IOException("Cannot create plugin temp file in " + dir);
     }
 
     private List<Path> scanJars() {

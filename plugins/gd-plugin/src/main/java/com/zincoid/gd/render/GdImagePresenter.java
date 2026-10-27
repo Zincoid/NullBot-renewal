@@ -39,6 +39,10 @@ public final class GdImagePresenter implements GdPresenter {
     private static final int TIER_GREEN = 0x8FD3A8;
     private static final int TIER_BLUE = 0xA7C6FF;
     private static final int TIER_RED = 0xFF8F8F;
+    private static final String COLOR_DOWNLOADS = "#8FD3A8";
+    private static final String COLOR_LIKES = "#FF8F8F";
+    private static final String COLOR_LENGTH = "#A7C6FF";
+    private static final String COLOR_OBJECTS = "#E8D48A";
 
     private final PluginRenderer renderer;
     private final GdPresenter fallback;
@@ -106,16 +110,17 @@ public final class GdImagePresenter implements GdPresenter {
             List<StatCard> stats = List.of(
                     new StatCard(464, 170,
                             statLabel(ICON_DOWNLOAD, GdText.DOWNLOADS, language),
-                            number(view.downloads())),
+                            number(view.downloads()), COLOR_DOWNLOADS),
                     new StatCard(702, 170,
                             statLabel(ICON_LIKES, GdText.LIKES, language),
-                            number(view.likes())),
+                            number(view.likes()), COLOR_LIKES),
                     new StatCard(464, 254,
                             statLabel(ICON_LENGTH, GdText.LENGTH, language),
-                            SvgText.escape(view.length())),
+                            SvgText.escape(SvgText.fit(view.length(), 180, 20)),
+                            COLOR_LENGTH),
                     new StatCard(702, 254,
                             statLabel(ICON_OBJECTS, GdText.OBJECTS, language),
-                            objectCount(view.objects()))
+                            objectCount(view.objects()), COLOR_OBJECTS)
             );
             List<SvgPositionedLine> descriptionLines = description(view);
             Map<String, Object> model = Map.ofEntries(
@@ -277,10 +282,10 @@ public final class GdImagePresenter implements GdPresenter {
             String status = view.gddlFailed()
                     ? GdText.GDDL_QUERY_FAILED.of(language)
                     : GdText.GDDL_NOT_RATED.of(language);
-            return new GddlCard("—", "GDDL", SvgText.escape(status), "", "#8F98A3");
+            return new GddlCard("—", "GDDL",
+                    List.of(new GddlPart(SvgText.escape(status), 190, false, false, "#8F98A3")),
+                    "", "#8F98A3");
         }
-        String main = GdText.RATING.of(language) + " " + decimal(view.rating())
-                + " · " + GdText.ENJOYMENT.of(language) + " " + decimal(view.enjoyment());
         StringBuilder extra = new StringBuilder();
         if (view.ratingCount() != null)
             extra.append(number(view.ratingCount())).append(' ')
@@ -289,10 +294,25 @@ public final class GdImagePresenter implements GdPresenter {
             if (!extra.isEmpty()) extra.append(" · ");
             extra.append("AREDL #").append(view.aredlPosition());
         }
+        String enjoyment = decimal(view.enjoyment());
+        if (!"-".equals(enjoyment)) enjoyment += "/10";
+        List<GddlPart> mainParts = new ArrayList<>();
+        double x = 190;
+        x = addGddlPart(mainParts, GdText.RATING.of(language), x, true, false, "#8F98A3");
+        x = addGddlPart(mainParts, decimal(view.rating()), x + 4, false, true, "#F2F3F5");
+        x = addGddlPart(mainParts, "·", x + 10, false, false, "#8F98A3");
+        x = addGddlPart(mainParts, GdText.ENJOYMENT.of(language), x + 10, true, false, "#8F98A3");
+        addGddlPart(mainParts, enjoyment, x + 4, false, true, "#F2F3F5");
         return new GddlCard(String.valueOf(tier), label(GdText.TIER, language),
-                SvgText.escape(SvgText.fit(main, 240, 15)),
+                mainParts,
                 SvgText.escape(SvgText.fit(extra.toString(), 240, 13)),
                 tierAccent(tier));
+    }
+
+    private static double addGddlPart(List<GddlPart> parts, String text, double x,
+                                      boolean bold, boolean italic, String color) {
+        parts.add(new GddlPart(SvgText.escape(text), x, bold, italic, color));
+        return x + SvgText.width(text, 15);
     }
 
     private static String label(GdText text, Language language) {
@@ -358,21 +378,36 @@ public final class GdImagePresenter implements GdPresenter {
      * @param y     the y coordinate
      * @param label the stat label
      * @param value the stat value
+     * @param color the stat value color
      */
-    public record StatCard(int x, int y, String label, String value) {
+    public record StatCard(int x, int y, String label, String value, String color) {
     }
 
     /**
      * GDDL 面板数据。
      * <p>GDDL panel data.</p>
      *
-     * @param tier   the tier value, or an em dash when unrated
-     * @param label  the tier label
-     * @param main   the rating summary or unrated status
-     * @param extra  the secondary rating details
-     * @param accent the accent color
+     * @param tier      the tier value, or an em dash when unrated
+     * @param label     the tier label
+     * @param mainParts the rating line segments
+     * @param extra     the secondary rating details
+     * @param accent    the accent color
      */
-    public record GddlCard(String tier, String label, String main, String extra, String accent) {
+    public record GddlCard(String tier, String label, List<GddlPart> mainParts,
+                           String extra, String accent) {
+    }
+
+    /**
+     * GDDL 评分行的一个文本片段。
+     * <p>A text segment on the GDDL rating line.</p>
+     *
+     * @param text   the escaped text
+     * @param x      the x coordinate
+     * @param bold   whether the segment is bold
+     * @param italic whether the segment is italic
+     * @param color  the text color
+     */
+    public record GddlPart(String text, double x, boolean bold, boolean italic, String color) {
     }
 
     private static String number(int value) {

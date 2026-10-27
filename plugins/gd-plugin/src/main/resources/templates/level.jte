@@ -51,7 +51,7 @@
         <text x="${stat.x() + 18}" y="${stat.y() + 22}" font-family="JetBrains Maple Mono"
               font-size="11" letter-spacing="0.8" fill="#8F98A3">${stat.label()}</text>
         <text x="${stat.x() + 18}" y="${stat.y() + 48}" font-family="JetBrains Maple Mono"
-              font-size="20" font-weight="bold" fill="#F2F3F5">${stat.value()}</text>
+              font-size="20" font-weight="bold" fill="${stat.color()}">${stat.value()}</text>
     @endfor
 
     @if(!songValue.isBlank())
@@ -68,8 +68,12 @@
           font-size="10" fill="${gddl.accent()}">${gddl.label()}</text>
     <text x="112" y="476" text-anchor="middle" font-family="JetBrains Maple Mono"
           font-size="26" font-weight="bold" fill="#F2F3F5">${gddl.tier()}</text>
-    <text x="190" y="452" font-family="JetBrains Maple Mono" font-size="15"
-          fill="#E6E9EE">${gddl.main()}</text>
+    @for(com.zincoid.gd.render.GdImagePresenter.GddlPart part : gddl.mainParts())
+        <text x="${part.x()}" y="452" font-family="JetBrains Maple Mono" font-size="15"
+              font-weight="${part.bold() ? "bold" : "normal"}"
+              font-style="${part.italic() ? "italic" : "normal"}"
+              fill="${part.color()}">${part.text()}</text>
+    @endfor
     @if(!gddl.extra().isBlank())
         <text x="190" y="476" font-family="JetBrains Maple Mono" font-size="13"
               fill="#8F98A3">${gddl.extra()}</text>
@@ -83,6 +87,11 @@
                   font-size="${line.size()}" fill="${line.color()}">${line.text()}</text>
         @endfor
     @endif
+
+    <path d="M868 510 L880 510 L896 476 L884 476 Z"
+          fill="#F2F3F5" fill-opacity="0.06"/>
+    <path d="M892 510 L904 510 L920 476 L908 476 Z"
+          fill="#F2F3F5" fill-opacity="0.06"/>
 
     <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-weight="bold"
           font-size="12" letter-spacing="1.2" fill="#C9CFD8">GDDL / NULLBOT</text>
