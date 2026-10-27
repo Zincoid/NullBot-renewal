@@ -18,11 +18,6 @@ public class SB6657Plugin implements Plugin {
     }
 
     @Override
-    public String version() {
-        return "1.0";
-    }
-
-    @Override
     public List<Cmd> cmds() {
         return List.of(new SB6657Cmd());
     }

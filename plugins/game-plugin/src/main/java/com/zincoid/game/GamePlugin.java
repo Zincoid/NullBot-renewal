@@ -30,16 +30,6 @@ public class GamePlugin implements Plugin {
     }
 
     @Override
-    public String version() {
-        return "1.0";
-    }
-
-    @Override
-    public int apiVersion() {
-        return 3;
-    }
-
-    @Override
     public List<Cmd> cmds() {
         return List.of(
                 new WifeCmd(context(), resources()),

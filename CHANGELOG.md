@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-27
+
 ### Added
 
 **插件与 API**
@@ -20,10 +22,15 @@
 
 - 新增 JTE 预编译模板 + JairoSVG 图片渲染管线，宿主与插件共用 `JteSvgRenderer`；内置 `Usage`、`Info`、`Help` 图片卡片，`Help -p=<插件>` 支持查看指定插件。
 
+**文档**
+
+- 新增 `PLUGIN.md` 插件开发指南；README 重新整理，补充插件结构、配置示例与文档入口。
+
 ### Changed
 
 **渲染与字体**
 
+- 内置插件版本统一为 `1.1.0`，插件 `version()` 与 Maven 项目版本保持一致。
 - 核心渲染字体统一为 JetBrains Maple Mono NF（OFL），移除 JetBrains Mono 与 Noto Sans Mono CJK SC；粗体通过 `font-weight` 合成；字体常量改为 `FontRegistry.JETBRAINS_MAPLE_MONO`，外部插件引用旧常量需同步调整。
 - 新增 core SVG 文本与表格排版工具 `SvgText`/`SvgLine`/`SvgPositionedLine`、`SvgTable`/`SvgColumn`/`SvgCell`，以及图片工具 `ImageData`（data URI、WebP/PNG 解码、裁剪缩放、PNG 编码）；GD、Usage、Say 与 AI `view` 复用。
 - emoji 字体分段抽取到 core `SvgText.fontSegments`，Noto Emoji 移入 core 字体注册；`Say` 模板改用 `SvgText.Segment`。
@@ -38,6 +45,8 @@
 
 **插件与工程**
 
+- Maven 模块版本改为由根 `pom.xml` 的 `revision` 属性统一控制，发布时只需修改一处。
+- 插件 `version()` 默认读取 JAR manifest 的 `Implementation-Version`，内置插件版本自动跟随 Maven `revision`。
 - 统一插件代码结构：根包保留入口、文案与异常，指令移入 `cmd`，配置/服务/模型/渲染按需分层；指令通过构造器注入具体依赖，插件访问器收回包内可见，生命周期与 `stop()` 统一。
 - 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 新增 `XxxText`；`game` 的问答、猜图与老婆文案迁入 `GameText`；`sb6657-plugin` 使用 `SB6657Exception` 统一接口与解析错误。
 - `Say`/`说` 从 `game-plugin` 拆分到独立 `say-plugin`，模板与字体随插件分发；语录卡片改用 Noto Serif CJK SC 斜体，作者行使用双倍宽破折号并加粗，收紧换行宽度。

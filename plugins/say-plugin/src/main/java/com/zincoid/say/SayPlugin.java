@@ -21,11 +21,6 @@ public class SayPlugin implements Plugin {
     }
 
     @Override
-    public String version() {
-        return "1.0";
-    }
-
-    @Override
     public int apiVersion() {
         return 3;
     }

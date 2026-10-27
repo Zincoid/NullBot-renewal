@@ -20,12 +20,18 @@ public interface Plugin {
     String id();
 
     /**
-     * 插件版本。
-     * <p>Plugin version.</p>
+     * 插件版本，默认读取插件 JAR manifest 的 {@code Implementation-Version}。
+     * <p>Plugin version; by default reads {@code Implementation-Version} from the plugin JAR manifest.</p>
+     * <p>从 IDE 或 classpath 运行时可能取不到版本，此时返回 {@code dev}；插件也可以覆写此方法。</p>
+     * <p>Returns {@code dev} when the version is unavailable on the classpath; plugins may override it.</p>
      *
      * @return the plugin version
      */
-    String version();
+    default String version() {
+        Package type = getClass().getPackage();
+        String version = type == null ? null : type.getImplementationVersion();
+        return version == null || version.isBlank() ? "dev" : version;
+    }
 
     /**
      * 插件适配的宿主 API 版本，当前支持 1 至 3；提供 AI 工具时至少为 2，

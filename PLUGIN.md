@@ -33,11 +33,13 @@ plugins/demo-plugin/
 <parent>
     <groupId>com.zincoid</groupId>
     <artifactId>plugins</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
 </parent>
 <artifactId>demo-plugin</artifactId>
 ```
+
+`revision` 由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只需修改这一处。
 
 父模块已把 `core` 和 Lombok 设为 `provided`，并提供了复制 JAR 到 `workspace/plugins/` 的 `maven-antrun-plugin` 配置。简单插件只需在 `<build><plugins>` 中声明 `maven-antrun-plugin`；使用 JTE 模板时再声明 `jte-maven-plugin`（参考 `hello-plugin/pom.xml`）。
 
@@ -75,7 +77,7 @@ public class DemoPlugin implements Plugin {
 
     @Override
     public String version() {
-        return "1.0";
+        return "1.1.0";
     }
 
     @Override
@@ -126,6 +128,14 @@ public class DemoPlugin implements Plugin {
 | `3` | 指令、AI 工具、图片渲染与插件模板 |
 
 宿主当前支持 `1`–`3`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
+
+## 版本管理
+
+- Maven 模块版本由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只改这一处。
+- `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。
+- 从 IDE 或 classpath 运行时可能取不到版本，此时默认返回 `dev`；需要固定版本时可以覆写 `version()`。
+- `apiVersion()` 是宿主兼容版本，当前为 `1`–`3`，不随宿主发布号变化。
+- 外部插件可以使用独立版本；升级宿主时只需确认 `apiVersion()` 仍在支持范围内。
 
 ## 宿主服务
 
@@ -442,6 +452,7 @@ java -jar launcher/target/launcher-stdin.jar \
 ## 检查清单
 
 - [ ] `id()`、`version()`、`apiVersion()` 正确
+- [ ] 插件 JAR manifest 含 `Implementation-Version`（默认 `version()` 读取）
 - [ ] `META-INF/services` 只注册一个 `Plugin`
 - [ ] 插件 JAR 未打包 `com/zincoid/nullbot/**`
 - [ ] `start()` 创建依赖，`stop()` 清理字段

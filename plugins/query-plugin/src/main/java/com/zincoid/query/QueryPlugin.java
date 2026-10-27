@@ -32,11 +32,6 @@ public class QueryPlugin implements Plugin {
     }
 
     @Override
-    public String version() {
-        return "1.0";
-    }
-
-    @Override
     public List<Cmd> cmds() {
         return List.of(
                 new AaCmd(aa(), config()),
