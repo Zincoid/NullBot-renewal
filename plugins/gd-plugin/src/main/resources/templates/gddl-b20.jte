@@ -23,7 +23,7 @@
     <rect width="960" height="${height}" fill="url(#glow)"/>
 
     <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
-          letter-spacing="2.4" fill="#C9CFD8"># GD / B20_</text>
+          letter-spacing="2.4" fill="#C9CFD8"># GD / ONLINE B20_</text>
     @if(!avatar.isBlank())
         <image x="840" y="36" width="80" height="80" preserveAspectRatio="xMidYMid slice"
                clip-path="url(#avatarClip)" href="${avatar}"/>

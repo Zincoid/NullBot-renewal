@@ -66,15 +66,17 @@ public final class GdImagePresenter implements GdPresenter {
                 rows.add(List.of(
                         String.format(Locale.ROOT, "%02d.", i + 1),
                         level.name(),
+                        String.valueOf(level.id()),
                         level.difficulty(),
                         level.author(),
                         STAR + " " + level.stars()));
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
-                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 300, SvgAlign.START),
-                    new SvgColumn(GdText.DIFFICULTY.of(language), 180, SvgAlign.START),
-                    new SvgColumn(GdText.AUTHOR.of(language), 300, SvgAlign.START),
+                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 250, SvgAlign.START),
+                    new SvgColumn("ID", 130, SvgAlign.MIDDLE),
+                    new SvgColumn(GdText.DIFFICULTY.of(language), 150, SvgAlign.START),
+                    new SvgColumn(GdText.AUTHOR.of(language), 250, SvgAlign.START),
                     new SvgColumn(GdText.STARS.of(language), 60, SvgAlign.END));
             List<SvgCell> cells = SvgTable.build(
                     40, 158, 192, 34, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
@@ -168,7 +170,7 @@ public final class GdImagePresenter implements GdPresenter {
             int height = 360 + (rows.size() + 1) * 32 + 50;
             Map<String, Object> model = Map.ofEntries(
                     Map.entry("user", SvgText.escape(SvgText.fit(
-                            "GDDL: " + view.userName() + " (ID " + view.userId() + ")",
+                            view.userName() + " (ID " + view.userId() + ")",
                             760, 26))),
                     Map.entry("labelB20", SvgText.escape(GdText.GDDL_B20.of(language))),
                     Map.entry("score", format(view.score())),

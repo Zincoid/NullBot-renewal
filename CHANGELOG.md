@@ -17,6 +17,8 @@
 - B20 计算改用 GDDL 原始小数 `rating`，不再使用四舍五入后的 tier；结果表格的 tier 列显示为 `25(25.33)` 形式。
 - `gd_level_cache` 只保留原始 `rating`，tier 由 rating 派生；数据库 schema 为 v1，首次启动直接创建不含 `tier` 列的表。
 - `GDDL` 改为子指令模式：`GDDL bind <用户名|ID>`、`GDDL unbind`、`GDDL b20 [用户名|ID] [--all]`；原 `--bind` / `--unbind` 和直接用户名形式不再支持。
+- `#GD search` 搜索结果卡片新增关卡 ID 列，ID 居中显示；同步调整关卡名、难度与作者列宽以适配。
+- `#GDDL b20` 卡片用户名前不再显示 `GDDL:` 前缀。
 
 ## [1.1.0] - 2026-10-27
 

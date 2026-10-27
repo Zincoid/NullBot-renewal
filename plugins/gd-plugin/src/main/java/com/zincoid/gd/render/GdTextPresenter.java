@@ -45,7 +45,7 @@ public final class GdTextPresenter implements GdPresenter {
     @Override
     public MsgContent gddlB20(Language language, GddlB20View view) {
         StringBuilder body = new StringBuilder();
-        body.append("GDDL: ").append(view.userName())
+        body.append(view.userName())
                 .append(" (ID ").append(view.userId()).append(")\n");
         body.append(GdText.COMPLETED.of(language)).append(" ")
                 .append(view.beatenTotal()).append(" · ")

@@ -170,7 +170,7 @@ public enum GdText {
     NO_THUMBNAIL("暂无缩略图", "No thumbnail"),
     COMPLETED("通关", "Completed"),
     IN_PROGRESS("进行中", "In progress"),
-    GDDL_B20("几何冲刺 B20", "GD B20"),
+    GDDL_B20("网络 B20", "Online B20"),
     HIGHEST_TIER("最高 tier", "Highest tier"),
     SAMPLE("样本", "Sample"),
     FEWER_THAN_20("不足 20 条", "fewer than 20 records"),
