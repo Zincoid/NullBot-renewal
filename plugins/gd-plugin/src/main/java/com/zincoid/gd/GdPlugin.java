@@ -15,8 +15,6 @@ import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
-import com.zincoid.nullbot.bot.plugin.PluginException;
-import com.zincoid.nullbot.bot.plugin.PluginResources;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -42,7 +40,7 @@ public class GdPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -54,12 +52,7 @@ public class GdPlugin implements Plugin {
 
     @Override
     public void start(PluginContext context) {
-        try {
-            PluginResources.extract(GdPlugin.class, "/config.properties", context.dataDir());
-        } catch (PluginException e) {
-            log.warn("GD default config unavailable; using built-in defaults", e);
-        }
-        GdConfig loaded = GdConfig.load(context.dataDir());
+        GdConfig loaded = GdConfig.load(context.properties());
         GdHttp http = new GdHttp(loaded);
         GdLevelService levels = new GdLevelService(loaded, http);
         GddlService gddl = new GddlService(loaded, http);

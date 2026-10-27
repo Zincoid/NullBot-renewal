@@ -109,6 +109,14 @@ public interface PluginContext {
     PluginRenderer renderer();
 
     /**
+     * 插件自己的 config.properties 配置。
+     * <p>Plugin-local config.properties configuration.</p>
+     *
+     * @return the plugin config snapshot
+     */
+    PluginConfigProperties properties();
+
+    /**
      * 插件专用数据目录，由宿主创建。
      * <p>Plugin-specific data directory, created by the host.</p>
      *

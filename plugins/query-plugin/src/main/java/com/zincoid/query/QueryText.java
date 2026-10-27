@@ -20,7 +20,7 @@ public enum QueryText {
             数量：1~25，默认 10
             别名：模型查询
             权限：>=0(normal)
-            说明：需要在 query 插件配置 AA_API_KEY 或 aa.api-key。""", """
+            说明：需要在 query 插件配置 aa.api-key。""", """
             AA
             Shows Artificial Analysis model rankings.
             Usage: AA [metric] [count]
@@ -28,7 +28,7 @@ public enum QueryText {
             Count: 1..25, default 10
             Aliases: 模型查询
             Access: >=0(normal)
-            Note: requires AA_API_KEY or aa.api-key in the query plugin config."""),
+            Note: requires aa.api-key in the query plugin config."""),
     AA_UNKNOWN_METRIC("未知查询项：%s（可选：智能/历史/性价比/速度/编程/成本/定价）",
             "Unknown metric: %s (expected Intelligence/History/Value/Speed/Coding/Cost/Pricing)"),
     AA_NO_API_KEY("未配置 AA API Key", "AA API key is not configured"),
@@ -82,14 +82,14 @@ public enum QueryText {
             数量：1~5，默认 1
             别名：图溯源/溯源
             权限：>=0(normal)
-            说明：配置 SAUCENAO_API_KEY 或 saucenao.api-key 可提高额度。""", """
+            说明：配置 saucenao.api-key 可提高额度。""", """
             Trace
             Finds the source of a replied image through SauceNAO.
             Usage: [reply image] Trace [count]
             Count: 1..5, default 1
             Aliases: 图溯源/溯源
             Access: >=0(normal)
-            Note: set SAUCENAO_API_KEY or saucenao.api-key for higher quota."""),
+            Note: set saucenao.api-key for higher quota."""),
     TRACE_MISSING_IMAGE("缺少图片引用", "Missing image reply"),
     TRACE_NO_API_KEY("未配置 SauceNAO API Key", "SauceNAO API key is not configured"),
     TRACE_READ_FAILED("无法读取引用消息", "Cannot read the replied message"),

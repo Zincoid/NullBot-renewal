@@ -2,9 +2,11 @@ package com.zincoid.nullbot.bot.plugin.loader;
 
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;
 import com.zincoid.nullbot.bot.plugin.Plugin;
+import com.zincoid.nullbot.bot.plugin.PluginConfigProperties;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.plugin.PluginException;
 import com.zincoid.nullbot.bot.plugin.PluginJarName;
+import com.zincoid.nullbot.bot.plugin.PluginResources;
 import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
 import com.zincoid.nullbot.platform.configuration.PluginProperties;
 import com.zincoid.nullbot.platform.util.AtomicFiles;
@@ -51,11 +53,13 @@ import java.util.stream.Stream;
 public class PluginLoader {
 
     /**
-     * 当前插件 API 版本，支持 1 至 3；2 增加 AI 工具，3 增加图片渲染与插件模板。
-     * <p>Current plugin API version, supporting 1 through 3; version 2 adds AI tools,
-     * and version 3 adds image rendering and plugin templates.</p>
+     * 当前插件 API 版本，支持 1 至 4；2 增加 AI 工具，3 增加图片渲染与插件模板，
+     * 4 增加 PluginContext.properties()。
+     * <p>Current plugin API version, supporting 1 through 4; version 2 adds AI tools,
+     * version 3 adds image rendering and plugin templates, and version 4 adds
+     * PluginContext.properties().</p>
      */
-    private static final int API_VERSION = 3;
+    private static final int API_VERSION = 4;
     private static final int MIN_API_VERSION = 1;
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";
@@ -381,6 +385,7 @@ public class PluginLoader {
             Path dataDir = dir.resolve(opened.id());
             Files.createDirectories(dataDir);
             state.setId(opened.jar().name(), opened.id());
+            extractDefaultConfig(opened, dataDir);
             opened.start(contexts.create(dataDir, opened.loader(), opened.jar().copy()));
             PluginContributions contributions = PluginContributions.collect(opened.plugin(), opened.apiVersion());
             LoadedPlugin item = new LoadedPlugin(opened.id(), opened.version(), opened.apiVersion(),
@@ -391,6 +396,16 @@ public class PluginLoader {
             opened.close();
             if (e instanceof PluginException pluginException) throw pluginException;
             throw new PluginException("Plugin load failed: " + message(e), e);
+        }
+    }
+
+    private void extractDefaultConfig(OpenedPlugin opened, Path dataDir) {
+        if (opened.plugin().getClass().getResource(PluginConfigProperties.RESOURCE) == null) return;
+        try {
+            PluginResources.extract(opened.plugin().getClass(),
+                    PluginConfigProperties.RESOURCE, dataDir);
+        } catch (PluginException e) {
+            log.warn("Plugin default config unavailable: {}", opened.id(), e);
         }
     }
 

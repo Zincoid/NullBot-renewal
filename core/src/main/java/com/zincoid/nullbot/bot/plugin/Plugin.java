@@ -34,10 +34,11 @@ public interface Plugin {
     }
 
     /**
-     * 插件适配的宿主 API 版本，当前支持 1 至 3；提供 AI 工具时至少为 2，
-     * 使用图片渲染或插件模板时为 3。
-     * <p>Host API version the plugin targets; 1 through 3 are supported.
-     * At least 2 is required for AI tools; 3 is required for image rendering or plugin templates.</p>
+     * 插件适配的宿主 API 版本，当前支持 1 至 4；提供 AI 工具时至少为 2，
+     * 使用图片渲染或插件模板时为 3，使用 PluginContext.properties() 时为 4。
+     * <p>Host API version the plugin targets; 1 through 4 are supported.
+     * At least 2 is required for AI tools, 3 for image rendering or plugin templates,
+     * and 4 for PluginContext.properties().</p>
      *
      * @return the API version
      */

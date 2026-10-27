@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
 import com.zincoid.nullbot.bot.cmd.input.InputManager;
+import com.zincoid.nullbot.bot.plugin.PluginConfigProperties;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.common.GroupService;
@@ -31,6 +32,7 @@ record DefaultPluginContext(
         QuoteService quotes,
         LanguageService languages,
         PluginRenderer renderer,
+        PluginConfigProperties properties,
         Path dataDir
 ) implements PluginContext {
 }

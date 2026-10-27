@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
 import com.zincoid.nullbot.bot.cmd.input.InputManager;
+import com.zincoid.nullbot.bot.plugin.PluginConfigProperties;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.common.GroupService;
@@ -50,12 +51,14 @@ public class PluginContextFactory {
      */
     PluginContext create(Path dataDir, ClassLoader loader, Path jar) {
         PluginRenderer renderer = JteSvgRenderer.forPlugin(loader, jar, rasterizer);
+        PluginConfigProperties properties = PluginConfigProperties.load(dataDir);
         return new DefaultPluginContext(
                 files, config, inputs, model, users, groups,
                 groupSettings, userSettings,
                 quotes,
                 languages,
                 renderer,
+                properties,
                 dataDir
         );
     }

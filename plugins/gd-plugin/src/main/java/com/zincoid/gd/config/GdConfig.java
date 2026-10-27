@@ -1,18 +1,12 @@
 package com.zincoid.gd.config;
 
-import lombok.extern.slf4j.Slf4j;
+import com.zincoid.nullbot.bot.plugin.PluginConfigProperties;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Properties;
 
 /**
- * GD 插件配置：环境变量优先，其次读取数据目录中的 config.properties。
- * <p>GD plugin configuration: environment variables win over config.properties in the data directory.</p>
+ * GD 插件配置：从插件 config.properties 读取。
+ * <p>GD plugin configuration read from the plugin config.properties.</p>
  *
  * @param userAgent      HTTP user agent
  * @param gddlBase       GDDL API base URL
@@ -27,7 +21,6 @@ import java.util.Properties;
  * @param unratedCacheTtl cache lifetime for unrated or missing GDDL levels
  * @param tierExponent    exponent applied to the GDDL tier in the B20 formula
  */
-@Slf4j
 public record GdConfig(
         String userAgent,
         String gddlBase,
@@ -55,50 +48,30 @@ public record GdConfig(
     private static final String DEFAULT_THUMBNAIL_BASE = "https://levelthumbs.prevter.me/thumbnail/";
 
     /**
-     * 读取插件配置。
-     * <p>Loads the plugin configuration.</p>
+     * 从原始配置构建 GD 插件配置。
+     * <p>Builds the GD plugin configuration from raw config values.</p>
      *
-     * @param dataDir plugin data directory
+     * @param properties the plugin config properties
      * @return the configuration
      */
-    public static GdConfig load(Path dataDir) {
-        Properties properties = new Properties();
-        Path file = dataDir.resolve("config.properties");
-        if (Files.isRegularFile(file)) {
-            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-                properties.load(reader);
-            } catch (IOException e) {
-                log.warn("Cannot read GD plugin config: {}", file, e);
-            }
-        }
-        String userAgent = env("GD_HTTP_USER_AGENT",
-                properties.getProperty("http.user-agent", "NullBot-GD/1.0"));
-        String gddlBase = env("GD_GDDL_API_BASE",
-                properties.getProperty("gddl.api-base", DEFAULT_GDDL_BASE));
-        String gddlAvatarBase = env("GD_GDDL_AVATAR_BASE",
-                properties.getProperty("gddl.avatar-base", DEFAULT_GDDL_AVATAR_BASE));
-        String thumbnailBase = env("GD_THUMBNAIL_BASE",
-                properties.getProperty("thumbnail.base", DEFAULT_THUMBNAIL_BASE));
-        Duration connectTimeout = seconds(env("GD_HTTP_CONNECT_TIMEOUT",
-                properties.getProperty("http.connect-timeout", "")),
+    public static GdConfig load(PluginConfigProperties properties) {
+        String userAgent = properties.get("http.user-agent", "NullBot-GD/1.0");
+        String gddlBase = properties.get("gddl.api-base", DEFAULT_GDDL_BASE);
+        String gddlAvatarBase = properties.get("gddl.avatar-base", DEFAULT_GDDL_AVATAR_BASE);
+        String thumbnailBase = properties.get("thumbnail.base", DEFAULT_THUMBNAIL_BASE);
+        Duration connectTimeout = seconds(properties.get("http.connect-timeout", ""),
                 DEFAULT_CONNECT_TIMEOUT, 1, 120);
-        Duration requestTimeout = seconds(env("GD_HTTP_REQUEST_TIMEOUT",
-                properties.getProperty("http.request-timeout", "")),
+        Duration requestTimeout = seconds(properties.get("http.request-timeout", ""),
                 DEFAULT_REQUEST_TIMEOUT, 1, 300);
-        int retries = retries(env("GD_HTTP_RETRIES",
-                properties.getProperty("http.retries", "")), DEFAULT_RETRIES);
-        String proxy = env("GD_HTTP_PROXY",
-                properties.getProperty("http.proxy", "")).trim();
-        Duration cacheTtl = ttl(env("GD_CACHE_TTL",
-                properties.getProperty("cache-ttl", "")), DEFAULT_CACHE_TTL);
-        Duration tierCacheTtl = seconds(env("GD_GDDL_TIER_CACHE_TTL",
-                properties.getProperty("gddl.tier-cache-ttl", "")),
+        int retries = retries(properties.get("http.retries", ""), DEFAULT_RETRIES);
+        String proxy = properties.get("http.proxy", "").trim();
+        Duration cacheTtl = ttl(properties.get("cache-ttl", ""), DEFAULT_CACHE_TTL);
+        Duration tierCacheTtl = seconds(properties.get("gddl.tier-cache-ttl", ""),
                 DEFAULT_TIER_CACHE_TTL, 60, Duration.ofDays(30).toSeconds());
-        Duration unratedCacheTtl = seconds(env("GD_GDDL_UNRATED_CACHE_TTL",
-                properties.getProperty("gddl.unrated-cache-ttl", "")),
+        Duration unratedCacheTtl = seconds(properties.get("gddl.unrated-cache-ttl", ""),
                 DEFAULT_UNRATED_CACHE_TTL, 60, Duration.ofDays(7).toSeconds());
-        double tierExponent = exponent(env("GD_TIER_EXPONENT",
-                properties.getProperty("score.tier-exponent", "")), DEFAULT_TIER_EXPONENT);
+        double tierExponent = exponent(properties.get("score.tier-exponent", ""),
+                DEFAULT_TIER_EXPONENT);
         return new GdConfig(
                 userAgent.isBlank() ? "NullBot-GD/1.0" : userAgent,
                 trimSlash(gddlBase, DEFAULT_GDDL_BASE),
@@ -116,11 +89,6 @@ public record GdConfig(
     }
 
     // ════ Helpers ═════════════════
-
-    private static String env(String name, String fallback) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? fallback : value;
-    }
 
     private static Duration ttl(String raw, Duration fallback) {
         if (raw == null || raw.isBlank()) return fallback;

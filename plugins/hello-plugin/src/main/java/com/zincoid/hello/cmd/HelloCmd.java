@@ -13,13 +13,7 @@ import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * 示例指令：回复配置项，或渲染图片卡片。
@@ -46,7 +40,8 @@ public class HelloCmd implements Cmd {
             send(ctx);
             return;
         }
-        ctx.send("Hello from plugin! Data: " + DATA_KEY + "=" + data(context.dataDir()));
+        ctx.send("Hello from plugin! Data: "
+                + context.properties().get(DATA_KEY, DEFAULT_DATA_VALUE));
     }
 
     // ════ Image ═══════════════════
@@ -66,22 +61,6 @@ public class HelloCmd implements Cmd {
                 .imageBase64(png)
                 .build());
         log.info("Hello image sent: bytes={}", png.length);
-    }
-
-    // ════ Helpers ═════════════════
-
-    private static String data(Path dataDir) {
-        Properties properties = new Properties();
-        Path file = dataDir.resolve("config.properties");
-        if (Files.isRegularFile(file)) {
-            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-                properties.load(reader);
-            } catch (IOException | IllegalArgumentException e) {
-                log.warn("Cannot read Hello plugin config: {}", file, e);
-            }
-        }
-        String value = properties.getProperty(DATA_KEY, DEFAULT_DATA_VALUE);
-        return value == null || value.isBlank() ? DEFAULT_DATA_VALUE : value.trim();
     }
 
     // ════ Cmd ═════════════════════

@@ -1,18 +1,12 @@
 package com.zincoid.query.config;
 
-import lombok.extern.slf4j.Slf4j;
+import com.zincoid.nullbot.bot.plugin.PluginConfigProperties;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Properties;
 
 /**
- * 查询插件配置：环境变量优先，其次读取数据目录中的 config.properties。
- * <p>Query plugin configuration: environment variables win over config.properties in the data directory.</p>
+ * 查询插件配置：从插件 config.properties 读取。
+ * <p>Query plugin configuration read from the plugin config.properties.</p>
  *
  * @param aaApiKey        Artificial Analysis API key
  * @param sauceNaoApiKey  SauceNAO API key
@@ -20,7 +14,6 @@ import java.util.Properties;
  * @param prtsCacheTtl    PRTS cache lifetime
  * @param userAgent       HTTP user agent
  */
-@Slf4j
 public record QueryConfig(
         String aaApiKey,
         String sauceNaoApiKey,
@@ -32,36 +25,21 @@ public record QueryConfig(
     private static final Duration DEFAULT_CACHE_TTL = Duration.ofMinutes(10);
 
     /**
-     * 读取插件配置。
-     * <p>Loads the plugin configuration.</p>
+     * 从原始配置构建查询插件配置。
+     * <p>Builds the query plugin configuration from raw config values.</p>
      *
-     * @param dataDir plugin data directory
+     * @param properties the plugin config properties
      * @return the configuration
      */
-    public static QueryConfig load(Path dataDir) {
-        Properties properties = new Properties();
-        Path file = dataDir.resolve("config.properties");
-        if (Files.isRegularFile(file)) {
-            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-                properties.load(reader);
-            } catch (IOException e) {
-                log.warn("Cannot read query plugin config: {}", file, e);
-            }
-        }
-        String userAgent = env("HTTP_USER_AGENT",
-                properties.getProperty("http.user-agent", "NullBot-Query/1.0"));
+    public static QueryConfig load(PluginConfigProperties properties) {
+        String userAgent = properties.get("http.user-agent", "NullBot-Query/1.0");
         return new QueryConfig(
-                env("AA_API_KEY", properties.getProperty("aa.api-key", "")),
-                env("SAUCENAO_API_KEY", properties.getProperty("saucenao.api-key", "")),
-                ttl(env("AA_CACHE_TTL", properties.getProperty("aa.cache-ttl", "")), DEFAULT_CACHE_TTL),
-                ttl(env("PRTS_CACHE_TTL", properties.getProperty("prts.cache-ttl", "")), DEFAULT_CACHE_TTL),
+                properties.get("aa.api-key", ""),
+                properties.get("saucenao.api-key", ""),
+                ttl(properties.get("aa.cache-ttl", ""), DEFAULT_CACHE_TTL),
+                ttl(properties.get("prts.cache-ttl", ""), DEFAULT_CACHE_TTL),
                 userAgent.isBlank() ? "NullBot-Query/1.0" : userAgent
         );
-    }
-
-    private static String env(String name, String fallback) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? fallback : value;
     }
 
     private static Duration ttl(String raw, Duration fallback) {

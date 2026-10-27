@@ -82,7 +82,7 @@ public class DemoPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 1; // 仅指令用 1；提供 AI 工具用 2；使用图片渲染用 3
+        return 1; // 仅指令用 1；提供 AI 工具用 2；使用图片渲染用 3；使用 properties 用 4
     }
 
     @Override
@@ -92,7 +92,7 @@ public class DemoPlugin implements Plugin {
 
     @Override
     public void start(PluginContext context) {
-        this.service = new DemoService(DemoConfig.load(context.dataDir()));
+        this.service = new DemoService(DemoConfig.load(context.properties()));
     }
 
     @Override
@@ -126,15 +126,16 @@ public class DemoPlugin implements Plugin {
 | `1`（默认） | 指令 |
 | `2` | 指令与 AI 工具 |
 | `3` | 指令、AI 工具、图片渲染与插件模板 |
+| `4` | 以上能力，以及插件 `properties()` |
 
-宿主当前支持 `1`–`3`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
+宿主当前支持 `1`–`4`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
 
 ## 版本管理
 
 - Maven 模块版本由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只改这一处。
 - `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。
 - 从 IDE 或 classpath 运行时可能取不到版本，此时默认返回 `dev`；需要固定版本时可以覆写 `version()`。
-- `apiVersion()` 是宿主兼容版本，当前为 `1`–`3`，不随宿主发布号变化。
+- `apiVersion()` 是宿主兼容版本，当前为 `1`–`4`，不随宿主发布号变化。
 - 外部插件可以使用独立版本；升级宿主时只需确认 `apiVersion()` 仍在支持范围内。
 
 ## 宿主服务
@@ -146,6 +147,7 @@ public class DemoPlugin implements Plugin {
 | `dataDir()` | 插件独立数据目录 |
 | `renderer()` | SVG/JTE 图片渲染与字体注册 |
 | `config()` | 宿主配置存储 |
+| `properties()` | 插件自己的 `config.properties` 配置 |
 | `inputs()` | 多轮输入等待 |
 | `model()` | AI 模型调用 |
 | `users()` / `groups()` | 用户、群记录 |
@@ -384,15 +386,16 @@ core 提供以下排版工具，避免每个插件重复测量、截断和列对
 - 缓存、绑定、用户数据等持久化文件；
 - 解压后的随包资源。
 
-配置读取通常遵循“环境变量优先、其次 `config.properties`”的约定，示例见 `gd-plugin/config` 与 `query-plugin/config`；最小示例见 `hello-plugin/config`。简单配置可以直接用 `Properties` 读取，不需要引入额外框架。
+插件可把默认配置放在 `src/main/resources/config.properties`；宿主会在 `start()` 前自动复制到数据目录，目标已存在时不覆盖。默认配置应使用空密钥/安全占位值。
 
-插件可把默认配置放在 `src/main/resources/config.properties`，在 `start()` 中调用 `PluginResources.extract(...)`：
+插件通过 `context.properties()` 读取原始配置，示例见 `gd-plugin/config`、`query-plugin/config` 与 `hello-plugin/config`：
 
 ```java
-PluginResources.extract(DemoPlugin.class, "/config.properties", context.dataDir());
+String value = context.properties().get("demo.key", "default");
+int limit = context.properties().getInt("demo.limit", 10);
 ```
 
-目标文件已存在时不会覆盖；默认配置应使用空密钥/安全占位值。新增配置项时插件仍需在代码中保留默认值，避免旧配置文件缺少键。
+`properties()` 只提供原始属性读取；类型校验和业务默认值仍由插件自己的 `XxxConfig` 决定。新增配置项时插件仍需在代码中保留默认值，避免旧配置文件缺少键。
 
 控制台“插件数据”弹窗的“配置”页可直接编辑 `config.properties`，保存后可按需重载插件；“文件”页保留插件数据文件管理。
 
@@ -446,7 +449,7 @@ java -jar launcher/target/launcher-stdin.jar \
 - `META-INF/services/...Plugin` 缺失或写错；
 - 一个 JAR 中存在多个 `Plugin` 实现；
 - 插件 ID 不合法或与其他插件重复；
-- `apiVersion()` 超出 `1`–`3`；
+- `apiVersion()` 超出 `1`–`4`；
 - 插件 JAR 包含了宿主 `com.zincoid.nullbot.*` 类；
 - 第三方依赖没有 shade，运行时出现 `NoClassDefFoundError`。
 
@@ -470,5 +473,6 @@ java -jar launcher/target/launcher-stdin.jar \
 - [ ] 每个指令有 `getHelp(Language)`，AI 可调用指令有 `getAiHelp()`
 - [ ] 用户可见文案走 `XxxText`
 - [ ] 网络/解析异常转换为本地化 `CmdWarnException`
-- [ ] 使用图片渲染时 `apiVersion() == 3`
+- [ ] 使用图片渲染时 `apiVersion() >= 3`
+- [ ] 使用 `properties()` 时 `apiVersion() == 4`
 - [ ] 本地 stdin 适配器验证通过

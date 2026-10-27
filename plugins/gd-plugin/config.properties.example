@@ -1,7 +1,5 @@
 # 插件首次加载时自动创建 workspace/plugins/gd/config.properties；也可手动复制本文件。
 # Created automatically on first load; you can also copy this file manually.
-# 环境变量 GD_* 优先于本文件。
-# Environment variables GD_* take precedence.
 
 # GDDL 与缩略图使用的 HTTP 代理，host:port；留空表示不使用代理。
 # HTTP proxy for GDDL and thumbnails, host:port; empty disables it.
