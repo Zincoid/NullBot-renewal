@@ -70,17 +70,15 @@ public enum GdText {
             GDDL 用户 B20 评分查询与账号绑定。
 
             用法：
-              GDDL [GDDL用户名|ID] [--all]
-              GDDL --bind=<GDDL用户名|ID>
-              GDDL --unbind
+              GDDL bind <GDDL用户名|ID>
+              GDDL unbind
+              GDDL b20 [GDDL用户名|ID] [--all]
 
             选项：
-              --bind, -b      绑定当前聊天用户的 GDDL 账号（--bind=名字|ID，不可覆盖）
-              --unbind, -u    解除当前聊天用户的 GDDL 绑定
               --all, -a       显示完整 B20 列表
 
             权限：>=0(normal)
-            说明：不带用户名时查看当前绑定账号的 B20。
+            说明：b20 不带用户名时查看当前绑定账号的 B20。
                   GDDL 绑定保存在插件数据目录；每个聊天用户只能绑定一个账号，更换需先解绑。
                   B20 = 取 rt = rating^E × (进度/100)^1.5 最高的 20 条求平均；
                   rating 使用 GDDL 原始小数评分；E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
@@ -90,17 +88,15 @@ public enum GdText {
             GDDL user B20 rating lookup and account binding.
 
             Usage:
-              GDDL [GDDL username|id] [--all]
-              GDDL --bind=<GDDL username|id>
-              GDDL --unbind
+              GDDL bind <GDDL username|id>
+              GDDL unbind
+              GDDL b20 [GDDL username|id] [--all]
 
             Options:
-              --bind, -b      bind a GDDL account to the current chat user (--bind=username|id, no overwrite)
-              --unbind, -u    remove the current chat user's GDDL binding
               --all, -a       show the full B20 list
 
             Access: >=0(normal)
-            Notes: Without a username, shows the bound account's B20.
+            Notes: b20 without a username shows the bound account's B20.
                    GDDL bindings are stored in the plugin data directory; each chat user can bind one account and must unbind before changing it.
                    B20 = average of the best 20 rt values, where
                    rt = rating^E × (progress/100)^1.5 and E defaults to 1.5.
@@ -108,8 +104,8 @@ public enum GdText {
                    User scores only count GDDL submissions (beaten/beating)."""),
 
     UNKNOWN_SUBCOMMAND("未知子命令：%s", "Unknown subcommand: %s"),
-    GDDL_SPLIT("GDDL 已拆分为独立指令，请使用 GDDL [GDDL用户名|ID] 查询",
-            "GDDL is now a separate command; use GDDL [GDDL username|id] to query"),
+    GDDL_SPLIT("GDDL 已拆分为独立指令，请使用 GDDL b20 [GDDL用户名|ID] 查询",
+            "GDDL is now a separate command; use GDDL b20 [GDDL username|id] to query"),
     MISSING_KEYWORD("缺少搜索关键词", "Missing search keyword"),
     PAGE_FROM_ONE("页码必须从 1 开始", "Page must start at 1"),
     SEARCH_FAILED("几何冲刺服务器查询失败，请稍后重试",
@@ -138,10 +134,8 @@ public enum GdText {
     UNBIND_NONE("当前聊天用户没有绑定 GDDL 账号",
             "No GDDL account is bound to this chat user"),
     UNBIND_SUCCESS("已解绑 GDDL 用户 %s (%d)", "Unbound GDDL user %s (%d)"),
-    NO_BINDING("请先使用 GDDL --bind=<用户名|ID> 绑定 GDDL 用户",
-            "Bind a GDDL user first with GDDL --bind=<username|id>"),
-    BIND_CONFLICT("--bind 与 --unbind 不能同时使用",
-            "--bind and --unbind cannot be used together"),
+    NO_BINDING("请先使用 GDDL bind <用户名|ID> 绑定 GDDL 用户",
+            "Bind a GDDL user first with GDDL bind <username|id>"),
     BIND_SAVE_FAILED("保存 GDDL 绑定失败", "Failed to save GDDL binding"),
     INVALID_DIFFICULTY("无效的难度：%s", "Invalid difficulty: %s"),
     INVALID_DEMON("无效的恶魔难度：%s", "Invalid demon difficulty: %s"),

@@ -51,20 +51,26 @@ public class GddlCmd implements Cmd {
     }
 
     private void gddl(CmdContext ctx, CmdArgs args, String userId) {
-        boolean bind = args.hasOpt("bind", "b");
-        boolean unbind = args.hasOpt("unbind", "u");
-        if (bind && unbind)
-            throw new CmdWarnException(GdText.BIND_CONFLICT.of(ctx.language()));
+        String sub = args.next("").toLowerCase(Locale.ROOT);
+        if (sub.isBlank()) throw new CmdInfoException(getHelp(ctx.language()));
+        switch (sub) {
+            case "bind" -> bindUser(ctx, userId, bindName(ctx, args));
+            case "unbind" -> unbindUser(ctx, userId);
+            case "b20" -> b20(ctx, args, userId);
+            default -> throw new CmdWarnException(
+                    GdText.UNKNOWN_SUBCOMMAND.of(ctx.language(), sub));
+        }
+    }
 
+    private static String bindName(CmdContext ctx, CmdArgs args) {
+        String value = args.rest("").trim();
+        if (value.isEmpty())
+            throw new CmdWarnException(GdText.MISSING_USER.of(ctx.language()));
+        return value;
+    }
+
+    private void b20(CmdContext ctx, CmdArgs args, String userId) {
         boolean all = args.hasOpt("all", "a");
-        if (bind) {
-            bindUser(ctx, userId, bindName(ctx, args));
-            return;
-        }
-        if (unbind) {
-            unbindUser(ctx, userId);
-            return;
-        }
         String raw = args.rest("").trim();
         if (raw.isEmpty()) {
             GdBindings.Binding binding = bindings.get(userId);
@@ -74,16 +80,6 @@ public class GddlCmd implements Cmd {
             return;
         }
         showB20(ctx, resolveUser(ctx, raw), all);
-    }
-
-    private static String bindName(CmdContext ctx, CmdArgs args) {
-        String value = args.getOpt("bind", "b", "").trim();
-        String rest = args.rest("").trim();
-        if (value.isEmpty()) value = rest;
-        else if (!rest.isEmpty()) value = value + " " + rest;
-        if (value.isEmpty())
-            throw new CmdWarnException(GdText.MISSING_USER.of(ctx.language()));
-        return value;
     }
 
     private void bindUser(CmdContext ctx, String userId, String raw) {
