@@ -109,8 +109,10 @@ public interface PluginContext {
     PluginRenderer renderer();
 
     /**
-     * 插件自己的 config.properties 配置。
-     * <p>Plugin-local config.properties configuration.</p>
+     * 插件自己的 config.properties 配置快照。
+     * <p>Snapshot of the plugin-local config.properties configuration.</p>
+     * <p>配置文件在插件启动时读取；修改后需要重载插件。</p>
+     * <p>The file is read when the plugin starts; reload the plugin after editing it.</p>
      *
      * @return the plugin config snapshot
      */
