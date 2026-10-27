@@ -3,6 +3,8 @@ package com.zincoid.query;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
+import com.zincoid.nullbot.bot.plugin.PluginException;
+import com.zincoid.nullbot.bot.plugin.PluginResources;
 import com.zincoid.query.cmd.AaCmd;
 import com.zincoid.query.cmd.PrtsCmd;
 import com.zincoid.query.cmd.TraceCmd;
@@ -41,6 +43,11 @@ public class QueryPlugin implements Plugin {
 
     @Override
     public void start(PluginContext context) {
+        try {
+            PluginResources.extract(QueryPlugin.class, "/config.properties", context.dataDir());
+        } catch (PluginException e) {
+            log.warn("Query default config unavailable; using built-in defaults", e);
+        }
         QueryConfig loaded = QueryConfig.load(context.dataDir());
         this.config = loaded;
         this.aa = new AaService(loaded);

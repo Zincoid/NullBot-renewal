@@ -386,6 +386,14 @@ core 提供以下排版工具，避免每个插件重复测量、截断和列对
 
 配置读取通常遵循“环境变量优先、其次 `config.properties`”的约定，示例见 `gd-plugin/config` 与 `query-plugin/config`。简单配置可以直接用 `Properties` 读取，不需要引入额外框架。
 
+插件可把默认配置放在 `src/main/resources/config.properties`，在 `start()` 中调用 `PluginResources.extract(...)`：
+
+```java
+PluginResources.extract(DemoPlugin.class, "/config.properties", context.dataDir());
+```
+
+目标文件已存在时不会覆盖；默认配置应使用空密钥/安全占位值。新增配置项时插件仍需在代码中保留默认值，避免旧配置文件缺少键。
+
 随 JAR 分发的图片/二进制资源可放在 `src/main/resources/`，启动时用 `PluginResources.extract(...)` 解压到数据目录；`pubg-plugin` 是示例。只读资源也可以直接从 classpath 读取。
 
 插件不应写入 `dataDir()` 之外的路径，也不应依赖宿主的内部工作目录。

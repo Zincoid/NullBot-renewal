@@ -147,7 +147,7 @@ QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg
 | `sb6657` | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
 | `symmetry` | `#Symmetry`（别名 `#图像对称`、`#对称`） |
 
-`query` 插件需在数据目录的 `config.properties` 中配置 `aa.api-key` 与 `saucenao.api-key`，模板见 `plugins/query-plugin/config.properties.example`。
+`query` 插件需在数据目录的 `config.properties` 中配置 `aa.api-key` 与 `saucenao.api-key`；首次加载会自动生成默认配置，模板见 `plugins/query-plugin/config.properties.example`。
 
 ### GD 指令
 
@@ -164,7 +164,7 @@ QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg
 - `#GDDL bind <GDDL用户名|ID>`：绑定当前聊天用户的 GDDL 账号；已有绑定不会覆盖。
 - `#GDDL unbind`：解除当前聊天用户的 GDDL 绑定。
 
-本地进度保存在插件数据目录的 `gd.db`（SQLite）；注册用户、关卡名/作者快照与进度记录都在其中。本地 B20 使用自报进度，关卡评级来自 GDDL，**不是 GDDL 官方记录**；该关卡在 GDDL 未评级时会被跳过并提示数量。GDDL 评级缓存默认已评级 24 小时、未评级 1 小时，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。
+本地进度保存在插件数据目录的 `gd.db`（SQLite）；注册用户、关卡名/作者快照与进度记录都在其中。本地 B20 使用自报进度，关卡评级来自 GDDL，**不是 GDDL 官方记录**；该关卡在 GDDL 未评级时会被跳过并提示数量。GDDL 评级缓存默认已评级 24 小时、未评级 1 小时，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。首次加载会自动在数据目录生成默认 `config.properties`，已有文件不会覆盖。
 
 B20 单关 `rt = rating^E × (进度/100)^1.5`，其中 `rating` 使用 GDDL 原始小数评分，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。B20 列表的 tier 列显示四舍五入后的整数和原始评分，例如 `25(25.33)`。GDDL 用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。GDDL 绑定记录保存在插件数据目录的 `gddl-bindings.properties`，每个聊天用户只能绑定一个账号，更换前需先解绑。
 
