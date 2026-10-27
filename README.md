@@ -5,12 +5,12 @@
 ## 特性
 
 - **适配器解耦**：业务只依赖 `spi` 的事件模型与 `BotClient`/`BotServer` 端口，内置 Shiro（OneBot 11）与 stdin 两种适配器。
-- **指令框架**：可配置前缀、别名、限权（banned/restricted/normal/manager/admin）、限流、关键词触发、输入等待、帮助与调用统计。
-- **AI 对话**：兼容 OpenAI 接口；群聊 @、私聊、戳一戳均可触发，支持按群/用户设置提示词、推理强度与注入防护，并提供工具调用（读消息、看图、搜索收藏、发送、网页、撤回、禁言、调用指令）。
+- **指令框架**：可配置前缀、别名、限权、限流、关键词触发、输入等待、帮助与调用统计。
+- **AI 对话**：兼容 OpenAI 接口；群聊 @、私聊、戳一戳均可触发，支持群/用户级提示词、推理强度、注入防护与工具调用。
 - **消息能力**：图片/视频/音频/语录收藏与随机发送、入退群通知、防撤回、聊天历史、自动聊天。
 - **图片渲染**：JTE 预编译模板配合 JairoSVG 输出 PNG，内置 `Usage`、`Info`、`Help` 图片卡片；插件可复用同一渲染管线并自带字体。
-- **Web 控制台**：概览、角色与群设置、关键词、语录、文件、配置、插件管理、系统信息，以及常驻实时日志（SSE）。
-- **外部插件**：JAR 热插拔，支持上传、启停、重载、删除与独立数据目录；插件可注册指令、AI 工具和图片渲染。
+- **Web 控制台**：概览、角色与群设置、关键词、语录、文件、配置、插件、系统信息，以及 SSE 实时日志。
+- **外部插件**：JAR 热插拔，支持上传、启停、重载、删除与独立数据目录；插件可注册指令、AI 工具与图片渲染。
 
 ## 模块
 
@@ -31,15 +31,24 @@
 java -jar launcher/target/launcher-shiro.jar
 ```
 
-默认使用 SQLite（首次启动自动建表），HTTP 端口随机。启动日志会打印控制台地址与访问令牌：
+默认使用 SQLite（首次启动自动建表），HTTP 端口随机；启动日志会打印控制台地址与访问令牌：
 
 ```text
 Console UI: http://localhost:<port>/console/ui?token=<token>
 ```
 
+调试时可改用 stdin 适配器：
+
+```bash
+./mvnw -P adapter-stdin package
+java -jar launcher/target/launcher-stdin.jar
+```
+
+生产环境建议使用 systemd 或 screen 托管进程，并配置数据库、日志与控制台令牌。
+
 ## 配置
 
-启动时默认激活 `prod` profile。复制 `application.yaml.template` 为运行目录下的 `application-prod.yaml` 后修改；也可直接使用环境变量（如 `NULLBOT_PORT`、`NULLBOT_CONSOLE_TOKEN`）或 `--nullbot.port=8080` 形式的启动参数。
+默认激活 `prod` profile。参考 `application.yaml.template` 在运行目录创建 `application-prod.yaml`，也可使用环境变量（如 `NULLBOT_PORT`、`NULLBOT_CONSOLE_TOKEN`）或 `--nullbot.port=8080` 形式覆盖。
 
 | 键 | 默认值 | 说明 |
 | --- | --- | --- |
@@ -63,50 +72,15 @@ MySQL 需手动执行 `schema-mysql.sql`。
 - `adapter-shiro`（默认）：OneBot 11 实现（如 NapCat）通过反向 WS 连接 `/ws`。
 - `adapter-stdin`：从标准输入读取事件，便于调试。
 
-```bash
-./mvnw -P adapter-stdin package
-java -jar launcher/target/launcher-stdin.jar
-```
-
 ## 插件
 
-### 开发
+插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；可注册指令、AI 工具与图片渲染，支持 JAR 热插拔、独立数据目录和运行时启停。
 
-插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册。`cmds()` 返回的 `Cmd` 使用 `@CmdMapping` 声明别名；不需要指令时可省略。插件还可通过 `tools()` 提供 AI 工具（`Tool`），工具名需全局唯一，建议使用 `<插件 ID>_<工具名>`。
+- 开发指南：[PLUGIN.md](PLUGIN.md)
+- 入门示例：[plugins/hello-plugin](plugins/hello-plugin)
+- 完整示例：[plugins/gd-plugin](plugins/gd-plugin)、[plugins/query-plugin](plugins/query-plugin)
 
-插件内用户可见文案放在插件自己的 `XxxText` 枚举中，中文与英文成对维护，通过 `of(Language)` 选取当前语言；可参考 `plugins/gd-plugin` 的 `GdText`。
-
-插件源码统一按以下结构组织：根包只放 `XxxPlugin`、`XxxText` 与可选的 `XxxException`；指令统一放在 `cmd` 子包；配置、服务、模型、渲染等按需放入 `config`、`service`、`model`、`render` 子包，单类插件不建空包。
-
-| `apiVersion()` | 能力 |
-| --- | --- |
-| `1`（默认） | 指令 |
-| `2` | 指令与 AI 工具 |
-| `3` | 指令、AI 工具、图片渲染与字体 |
-
-插件声明的 `apiVersion()` 必须在宿主支持的范围内（当前 `1`–`3`），否则加载失败。开发时依赖 `core`（`provided`）。完整示例见 `plugins/hello-plugin`。
-
-### 插件渲染
-
-`PluginContext.renderer()` 提供图片渲染能力：
-
-- `svg(String)`：原始 SVG → PNG
-- `template(String, Map)`：预编译 JTE 模板 → PNG
-- `font(byte[])`：注册 TTF/OTF 字体
-
-模板用 `jte-maven-plugin`（配置可参考 `core/pom.xml`，JTE 版本与宿主一致）从 `src/main/resources/templates/*.jte` 预编译进插件 JAR；模板参数名与 `.jte` 的 `@param` 一致。结果通常以 `base64://` 图片发送。使用渲染能力时 `apiVersion()` 返回 `3`。
-
-需要手动排列 SVG 文本时，可以复用 core 的 `SvgText`/`SvgLine`/`SvgPositionedLine`：支持字体宽度测量、按宽度截断、多行垂直居中和文本转义；`SvgTable`/`SvgColumn`/`SvgCell` 负责表头、列宽、对齐和单元格定位。
-
-图片可复用 core 的 `ImageData`：`dataUri`/`imageDataUri`、`cover`/`square` 居中裁剪缩放、`imageDataUri(BufferedImage)` PNG 编码，支持 WebP 解码。中英与 emoji 混排可用 `SvgText.fontSegments` 自动分段并选择字体。
-
-插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册；也可调用 `renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。`plugins/hello-plugin` 的 `Hello --image` 是完整模板示例。
-
-### 运行
-
-设置 `nullbot.plugin.enabled: true` 后，把插件 JAR 放入 `nullbot.plugin.dir`，或在控制台“插件”页上传；支持运行时启用、停用、重载与删除。插件数据目录由宿主创建，可通过 `PluginContext.dataDir()` 获取。
-
-执行 `./mvnw package` 后，插件 JAR 会复制到本地 `workspace/plugins/`（该目录已被忽略），可将 `nullbot.plugin.dir` 指向它。
+插件需启用并成功加载后才会注册指令：设置 `nullbot.plugin.enabled: true`，将 JAR 放入 `nullbot.plugin.dir`，或在控制台“插件”页上传。执行 `./mvnw package` 后，声明了复制步骤的插件 JAR 会进入 `workspace/plugins/`。
 
 ## 指令
 
@@ -124,7 +98,7 @@ java -jar launcher/target/launcher-stdin.jar
 | 管理 | `#Config`、`#GroupSet`、`#History`、`#Mute`、`#Recall` |
 | AI | `#Chat`、`#Prompt`（私聊） |
 
-常用别名：`#帮助`、`#用量`、`#保存`、`#图片`、`#视频`、`#音频`、`#语录`、`#配置`、`#群设置`、`#历史`、`#禁言`、`#撤回`、`#对话`、`#提示词`。完整列表请发送 `#Help`。
+`#Usage`、`#Info`、`#Help` 与 `#Say` 输出图片卡片。完整指令、别名与限权请发送 `#Help` 查看。
 
 ### 插件指令
 
@@ -135,14 +109,18 @@ java -jar launcher/target/launcher-stdin.jar
 | `hello` | `#Hello`（别名 `#你好`） |
 | `gallery` | `#Anime`（别名 `#二次元`）、`#Zincoid`（别名 `#zn`、`#锌`） |
 | `game` | `#Wife`（别名 `#今日老婆`）、`#Guess`（别名 `#猜`）、`#Quiz`（别名 `#问答`） |
-| `say` | `#Say`（别名 `#说`） |
+| `say` | `#Say`（别名 `#说`；支持 `@用户`、用户 ID、`--id=<语录ID>`） |
 | `gd` | `#GD`（别名 `#几何冲刺`） |
 | `pubg` | `#PUBG`（别名 `#吃鸡地图`） |
 | `query` | `#AA`（别名 `#模型查询`）、`#PRTS`（别名 `#PRTS查询`）、`#Trace`（别名 `#图溯源`、`#溯源`） |
 | `sb6657` | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
 | `symmetry` | `#Symmetry`（别名 `#图像对称`、`#对称`） |
 
-`#GD` / `#几何冲刺`（`gd-plugin`）提供 Geometry Dash 关卡查询与 GDDL B20 评分，搜索结果、关卡详情与 B20 均以图片卡片输出：
+`query` 插件需在数据目录的 `config.properties` 中配置 `aa.api-key` 与 `saucenao.api-key`，模板见 `plugins/query-plugin/config.properties.example`。
+
+### GD 指令
+
+`#GD`/`#几何冲刺` 提供 Geometry Dash 关卡查询与 GDDL B20 评分，搜索结果、关卡详情与 B20 均以图片卡片输出：
 
 - `#GD search <关键词> [--diff=...] [--demon=...] [--length=...] [--filter=...] [--page=N]`：搜索关卡，回复序号查看详情，回复 `next` 翻到下一页。
 - `#GD level <关卡ID>`：按 ID 查看关卡详情；卡片内嵌社区缩略图（WebP 自动转为 PNG）。
@@ -154,13 +132,6 @@ B20 单关 `rt = tier^E × (进度/100)^1.5`，取最高的 20 条求平均；`E
 
 GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默认 8）、`http.request-timeout`（秒，默认 15）、`http.retries`（默认 1）、`http.proxy`（`host:port`，可选 HTTP 代理，暂不支持认证）、`cache-ttl`（秒，默认 600）、`gddl.api-base`、`gddl.avatar-base`、`thumbnail.base`、`http.user-agent`。服务器网络较慢时可使用代理或镜像地址，并适当增大超时；缩略图和头像成功获取后会按 `cache-ttl` 缓存。配置模板见 `plugins/gd-plugin/config.properties.example`。
 
-### 图片指令
-
-- `#Usage` / `#用量`：当前用户的历史指令用量卡片
-- `#Info`：系统信息
-- `#Help` / `#帮助`：内置指令与插件列表；`#Help -p=<插件>` 查看指定插件
-- `#Say` / `#说`：`say-plugin` 提供的随机语录卡片，左侧作者头像渐隐；可通过 `@用户` 或用户 ID 指定作者，或用 `--id=<语录ID>`（`-i`）指定语录
-
 ## 字体
 
 核心字体及其 OFL 许可证位于 `core/src/main/resources/fonts/`：
@@ -168,7 +139,7 @@ GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默�
 | 字体 | 用途 |
 | --- | --- |
 | JetBrains Maple Mono NF（OFL） | 核心渲染管线的默认字体，中英文混排；粗体通过 `font-weight="bold"` 合成 |
-| Noto Emoji（OFL） | `Say` 语录卡片中的 emoji 文本 |
+| Noto Emoji（OFL） | 渲染文本中的 emoji 回退，按文本段自动切换 |
 
 JetBrains Maple Mono NF 由 JetBrains Mono 与 Maple Mono 合成，并包含 Nerd Font 图标。
 
@@ -180,6 +151,11 @@ JetBrains Maple Mono NF 由 JetBrains Mono 与 Maple Mono 合成，并包含 Ner
 | Bernard MT Condensed | `hello-plugin` | `Hello --image` 标题示例 |
 
 字体注册是 JVM 全局的，插件卸载后不会撤销。`Bernard MT Condensed` 为商业字体，分发前请确认授权。
+
+## 文档
+
+- [插件开发指南](PLUGIN.md)
+- [变更日志](CHANGELOG.md)
 
 ## 许可
 
