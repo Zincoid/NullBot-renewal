@@ -2,6 +2,7 @@ package com.zincoid.gd;
 
 import com.zincoid.gd.binding.GdBindings;
 import com.zincoid.gd.cmd.GdCmd;
+import com.zincoid.gd.cmd.GddlCmd;
 import com.zincoid.gd.config.GdConfig;
 import com.zincoid.gd.render.GdImagePresenter;
 import com.zincoid.gd.render.GdPresenter;
@@ -15,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * GD 插件：注册几何冲刺查询指令。
- * <p>GD plugin registering the Geometry Dash query command.</p>
+ * GD 插件：注册几何冲刺查询与 GDDL 指令。
+ * <p>GD plugin registering the Geometry Dash query and GDDL commands.</p>
  */
 @Slf4j
 public class GdPlugin implements Plugin {
@@ -38,7 +39,9 @@ public class GdPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new GdCmd(service(), presenter(), bindings(), context()));
+        return List.of(
+                new GdCmd(service(), presenter(), context()),
+                new GddlCmd(service(), presenter(), bindings()));
     }
 
     @Override

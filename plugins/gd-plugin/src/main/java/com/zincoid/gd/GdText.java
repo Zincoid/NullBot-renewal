@@ -12,14 +12,11 @@ public enum GdText {
 
     HELP("""
             GD
-            几何冲刺关卡查询与 GDDL B20 评分。
+            几何冲刺关卡搜索与详情。
 
             用法：
               GD search <关键词> [选项]
               GD level <关卡ID>
-              GD gddl [GDDL用户名|ID] [--all]
-              GD gddl --bind=<GDDL用户名|ID>
-              GD gddl --unbind
 
             选项：
               --diff, -d      难度：easy,normal,hard,harder,insane,demon（逗号分隔）
@@ -27,27 +24,18 @@ public enum GdText {
               --length, -l    长度：tiny,short,medium,long,xl,platformer（逗号分隔）
               --filter        标签：star,no-star,featured,original,two-player,coins,epic,custom-song
               --page, -p      页码，从 1 开始
-              --bind, -b      绑定当前聊天用户的 GDDL 账号（--bind=名字|ID，不可覆盖）
-              --unbind, -u    解除当前聊天用户的 GDDL 绑定
-              --all, -a       显示完整 B20 列表
 
             别名：几何冲刺
             权限：>=0(normal)
-            说明：不带用户名时查看当前绑定账号的 B20。
-                  GDDL 绑定保存在插件数据目录；每个聊天用户只能绑定一个账号，更换需先解绑。
-                  B20 = 取 rt = tier^E × (进度/100)^1.5 最高的 20 条求平均；
-                  E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
-                  用户评分仅统计 GDDL 提交记录（beaten/beating），未提交的关卡不计入。""",
+            说明：回复序号查看详情，next 下一页，end 取消。
+                  GDDL B20 请使用 GDDL 指令。""",
             """
             GD
-            Geometry Dash level lookup and GDDL B20 rating.
+            Geometry Dash level search and details.
 
             Usage:
               GD search <keyword> [options]
               GD level <level id>
-              GD gddl [GDDL username|id] [--all]
-              GD gddl --bind=<GDDL username|id>
-              GD gddl --unbind
 
             Options:
               --diff, -d      difficulties: easy,normal,hard,harder,insane,demon (comma separated)
@@ -55,11 +43,46 @@ public enum GdText {
               --length, -l    lengths: tiny,short,medium,long,xl,platformer (comma separated)
               --filter        tags: star,no-star,featured,original,two-player,coins,epic,custom-song
               --page, -p      page number, starting at 1
+
+            Aliases: 几何冲刺
+            Access: >=0(normal)
+            Notes: Reply with a number to view details, next for the next page, or end to cancel.
+                   Use the GDDL command for GDDL B20 ratings."""),
+
+    GDDL_HELP("""
+            GDDL
+            GDDL 用户 B20 评分查询与账号绑定。
+
+            用法：
+              GDDL [GDDL用户名|ID] [--all]
+              GDDL --bind=<GDDL用户名|ID>
+              GDDL --unbind
+
+            选项：
+              --bind, -b      绑定当前聊天用户的 GDDL 账号（--bind=名字|ID，不可覆盖）
+              --unbind, -u    解除当前聊天用户的 GDDL 绑定
+              --all, -a       显示完整 B20 列表
+
+            权限：>=0(normal)
+            说明：不带用户名时查看当前绑定账号的 B20。
+                  GDDL 绑定保存在插件数据目录；每个聊天用户只能绑定一个账号，更换需先解绑。
+                  B20 = 取 rt = tier^E × (进度/100)^1.5 最高的 20 条求平均；
+                  E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
+                  用户评分仅统计 GDDL 提交记录（beaten/beating），未提交的关卡不计入。""",
+            """
+            GDDL
+            GDDL user B20 rating lookup and account binding.
+
+            Usage:
+              GDDL [GDDL username|id] [--all]
+              GDDL --bind=<GDDL username|id>
+              GDDL --unbind
+
+            Options:
               --bind, -b      bind a GDDL account to the current chat user (--bind=username|id, no overwrite)
               --unbind, -u    remove the current chat user's GDDL binding
               --all, -a       show the full B20 list
 
-            Aliases: 几何冲刺
             Access: >=0(normal)
             Notes: Without a username, shows the bound account's B20.
                    GDDL bindings are stored in the plugin data directory; each chat user can bind one account and must unbind before changing it.
@@ -69,6 +92,8 @@ public enum GdText {
                    User scores only count GDDL submissions (beaten/beating)."""),
 
     UNKNOWN_SUBCOMMAND("未知子命令：%s", "Unknown subcommand: %s"),
+    GDDL_SPLIT("GDDL 已拆分为独立指令，请使用 GDDL [GDDL用户名|ID] 查询",
+            "GDDL is now a separate command; use GDDL [GDDL username|id] to query"),
     MISSING_KEYWORD("缺少搜索关键词", "Missing search keyword"),
     PAGE_FROM_ONE("页码必须从 1 开始", "Page must start at 1"),
     SEARCH_FAILED("几何冲刺服务器查询失败，请稍后重试",
@@ -97,8 +122,8 @@ public enum GdText {
     UNBIND_NONE("当前聊天用户没有绑定 GDDL 账号",
             "No GDDL account is bound to this chat user"),
     UNBIND_SUCCESS("已解绑 GDDL 用户 %s (%d)", "Unbound GDDL user %s (%d)"),
-    NO_BINDING("请先使用 GD gddl --bind=<用户名|ID> 绑定 GDDL 用户",
-            "Bind a GDDL user first with GD gddl --bind=<username|id>"),
+    NO_BINDING("请先使用 GDDL --bind=<用户名|ID> 绑定 GDDL 用户",
+            "Bind a GDDL user first with GDDL --bind=<username|id>"),
     BIND_CONFLICT("--bind 与 --unbind 不能同时使用",
             "--bind and --unbind cannot be used together"),
     BIND_SAVE_FAILED("保存 GDDL 绑定失败", "Failed to save GDDL binding"),

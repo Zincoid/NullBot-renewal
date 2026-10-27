@@ -138,7 +138,7 @@ QQ 官方机器人适配器目前所有输出都使用主动消息（不带 `msg
 | `gallery` | `#Anime`（别名 `#二次元`）、`#Zincoid`（别名 `#zn`、`#锌`） |
 | `game` | `#Wife`（别名 `#今日老婆`）、`#Guess`（别名 `#猜`）、`#Quiz`（别名 `#问答`） |
 | `say` | `#Say`（别名 `#说`；支持 `@用户`、用户 ID、`--id=<语录ID>`） |
-| `gd` | `#GD`（别名 `#几何冲刺`） |
+| `gd` | `#GD`（别名 `#几何冲刺`）、`#GDDL` |
 | `pubg` | `#PUBG`（别名 `#吃鸡地图`） |
 | `query` | `#AA`（别名 `#模型查询`）、`#PRTS`（别名 `#PRTS查询`）、`#Trace`（别名 `#图溯源`、`#溯源`） |
 | `sb6657` | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
@@ -148,13 +148,13 @@ QQ 官方机器人适配器目前所有输出都使用主动消息（不带 `msg
 
 ### GD 指令
 
-`#GD`/`#几何冲刺` 提供 Geometry Dash 关卡查询与 GDDL B20 评分，搜索结果、关卡详情与 B20 均以图片卡片输出：
+`#GD`/`#几何冲刺` 提供 Geometry Dash 关卡搜索与详情，`#GDDL` 提供 GDDL B20 评分；搜索结果、关卡详情与 B20 均以图片卡片输出：
 
 - `#GD search <关键词> [--diff=...] [--demon=...] [--length=...] [--filter=...] [--page=N]`：搜索关卡，回复序号查看详情，回复 `next` 翻到下一页。
 - `#GD level <关卡ID>`：按 ID 查看关卡详情；卡片内嵌社区缩略图（WebP 自动转为 PNG）。
-- `#GD gddl [GDDL用户名|ID] [--all]`：查询指定 GDDL 用户的 B20；省略用户名时查询当前绑定账号。默认显示前 5 条，`--all` 显示完整 20 条。
-- `#GD gddl --bind=<GDDL用户名|ID>`：绑定当前聊天用户的 GDDL 账号；已有绑定不会覆盖。
-- `#GD gddl --unbind`：解除当前聊天用户的 GDDL 绑定。
+- `#GDDL [GDDL用户名|ID] [--all]`：查询指定 GDDL 用户的 B20；省略用户名时查询当前绑定账号。默认显示前 5 条，`--all` 显示完整 20 条。
+- `#GDDL --bind=<GDDL用户名|ID>`：绑定当前聊天用户的 GDDL 账号；已有绑定不会覆盖。
+- `#GDDL --unbind`：解除当前聊天用户的 GDDL 绑定。
 
 B20 单关 `rt = tier^E × (进度/100)^1.5`，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。GDDL 绑定记录保存在插件数据目录的 `gddl-bindings.properties`，每个聊天用户只能绑定一个账号，更换前需先解绑。
 

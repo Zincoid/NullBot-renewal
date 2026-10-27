@@ -15,6 +15,7 @@
 - 群聊消息同时 @机器人 并携带指令时优先执行指令，未匹配指令才进入 AI 对话；开头的提及段与引用段不再阻止指令解析。
 - `adapter-qq` 的配置项 `nullbot.qq.api-base` 更名为 `nullbot.qq.api-url`，旧键不再读取。
 - `adapter-qq` 拆分 HTTP/token、OpenAPI、媒体、入站路由与客户端工厂，统一会话目标 `QqTarget`；公开行为不变。
+- `gd-plugin` 将 GDDL B20 从 `#GD gddl` 拆分为独立指令 `#GDDL`，`#GD`/`#几何冲刺` 保留关卡搜索与详情。
 
 ## [1.1.0] - 2026-10-27
 
