@@ -21,7 +21,6 @@ import com.zincoid.say.render.QuoteCard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
  * 语录图片指令：随机抽一条语录，左侧头像渐隐，右侧渲染语录。
  * <p>Say command: draws a random quote with the author avatar fading on the left and the quote on the right.</p>
