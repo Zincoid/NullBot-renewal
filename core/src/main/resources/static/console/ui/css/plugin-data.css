@@ -4,6 +4,69 @@
     width: min(1000px, calc(100vw - 32px));
 }
 
+.plugin-config-hint {
+    margin-top: 0;
+    margin-bottom: var(--spacing-sm);
+}
+
+.plugin-config-toolbar {
+    margin-top: 0;
+    margin-bottom: var(--spacing-xs);
+}
+
+.plugin-config-file {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    height: 39px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.plugin-config-file svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+}
+
+.plugin-config-editor {
+    min-height: 360px;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    white-space: pre;
+    tab-size: 4;
+}
+
+#plugin-data-tab-config .dialog-foot {
+    align-items: center;
+    margin-top: var(--spacing-md);
+}
+
+.plugin-config-foot-status {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-right: var(--spacing-sm);
+    text-align: left;
+}
+
+.plugin-config-foot-status .status {
+    margin: 0;
+}
+
+button.btn-save-reload {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+button.btn-save-reload svg {
+    width: 16px;
+    height: 16px;
+}
+
 .plugin-data-bar {
     display: flex;
     flex-wrap: wrap;

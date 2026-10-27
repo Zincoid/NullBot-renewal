@@ -2,6 +2,7 @@ package com.zincoid.nullbot.console.service;
 
 import com.zincoid.nullbot.bot.plugin.PluginException;
 import com.zincoid.nullbot.bot.plugin.loader.PluginLoader;
+import com.zincoid.nullbot.console.dto.PluginConfigView;
 import com.zincoid.nullbot.console.dto.PluginDataResult;
 import com.zincoid.nullbot.console.dto.PluginDataView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
@@ -15,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -29,15 +32,20 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Stream;
 
 /**
- * 插件数据目录服务：浏览、新建文件夹、上传、删除和下载插件数据文件。
- * <p>Plugin data service: browses, creates folders, uploads, deletes, and downloads plugin data files.</p>
+ * 插件数据目录服务：浏览、新建文件夹、上传、删除和下载插件数据文件，读写 config.properties。
+ * <p>Plugin data service: browses, creates folders, uploads, deletes, downloads plugin data files,
+ * and reads or writes config.properties.</p>
  */
 @Service
 @RequiredArgsConstructor
 public class PluginDataService {
+
+    private static final String CONFIG_FILE = "config.properties";
+    private static final int MAX_CONFIG_BYTES = 256 * 1024;
 
     private final PluginLoader pluginLoader;
 
@@ -190,6 +198,86 @@ public class PluginDataService {
         if (!Files.isRegularFile(real))
             throw new ConsoleException(HttpStatus.NOT_FOUND, "File not found: " + path);
         return target;
+    }
+
+    // ════ Config ═════════════════
+
+    /**
+     * 读取插件配置文件。
+     * <p>Reads the plugin configuration file.</p>
+     *
+     * @param jar the plugin jar filename
+     * @return the config content and whether the file exists
+     */
+    public PluginConfigView readConfig(String jar) {
+        Path root = root(jar);
+        Path file = configFile(root);
+        if (!Files.exists(file, LinkOption.NOFOLLOW_LINKS))
+            return new PluginConfigView("", false);
+        try {
+            if (Files.size(file) > MAX_CONFIG_BYTES)
+                throw new ConsoleException(HttpStatus.PAYLOAD_TOO_LARGE,
+                        "Plugin config is too large");
+            return new PluginConfigView(
+                    Files.readString(file, StandardCharsets.UTF_8), true);
+        } catch (IOException e) {
+            throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Cannot read plugin config: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 保存插件配置文件。
+     * <p>Saves the plugin configuration file.</p>
+     *
+     * @param jar     the plugin jar filename
+     * @param content the raw properties content
+     * @return the saved config view
+     */
+    public PluginConfigView writeConfig(String jar, String content) {
+        if (content == null)
+            throw new ConsoleException(HttpStatus.BAD_REQUEST,
+                    "Config content is required");
+        if (content.getBytes(StandardCharsets.UTF_8).length > MAX_CONFIG_BYTES)
+            throw new ConsoleException(HttpStatus.PAYLOAD_TOO_LARGE,
+                    "Plugin config is too large");
+        validateProperties(content);
+        Path root = root(jar);
+        Path file = configFile(root);
+        try {
+            Path temp = Files.createTempFile(root, ".config-", ".tmp");
+            try {
+                Files.writeString(temp, content, StandardCharsets.UTF_8);
+                AtomicFiles.moveReplace(temp, file);
+            } finally {
+                Files.deleteIfExists(temp);
+            }
+            return new PluginConfigView(content, true);
+        } catch (IOException e) {
+            throw new ConsoleException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Cannot write plugin config: " + e.getMessage(), e);
+        }
+    }
+
+    private static void validateProperties(String content) {
+        try {
+            new Properties().load(new StringReader(content));
+        } catch (IOException | IllegalArgumentException e) {
+            throw new ConsoleException(HttpStatus.BAD_REQUEST,
+                    "Invalid properties file: " + e.getMessage(), e);
+        }
+    }
+
+    private static Path configFile(Path root) {
+        Path file = root.resolve(CONFIG_FILE);
+        if (Files.isSymbolicLink(file))
+            throw new ConsoleException(HttpStatus.BAD_REQUEST,
+                    "Plugin config must not be a symbolic link");
+        if (Files.exists(file, LinkOption.NOFOLLOW_LINKS)
+                && !Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS))
+            throw new ConsoleException(HttpStatus.BAD_REQUEST,
+                    "Plugin config is not a regular file");
+        return file;
     }
 
     // ════ Helpers ════════════════

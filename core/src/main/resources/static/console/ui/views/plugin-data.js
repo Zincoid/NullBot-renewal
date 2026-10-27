@@ -8,11 +8,17 @@ import {
 const pluginDataState = {
     jar: '',
     id: '',
+    loaded: false,
+    tab: 'config',
     path: '',
     entries: [],
     selection: new Set(),
     busy: false,
     error: '',
+    configBusy: false,
+    configLoaded: false,
+    configDirty: false,
+    configExists: false,
     generation: 0
 };
 
@@ -21,37 +27,58 @@ function openPluginData(plugin) {
     pluginDataState.generation++;
     pluginDataState.jar = plugin.jar;
     pluginDataState.id = plugin.id;
+    pluginDataState.loaded = plugin.state === 'LOADED';
+    pluginDataState.tab = 'config';
     pluginDataState.path = '';
     pluginDataState.entries = [];
     pluginDataState.selection.clear();
     pluginDataState.busy = false;
     pluginDataState.error = '';
+    pluginDataState.configBusy = false;
+    pluginDataState.configLoaded = false;
+    pluginDataState.configDirty = false;
+    pluginDataState.configExists = false;
     $('plugin-data-folder-form').hidden = true;
     $('plugin-data-folder-name').value = '';
+    $('plugin-data-subtitle').textContent = t('plugins.dataSubtitle', {
+        id: plugin.id,
+        jar: plugin.jar
+    });
     $('plugin-data-crumbs').innerHTML = '';
     $('plugin-data-count').textContent = '';
     $('plugin-data-body').innerHTML = '';
+    $('plugin-config-content').value = '';
     setStatus($('plugin-data-status'), '');
+    setStatus($('plugin-config-status'), '');
+    updatePluginConfigToolbar();
     $('plugin-data-dialog').showModal();
-    loadPluginData();
+    switchPluginDataTab('config', true);
 }
 
 function resetPluginData() {
     pluginDataState.generation++;
     pluginDataState.jar = '';
     pluginDataState.id = '';
+    pluginDataState.loaded = false;
+    pluginDataState.tab = 'config';
     pluginDataState.path = '';
     pluginDataState.entries = [];
     pluginDataState.selection.clear();
     pluginDataState.busy = false;
     pluginDataState.error = '';
+    pluginDataState.configBusy = false;
+    pluginDataState.configLoaded = false;
+    pluginDataState.configDirty = false;
+    pluginDataState.configExists = false;
     $('plugin-data-folder-form').hidden = true;
     $('plugin-data-folder-name').value = '';
     $('plugin-data-files').value = '';
     $('plugin-data-body').innerHTML = '';
     $('plugin-data-crumbs').innerHTML = '';
     $('plugin-data-count').textContent = '';
+    $('plugin-config-content').value = '';
     setStatus($('plugin-data-status'), '');
+    setStatus($('plugin-config-status'), '');
 }
 
 async function loadPluginData() {
@@ -88,6 +115,113 @@ async function loadPluginData() {
                 && pluginDataState.jar === jar && pluginDataState.path === path) {
             pluginDataState.busy = false;
             updatePluginDataToolbar();
+        }
+    }
+}
+
+async function switchPluginDataTab(tab, force = false) {
+    if (!force && pluginDataState.tab === tab) return;
+    if (!force && pluginDataState.tab === 'config' && tab !== 'config'
+            && pluginDataState.configDirty) {
+        if (!await confirmAction(t('plugins.configDiscardConfirm'))) return;
+        pluginDataState.configLoaded = false;
+        pluginDataState.configDirty = false;
+    }
+    pluginDataState.tab = tab;
+    document.querySelectorAll('[data-plugin-data-tab]').forEach(button =>
+        button.classList.toggle('active', button.dataset.pluginDataTab === tab));
+    $('plugin-data-tab-config').hidden = tab !== 'config';
+    $('plugin-data-tab-files').hidden = tab !== 'files';
+    if (tab === 'config') loadPluginConfig();
+    else loadPluginData();
+}
+
+async function loadPluginConfig(force = false) {
+    if (!pluginDataState.jar || pluginDataState.configBusy) return;
+    if (pluginDataState.configLoaded && !force) return;
+    if (force && pluginDataState.configDirty
+            && !await confirmAction(t('plugins.configDiscardConfirm'))) return;
+    const jar = pluginDataState.jar;
+    const generation = pluginDataState.generation;
+    pluginDataState.configBusy = true;
+    updatePluginConfigToolbar();
+    setStatus($('plugin-config-status'), t('plugins.configLoading'));
+    try {
+        const view = await api('/plugins/' + encodeURIComponent(jar) + '/config');
+        if (pluginDataState.generation !== generation || pluginDataState.jar !== jar) return;
+        $('plugin-config-content').value = view && typeof view.content === 'string'
+            ? view.content
+            : '';
+        pluginDataState.configLoaded = true;
+        pluginDataState.configDirty = false;
+        pluginDataState.configExists = !!(view && view.exists);
+        setStatus($('plugin-config-status'), pluginDataState.configExists
+            ? ''
+            : t('plugins.configMissing'));
+    } catch (e) {
+        if (pluginDataState.generation !== generation || pluginDataState.jar !== jar) return;
+        pluginDataState.configLoaded = false;
+        setStatus($('plugin-config-status'),
+            t('plugins.configLoadFailed', {msg: e.message}), 'error');
+    } finally {
+        if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+            pluginDataState.configBusy = false;
+            updatePluginConfigToolbar();
+        }
+    }
+}
+
+function updatePluginConfigToolbar() {
+    const busy = pluginDataState.configBusy;
+    $('plugin-config-refresh').disabled = busy;
+    $('plugin-config-save').disabled = busy;
+    $('plugin-config-content').disabled = busy;
+    const reload = $('plugin-config-save-reload');
+    reload.disabled = busy || !pluginDataState.loaded;
+    reload.hidden = !pluginDataState.loaded;
+}
+
+async function savePluginConfig(reload) {
+    if (!pluginDataState.jar || pluginDataState.configBusy) return;
+    const jar = pluginDataState.jar;
+    const generation = pluginDataState.generation;
+    pluginDataState.configBusy = true;
+    updatePluginConfigToolbar();
+    setStatus($('plugin-config-status'), t('plugins.configSaving'));
+    try {
+        const content = $('plugin-config-content').value;
+        const view = await api('/plugins/' + encodeURIComponent(jar) + '/config', {
+            method: 'PUT',
+            body: JSON.stringify({content})
+        });
+        if (pluginDataState.generation !== generation || pluginDataState.jar !== jar) return;
+        $('plugin-config-content').value = view && typeof view.content === 'string'
+            ? view.content
+            : content;
+        pluginDataState.configLoaded = true;
+        pluginDataState.configDirty = false;
+        pluginDataState.configExists = true;
+        if (!reload || !pluginDataState.loaded) {
+            setStatus($('plugin-config-status'), t('plugins.configSaved'), 'ok');
+            return;
+        }
+        setStatus($('plugin-config-status'), t('plugins.configReloading'));
+        try {
+            await api('/plugins/' + encodeURIComponent(jar) + '/reload', {method: 'POST'});
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+                setStatus($('plugin-config-status'), t('plugins.configSavedReloaded'), 'ok');
+        } catch (e) {
+            if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+                setStatus($('plugin-config-status'),
+                    t('plugins.configSavedReloadFailed', {msg: e.message}), 'error');
+        }
+    } catch (e) {
+        if (pluginDataState.generation === generation && pluginDataState.jar === jar)
+            setStatus($('plugin-config-status'), e.message, 'error');
+    } finally {
+        if (pluginDataState.generation === generation && pluginDataState.jar === jar) {
+            pluginDataState.configBusy = false;
+            updatePluginConfigToolbar();
         }
     }
 }
@@ -359,6 +493,15 @@ function pluginDataErrorSummary(items) {
 }
 
 export function bind() {
+    document.querySelectorAll('[data-plugin-data-tab]').forEach(button =>
+        button.addEventListener('click', () =>
+            switchPluginDataTab(button.dataset.pluginDataTab)));
+    $('plugin-config-refresh').onclick = () => loadPluginConfig(true);
+    $('plugin-config-save').onclick = () => savePluginConfig(false);
+    $('plugin-config-save-reload').onclick = () => savePluginConfig(true);
+    $('plugin-config-content').addEventListener('input', () => {
+        pluginDataState.configDirty = true;
+    });
     $('plugin-data-up').onclick = () => navigatePluginData(pluginDataParentPath());
     $('plugin-data-refresh').onclick = () => loadPluginData();
     $('plugin-data-new-folder').onclick = () => {

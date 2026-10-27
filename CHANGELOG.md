@@ -11,6 +11,9 @@
 - `gd-plugin` 新增本地进度：`#GD register`、`#GD update <关卡ID> <进度>`、`#GD remove`、`#GD unregister`；进度保存在插件数据目录的 SQLite `gd.db`，更新时通过 JDash 验证关卡并显示名称/作者，进度范围 1–100。
 - `#GD b20` 使用本地进度与 GDDL 关卡评级计算本地 B20，新增 `local-b20.jte` 卡片、机器人用户头像与未评级提示；GDDL 评级按已评级 24 小时、未评级 1 小时缓存，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。
 - `gd-plugin` 与 `query-plugin` 首次加载时自动从 JAR 内默认配置创建数据目录的 `config.properties`，已有配置不会覆盖。
+- 控制台“插件数据”弹窗新增“配置”页，可直接编辑并保存 `config.properties`，支持保存后重载插件；原文件管理保留在“文件”页。
+- 插件配置页的“保存并重载”改为带重载图标的按钮，`config.properties` 改为带文件图标的纯文本标签，并与工具栏按钮对齐；配置状态提示移到按钮行左侧。
+- 插件列表中的 JAR 文件名改为普通文本显示。
 
 ### Changed
 

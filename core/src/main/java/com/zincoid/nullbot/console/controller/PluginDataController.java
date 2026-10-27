@@ -54,8 +54,6 @@ public class PluginDataController {
         return dataService.list(ConsoleValidation.pluginJar(jar), path);
     }
 
-    // ════ Modify ═════════════════
-
     /**
      * 新建插件数据文件夹。
      * <p>Creates a plugin data folder.</p>

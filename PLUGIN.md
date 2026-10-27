@@ -394,6 +394,8 @@ PluginResources.extract(DemoPlugin.class, "/config.properties", context.dataDir(
 
 目标文件已存在时不会覆盖；默认配置应使用空密钥/安全占位值。新增配置项时插件仍需在代码中保留默认值，避免旧配置文件缺少键。
 
+控制台“插件数据”弹窗的“配置”页可直接编辑 `config.properties`，保存后可按需重载插件；“文件”页保留插件数据文件管理。
+
 随 JAR 分发的图片/二进制资源可放在 `src/main/resources/`，启动时用 `PluginResources.extract(...)` 解压到数据目录；`pubg-plugin` 是示例。只读资源也可以直接从 classpath 读取。
 
 插件不应写入 `dataDir()` 之外的路径，也不应依赖宿主的内部工作目录。

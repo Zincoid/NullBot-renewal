@@ -752,54 +752,108 @@
                 data-i18n-aria-label="common.close" aria-label="关闭">×</button>
     </div>
     <div class="dialog-body">
-        <div class="plugin-data-bar">
-            <button type="button" id="plugin-data-up" class="small"
-                    data-i18n="plugins.dataUp">上一级</button>
-            <nav id="plugin-data-crumbs" class="plugin-data-crumbs"></nav>
+        <div class="tabs">
+            <button type="button" class="tab active" data-plugin-data-tab="config"
+                    data-i18n="plugins.configTab">配置</button>
+            <button type="button" class="tab" data-plugin-data-tab="files"
+                    data-i18n="plugins.filesTab">文件</button>
         </div>
-        <div class="toolbar plugin-data-toolbar">
-            <button type="button" id="plugin-data-new-folder" class="btn-data"
-                    data-i18n="plugins.dataNewFolder">新建文件夹</button>
-            <button type="button" id="plugin-data-upload" class="btn-upload"
-                    data-i18n="plugins.dataUpload">上传</button>
-            <input id="plugin-data-files" type="file" multiple hidden>
-            <button type="button" id="plugin-data-delete" class="danger btn-delete"
-                    data-i18n="plugins.dataDelete" disabled>删除所选</button>
-            <span class="plugin-data-spacer"></span>
-            <span id="plugin-data-count" class="muted"></span>
-            <button type="button" id="plugin-data-refresh" class="icon-only"
-                    data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh"
-                    title="刷新" aria-label="刷新">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                    <path d="M21 3v6h-6"/>
-                </svg>
-            </button>
+        <div id="plugin-data-tab-config">
+            <p class="muted plugin-config-hint" data-i18n="plugins.configHint">
+                编辑数据目录中的 config.properties；保存后重载插件生效。
+            </p>
+            <div class="toolbar plugin-config-toolbar">
+                <span class="plugin-config-file">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 3v5h5"/>
+                    </svg>
+                    <span>config.properties</span>
+                </span>
+                <span class="plugin-data-spacer"></span>
+                <button type="button" id="plugin-config-refresh" class="icon-only"
+                        data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh"
+                        title="刷新" aria-label="刷新">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                        <path d="M21 3v6h-6"/>
+                    </svg>
+                </button>
+            </div>
+            <textarea id="plugin-config-content" class="plugin-config-editor" rows="18"
+                      wrap="off" aria-label="config.properties"
+                      spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+            <div class="dialog-foot">
+                <div class="plugin-config-foot-status">
+                    <p id="plugin-config-status" class="status"></p>
+                </div>
+                <button type="button" id="plugin-config-save" class="primary btn-save"
+                        data-i18n="common.save">保存</button>
+                <button type="button" id="plugin-config-save-reload" class="btn-save-reload"
+                        data-i18n-title="plugins.configSaveReload"
+                        data-i18n-aria-label="plugins.configSaveReload"
+                        title="保存并重载" aria-label="保存并重载">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                        <path d="M21 3v6h-6"/>
+                    </svg>
+                    <span data-i18n="plugins.configSaveReload">保存并重载</span>
+                </button>
+            </div>
         </div>
-        <form id="plugin-data-folder-form" class="plugin-data-folder" hidden>
-            <input id="plugin-data-folder-name" maxlength="255" autocomplete="off"
-                   data-i18n-placeholder="plugins.dataFolderPlaceholder" placeholder="文件夹名称">
-            <button type="submit" class="primary" data-i18n="plugins.dataCreate">创建</button>
-            <button type="button" id="plugin-data-folder-cancel"
-                    data-i18n="common.cancel">取消</button>
-        </form>
-        <p id="plugin-data-status" class="status"></p>
-        <div class="table-wrap plugin-data-table">
-            <table>
-                <thead>
-                <tr>
-                    <th class="check-col"><input type="checkbox" id="plugin-data-select-all"
-                                                 data-i18n-aria-label="files.selectAll" aria-label="全选"></th>
-                    <th data-i18n="plugins.dataName">名称</th>
-                    <th data-i18n="plugins.dataType">类型</th>
-                    <th data-i18n="plugins.dataSize">大小</th>
-                    <th data-i18n="plugins.dataModified">修改时间</th>
-                    <th data-i18n="common.actions">操作</th>
-                </tr>
-                </thead>
-                <tbody id="plugin-data-body"></tbody>
-            </table>
+        <div id="plugin-data-tab-files" hidden>
+            <div class="plugin-data-bar">
+                <button type="button" id="plugin-data-up" class="small"
+                        data-i18n="plugins.dataUp">上一级</button>
+                <nav id="plugin-data-crumbs" class="plugin-data-crumbs"></nav>
+            </div>
+            <div class="toolbar plugin-data-toolbar">
+                <button type="button" id="plugin-data-new-folder" class="btn-data"
+                        data-i18n="plugins.dataNewFolder">新建文件夹</button>
+                <button type="button" id="plugin-data-upload" class="btn-upload"
+                        data-i18n="plugins.dataUpload">上传</button>
+                <input id="plugin-data-files" type="file" multiple hidden>
+                <button type="button" id="plugin-data-delete" class="danger btn-delete"
+                        data-i18n="plugins.dataDelete" disabled>删除所选</button>
+                <span class="plugin-data-spacer"></span>
+                <span id="plugin-data-count" class="muted"></span>
+                <button type="button" id="plugin-data-refresh" class="icon-only"
+                        data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh"
+                        title="刷新" aria-label="刷新">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                        <path d="M21 3v6h-6"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="plugin-data-folder-form" class="plugin-data-folder" hidden>
+                <input id="plugin-data-folder-name" maxlength="255" autocomplete="off"
+                       data-i18n-placeholder="plugins.dataFolderPlaceholder" placeholder="文件夹名称">
+                <button type="submit" class="primary" data-i18n="plugins.dataCreate">创建</button>
+                <button type="button" id="plugin-data-folder-cancel"
+                        data-i18n="common.cancel">取消</button>
+            </form>
+            <p id="plugin-data-status" class="status"></p>
+            <div class="table-wrap plugin-data-table">
+                <table>
+                    <thead>
+                    <tr>
+                        <th class="check-col"><input type="checkbox" id="plugin-data-select-all"
+                                                     data-i18n-aria-label="files.selectAll" aria-label="全选"></th>
+                        <th data-i18n="plugins.dataName">名称</th>
+                        <th data-i18n="plugins.dataType">类型</th>
+                        <th data-i18n="plugins.dataSize">大小</th>
+                        <th data-i18n="plugins.dataModified">修改时间</th>
+                        <th data-i18n="common.actions">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="plugin-data-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </dialog>
