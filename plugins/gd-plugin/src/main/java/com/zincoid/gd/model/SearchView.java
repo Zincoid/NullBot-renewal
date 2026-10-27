@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.model;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * @param levels      the level summaries
  * @param waitSeconds the selection wait time in seconds
  */
-record SearchView(String query, int page, List<LevelSummary> levels, long waitSeconds) {
+public record SearchView(String query, int page, List<LevelSummary> levels, long waitSeconds) {
 
     /**
      * 列表中的单条关卡摘要。
@@ -23,6 +23,6 @@ record SearchView(String query, int page, List<LevelSummary> levels, long waitSe
      * @param author     the level author
      * @param stars      the star reward
      */
-    record LevelSummary(long id, String name, String difficulty, String author, int stars) {
+    public record LevelSummary(long id, String name, String difficulty, String author, int stars) {
     }
 }

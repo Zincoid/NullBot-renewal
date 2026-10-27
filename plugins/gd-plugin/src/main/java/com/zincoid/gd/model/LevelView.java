@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.model;
 
 /**
  * 关卡详情视图：游戏数据、GDDL 数据与缩略图。
@@ -24,7 +24,7 @@ package com.zincoid.gd;
  * @param gddlFailed    whether the GDDL query failed
  * @param thumbnail     the thumbnail bytes, nullable
  */
-record LevelView(
+public record LevelView(
         long id,
         String name,
         String author,

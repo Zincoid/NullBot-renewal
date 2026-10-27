@@ -1,7 +1,8 @@
-package com.zincoid.gd;
+package com.zincoid.gd.model;
 
-import com.zincoid.gd.GdService.GddlLevel;
-import com.zincoid.gd.GdService.ScoreResult;
+import com.zincoid.gd.service.GdScore;
+import com.zincoid.gd.service.GdService.GddlLevel;
+import com.zincoid.gd.service.GdService.ScoreResult;
 import jdash.common.DemonDifficulty;
 import jdash.common.Difficulty;
 import jdash.common.Length;
@@ -14,7 +15,7 @@ import java.util.Locale;
  * 视图映射：把 JDash/GDDL 数据转换为与呈现方式无关的视图。
  * <p>View mapping: converts JDash/GDDL data into presentation-independent views.</p>
  */
-final class GdViewMapper {
+public final class GdViewMapper {
 
     private GdViewMapper() {
     }
@@ -26,7 +27,7 @@ final class GdViewMapper {
      * @param levels the levels
      * @return the summaries
      */
-    static List<SearchView.LevelSummary> summaries(List<GDLevel> levels) {
+    public static List<SearchView.LevelSummary> summaries(List<GDLevel> levels) {
         return levels.stream()
                 .map(level -> new SearchView.LevelSummary(
                         level.id(),
@@ -48,7 +49,7 @@ final class GdViewMapper {
      * @param thumbnail  the thumbnail bytes, nullable
      * @return the level view
      */
-    static LevelView level(GDLevel level, GddlLevel gddl, boolean gddlFailed, byte[] thumbnail) {
+    public static LevelView level(GDLevel level, GddlLevel gddl, boolean gddlFailed, byte[] thumbnail) {
         String song = level.song()
                 .map(value -> safe(value.title()) + " — " + safe(value.artist()))
                 .orElse(null);
@@ -85,7 +86,7 @@ final class GdViewMapper {
      * @param avatar the GDDL avatar image bytes, nullable
      * @return the rank view
      */
-    static RankView rank(ScoreResult score, boolean all, byte[] avatar) {
+    public static RankView rank(ScoreResult score, boolean all, byte[] avatar) {
         List<RankView.Play> top = score.b20().top().stream()
                 .map(scored -> new RankView.Play(
                         scored.play().levelId(),

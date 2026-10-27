@@ -1,5 +1,6 @@
-package com.zincoid.gd;
+package com.zincoid.gd.binding;
 
+import com.zincoid.gd.service.GdException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.util.Properties;
  * <p>GDDL user binding storage persisted in the plugin data directory.</p>
  */
 @Slf4j
-final class GdBindings {
+public final class GdBindings {
 
     private static final String ID_SUFFIX = ".id";
     private static final String NAME_SUFFIX = ".name";
@@ -35,7 +36,7 @@ final class GdBindings {
      * @param dataDir the plugin data directory
      * @return the binding store
      */
-    static GdBindings load(Path dataDir) {
+    public static GdBindings load(Path dataDir) {
         GdBindings bindings = new GdBindings(dataDir.resolve("gddl-bindings.properties"));
         if (Files.isRegularFile(bindings.file)) {
             try (Reader reader = Files.newBufferedReader(bindings.file, StandardCharsets.UTF_8)) {
@@ -54,7 +55,7 @@ final class GdBindings {
      * @param userId the platform user id
      * @return the binding, or null when not bound
      */
-    synchronized Binding get(String userId) {
+    public synchronized Binding get(String userId) {
         String id = properties.getProperty(userId + ID_SUFFIX);
         String name = properties.getProperty(userId + NAME_SUFFIX);
         if (id == null || name == null) return null;
@@ -77,7 +78,7 @@ final class GdBindings {
      * @param avatar the GDDL avatar uuid, nullable
      * @return the existing binding, or null when the new binding is saved
      */
-    synchronized Binding bind(String userId, long gddlId, String name, String avatar) {
+    public synchronized Binding bind(String userId, long gddlId, String name, String avatar) {
         Binding existing = get(userId);
         if (existing != null) return existing;
         properties.setProperty(userId + ID_SUFFIX, Long.toString(gddlId));
@@ -102,7 +103,7 @@ final class GdBindings {
      * @param userId the platform user id
      * @return the previous binding, or null when not bound
      */
-    synchronized Binding unbind(String userId) {
+    public synchronized Binding unbind(String userId) {
         Binding existing = get(userId);
         if (existing == null) return null;
         properties.remove(userId + ID_SUFFIX);
@@ -134,6 +135,6 @@ final class GdBindings {
      * @param name   the GDDL user name
      * @param avatar the GDDL avatar uuid, nullable
      */
-    record Binding(long id, String name, String avatar) {
+    public record Binding(long id, String name, String avatar) {
     }
 }

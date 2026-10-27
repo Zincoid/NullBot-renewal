@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,9 +8,9 @@ import java.util.List;
  * B20 评分：计算单关 rt，并取最高的 20 条求平均。
  * <p>B20 scoring: computes the per-level rt and averages the best 20 values.</p>
  */
-final class GdScore {
+public final class GdScore {
 
-    static final int B20_SIZE = 20;
+    public static final int B20_SIZE = 20;
     static final double PROGRESS_EXPONENT = 1.5;
 
     private GdScore() {
@@ -60,7 +60,7 @@ final class GdScore {
      * @param tier     the rounded GDDL tier
      * @param progress the completion percentage
      */
-    record Play(long levelId, String name, int tier, int progress) {
+    public record Play(long levelId, String name, int tier, int progress) {
     }
 
     /**
@@ -70,7 +70,7 @@ final class GdScore {
      * @param play the play
      * @param rt   the rt value
      */
-    record Scored(Play play, double rt) {
+    public record Scored(Play play, double rt) {
     }
 
     /**
@@ -81,6 +81,6 @@ final class GdScore {
      * @param sample the number of values averaged
      * @param top    the top values, at most 20
      */
-    record B20(double score, int sample, List<Scored> top) {
+    public record B20(double score, int sample, List<Scored> top) {
     }
 }

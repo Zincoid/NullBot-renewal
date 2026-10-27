@@ -1,5 +1,8 @@
-package com.zincoid.gd;
+package com.zincoid.gd.render;
 
+import com.zincoid.gd.model.LevelView;
+import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.SearchView;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 
@@ -7,7 +10,7 @@ import com.zincoid.nullbot.platform.persistence.enums.Language;
  * GD 输出呈现器：把视图转换为消息内容，便于之后替换为图片卡片。
  * <p>GD output presenter: turns views into message content, so it can later be replaced by image cards.</p>
  */
-interface GdPresenter {
+public interface GdPresenter {
 
     /**
      * 呈现搜索结果列表。

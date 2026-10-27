@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.service;
 
 /**
  * GD 插件内部异常：网络请求、数据解析或服务未就绪。

@@ -1,5 +1,10 @@
-package com.zincoid.gd;
+package com.zincoid.gd.render;
 
+import com.zincoid.gd.model.LevelView;
+import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.SearchView;
+import com.zincoid.gd.service.GdScore;
+import com.zincoid.gd.GdText;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 
@@ -9,7 +14,7 @@ import java.util.Locale;
  * GD 文本呈现器：当前以文字（关卡详情附带缩略图）输出视图。
  * <p>GD text presenter: currently renders views as text (with the thumbnail attached to level details).</p>
  */
-final class GdTextPresenter implements GdPresenter {
+public final class GdTextPresenter implements GdPresenter {
 
     // ════ Present ═════════════════
 

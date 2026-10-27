@@ -1,8 +1,14 @@
 package com.zincoid.gd;
 
-import com.zincoid.gd.GdService.GddlLevel;
-import com.zincoid.gd.GdService.GddlUser;
-import com.zincoid.gd.GdService.ScoreResult;
+import com.zincoid.gd.binding.GdBindings;
+import com.zincoid.gd.model.GdViewMapper;
+import com.zincoid.gd.model.LevelView;
+import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.SearchView;
+import com.zincoid.gd.service.GdException;
+import com.zincoid.gd.service.GdService.GddlLevel;
+import com.zincoid.gd.service.GdService.GddlUser;
+import com.zincoid.gd.service.GdService.ScoreResult;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;

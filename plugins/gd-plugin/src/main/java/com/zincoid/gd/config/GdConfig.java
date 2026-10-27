@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.config;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,7 @@ import java.util.Properties;
  * @param tierExponent   exponent applied to the GDDL tier in the B20 formula
  */
 @Slf4j
-record GdConfig(
+public record GdConfig(
         String userAgent,
         String gddlBase,
         String gddlAvatarBase,
@@ -55,7 +55,7 @@ record GdConfig(
      * @param dataDir plugin data directory
      * @return the configuration
      */
-    static GdConfig load(Path dataDir) {
+    public static GdConfig load(Path dataDir) {
         Properties properties = new Properties();
         Path file = dataDir.resolve("config.properties");
         if (Files.isRegularFile(file)) {

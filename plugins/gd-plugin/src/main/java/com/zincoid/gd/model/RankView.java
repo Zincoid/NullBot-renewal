@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.model;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import java.util.List;
  * @param limit        the number of records to display
  * @param avatar       the GDDL avatar image bytes, nullable
  */
-record RankView(
+public record RankView(
         long userId,
         String userName,
         int beatenTotal,
@@ -40,6 +40,6 @@ record RankView(
      * @param progress the completion percentage
      * @param rt       the computed rt
      */
-    record Play(long levelId, String name, int tier, int progress, double rt) {
+    public record Play(long levelId, String name, int tier, int progress, double rt) {
     }
 }

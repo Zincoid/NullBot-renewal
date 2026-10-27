@@ -1,5 +1,10 @@
-package com.zincoid.gd;
+package com.zincoid.gd.render;
 
+import com.zincoid.gd.model.LevelView;
+import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.SearchView;
+import com.zincoid.gd.service.GdScore;
+import com.zincoid.gd.GdText;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.render.PluginRenderer;
 import com.zincoid.nullbot.module.render.image.ImageData;
@@ -22,7 +27,7 @@ import java.util.Map;
  * <p>GD image presenter: renders search lists, level details, and B20 cards with JTE/SVG templates.</p>
  */
 @Slf4j
-final class GdImagePresenter implements GdPresenter {
+public final class GdImagePresenter implements GdPresenter {
 
     private static final double LEVEL_THUMBNAIL_CENTER_Y = 271.5;
     // Nerd Font icons.
@@ -42,7 +47,7 @@ final class GdImagePresenter implements GdPresenter {
      * @param renderer the plugin renderer
      * @param fallback the text presenter used when rendering fails
      */
-    GdImagePresenter(PluginRenderer renderer, GdPresenter fallback) {
+    public GdImagePresenter(PluginRenderer renderer, GdPresenter fallback) {
         this.renderer = renderer;
         this.fallback = fallback;
     }

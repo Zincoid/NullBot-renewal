@@ -1,4 +1,4 @@
-package com.zincoid.gd;
+package com.zincoid.gd.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zincoid.nullbot.platform.util.JsonUtils;
@@ -7,6 +7,7 @@ import jdash.client.exception.ActionFailedException;
 import jdash.common.LevelSearchFilter;
 import jdash.common.LevelSearchMode;
 import jdash.common.entity.GDLevel;
+import com.zincoid.gd.config.GdConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URLEncoder;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>GD data service: JDash level queries, GDDL level/user data, thumbnails, and B20.</p>
  */
 @Slf4j
-final class GdService {
+public final class GdService {
 
     private static final int PAGE_SIZE = 25;
     private static final int MAX_BEATEN = 25;
@@ -49,7 +50,7 @@ final class GdService {
      *
      * @param config the plugin configuration
      */
-    GdService(GdConfig config) {
+    public GdService(GdConfig config) {
         this.config = config;
         this.http = new GdHttp(config);
         this.gd = GDClient.create();
@@ -66,7 +67,7 @@ final class GdService {
      * @param page   the zero-based page
      * @return the levels on the page
      */
-    List<GDLevel> search(String query, LevelSearchFilter filter, int page) {
+    public List<GDLevel> search(String query, LevelSearchFilter filter, int page) {
         try {
             List<GDLevel> levels = gd.searchLevels(LevelSearchMode.SEARCH, query, filter, page)
                     .take(10)
@@ -86,7 +87,7 @@ final class GdService {
      * @param id the level id
      * @return the level, or null when not found
      */
-    GDLevel level(long id) {
+    public GDLevel level(long id) {
         try {
             return gd.findLevelById(id).block(JDASH_TIMEOUT);
         } catch (RuntimeException e) {
@@ -104,7 +105,7 @@ final class GdService {
      * @param id the level id
      * @return the GDDL level, or null when not rated
      */
-    GddlLevel gddlLevel(long id) {
+    public GddlLevel gddlLevel(long id) {
         CacheEntry<Optional<GddlLevel>> cached = levelCache.get(id);
         if (cached != null && !cached.expired(config.cacheTtl()))
             return cached.value().orElse(null);
@@ -140,7 +141,7 @@ final class GdService {
      * @param name the user name
      * @return the matching users
      */
-    List<GddlUser> searchUsers(String name) {
+    public List<GddlUser> searchUsers(String name) {
         String url = config.gddlBase() + "/user?name="
                 + URLEncoder.encode(name, StandardCharsets.UTF_8);
         GdHttp.Response response = http.get(url, "application/json", MAX_JSON_BYTES);
@@ -165,7 +166,7 @@ final class GdService {
      * @param id the GDDL user id
      * @return the user, or null when not found
      */
-    GddlUser user(long id) {
+    public GddlUser user(long id) {
         GdHttp.Response response = http.get(
                 config.gddlBase() + "/user/" + id, "application/json", MAX_JSON_BYTES);
         if (response.status() == 404) return null;
@@ -212,7 +213,7 @@ final class GdService {
      * @param userName the GDDL user name
      * @return the score result
      */
-    ScoreResult userScore(long userId, String userName) {
+    public ScoreResult userScore(long userId, String userName) {
         CacheEntry<ScoreResult> cached = scoreCache.get(userId);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
@@ -270,7 +271,7 @@ final class GdService {
      * @param levelId the level id
      * @return the image bytes, or null when unavailable
      */
-    byte[] thumbnail(long levelId) {
+    public byte[] thumbnail(long levelId) {
         CacheEntry<byte[]> cached = thumbnailCache.get(levelId);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
@@ -304,7 +305,7 @@ final class GdService {
      * @param avatarId the avatar uuid, nullable
      * @return the image bytes, or null when unavailable
      */
-    byte[] avatar(long userId, String avatarId) {
+    public byte[] avatar(long userId, String avatarId) {
         if (avatarId == null || avatarId.isBlank()) return null;
         String key = userId + ":" + avatarId;
         CacheEntry<byte[]> cached = avatarCache.get(key);
@@ -374,10 +375,10 @@ final class GdService {
 
     // ════ GDDL DTO ════════════════
 
-    record GddlUser(long id, String name, String avatar) {
+    public record GddlUser(long id, String name, String avatar) {
     }
 
-    record GddlLevel(
+    public record GddlLevel(
             @JsonProperty("Rating") Double rating,
             @JsonProperty("Enjoyment") Double enjoyment,
             @JsonProperty("Meta") Meta meta,
@@ -435,7 +436,7 @@ final class GdService {
         }
     }
 
-    record ScoreResult(
+    public record ScoreResult(
             long userId,
             String userName,
             int beatenTotal,
