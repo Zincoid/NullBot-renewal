@@ -15,6 +15,10 @@
 - 插件配置页的“保存并重载”改为带重载图标的按钮，`config.properties` 改为带文件图标的纯文本标签，并与工具栏按钮对齐；配置状态提示移到按钮行左侧。
 - 插件列表中的 JAR 文件名改为普通文本显示。
 
+### Fixed
+
+- 修复控制台实时日志连接静默断开后仍显示“已连接”、且不会自动重连的问题；前端现在检测 45 秒无数据（含 SSE 心跳）会中止连接并触发重连。
+
 ### Changed
 
 - `gd-plugin` 拆分数据访问：`GdLevelService` 负责 JDash 关卡与缩略图，`GddlService` 负责 GDDL 关卡/用户/提交记录与 B20，`GdProgressService` 负责本地进度；`GdStore` 更名为 `GdProgressStore`，`ScoreResult` 更名为 `GddlB20Result`，GDDL B20 视图/模板统一为 `GddlB20View` / `gddl-b20.jte`。

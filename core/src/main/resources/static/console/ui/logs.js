@@ -2,6 +2,7 @@ import {$, t, getToken, clearToken} from './app-shared.js';
 
 const MAX_ENTRIES = 500;
 const RECONNECT_DELAY = 3000;
+const STREAM_IDLE_TIMEOUT = 45000;
 const FRAME_BOUNDARY = /\r?\n\r?\n/;
 const LEVELS = new Set(['trace', 'debug', 'info', 'warn', 'error']);
 
@@ -78,6 +79,24 @@ function startStream() {
     active = true;
     setState('connecting');
 
+    let idleTimer = 0;
+    const clearIdle = () => {
+        if (!idleTimer) return;
+        clearTimeout(idleTimer);
+        idleTimer = 0;
+    };
+    const touch = () => {
+        if (controller !== current) return;
+        clearIdle();
+        idleTimer = setTimeout(() => {
+            idleTimer = 0;
+            if (controller !== current) return;
+            setState('disconnected');
+            current.abort();
+        }, STREAM_IDLE_TIMEOUT);
+    };
+    touch();
+
     (async () => {
         try {
             const response = await fetch('/console/logs/stream', {
@@ -95,10 +114,12 @@ function startStream() {
             if (controller !== current) return;
 
             setState('connected');
-            await read(response.body);
+            touch();
+            await read(response.body, touch);
         } catch {
-            // A closed stream is retried below.
+            // A closed or stalled stream is retried below.
         } finally {
+            clearIdle();
             if (controller !== current) return;
             controller = null;
             active = false;
@@ -108,13 +129,14 @@ function startStream() {
     })();
 }
 
-async function read(stream) {
+async function read(stream, onActivity) {
     const reader = stream.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
     for (;;) {
         const {value, done} = await reader.read();
         if (done) break;
+        onActivity();
         buffer += decoder.decode(value, {stream: true});
         let match;
         while ((match = FRAME_BOUNDARY.exec(buffer))) {
