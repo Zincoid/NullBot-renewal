@@ -147,6 +147,8 @@ public enum GdText {
             "GD search does not support filtering by auto difficulty"),
 
     SEARCH_TITLE("搜索 \"%s\" · 第 %d 页", "Search \"%s\" · page %d"),
+    SEARCH_HEADING("搜索 \"%s\"", "Search \"%s\""),
+    SEARCH_PAGE("第 %d 页", "Page %d"),
     HEAD_LEVEL("关卡", "Level"),
     SEARCH_PROMPT("回复序号查看详情，next 下一页，end 取消（%d 秒）",
             "Reply with a number, next for the next page, or end to cancel (%d s)"),

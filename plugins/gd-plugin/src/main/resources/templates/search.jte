@@ -1,4 +1,5 @@
 @param String title
+@param String page
 @param java.util.List<com.zincoid.nullbot.module.render.svg.layout.SvgCell> cells
 @param String prompt
 @param int height
@@ -18,6 +19,8 @@
           letter-spacing="2.4" fill="#C9CFD8"># GD / SEARCH_</text>
     <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="30"
           fill="#F2F3F5">${title}</text>
+    <text x="920" y="100" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-size="14" fill="#C9CFD8">${page}</text>
     <rect x="40" y="124" width="880" height="1" fill="#2A2D33"/>
 
     @for(com.zincoid.nullbot.module.render.svg.layout.SvgCell cell : cells)

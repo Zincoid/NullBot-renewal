@@ -46,7 +46,7 @@ public final class GdTextPresenter implements GdPresenter {
     public MsgContent gddlB20(Language language, GddlB20View view) {
         StringBuilder body = new StringBuilder();
         body.append(view.userName())
-                .append(" (ID ").append(view.userId()).append(")\n");
+                .append(" #").append(view.userId()).append('\n');
         body.append(GdText.COMPLETED.of(language)).append(" ")
                 .append(view.beatenTotal()).append(" · ")
                 .append(GdText.IN_PROGRESS.of(language)).append(" ")
@@ -81,7 +81,7 @@ public final class GdTextPresenter implements GdPresenter {
     public MsgContent localB20(Language language, LocalB20View view) {
         StringBuilder body = new StringBuilder();
         body.append(GdText.LOCAL_B20.of(language)).append(": ")
-                .append(view.userName()).append(" (ID ").append(view.userId()).append(")\n");
+                .append(view.userName()).append(" #").append(view.userId()).append('\n');
         body.append(GdText.COMPLETED.of(language)).append(" ")
                 .append(view.beatenTotal()).append(" · ")
                 .append(GdText.IN_PROGRESS.of(language)).append(" ")

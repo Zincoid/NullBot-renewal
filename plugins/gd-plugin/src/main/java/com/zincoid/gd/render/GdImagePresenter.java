@@ -73,17 +73,19 @@ public final class GdImagePresenter implements GdPresenter {
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
-                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 250, SvgAlign.START),
-                    new SvgColumn("ID", 130, SvgAlign.MIDDLE),
+                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 230, SvgAlign.START),
+                    new SvgColumn("ID", 130, SvgAlign.START),
                     new SvgColumn(GdText.DIFFICULTY.of(language), 150, SvgAlign.START),
-                    new SvgColumn(GdText.AUTHOR.of(language), 250, SvgAlign.START),
+                    new SvgColumn(GdText.AUTHOR.of(language), 270, SvgAlign.START),
                     new SvgColumn(GdText.STARS.of(language), 60, SvgAlign.END));
             List<SvgCell> cells = SvgTable.build(
                     40, 158, 192, 34, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
             int height = 190 + (rows.size() + 1) * 34 + 60;
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", SvgText.escape(GdText.SEARCH_TITLE.of(
-                            language, truncate(view.query(), 24), view.page()))),
+                    Map.entry("title", SvgText.escape(GdText.SEARCH_HEADING.of(
+                            language, truncate(view.query(), 24)))),
+                    Map.entry("page", SvgText.escape(GdText.SEARCH_PAGE.of(
+                            language, view.page()))),
                     Map.entry("cells", cells),
                     Map.entry("prompt", SvgText.escape(GdText.SEARCH_PROMPT.of(language, view.waitSeconds()))),
                     Map.entry("height", height)
@@ -168,10 +170,12 @@ public final class GdImagePresenter implements GdPresenter {
             if (view.sample() < GdScore.B20_SIZE)
                 stats2 += " (" + GdText.FEWER_THAN_20.of(language) + ")";
             int height = 360 + (rows.size() + 1) * 32 + 50;
+            String userId = "#" + view.userId();
+            String userName = SvgText.fit(view.userName(),
+                    760 - SvgText.width(" " + userId, 20), 32);
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("user", SvgText.escape(SvgText.fit(
-                            view.userName() + " (ID " + view.userId() + ")",
-                            760, 26))),
+                    Map.entry("user", SvgText.escape(userName)),
+                    Map.entry("userId", SvgText.escape(userId)),
                     Map.entry("labelB20", SvgText.escape(GdText.GDDL_B20.of(language))),
                     Map.entry("score", format(view.score())),
                     Map.entry("stats1", SvgText.escape(stats1)),
@@ -221,9 +225,12 @@ public final class GdImagePresenter implements GdPresenter {
             if (view.unratedTotal() > 0)
                 stats2 += " · " + GdText.UNRATED_SKIPPED.of(language, view.unratedTotal());
             int height = 360 + (rows.size() + 1) * 32 + 50;
+            String userId = "#" + view.userId();
+            String userName = SvgText.fit(view.userName(),
+                    760 - SvgText.width(" " + userId, 20), 32);
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("user", SvgText.escape(SvgText.fit(
-                            view.userName() + " (ID " + view.userId() + ")", 760, 26))),
+                    Map.entry("user", SvgText.escape(userName)),
+                    Map.entry("userId", SvgText.escape(userId)),
                     Map.entry("labelB20", SvgText.escape(GdText.LOCAL_B20.of(language))),
                     Map.entry("score", format(view.score())),
                     Map.entry("stats1", SvgText.escape(stats1)),

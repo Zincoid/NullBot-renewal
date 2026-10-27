@@ -27,7 +27,7 @@
 
     <text x="40" y="50" font-family="JetBrains Maple Mono" font-weight="bold" font-size="14"
           letter-spacing="2.4" fill="#C9CFD8"># GD / LEVEL_</text>
-    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="32"
+    <text x="38" y="100" font-family="JetBrains Maple Mono" font-weight="bold" font-size="32"
           fill="#F2F3F5">${title}</text>
     <rect x="820" y="76" width="100" height="28" rx="14" fill="#17181A" stroke="#2A2D33"/>
     <text x="870" y="94" text-anchor="middle" font-family="JetBrains Maple Mono"

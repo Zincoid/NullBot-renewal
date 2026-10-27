@@ -1,4 +1,5 @@
 @param String user
+@param String userId
 @param String labelB20
 @param String score
 @param String avatar
@@ -33,8 +34,8 @@
         <text x="880" y="91" text-anchor="middle" font-family="JetBrains Maple Mono"
               font-size="28" fill="#C9CFD8">&#xF007;</text>
     @endif
-    <text x="38" y="100" font-family="JetBrains Maple Mono" font-size="26"
-          fill="#F2F3F5">${user}</text>
+    <text x="38" y="100" font-family="JetBrains Maple Mono" font-weight="bold" font-size="32"
+          fill="#F2F3F5">${user}<tspan font-size="20"> ${userId}</tspan></text>
     <text x="40" y="142" font-family="JetBrains Maple Mono" font-size="14"
           fill="#C9CFD8">${labelB20}</text>
     <text x="38" y="198" font-family="JetBrains Maple Mono" font-weight="bold" font-size="56"
