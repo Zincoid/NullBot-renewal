@@ -8,7 +8,6 @@ import com.zincoid.gd.config.GdConfig;
 import com.zincoid.gd.render.GdImagePresenter;
 import com.zincoid.gd.render.GdPresenter;
 import com.zincoid.gd.render.GdTextPresenter;
-import com.zincoid.gd.service.GdException;
 import com.zincoid.gd.service.GdService;
 import lombok.extern.slf4j.Slf4j;
 

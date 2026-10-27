@@ -1,6 +1,7 @@
 package com.zincoid.gd.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zincoid.gd.GdException;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import jdash.client.GDClient;
 import jdash.client.exception.ActionFailedException;

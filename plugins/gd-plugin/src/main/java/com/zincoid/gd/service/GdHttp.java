@@ -1,5 +1,6 @@
 package com.zincoid.gd.service;
 
+import com.zincoid.gd.GdException;
 import com.zincoid.gd.config.GdConfig;
 import java.io.IOException;
 import java.io.InputStream;

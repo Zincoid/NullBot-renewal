@@ -5,7 +5,6 @@ import com.zincoid.gd.model.GdViewMapper;
 import com.zincoid.gd.model.LevelView;
 import com.zincoid.gd.model.RankView;
 import com.zincoid.gd.model.SearchView;
-import com.zincoid.gd.service.GdException;
 import com.zincoid.gd.service.GdService.GddlLevel;
 import com.zincoid.gd.service.GdService.GddlUser;
 import com.zincoid.gd.service.GdService.ScoreResult;

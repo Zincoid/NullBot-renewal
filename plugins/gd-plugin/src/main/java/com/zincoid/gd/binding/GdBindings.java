@@ -1,6 +1,6 @@
 package com.zincoid.gd.binding;
 
-import com.zincoid.gd.service.GdException;
+import com.zincoid.gd.GdException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
