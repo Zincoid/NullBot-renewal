@@ -54,6 +54,6 @@
 
     <text x="40" y="${height - 36}" font-family="JetBrains Maple Mono" font-size="14"
           fill="#C9CFD8">${note}</text>
-    <text x="920" y="${height - 36}" text-anchor="end" font-family="JetBrains Maple Mono"
-          font-weight="bold" font-size="12" letter-spacing="1.2" fill="#C9CFD8">LOCAL</text>
+    <text x="904" y="${height - 36}" text-anchor="end" font-family="JetBrains Maple Mono"
+          font-weight="bold" font-size="12" letter-spacing="1.2" fill="#C9CFD8">LOCAL / NULLBOT</text>
 </svg>
