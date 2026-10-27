@@ -3,7 +3,7 @@ package com.zincoid.gd.service;
 import com.zincoid.gd.GdException;
 import com.zincoid.gd.config.GdConfig;
 import com.zincoid.gd.service.GddlService.GddlLevel;
-import com.zincoid.gd.store.CachedTier;
+import com.zincoid.gd.store.CachedRating;
 import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.gd.store.ProgressRecord;
 import jdash.common.entity.GDLevel;
@@ -187,12 +187,12 @@ public final class GdProgressService implements AutoCloseable {
 
         Set<Long> levelIds = new LinkedHashSet<>();
         for (ProgressRecord record : records) levelIds.add(record.levelId());
-        Map<Long, CachedTier> effective = new HashMap<>(store.cachedTiers(levelIds));
+        Map<Long, CachedRating> effective = new HashMap<>(store.cachedRatings(levelIds));
 
         long now = System.currentTimeMillis();
         List<Long> stale = new ArrayList<>();
         for (long levelId : levelIds) {
-            CachedTier cached = effective.get(levelId);
+            CachedRating cached = effective.get(levelId);
             if (cached == null || expired(cached, now)) stale.add(levelId);
         }
         if (!stale.isEmpty()) refresh(stale, effective);
@@ -204,11 +204,11 @@ public final class GdProgressService implements AutoCloseable {
         for (ProgressRecord record : records) {
             if (record.progress() == 100) beaten++;
             else beating++;
-            CachedTier cached = effective.get(record.levelId());
-            if (cached == null || cached.tier() == null) continue;
+            CachedRating cached = effective.get(record.levelId());
+            if (cached == null || cached.rating() == null) continue;
             String name = record.levelName();
             if (name == null || name.isBlank()) name = "#" + record.levelId();
-            plays.add(new GdScore.Play(record.levelId(), name, cached.tier(), record.progress()));
+            plays.add(new GdScore.Play(record.levelId(), name, cached.rating(), record.progress()));
             rated++;
         }
 
@@ -225,28 +225,28 @@ public final class GdProgressService implements AutoCloseable {
 
     // ════ Helpers ═════════════════
 
-    private boolean expired(CachedTier cached, long now) {
-        Duration ttl = cached.tier() == null ? config.unratedCacheTtl() : config.tierCacheTtl();
+    private boolean expired(CachedRating cached, long now) {
+        Duration ttl = cached.rating() == null ? config.unratedCacheTtl() : config.tierCacheTtl();
         return now - cached.fetchedAt() >= ttl.toMillis();
     }
 
-    private void refresh(Collection<Long> levelIds, Map<Long, CachedTier> effective) {
+    private void refresh(Collection<Long> levelIds, Map<Long, CachedRating> effective) {
         List<FetchResult> results = fetch(levelIds);
-        List<CachedTier> saves = new ArrayList<>();
+        List<CachedRating> ratings = new ArrayList<>();
         GdException fatal = null;
         for (FetchResult result : results) {
             if (result.entry() != null) {
-                saves.add(result.entry());
+                ratings.add(result.entry());
                 effective.put(result.id(), result.entry());
                 continue;
             }
             if (effective.containsKey(result.id())) {
-                log.warn("GDDL tier refresh failed; using stale: id={}", result.id(), result.error());
+                log.warn("GDDL rating refresh failed; using stale: id={}", result.id(), result.error());
             } else if (fatal == null) {
                 fatal = result.error();
             }
         }
-        if (!saves.isEmpty()) store.saveTiers(saves);
+        if (!ratings.isEmpty()) store.saveRatings(ratings);
         if (fatal != null) throw fatal;
     }
 
@@ -262,9 +262,9 @@ public final class GdProgressService implements AutoCloseable {
                     results.add(future.get());
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    throw new GdException("GDDL tier fetch interrupted", e);
+                    throw new GdException("GDDL rating fetch interrupted", e);
                 } catch (ExecutionException e) {
-                    throw new GdException("GDDL tier fetch failed", e.getCause());
+                    throw new GdException("GDDL rating fetch failed", e.getCause());
                 }
             }
             return results;
@@ -276,21 +276,15 @@ public final class GdProgressService implements AutoCloseable {
             GddlLevel level = gddl.gddlLevel(levelId, false);
             long now = System.currentTimeMillis();
             if (level == null)
-                return new FetchResult(levelId, new CachedTier(levelId, null, null, now), null);
+                return new FetchResult(levelId, new CachedRating(levelId, null, now), null);
             Double rating = level.rating();
-            Integer tier = tier(rating);
-            if (tier == null) rating = null;
-            return new FetchResult(levelId, new CachedTier(levelId, rating, tier, now), null);
+            if (rating == null || rating.isNaN()) rating = null;
+            return new FetchResult(levelId, new CachedRating(levelId, rating, now), null);
         } catch (RuntimeException e) {
             GdException error = e instanceof GdException gdException
                     ? gdException : new GdException("GDDL level query failed", e);
             return new FetchResult(levelId, null, error);
         }
-    }
-
-    private static Integer tier(Double rating) {
-        if (rating == null || rating.isNaN()) return null;
-        return Math.max(1, (int) Math.round(rating));
     }
 
     /**
@@ -310,8 +304,8 @@ public final class GdProgressService implements AutoCloseable {
      * @param userId       the platform user id
      * @param beatenTotal  the number of 100% records
      * @param beatingTotal the number of in-progress records
-     * @param ratedTotal   the number of records with a GDDL tier
-     * @param unratedTotal the number of records without a GDDL tier
+     * @param ratedTotal   the number of records with a GDDL rating
+     * @param unratedTotal the number of records without a GDDL rating
      * @param score        the B20 score
      * @param highestTier  the highest tier in the B20
      * @param sample       the number of records averaged
@@ -330,6 +324,6 @@ public final class GdProgressService implements AutoCloseable {
     ) {
     }
 
-    private record FetchResult(long id, CachedTier entry, GdException error) {
+    private record FetchResult(long id, CachedRating entry, GdException error) {
     }
 }

@@ -146,16 +146,16 @@ public final class GdImagePresenter implements GdPresenter {
                         String.format(Locale.ROOT, "%02d.", i + 1),
                         play.name(),
                         String.valueOf(play.levelId()),
-                        String.valueOf(play.tier()),
+                        GdText.TIER_VALUE.of(language, play.tier(), play.rating()),
                         play.progress() + "%",
                         format(play.rt())));
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
                     new SvgColumn(GdText.HEAD_LEVEL.of(language), 350, SvgAlign.START),
-                    new SvgColumn("ID", 130, SvgAlign.END),
-                    new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.END),
-                    new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.END),
+                    new SvgColumn("ID", 130, SvgAlign.MIDDLE),
+                    new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.MIDDLE),
+                    new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.MIDDLE),
                     new SvgColumn("rt", 120, SvgAlign.END));
             List<SvgCell> cells = SvgTable.build(
                     40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
@@ -197,16 +197,16 @@ public final class GdImagePresenter implements GdPresenter {
                         String.format(Locale.ROOT, "%02d.", i + 1),
                         play.name(),
                         String.valueOf(play.levelId()),
-                        String.valueOf(play.tier()),
+                        GdText.TIER_VALUE.of(language, play.tier(), play.rating()),
                         play.progress() + "%",
                         format(play.rt())));
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
                     new SvgColumn(GdText.HEAD_LEVEL.of(language), 350, SvgAlign.START),
-                    new SvgColumn("ID", 130, SvgAlign.END),
-                    new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.END),
-                    new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.END),
+                    new SvgColumn("ID", 130, SvgAlign.MIDDLE),
+                    new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.MIDDLE),
+                    new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.MIDDLE),
                     new SvgColumn("rt", 120, SvgAlign.END));
             List<SvgCell> cells = SvgTable.build(
                     40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");

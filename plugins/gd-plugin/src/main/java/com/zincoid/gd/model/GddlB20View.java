@@ -36,10 +36,20 @@ public record GddlB20View(
      *
      * @param levelId  the level id
      * @param name     the level name
-     * @param tier     the GDDL tier
+     * @param rating   the raw GDDL rating
      * @param progress the completion percentage
      * @param rt       the computed rt
      */
-    public record Play(long levelId, String name, int tier, int progress, double rt) {
+    public record Play(long levelId, String name, double rating, int progress, double rt) {
+
+        /**
+         * 四舍五入后的 GDDL tier，用于展示。
+         * <p>The rounded GDDL tier for display.</p>
+         *
+         * @return the rounded tier
+         */
+        public int tier() {
+            return Math.max(1, (int) Math.round(rating));
+        }
     }
 }

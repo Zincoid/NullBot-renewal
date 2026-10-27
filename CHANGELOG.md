@@ -14,6 +14,8 @@
 ### Changed
 
 - `gd-plugin` 拆分数据访问：`GdLevelService` 负责 JDash 关卡与缩略图，`GddlService` 负责 GDDL 关卡/用户/提交记录与 B20，`GdProgressService` 负责本地进度；`GdStore` 更名为 `GdProgressStore`，`ScoreResult` 更名为 `GddlB20Result`，GDDL B20 视图/模板统一为 `GddlB20View` / `gddl-b20.jte`。
+- B20 计算改用 GDDL 原始小数 `rating`，不再使用四舍五入后的 tier；结果表格的 tier 列显示为 `25(25.33)` 形式。
+- `gd_level_cache` 只保留原始 `rating`，tier 由 rating 派生；数据库 schema 为 v1，首次启动直接创建不含 `tier` 列的表。
 
 ## [1.1.0] - 2026-10-27
 

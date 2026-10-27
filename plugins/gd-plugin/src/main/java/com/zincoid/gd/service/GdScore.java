@@ -17,16 +17,18 @@ public final class GdScore {
     }
 
     /**
-     * 计算单关 rt：tier^E × (进度/100)^1.5。
-     * <p>Computes a single-play rt: tier^E × (progress / 100)^1.5.</p>
+     * 计算单关 rt：rating^E × (进度/100)^1.5。
+     * <p>Computes a single-play rt: rating^E × (progress / 100)^1.5.</p>
      *
      * @param play          the play
-     * @param tierExponent  the exponent applied to the tier
+     * @param tierExponent  the exponent applied to the GDDL rating
      * @return the rt value
      */
     static double rt(Play play, double tierExponent) {
         int progress = Math.clamp(play.progress(), 0, 100);
-        return Math.pow(play.tier(), tierExponent)
+        double rating = play.rating();
+        if (Double.isNaN(rating) || rating < 0) rating = 0;
+        return Math.pow(rating, tierExponent)
                 * Math.pow(progress / 100.0, PROGRESS_EXPONENT);
     }
 
@@ -57,10 +59,20 @@ public final class GdScore {
      *
      * @param levelId  the level id
      * @param name     the level name
-     * @param tier     the rounded GDDL tier
+     * @param rating   the raw GDDL rating
      * @param progress the completion percentage
      */
-    public record Play(long levelId, String name, int tier, int progress) {
+    public record Play(long levelId, String name, double rating, int progress) {
+
+        /**
+         * 四舍五入后的 GDDL tier，用于展示。
+         * <p>The rounded GDDL tier for display.</p>
+         *
+         * @return the rounded tier
+         */
+        public int tier() {
+            return Math.max(1, (int) Math.round(rating));
+        }
     }
 
     /**

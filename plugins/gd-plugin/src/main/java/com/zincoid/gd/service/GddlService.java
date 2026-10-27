@@ -275,10 +275,9 @@ public final class GddlService {
                 continue;
             double rating = submission.level().rating();
             if (Double.isNaN(rating)) continue;
-            int tier = Math.max(1, (int) Math.round(rating));
             int progress = submission.progress() <= 0 && beaten ? 100 : submission.progress();
             plays.add(new GdScore.Play(
-                    submission.level().id(), submission.level().displayName(), tier, progress));
+                    submission.level().id(), submission.level().displayName(), rating, progress));
         }
         return count;
     }

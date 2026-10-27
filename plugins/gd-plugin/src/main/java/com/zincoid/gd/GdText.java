@@ -82,8 +82,8 @@ public enum GdText {
             权限：>=0(normal)
             说明：不带用户名时查看当前绑定账号的 B20。
                   GDDL 绑定保存在插件数据目录；每个聊天用户只能绑定一个账号，更换需先解绑。
-                  B20 = 取 rt = tier^E × (进度/100)^1.5 最高的 20 条求平均；
-                  E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
+                  B20 = 取 rt = rating^E × (进度/100)^1.5 最高的 20 条求平均；
+                  rating 使用 GDDL 原始小数评分；E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
                   用户评分仅统计 GDDL 提交记录（beaten/beating），未提交的关卡不计入。""",
             """
             GDDL
@@ -103,8 +103,8 @@ public enum GdText {
             Notes: Without a username, shows the bound account's B20.
                    GDDL bindings are stored in the plugin data directory; each chat user can bind one account and must unbind before changing it.
                    B20 = average of the best 20 rt values, where
-                   rt = tier^E × (progress/100)^1.5 and E defaults to 1.5.
-                   Set score.tier-exponent=2 in the plugin config to use squared tiers.
+                   rt = rating^E × (progress/100)^1.5 and E defaults to 1.5.
+                   rating is the raw decimal GDDL rating. Set score.tier-exponent=2 in the plugin config to use squared ratings.
                    User scores only count GDDL submissions (beaten/beating)."""),
 
     UNKNOWN_SUBCOMMAND("未知子命令：%s", "Unknown subcommand: %s"),
@@ -166,6 +166,7 @@ public enum GdText {
     DESCRIPTION("描述", "Description"),
     STARS("星", "Stars"),
     TIER("Tier", "Tier"),
+    TIER_VALUE("%d(%.2f)", "%d(%.2f)"),
     PROGRESS("进度", "Progress"),
     RATING("Rt.", "Rt."),
     ENJOYMENT("Enj.", "Enj."),

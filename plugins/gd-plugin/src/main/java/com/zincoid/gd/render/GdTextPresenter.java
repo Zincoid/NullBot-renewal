@@ -68,7 +68,8 @@ public final class GdTextPresenter implements GdPresenter {
                 body.append(i + 1).append(". ").append(play.name())
                         .append(" (").append(play.levelId()).append(") — ")
                         .append(GdText.TIER.of(language)).append(" ")
-                        .append(play.tier()).append(" · ").append(play.progress())
+                        .append(GdText.TIER_VALUE.of(language, play.tier(), play.rating()))
+                        .append(" · ").append(play.progress())
                         .append("% · rt ").append(format(play.rt())).append('\n');
             }
         }
@@ -104,7 +105,8 @@ public final class GdTextPresenter implements GdPresenter {
                 body.append(i + 1).append(". ").append(play.name())
                         .append(" (").append(play.levelId()).append(") — ")
                         .append(GdText.TIER.of(language)).append(" ")
-                        .append(play.tier()).append(" · ").append(play.progress())
+                        .append(GdText.TIER_VALUE.of(language, play.tier(), play.rating()))
+                        .append(" · ").append(play.progress())
                         .append("% · rt ").append(format(play.rt())).append('\n');
             }
         }

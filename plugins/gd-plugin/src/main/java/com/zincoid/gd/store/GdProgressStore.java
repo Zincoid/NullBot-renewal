@@ -60,7 +60,6 @@ public final class GdProgressStore implements AutoCloseable {
             CREATE TABLE IF NOT EXISTS gd_level_cache (
                 level_id   INTEGER NOT NULL PRIMARY KEY,
                 rating     REAL,
-                tier       INTEGER,
                 fetched_at INTEGER NOT NULL
             )
             """;
@@ -324,15 +323,15 @@ public final class GdProgressStore implements AutoCloseable {
      * @param levelIds the level ids
      * @return the cached entries by level id
      */
-    public synchronized Map<Long, CachedTier> cachedTiers(Collection<Long> levelIds) {
+    public synchronized Map<Long, CachedRating> cachedRatings(Collection<Long> levelIds) {
         requireOpen();
         if (levelIds.isEmpty()) return Map.of();
         List<Long> ids = new ArrayList<>(new LinkedHashSet<>(levelIds));
-        Map<Long, CachedTier> result = new LinkedHashMap<>();
+        Map<Long, CachedRating> result = new LinkedHashMap<>();
         for (int start = 0; start < ids.size(); start += QUERY_CHUNK) {
             List<Long> chunk = ids.subList(start, Math.min(start + QUERY_CHUNK, ids.size()));
             String placeholders = String.join(", ", java.util.Collections.nCopies(chunk.size(), "?"));
-            String sql = "SELECT level_id, rating, tier, fetched_at FROM gd_level_cache "
+            String sql = "SELECT level_id, rating, fetched_at FROM gd_level_cache "
                     + "WHERE level_id IN (" + placeholders + ")";
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 for (int i = 0; i < chunk.size(); i++) ps.setLong(i + 1, chunk.get(i));
@@ -341,10 +340,8 @@ public final class GdProgressStore implements AutoCloseable {
                         long levelId = rs.getLong("level_id");
                         double ratingValue = rs.getDouble("rating");
                         Double rating = rs.wasNull() ? null : ratingValue;
-                        int tierValue = rs.getInt("tier");
-                        Integer tier = rs.wasNull() ? null : tierValue;
-                        result.put(levelId, new CachedTier(
-                                levelId, rating, tier, rs.getLong("fetched_at")));
+                        result.put(levelId, new CachedRating(
+                                levelId, rating, rs.getLong("fetched_at")));
                     }
                 }
             } catch (SQLException e) {
@@ -358,28 +355,25 @@ public final class GdProgressStore implements AutoCloseable {
      * 批量写入 GDDL 评级缓存。
      * <p>Writes the GDDL rating cache in one batch.</p>
      *
-     * @param tiers the cached entries
+     * @param ratings the cached ratings
      */
-    public synchronized void saveTiers(Collection<CachedTier> tiers) {
+    public synchronized void saveRatings(Collection<CachedRating> ratings) {
         requireOpen();
-        if (tiers.isEmpty()) return;
+        if (ratings.isEmpty()) return;
         try {
             connection.setAutoCommit(false);
             try (PreparedStatement ps = connection.prepareStatement("""
-                    INSERT INTO gd_level_cache(level_id, rating, tier, fetched_at)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO gd_level_cache(level_id, rating, fetched_at)
+                    VALUES (?, ?, ?)
                     ON CONFLICT(level_id) DO UPDATE SET
                         rating = excluded.rating,
-                        tier = excluded.tier,
                         fetched_at = excluded.fetched_at
                     """)) {
-                for (CachedTier tier : tiers) {
-                    ps.setLong(1, tier.levelId());
-                    if (tier.rating() == null) ps.setNull(2, Types.REAL);
-                    else ps.setDouble(2, tier.rating());
-                    if (tier.tier() == null) ps.setNull(3, Types.INTEGER);
-                    else ps.setInt(3, tier.tier());
-                    ps.setLong(4, tier.fetchedAt());
+                for (CachedRating cached : ratings) {
+                    ps.setLong(1, cached.levelId());
+                    if (cached.rating() == null) ps.setNull(2, Types.REAL);
+                    else ps.setDouble(2, cached.rating());
+                    ps.setLong(3, cached.fetchedAt());
                     ps.addBatch();
                 }
                 ps.executeBatch();

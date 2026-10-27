@@ -6,8 +6,7 @@ package com.zincoid.gd.store;
  *
  * @param levelId   the GD level id
  * @param rating    the raw GDDL rating, nullable when unrated
- * @param tier      the rounded tier, nullable when unrated
  * @param fetchedAt the fetch time in epoch milliseconds
  */
-public record CachedTier(long levelId, Double rating, Integer tier, long fetchedAt) {
+public record CachedRating(long levelId, Double rating, long fetchedAt) {
 }

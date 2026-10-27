@@ -92,7 +92,7 @@ public final class GdViewMapper {
                 .map(scored -> new GddlB20View.Play(
                         scored.play().levelId(),
                         scored.play().name(),
-                        scored.play().tier(),
+                        scored.play().rating(),
                         scored.play().progress(),
                         scored.rt()
                 ))
@@ -128,7 +128,7 @@ public final class GdViewMapper {
                 .map(scored -> new LocalB20View.Play(
                         scored.play().levelId(),
                         scored.play().name(),
-                        scored.play().tier(),
+                        scored.play().rating(),
                         scored.play().progress(),
                         scored.rt()
                 ))
