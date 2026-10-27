@@ -88,9 +88,9 @@
         @endfor
     @endif
 
-    <path d="M868 510 L880 510 L896 476 L884 476 Z"
+    <path d="M868 501 L880 501 L896 467 L884 467 Z"
           fill="#F2F3F5" fill-opacity="0.06"/>
-    <path d="M892 510 L904 510 L920 476 L908 476 Z"
+    <path d="M892 501 L904 501 L920 467 L908 467 Z"
           fill="#F2F3F5" fill-opacity="0.06"/>
 
     <text x="40" y="${height - 40}" font-family="JetBrains Maple Mono" font-weight="bold"
