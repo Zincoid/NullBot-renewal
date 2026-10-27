@@ -63,7 +63,7 @@ nullbot:
   qq:
     app-id:
     app-secret:
-    api-base:
+    api-url:
     token-url:
 
   # ═══════════════════ #

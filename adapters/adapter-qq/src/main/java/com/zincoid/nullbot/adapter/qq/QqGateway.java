@@ -2,11 +2,7 @@ package com.zincoid.nullbot.adapter.qq;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.zincoid.nullbot.adapter.qq.model.QqModels;
-import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.port.BotLifecycle;
-import com.zincoid.nullbot.bot.spi.port.BotServer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +13,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * QQ 官方机器人 WebSocket 网关。
  * <p>QQ official bot WebSocket gateway.</p>
- * <p>负责 token、Identify/Resume、心跳、重连、事件映射和生命周期。</p>
- * <p>Handles tokens, Identify/Resume, heartbeats, reconnects, event mapping, and lifecycle.</p>
+ * <p>负责连接、Identify/Resume、心跳、重连与生命周期；入站事件交给 {@link QqInbound}。</p>
+ * <p>Handles connections, Identify/Resume, heartbeats, reconnects, and lifecycle; inbound events are delegated to {@link QqInbound}.</p>
  */
 @Slf4j
 @Component
@@ -44,10 +38,11 @@ public class QqGateway {
 
     private final QqApi api;
     private final QqProperties properties;
-    private final QqMessageIndex index;
-    private final BotServer server;
+    private final QqHttpClient http;
+    private final QqInbound inbound;
+    private final QqClientFactory clients;
     private final BotLifecycle lifecycle;
-    private final HttpClient http = HttpClient.newBuilder()
+    private final HttpClient wsHttp = HttpClient.newBuilder()
             .connectTimeout(CONNECT_TIMEOUT)
             .build();
     private final Object sendLock = new Object();
@@ -57,7 +52,6 @@ public class QqGateway {
     private volatile boolean fatal;
     private volatile boolean online;
     private volatile String selfId;
-    private volatile String botName;
     private volatile String sessionId;
     private volatile Long lastSeq;
     private volatile String gatewayUrl;
@@ -83,7 +77,7 @@ public class QqGateway {
         fatal = false;
         thread = Thread.ofVirtual().name("qq-gateway").start(this::run);
         log.info("QQ adapter starting: api={}, intents={}",
-                properties.resolvedApiBase(), properties.getIntents());
+                properties.resolvedApiUrl(), properties.getIntents());
     }
 
     /**
@@ -125,13 +119,13 @@ public class QqGateway {
 
     private void connect() {
         String url = gatewayUrl();
-        String token = api.token();
+        String token = http.token();
         CompletableFuture<Void> done = new CompletableFuture<>();
         closed = done;
         Listener listener = new Listener(done);
         WebSocket ws;
         try {
-            ws = http.newWebSocketBuilder()
+            ws = wsHttp.newWebSocketBuilder()
                     .connectTimeout(CONNECT_TIMEOUT)
                     .header("Authorization", "QQBot " + token)
                     .buildAsync(URI.create(url), listener)
@@ -150,7 +144,7 @@ public class QqGateway {
 
     private String gatewayUrl() {
         String current = gatewayUrl;
-        if (current != null && !current.isBlank()) return current;
+        if (!QqText.isBlank(current)) return current;
         String url = api.gatewayUrl();
         gatewayUrl = url;
         return url;
@@ -173,7 +167,7 @@ public class QqGateway {
     private void handlePayload(String json) {
         QqModels.Payload payload;
         try {
-            payload = api.parsePayload(json);
+            payload = http.read(json, QqModels.Payload.class);
         } catch (RuntimeException e) {
             log.warn("QQ gateway payload decode failed: {}", e.getMessage());
             return;
@@ -210,98 +204,26 @@ public class QqGateway {
                 online();
                 log.info("QQ session resumed");
             }
-            case "GROUP_AT_MESSAGE_CREATE" -> handleGroup(payload.d(), true);
-            case "GROUP_MESSAGE_CREATE" -> handleGroup(payload.d(), false);
-            case "C2C_MESSAGE_CREATE" -> handleC2c(payload.d());
+            case "GROUP_AT_MESSAGE_CREATE" -> inbound.handleGroup(payload.d(), selfId, true);
+            case "GROUP_MESSAGE_CREATE" -> inbound.handleGroup(payload.d(), selfId, false);
+            case "C2C_MESSAGE_CREATE" -> inbound.handleC2c(payload.d(), selfId);
             default -> log.debug("QQ event ignored: {}", type);
         }
     }
 
     private void ready(JsonNode node) {
-        QqModels.ReadyData data = api.read(node, QqModels.ReadyData.class);
-        if (data == null || data.user() == null || isBlank(data.user().id())) {
+        QqModels.ReadyData data = http.read(node, QqModels.ReadyData.class);
+        if (data == null || data.user() == null || QqText.isBlank(data.user().id())) {
             log.warn("QQ READY missing bot user");
             return;
         }
         selfId = data.user().id();
-        botName = data.user().username();
         sessionId = data.sessionId();
-        api.setBotInfo(new QqModels.BotInfo(selfId, botName, data.user().avatar()));
+        api.setBotInfo(new QqModels.BotInfo(selfId, data.user().username(), data.user().avatar()));
         reconnectAttempt.set(0);
         awaitingHeartbeatAck = false;
         online();
         log.info("QQ gateway ready: bot={}", selfId);
-    }
-
-    // ════ Events ═════════════════
-
-    private void handleGroup(JsonNode node, boolean atEvent) {
-        if (selfId == null) return;
-        QqModels.GroupMessage data = api.read(node, QqModels.GroupMessage.class);
-        if (data == null || isBlank(data.id()) || isBlank(data.groupOpenid())) return;
-        if (skip(data.author())) return;
-        String shortId = QqIds.shortId(data.id());
-        QqMessageIndex.Target target = new QqMessageIndex.Target(true, data.groupOpenid());
-        GroupMsgEvent event = atEvent
-                ? QqMapper.groupAt(data, selfId, shortId)
-                : QqMapper.groupFull(data, selfId, shortId);
-        if (event == null) return;
-        rememberNames(data.author(), data.mentions());
-        MsgDetail detail = new MsgDetail(shortId, event.userId(), event.nickname(), event.content());
-        if (!index.remember(data.id(), target, detail)) return;
-        server.handle(new QqClient(api, index, properties, selfId,
-                new QqClient.ReplyContext(target, data.id(), receivedAt(data.timestamp()))), event);
-    }
-
-    private void handleC2c(JsonNode node) {
-        if (selfId == null) return;
-        QqModels.C2cMessage data = api.read(node, QqModels.C2cMessage.class);
-        if (data == null || isBlank(data.id()) || data.author() == null) return;
-        if (skip(data.author())) return;
-        String userId = firstNonBlank(data.author().userOpenid(), data.author().id());
-        if (isBlank(userId)) return;
-        String shortId = QqIds.shortId(data.id());
-        QqMessageIndex.Target target = new QqMessageIndex.Target(false, userId);
-        PrivateMsgEvent event = QqMapper.c2c(data, selfId, shortId);
-        if (event == null) return;
-        rememberNames(data.author(), data.mentions());
-        MsgDetail detail = new MsgDetail(shortId, event.userId(), event.nickname(), event.content());
-        if (!index.remember(data.id(), target, detail)) return;
-        server.handle(new QqClient(api, index, properties, selfId,
-                new QqClient.ReplyContext(target, data.id(), receivedAt(data.timestamp()))), event);
-    }
-
-    private boolean skip(QqModels.Author author) {
-        if (author == null || Boolean.TRUE.equals(author.bot())) return true;
-        if (selfId != null
-                && (selfId.equals(author.id()) || selfId.equals(author.memberOpenid())))
-            return true;
-        return botName != null && !botName.isBlank() && botName.equals(author.username());
-    }
-
-    private void rememberNames(QqModels.Author author, List<QqModels.Mention> mentions) {
-        if (author != null) {
-            index.rememberUser(author.id(), author.username());
-            index.rememberUser(author.memberOpenid(), author.username());
-            index.rememberUser(author.userOpenid(), author.username());
-        }
-        if (mentions != null) {
-            for (QqModels.Mention mention : mentions) {
-                if (mention == null) continue;
-                index.rememberUser(mention.id(), mention.username());
-                index.rememberUser(mention.memberOpenid(), mention.username());
-                index.rememberUser(mention.userOpenid(), mention.username());
-            }
-        }
-    }
-
-    private static Instant receivedAt(String timestamp) {
-        if (timestamp == null || timestamp.isBlank()) return Instant.now();
-        try {
-            return OffsetDateTime.parse(timestamp).toInstant();
-        } catch (RuntimeException e) {
-            return Instant.now();
-        }
     }
 
     // ════ Heartbeat ══════════════
@@ -346,7 +268,7 @@ public class QqGateway {
     private void sendIdentifyOrResume() {
         try {
             Map<String, Object> data = new HashMap<>();
-            data.put("token", "QQBot " + api.token());
+            data.put("token", "QQBot " + http.token());
             Map<String, Object> payload = new HashMap<>();
             if (sessionId != null && lastSeq != null) {
                 data.put("session_id", sessionId);
@@ -374,7 +296,7 @@ public class QqGateway {
     }
 
     private void sendJson(Object payload) {
-        sendRaw(api.json(payload));
+        sendRaw(http.json(payload));
     }
 
     private void sendRaw(String json) {
@@ -395,9 +317,9 @@ public class QqGateway {
     private void online() {
         if (online || selfId == null || shutdown) return;
         try {
-            lifecycle.online(selfId, new QqClient(api, index, properties, selfId, null));
+            lifecycle.online(selfId, clients.create(selfId, null));
             online = true;
-            log.info("Bot online: {}", selfId);
+            log.info("QQ bot online: {}", selfId);
         } catch (RuntimeException e) {
             log.warn("QQ bot online failed: {}", selfId, e);
         }
@@ -411,7 +333,7 @@ public class QqGateway {
             log.warn("QQ bot offline failed: {}", selfId, e);
         }
         online = false;
-        log.info("Bot offline: {}", selfId);
+        log.info("QQ bot offline: {}", selfId);
     }
 
     // ════ Connection control ═════
@@ -440,6 +362,7 @@ public class QqGateway {
     }
 
     private void handleCloseCode(int code) {
+        if (code == 4004) http.invalidateToken();
         if (code == 4006 || code == 4007 || (code >= 4900 && code <= 4913)) clearSession();
         if (fatalClose(code)) {
             fatal = true;
@@ -451,14 +374,6 @@ public class QqGateway {
         return code == 4001 || code == 4002
                 || (code >= 4010 && code <= 4014)
                 || code == 4914 || code == 4915;
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.isBlank();
-    }
-
-    private static String firstNonBlank(String first, String second) {
-        return first != null && !first.isBlank() ? first : second;
     }
 
     // ════ Listener ═══════════════
@@ -516,6 +431,11 @@ public class QqGateway {
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
             log.warn("QQ gateway error: {}", error.getMessage());
+            try {
+                webSocket.abort();
+            } catch (RuntimeException ignored) {
+                // The socket may already be closed.
+            }
             offline();
             done.complete(null);
         }

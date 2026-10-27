@@ -13,8 +13,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("qq")
 public class QqProperties {
 
-    private static final String DEFAULT_API_BASE = "https://api.bot.qq.com";
-    private static final String DEFAULT_TOKEN_URL = DEFAULT_API_BASE + "/app/getAppAccessToken";
+    private static final String DEFAULT_API_URL = "https://api.bot.qq.com";
+    private static final String DEFAULT_TOKEN_URL = DEFAULT_API_URL + "/app/getAppAccessToken";
 
     /**
      * 开放平台 AppID。
@@ -29,10 +29,10 @@ public class QqProperties {
     private String appSecret;
 
     /**
-     * OpenAPI 基础地址，空值时使用官方地址。
-     * <p>OpenAPI base URL; the official URL is used when blank.</p>
+     * OpenAPI 地址，空值时使用官方地址。
+     * <p>OpenAPI URL; the official URL is used when blank.</p>
      */
-    private String apiBase;
+    private String apiUrl;
 
     /**
      * Access token 获取地址，空值时使用官方地址。
@@ -71,18 +71,17 @@ public class QqProperties {
      * @return true when AppID and AppSecret are present
      */
     public boolean configured() {
-        return appId != null && !appId.isBlank()
-                && appSecret != null && !appSecret.isBlank();
+        return !QqText.isBlank(appId) && !QqText.isBlank(appSecret);
     }
 
     /**
-     * 返回规范化后的 OpenAPI 基础地址。
-     * <p>Returns the normalized OpenAPI base URL.</p>
+     * 返回规范化后的 OpenAPI 地址。
+     * <p>Returns the normalized OpenAPI URL.</p>
      *
-     * @return the API base URL
+     * @return the API URL
      */
-    public String resolvedApiBase() {
-        return stripTrailingSlash(isBlank(apiBase) ? DEFAULT_API_BASE : apiBase.strip());
+    public String resolvedApiUrl() {
+        return stripTrailingSlash(QqText.isBlank(apiUrl) ? DEFAULT_API_URL : apiUrl.strip());
     }
 
     /**
@@ -92,7 +91,7 @@ public class QqProperties {
      * @return the token endpoint
      */
     public String resolvedTokenUrl() {
-        return isBlank(tokenUrl) ? DEFAULT_TOKEN_URL : tokenUrl.strip();
+        return QqText.isBlank(tokenUrl) ? DEFAULT_TOKEN_URL : tokenUrl.strip();
     }
 
     /**
@@ -103,10 +102,6 @@ public class QqProperties {
      */
     public int resolvedShardCount() {
         return Math.max(1, shardCount);
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.isBlank();
     }
 
     private static String stripTrailingSlash(String value) {

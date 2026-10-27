@@ -73,7 +73,7 @@ java -jar launcher/target/launcher-qq.jar \
 | `nullbot.shiro.server.enable` / `url` | `true` / `/ws` | 反向 WS |
 | `nullbot.shiro.client.enable` / `url` | `false` / 空 | 正向 WS，启用时需关闭反向 |
 | `nullbot.qq.app-id` / `app-secret` | 空 | QQ 官方机器人 AppID 与 AppSecret |
-| `nullbot.qq.api-base` | `https://api.bot.qq.com` | QQ 官方 OpenAPI 地址 |
+| `nullbot.qq.api-url` | `https://api.bot.qq.com` | QQ 官方 OpenAPI 地址 |
 | `nullbot.qq.token-url` | `https://api.bot.qq.com/app/getAppAccessToken` | Access token 获取地址 |
 | `nullbot.qq.intents` | `33554432` | 事件订阅位掩码（群聊与 C2C） |
 | `nullbot.qq.text-limit` | `1800` | 单条文本的最大 Unicode code point 数 |
@@ -87,18 +87,18 @@ MySQL 需手动执行 `schema-mysql.sql`。
 - `adapter-qq`：QQ 官方机器人（`bot.q.qq.com`）WebSocket 接入，支持 QQ 群与 C2C 私聊；产物为 `launcher-qq.jar`。
 - `adapter-stdin`：从标准输入读取事件，便于调试。
 
-QQ 官方机器人适配器只使用被动回复。平台已停用主动推送，因此群聊回复需在收到消息后 5 分钟内完成（每条消息最多 5 条），C2C 回复需在 60 分钟内完成（最多 4 条）。群内消息默认只有 @机器人 时才会收到；全量群消息需要在开放平台和群设置中授权。
+QQ 官方机器人适配器目前所有输出都使用主动消息（不带 `msg_id`），以避免被动回复被 QQ 自动 @ 发送者。主动消息受开放平台认证、权限和频控限制，具体额度以平台后台为准；如果机器人没有主动消息权限，发送会失败。群内消息默认只有 @机器人 时才会收到；全量群消息需要在开放平台和群设置中授权。
 
 受官方接口限制：
 
 - 群信息、群成员列表为白名单/内邀能力，普通机器人通常无法获取；成员没有头像，`#Usage`、`#Say` 等卡片会使用占位头像或省略头像，`#Wife` 成员模式可能没有可选成员。
 - 没有群消息历史；引用回复、`#Save`/`#Recall` 依赖被引用消息的场景受限。适配器会缓存收到的消息，供 `#Save --id=<消息ID>` 等使用。
-- 不处理入退群、戳一戳、防撤回等通知类事件；主动消息与入退群通知受平台限制。
+- 不处理入退群、戳一戳、防撤回等通知类事件；主动消息权限与入退群通知受平台限制。
 - 图片上传支持 png/jpg，视频 mp4，语音 silk/mp3/wav；本地文件大于 5 MB 首版不支持；WebP/GIF 可能上传失败。
 - 文本中的 `@用户` 不会高亮，适配器以 `@<openid>` 形式显示；真正的群内 @ 需要 Markdown，首版不支持。
 - 文本中包含 URL 时需要在开放平台配置消息 URL 白名单，否则平台会拒绝发送。
 - 群与用户 ID 使用平台 openid 体系，不是 QQ 号；不同机器人的 openid 不通用。
-- 当前 v2 使用统一 `api.bot.qq.com`，不再提供旧版 sandbox 域名；测试用户、测试群和 IP 白名单请在开放平台后台配置。`api-base` 仅用于特殊网络/旧域名兼容。
+- 当前 v2 使用统一 `api.bot.qq.com`，不再提供旧版 sandbox 域名；测试用户、测试群和 IP 白名单请在开放平台后台配置。`api-url` 仅用于特殊网络/旧域名兼容。
 
 ## 插件
 

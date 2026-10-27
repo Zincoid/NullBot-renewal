@@ -63,12 +63,12 @@ public final class QqMapper {
      * @return the private message event, or null when the event is empty
      */
     public static PrivateMsgEvent c2c(QqModels.C2cMessage data, String selfId, String shortId) {
-        if (data == null || isBlank(data.id()) || isBlank(shortId) || isBlank(selfId)) return null;
+        if (data == null || QqText.isBlank(data.id()) || QqText.isBlank(shortId) || QqText.isBlank(selfId)) return null;
         QqModels.Author author = data.author();
         if (author == null) return null;
-        String userId = firstNonBlank(author.userOpenid(), author.id());
-        if (isBlank(userId)) return null;
-        String nickname = firstNonBlank(author.username(), userId);
+        String userId = QqText.firstNonBlank(author.userOpenid(), author.id());
+        if (QqText.isBlank(userId)) return null;
+        String nickname = QqText.firstNonBlank(author.username(), userId);
         MsgContent content = content(data.content(), data.attachments(), Set.of(), selfId);
         if (content.segments().isEmpty()) return null;
         return new PrivateMsgEvent(selfId, userId, shortId, nickname, content, false, false);
@@ -78,13 +78,13 @@ public final class QqMapper {
 
     private static GroupMsgEvent group(QqModels.GroupMessage data, String selfId, String shortId,
                                        boolean at, Set<String> botIds) {
-        if (data == null || isBlank(data.id()) || isBlank(data.groupOpenid())
-                || isBlank(shortId) || isBlank(selfId)) return null;
+        if (data == null || QqText.isBlank(data.id()) || QqText.isBlank(data.groupOpenid())
+                || QqText.isBlank(shortId) || QqText.isBlank(selfId)) return null;
         QqModels.Author author = data.author();
         if (author == null) return null;
-        String userId = firstNonBlank(author.memberOpenid(), author.id());
-        if (isBlank(userId)) return null;
-        String nickname = firstNonBlank(author.username(), userId);
+        String userId = QqText.firstNonBlank(author.memberOpenid(), author.id());
+        if (QqText.isBlank(userId)) return null;
+        String nickname = QqText.firstNonBlank(author.username(), userId);
         MsgContent content = content(data.content(), data.attachments(), botIds, selfId);
         if (content.segments().isEmpty()) return null;
         return new GroupMsgEvent(
@@ -127,10 +127,11 @@ public final class QqMapper {
     }
 
     private static MsgSegment attachment(QqModels.Attachment attachment) {
-        if (attachment == null || isBlank(attachment.url())) return null;
+        if (attachment == null) return null;
+        String url = QqText.isBlank(attachment.url()) ? attachment.voiceWavUrl() : attachment.url();
+        if (QqText.isBlank(url)) return null;
         String type = attachment.contentType() == null
                 ? "" : attachment.contentType().toLowerCase(Locale.ROOT);
-        String url = attachment.url();
         String filename = attachment.filename();
         if (type.startsWith("image/")) return new MsgSegment.Image(url, filename);
         if (type.startsWith("video/")) return new MsgSegment.Video(url, filename);
@@ -186,14 +187,6 @@ public final class QqMapper {
     }
 
     private static void addId(Set<String> ids, String id) {
-        if (id != null && !id.isBlank()) ids.add(id);
-    }
-
-    private static String firstNonBlank(String first, String second) {
-        return first != null && !first.isBlank() ? first : second;
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.isBlank();
+        if (!QqText.isBlank(id)) ids.add(id);
     }
 }

@@ -25,19 +25,6 @@ public final class QqModels {
     }
 
     /**
-     * Access token 响应。
-     * <p>Access token response.</p>
-     *
-     * @param accessToken the access token
-     * @param expiresIn   the lifetime in seconds, string or number
-     */
-    public record TokenResponse(
-            @JsonProperty("access_token") String accessToken,
-            @JsonProperty("expires_in") JsonNode expiresIn
-    ) {
-    }
-
-    /**
      * WebSocket 网关响应。
      * <p>WebSocket gateway response.</p>
      *
@@ -230,26 +217,11 @@ public final class QqModels {
      *
      * @param msgType the message type
      * @param content the text content
-     * @param msgId   the passive reply message id
-     * @param msgSeq  the passive reply sequence
-     * @param media   the rich media info
      */
     public record SendRequest(
             @JsonProperty("msg_type") int msgType,
-            String content,
-            @JsonProperty("msg_id") String msgId,
-            @JsonProperty("msg_seq") Integer msgSeq,
-            Media media
+            String content
     ) {
-    }
-
-    /**
-     * 富媒体信息。
-     * <p>Rich media info.</p>
-     *
-     * @param fileInfo the uploaded file info
-     */
-    public record Media(@JsonProperty("file_info") String fileInfo) {
     }
 
     /**
@@ -295,23 +267,6 @@ public final class QqModels {
             @JsonProperty("file_uuid") String fileUuid,
             Integer ttl,
             String id
-    ) {
-    }
-
-    /**
-     * API 错误响应。
-     * <p>API error response.</p>
-     *
-     * @param errCode the OpenAPI error code
-     * @param code    the token/legacy error code
-     * @param message the error message
-     * @param traceId the trace id
-     */
-    public record ApiError(
-            @JsonProperty("err_code") Integer errCode,
-            Integer code,
-            String message,
-            @JsonProperty("trace_id") String traceId
     ) {
     }
 

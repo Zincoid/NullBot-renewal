@@ -2,7 +2,7 @@
 qq:
   app-id: ${nullbot.qq.app-id:}
   app-secret: ${nullbot.qq.app-secret:}
-  api-base: ${nullbot.qq.api-base:}
+  api-url: ${nullbot.qq.api-url:https://api.bot.qq.com}
   token-url: ${nullbot.qq.token-url:https://api.bot.qq.com/app/getAppAccessToken}
   intents: ${nullbot.qq.intents:33554432}
   shard: ${nullbot.qq.shard:0}

@@ -35,16 +35,6 @@ public class QqMessageIndex {
             });
 
     /**
-     * 消息目标会话。
-     * <p>Message target conversation.</p>
-     *
-     * @param group whether the target is a group
-     * @param id    the group openid or user openid
-     */
-    public record Target(boolean group, String id) {
-    }
-
-    /**
      * 一条消息索引。
      * <p>One message index entry.</p>
      *
@@ -53,7 +43,7 @@ public class QqMessageIndex {
      * @param target   the target conversation
      * @param detail   the cached message detail, nullable
      */
-    public record MessageEntry(String shortId, String actualId, Target target, MsgDetail detail) {
+    public record MessageEntry(String shortId, String actualId, QqTarget target, MsgDetail detail) {
     }
 
     /**
@@ -65,7 +55,7 @@ public class QqMessageIndex {
      * @param detail   the message detail
      * @return true when recorded, false when already present
      */
-    public boolean remember(String actualId, Target target, MsgDetail detail) {
+    public boolean remember(String actualId, QqTarget target, MsgDetail detail) {
         String shortId = QqIds.shortId(actualId);
         synchronized (entries) {
             if (entries.containsKey(shortId)) return false;
@@ -82,7 +72,7 @@ public class QqMessageIndex {
      * @param target   the target conversation
      * @return the short message id
      */
-    public String rememberSent(String actualId, Target target) {
+    public String rememberSent(String actualId, QqTarget target) {
         String shortId = QqIds.shortId(actualId);
         entries.put(shortId, new MessageEntry(shortId, actualId, target, null));
         return shortId;
