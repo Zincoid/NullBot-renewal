@@ -7,11 +7,12 @@ import com.zincoid.gd.model.LevelView;
 import com.zincoid.gd.model.LocalB20View;
 import com.zincoid.gd.model.SearchView;
 import com.zincoid.gd.render.GdPresenter;
-import com.zincoid.gd.service.GdLocalService;
-import com.zincoid.gd.service.GdLocalService.LocalB20Result;
-import com.zincoid.gd.service.GdLocalService.UpdateResult;
-import com.zincoid.gd.service.GdService;
-import com.zincoid.gd.service.GdService.GddlLevel;
+import com.zincoid.gd.service.GddlService;
+import com.zincoid.gd.service.GddlService.GddlLevel;
+import com.zincoid.gd.service.GdLevelService;
+import com.zincoid.gd.service.GdProgressService;
+import com.zincoid.gd.service.GdProgressService.LocalB20Result;
+import com.zincoid.gd.service.GdProgressService.UpdateResult;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
@@ -54,10 +55,11 @@ public class GdCmd implements Cmd {
     private static final String WAIT_PATTERN = "\\s*(?:[0-9]+|(?i:end|next))\\s*";
     private static final String CONFIRM_PATTERN = "\\s*(?i:yes|y|是|确认|确定|no|n|否|取消)\\s*";
 
-    private final GdService service;
+    private final GdLevelService levels;
+    private final GddlService gddl;
     private final GdPresenter presenter;
     private final PluginContext context;
-    private final GdLocalService local;
+    private final GdProgressService progress;
 
     // ════ Run ═════════════════════
 
@@ -94,7 +96,7 @@ public class GdCmd implements Cmd {
     private void register(CmdContext ctx, String userId) {
         boolean created;
         try {
-            created = local.register(userId);
+            created = progress.register(userId);
         } catch (GdException e) {
             log.warn("GD register failed: user={}", userId, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
@@ -106,11 +108,11 @@ public class GdCmd implements Cmd {
 
     private void update(CmdContext ctx, CmdArgs args, String userId) {
         long id = levelId(ctx, args);
-        int progress = progress(ctx, args);
+        int percent = parseProgress(ctx, args);
         requireRegistered(ctx, userId);
         Optional<UpdateResult> result;
         try {
-            result = local.update(userId, id, progress);
+            result = progress.update(userId, id, percent);
         } catch (GdException e) {
             log.warn("GD progress update failed: id={}", id, e);
             throw new CmdWarnException(GdText.SEARCH_FAILED.of(ctx.language()));
@@ -121,7 +123,7 @@ public class GdCmd implements Cmd {
         String author = value.author() == null || value.author().isBlank()
                 ? "-" : value.author();
         throw new CmdInfoException(GdText.UPDATE_SUCCESS.of(
-                ctx.language(), value.levelName(), author, id, progress));
+                ctx.language(), value.levelName(), author, id, percent));
     }
 
     private void remove(CmdContext ctx, CmdArgs args, String userId) {
@@ -129,7 +131,7 @@ public class GdCmd implements Cmd {
         requireRegistered(ctx, userId);
         boolean removed;
         try {
-            removed = local.remove(userId, id);
+            removed = progress.remove(userId, id);
         } catch (GdException e) {
             log.warn("GD progress removal failed: id={}", id, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
@@ -143,7 +145,7 @@ public class GdCmd implements Cmd {
         requireRegistered(ctx, userId);
         int count;
         try {
-            count = local.progressCount(userId);
+            count = progress.progressCount(userId);
         } catch (GdException e) {
             log.warn("GD progress count failed: user={}", userId, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
@@ -158,7 +160,7 @@ public class GdCmd implements Cmd {
         }
         int removed;
         try {
-            removed = local.unregister(userId);
+            removed = progress.unregister(userId);
         } catch (GdException e) {
             log.warn("GD unregister failed: user={}", userId, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
@@ -197,7 +199,7 @@ public class GdCmd implements Cmd {
         boolean all = args.hasOpt("all", "a");
         LocalB20Result result;
         try {
-            result = local.localB20(userId);
+            result = progress.localB20(userId);
         } catch (GdException e) {
             log.warn("GD local B20 failed: user={}", userId, e);
             throw new CmdWarnException(GdText.LOCAL_B20_FAILED.of(ctx.language()));
@@ -215,7 +217,7 @@ public class GdCmd implements Cmd {
             if (info != null) {
                 if (info.nickname() != null && !info.nickname().isBlank())
                     userName = info.nickname();
-                avatar = local.avatar(info.avatar());
+                avatar = progress.avatar(info.avatar());
             }
         } catch (RuntimeException e) {
             log.warn("GD user profile fetch failed: user={}", userId, e);
@@ -231,7 +233,7 @@ public class GdCmd implements Cmd {
     private void requireRegistered(CmdContext ctx, String userId) {
         boolean registered;
         try {
-            registered = local.isRegistered(userId);
+            registered = progress.isRegistered(userId);
         } catch (GdException e) {
             log.warn("GD registration check failed: user={}", userId, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
@@ -240,7 +242,7 @@ public class GdCmd implements Cmd {
             throw new CmdInfoException(GdText.NOT_REGISTERED.of(ctx.language()));
     }
 
-    private static int progress(CmdContext ctx, CmdArgs args) {
+    private static int parseProgress(CmdContext ctx, CmdArgs args) {
         String raw = args.next("").trim();
         if (raw.isEmpty())
             throw new CmdWarnException(GdText.MISSING_PROGRESS.of(ctx.language()));
@@ -267,23 +269,23 @@ public class GdCmd implements Cmd {
         if (page < 1)
             throw new CmdWarnException(GdText.PAGE_FROM_ONE.of(ctx.language()));
 
-        List<GDLevel> levels;
+        List<GDLevel> found;
         try {
-            levels = service.search(query, filter, page - 1);
+            found = levels.search(query, filter, page - 1);
         } catch (GdException e) {
             log.warn("GD search failed: query={}", query, e);
             throw new CmdWarnException(GdText.SEARCH_FAILED.of(ctx.language()));
         }
-        if (levels.isEmpty())
+        if (found.isEmpty())
             throw new CmdInfoException(GdText.NO_LEVELS.of(ctx.language()));
-        if (levels.size() == 1) {
-            showLevel(ctx, levels.getFirst());
+        if (found.size() == 1) {
+            showLevel(ctx, found.getFirst());
             return;
         }
         SearchView view = new SearchView(
-                query, page, GdViewMapper.summaries(levels), WAIT_SECONDS);
+                query, page, GdViewMapper.summaries(found), WAIT_SECONDS);
         ctx.send(presenter.search(ctx.language(), view));
-        waitAndShow(ctx, query, filter, page, levels, targetId, userId, group);
+        waitAndShow(ctx, query, filter, page, found, targetId, userId, group);
     }
 
     private LevelSearchFilter filter(CmdContext ctx, CmdArgs args) {
@@ -322,11 +324,11 @@ public class GdCmd implements Cmd {
     }
 
     private void waitAndShow(CmdContext ctx, String query, LevelSearchFilter filter,
-                             int page, List<GDLevel> levels,
+                             int page, List<GDLevel> initialLevels,
                              String targetId, String userId, boolean group) {
         InputMode mode = group ? InputMode.GS : InputMode.PS;
         int currentPage = page;
-        List<GDLevel> currentLevels = levels;
+        List<GDLevel> currentLevels = initialLevels;
         while (true) {
             List<InputResult> inputs;
             try {
@@ -347,7 +349,7 @@ public class GdCmd implements Cmd {
                 throw new CmdInfoException(GdText.CANCELLED.of(ctx.language()));
             if (value.equalsIgnoreCase("next")) {
                 try {
-                    List<GDLevel> next = service.search(query, filter, currentPage);
+                    List<GDLevel> next = levels.search(query, filter, currentPage);
                     if (next.isEmpty()) {
                         ctx.send(GdText.PAGE_LAST.of(ctx.language()));
                         continue;
@@ -390,7 +392,7 @@ public class GdCmd implements Cmd {
         long id = levelId(ctx, args);
         GDLevel level;
         try {
-            level = service.level(id);
+            level = levels.level(id);
         } catch (GdException e) {
             log.warn("GD level query failed: id={}", id, e);
             throw new CmdWarnException(GdText.SEARCH_FAILED.of(ctx.language()));
@@ -425,7 +427,7 @@ public class GdCmd implements Cmd {
 
     private GddlResult loadGddl(long id) {
         try {
-            return new GddlResult(service.gddlLevel(id), false);
+            return new GddlResult(gddl.gddlLevel(id), false);
         } catch (GdException e) {
             log.warn("GDDL level query failed: id={}", id, e);
             return new GddlResult(null, true);
@@ -434,7 +436,7 @@ public class GdCmd implements Cmd {
 
     private byte[] loadThumbnail(long id) {
         try {
-            return service.thumbnail(id);
+            return levels.thumbnail(id);
         } catch (GdException e) {
             log.warn("GD thumbnail fetch failed: id={}", id, e);
             return null;

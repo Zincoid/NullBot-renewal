@@ -6,9 +6,9 @@ import com.zincoid.gd.binding.GdBindings;
 import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.GdViewMapper;
 import com.zincoid.gd.render.GdPresenter;
-import com.zincoid.gd.service.GdService;
-import com.zincoid.gd.service.GdService.GddlUser;
-import com.zincoid.gd.service.GdService.ScoreResult;
+import com.zincoid.gd.service.GddlService;
+import com.zincoid.gd.service.GddlService.GddlB20Result;
+import com.zincoid.gd.service.GddlService.GddlUser;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GddlCmd implements Cmd {
 
-    private final GdService service;
+    private final GddlService gddl;
     private final GdPresenter presenter;
     private final GdBindings bindings;
 
@@ -127,22 +127,22 @@ public class GddlCmd implements Cmd {
         GddlUser current = user;
         if (current.avatar() == null || current.avatar().isBlank()) {
             try {
-                GddlUser loaded = service.user(current.id());
+                GddlUser loaded = gddl.user(current.id());
                 if (loaded != null) current = loaded;
             } catch (GdException e) {
                 log.warn("GDDL user refresh failed: user={}", current.id(), e);
             }
         }
-        ScoreResult score;
+        GddlB20Result score;
         try {
-            score = service.userScore(current.id(), current.name());
+            score = gddl.gddlB20(current.id(), current.name());
         } catch (GdException e) {
             log.warn("GDDL score query failed: user={}", current.id(), e);
             throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));
         }
         if (score.b20().sample() == 0)
             throw new CmdInfoException(GdText.NO_RECORDS.of(ctx.language()));
-        byte[] avatar = service.avatar(current.id(), current.avatar());
+        byte[] avatar = gddl.avatar(current.id(), current.avatar());
         GddlB20View view = GdViewMapper.gddlB20(score, all, avatar);
         ctx.send(presenter.gddlB20(ctx.language(), view));
         log.info("GD B20 sent: user={}, sample={}, score={}",
@@ -160,7 +160,7 @@ public class GddlCmd implements Cmd {
             if (id > 0) {
                 GddlUser user;
                 try {
-                    user = service.user(id);
+                    user = gddl.user(id);
                 } catch (GdException e) {
                     log.warn("GDDL user query failed: id={}", id, e);
                     throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));
@@ -170,7 +170,7 @@ public class GddlCmd implements Cmd {
         }
         List<GddlUser> users;
         try {
-            users = service.searchUsers(raw);
+            users = gddl.searchUsers(raw);
         } catch (GdException e) {
             log.warn("GDDL user search failed: name={}", raw, e);
             throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));

@@ -1,9 +1,9 @@
 package com.zincoid.gd.model;
 
-import com.zincoid.gd.service.GdLocalService.LocalB20Result;
+import com.zincoid.gd.service.GddlService.GddlB20Result;
+import com.zincoid.gd.service.GddlService.GddlLevel;
+import com.zincoid.gd.service.GdProgressService.LocalB20Result;
 import com.zincoid.gd.service.GdScore;
-import com.zincoid.gd.service.GdService.GddlLevel;
-import com.zincoid.gd.service.GdService.ScoreResult;
 import jdash.common.DemonDifficulty;
 import jdash.common.Difficulty;
 import jdash.common.Length;
@@ -87,7 +87,7 @@ public final class GdViewMapper {
      * @param avatar the GDDL avatar image bytes, nullable
      * @return the GDDL B20 view
      */
-    public static GddlB20View gddlB20(ScoreResult score, boolean all, byte[] avatar) {
+    public static GddlB20View gddlB20(GddlB20Result score, boolean all, byte[] avatar) {
         List<GddlB20View.Play> top = score.b20().top().stream()
                 .map(scored -> new GddlB20View.Play(
                         scored.play().levelId(),

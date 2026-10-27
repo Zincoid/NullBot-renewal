@@ -24,7 +24,7 @@ import java.util.Map;
  * <p>GD local progress store: a SQLite database in the plugin data directory.</p>
  */
 @Slf4j
-public final class GdStore implements AutoCloseable {
+public final class GdProgressStore implements AutoCloseable {
 
     private static final int SCHEMA_VERSION = 1;
     private static final int QUERY_CHUNK = 500;
@@ -69,7 +69,7 @@ public final class GdStore implements AutoCloseable {
     private final Connection connection;
     private boolean closed;
 
-    private GdStore(Path file, Connection connection) {
+    private GdProgressStore(Path file, Connection connection) {
         this.file = file;
         this.connection = connection;
     }
@@ -81,14 +81,14 @@ public final class GdStore implements AutoCloseable {
      * @param dataDir the plugin data directory
      * @return the opened store
      */
-    public static GdStore open(Path dataDir) {
+    public static GdProgressStore open(Path dataDir) {
         Path file = dataDir.resolve("gd.db").toAbsolutePath().normalize();
         try {
             Files.createDirectories(dataDir);
             Class.forName("org.sqlite.JDBC");
             String url = "jdbc:sqlite:" + file.toString().replace('\\', '/');
             Connection connection = DriverManager.getConnection(url);
-            GdStore store = new GdStore(file, connection);
+            GdProgressStore store = new GdProgressStore(file, connection);
             try {
                 store.initialize();
             } catch (RuntimeException e) {

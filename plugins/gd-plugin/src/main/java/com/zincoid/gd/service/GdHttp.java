@@ -17,7 +17,7 @@ import java.time.Duration;
  * GD 插件使用的 HTTP 工具：限制超时、重试与响应体大小。
  * <p>HTTP helper for the GD plugin: limits timeouts, retries, and response body size.</p>
  */
-final class GdHttp {
+public final class GdHttp {
 
     private static final long RETRY_DELAY_MILLIS = 250;
 
@@ -32,7 +32,7 @@ final class GdHttp {
      *
      * @param config the plugin configuration
      */
-    GdHttp(GdConfig config) {
+    public GdHttp(GdConfig config) {
         HttpClient.Builder builder = HttpClient.newBuilder()
                 .connectTimeout(config.connectTimeout())
                 .followRedirects(HttpClient.Redirect.NORMAL)

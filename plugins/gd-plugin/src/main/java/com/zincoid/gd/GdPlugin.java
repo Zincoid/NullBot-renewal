@@ -7,9 +7,11 @@ import com.zincoid.gd.config.GdConfig;
 import com.zincoid.gd.render.GdImagePresenter;
 import com.zincoid.gd.render.GdPresenter;
 import com.zincoid.gd.render.GdTextPresenter;
-import com.zincoid.gd.service.GdLocalService;
-import com.zincoid.gd.service.GdService;
-import com.zincoid.gd.store.GdStore;
+import com.zincoid.gd.service.GddlService;
+import com.zincoid.gd.service.GdHttp;
+import com.zincoid.gd.service.GdLevelService;
+import com.zincoid.gd.service.GdProgressService;
+import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
@@ -25,10 +27,11 @@ import java.util.List;
 public class GdPlugin implements Plugin {
 
     private volatile PluginContext context;
-    private volatile GdService service;
+    private volatile GdLevelService levels;
+    private volatile GddlService gddl;
+    private volatile GdProgressService progress;
     private volatile GdPresenter presenter;
     private volatile GdBindings bindings;
-    private volatile GdLocalService local;
 
     @Override
     public String id() {
@@ -43,15 +46,17 @@ public class GdPlugin implements Plugin {
     @Override
     public List<Cmd> cmds() {
         return List.of(
-                new GdCmd(service(), presenter(), context(), local()),
-                new GddlCmd(service(), presenter(), bindings()));
+                new GdCmd(levels(), gddl(), presenter(), context(), progress()),
+                new GddlCmd(gddl(), presenter(), bindings()));
     }
 
     @Override
     public void start(PluginContext context) {
         GdConfig loaded = GdConfig.load(context.dataDir());
-        GdService service = new GdService(loaded);
-        GdStore store = GdStore.open(context.dataDir());
+        GdHttp http = new GdHttp(loaded);
+        GdLevelService levels = new GdLevelService(loaded, http);
+        GddlService gddl = new GddlService(loaded, http);
+        GdProgressStore store = GdProgressStore.open(context.dataDir());
         try {
             GdBindings bindings = GdBindings.load(context.dataDir());
             GdPresenter text = new GdTextPresenter();
@@ -62,12 +67,13 @@ public class GdPlugin implements Plugin {
                 log.warn("GD image renderer unavailable; using text output", e);
                 presenter = text;
             }
-            GdLocalService local = new GdLocalService(store, service, loaded);
+            GdProgressService progress = new GdProgressService(store, levels, gddl, loaded, http);
 
             this.context = context;
-            this.service = service;
+            this.levels = levels;
+            this.gddl = gddl;
+            this.progress = progress;
             this.bindings = bindings;
-            this.local = local;
             this.presenter = presenter;
             log.info("GD config: gddl={}, thumbnail={}, cacheTtl={}s, tierCacheTtl={}s, "
                             + "unratedCacheTtl={}s, tierExponent={}, connectTimeout={}s, "
@@ -85,11 +91,12 @@ public class GdPlugin implements Plugin {
 
     @Override
     public void stop() {
-        GdLocalService current = this.local;
+        GdProgressService current = this.progress;
         if (current != null) current.close();
-        this.local = null;
+        this.progress = null;
         this.presenter = null;
-        this.service = null;
+        this.levels = null;
+        this.gddl = null;
         this.bindings = null;
         this.context = null;
     }
@@ -107,13 +114,25 @@ public class GdPlugin implements Plugin {
     }
 
     /**
-     * 返回数据服务。
-     * <p>Returns the data service.</p>
+     * 返回关卡数据服务。
+     * <p>Returns the level data service.</p>
      *
-     * @return the data service
+     * @return the level data service
      */
-    GdService service() {
-        GdService value = service;
+    GdLevelService levels() {
+        GdLevelService value = levels;
+        if (value == null) throw new IllegalStateException("Plugin not started");
+        return value;
+    }
+
+    /**
+     * 返回 GDDL 数据服务。
+     * <p>Returns the GDDL data service.</p>
+     *
+     * @return the GDDL data service
+     */
+    GddlService gddl() {
+        GddlService value = gddl;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }
@@ -143,13 +162,13 @@ public class GdPlugin implements Plugin {
     }
 
     /**
-     * 返回本地进度服务。
-     * <p>Returns the local progress service.</p>
+     * 返回进度服务。
+     * <p>Returns the progress service.</p>
      *
-     * @return the local progress service
+     * @return the progress service
      */
-    GdLocalService local() {
-        GdLocalService value = local;
+    GdProgressService progress() {
+        GdProgressService value = progress;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }

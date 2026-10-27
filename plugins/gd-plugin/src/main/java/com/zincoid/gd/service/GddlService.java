@@ -2,19 +2,12 @@ package com.zincoid.gd.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zincoid.gd.GdException;
-import com.zincoid.nullbot.platform.util.JsonUtils;
-import jdash.client.GDClient;
-import jdash.client.exception.ActionFailedException;
-import jdash.common.LevelSearchFilter;
-import jdash.common.LevelSearchMode;
-import jdash.common.entity.GDLevel;
 import com.zincoid.gd.config.GdConfig;
+import com.zincoid.nullbot.platform.util.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,83 +16,37 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * GD 数据服务：JDash 关卡查询、GDDL 关卡/用户数据、缩略图与 B20。
- * <p>GD data service: JDash level queries, GDDL level/user data, thumbnails, and B20.</p>
+ * GDDL 数据服务：关卡评级、用户、提交记录与 B20。
+ * <p>GDDL data service: level ratings, users, submissions, and B20.</p>
  */
 @Slf4j
-public final class GdService {
+public final class GddlService {
 
     private static final int PAGE_SIZE = 25;
     private static final int MAX_BEATEN = 25;
     private static final int MAX_BEATING = 200;
     private static final int MAX_JSON_BYTES = 2 * 1024 * 1024;
-    private static final int MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
     private static final int MAX_AVATAR_BYTES = 2 * 1024 * 1024;
-    private static final int MAX_USER_AVATAR_BYTES = 5 * 1024 * 1024;
-    private static final Duration JDASH_TIMEOUT = Duration.ofSeconds(20);
 
     private final GdConfig config;
     private final GdHttp http;
-    private final GDClient gd;
     private final Map<Long, CacheEntry<Optional<GddlLevel>>> levelCache = new ConcurrentHashMap<>();
-    private final Map<Long, CacheEntry<ScoreResult>> scoreCache = new ConcurrentHashMap<>();
-    private final Map<Long, CacheEntry<byte[]>> thumbnailCache = new ConcurrentHashMap<>();
+    private final Map<Long, CacheEntry<GddlB20Result>> scoreCache = new ConcurrentHashMap<>();
     private final Map<String, CacheEntry<byte[]>> avatarCache = new ConcurrentHashMap<>();
-    private final Map<String, CacheEntry<byte[]>> userAvatarCache = new ConcurrentHashMap<>();
 
     /**
-     * 创建数据服务。
-     * <p>Creates the data service.</p>
+     * 创建 GDDL 数据服务。
+     * <p>Creates the GDDL data service.</p>
      *
      * @param config the plugin configuration
+     * @param http   the shared HTTP helper
      */
-    public GdService(GdConfig config) {
+    public GddlService(GdConfig config, GdHttp http) {
         this.config = config;
-        this.http = new GdHttp(config);
-        this.gd = GDClient.create();
+        this.http = http;
     }
 
-    // ════ JDash ══════════════════
-
-    /**
-     * 搜索关卡，最多返回 10 条。
-     * <p>Searches levels and returns at most 10 results.</p>
-     *
-     * @param query  the search keyword
-     * @param filter the search filter
-     * @param page   the zero-based page
-     * @return the levels on the page
-     */
-    public List<GDLevel> search(String query, LevelSearchFilter filter, int page) {
-        try {
-            List<GDLevel> levels = gd.searchLevels(LevelSearchMode.SEARCH, query, filter, page)
-                    .take(10)
-                    .collectList()
-                    .block(JDASH_TIMEOUT);
-            return levels == null ? List.of() : levels;
-        } catch (RuntimeException e) {
-            if (isNotFound(e)) return List.of();
-            throw new GdException("Geometry Dash search failed", e);
-        }
-    }
-
-    /**
-     * 按 ID 获取关卡。
-     * <p>Fetches a level by id.</p>
-     *
-     * @param id the level id
-     * @return the level, or null when not found
-     */
-    public GDLevel level(long id) {
-        try {
-            return gd.findLevelById(id).block(JDASH_TIMEOUT);
-        } catch (RuntimeException e) {
-            if (isNotFound(e)) return null;
-            throw new GdException("Geometry Dash level query failed", e);
-        }
-    }
-
-    // ════ GDDL ═══════════════════
+    // ════ Levels ═════════════════
 
     /**
      * 获取关卡的 GDDL 信息。
@@ -116,8 +63,8 @@ public final class GdService {
      * 获取关卡的 GDDL 信息，可选择刷新失败时是否回退旧缓存。
      * <p>Fetches the GDDL information of a level, optionally falling back to stale data on failure.</p>
      *
-     * @param id             the level id
-     * @param fallbackStale  whether to return stale cached data on refresh failure
+     * @param id            the level id
+     * @param fallbackStale whether to return stale cached data on refresh failure
      * @return the GDDL level, or null when not rated
      */
     public GddlLevel gddlLevel(long id, boolean fallbackStale) {
@@ -148,6 +95,8 @@ public final class GdService {
                     : new GdException("GDDL level query failed", e);
         }
     }
+
+    // ════ Users ══════════════════
 
     /**
      * 按用户名搜索 GDDL 用户。
@@ -226,10 +175,10 @@ public final class GdService {
      *
      * @param userId   the GDDL user id
      * @param userName the GDDL user name
-     * @return the score result
+     * @return the GDDL B20 result
      */
-    public ScoreResult userScore(long userId, String userName) {
-        CacheEntry<ScoreResult> cached = scoreCache.get(userId);
+    public GddlB20Result gddlB20(long userId, String userName) {
+        CacheEntry<GddlB20Result> cached = scoreCache.get(userId);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
             List<GdScore.Play> plays = new ArrayList<>();
@@ -264,7 +213,7 @@ public final class GdService {
             List<GdScore.Play> values = new ArrayList<>(unique.values());
             GdScore.B20 b20 = GdScore.b20(values, config.tierExponent());
             int highest = b20.top().isEmpty() ? 0 : b20.top().getFirst().play().tier();
-            ScoreResult result = new ScoreResult(
+            GddlB20Result result = new GddlB20Result(
                     userId, userName, beatenTotal, beatingTotal, values.size(), highest, b20);
             scoreCache.put(userId, new CacheEntry<>(result));
             return result;
@@ -280,43 +229,10 @@ public final class GdService {
     }
 
     /**
-     * 获取关卡缩略图。
-     * <p>Fetches the level thumbnail.</p>
-     *
-     * @param levelId the level id
-     * @return the image bytes, or null when unavailable
-     */
-    public byte[] thumbnail(long levelId) {
-        CacheEntry<byte[]> cached = thumbnailCache.get(levelId);
-        if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
-        try {
-            GdHttp.Response response = http.get(
-                    config.thumbnailBase() + levelId, "image/*", MAX_THUMBNAIL_BYTES);
-            if (response.status() == 404) return null;
-            if (!response.ok())
-                throw new GdException("Thumbnail service returned HTTP " + response.status());
-            if (response.body().length == 0 || !response.contentType().startsWith("image/"))
-                return null;
-            byte[] bytes = response.body();
-            if (thumbnailCache.size() > 64) thumbnailCache.clear();
-            thumbnailCache.put(levelId, new CacheEntry<>(bytes));
-            return bytes;
-        } catch (RuntimeException e) {
-            if (cached != null) {
-                log.warn("GD thumbnail refresh failed; using stale: id={}", levelId, e);
-                return cached.value();
-            }
-            throw e instanceof GdException gdException
-                    ? gdException
-                    : new GdException("Thumbnail query failed", e);
-        }
-    }
-
-    /**
      * 获取 GDDL 用户头像。
      * <p>Fetches the GDDL user avatar.</p>
      *
-     * @param userId  the GDDL user id
+     * @param userId   the GDDL user id
      * @param avatarId the avatar uuid, nullable
      * @return the image bytes, or null when unavailable
      */
@@ -348,47 +264,7 @@ public final class GdService {
         }
     }
 
-    /**
-     * 获取聊天用户头像，用于本地 B20 卡片。
-     * <p>Fetches a chat user's avatar for the local B20 card.</p>
-     *
-     * @param url the avatar url, nullable
-     * @return the image bytes, or null when unavailable
-     */
-    public byte[] userAvatar(String url) {
-        if (url == null || url.isBlank()) return null;
-        CacheEntry<byte[]> cached = userAvatarCache.get(url);
-        if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
-        try {
-            GdHttp.Response response = http.get(url, "image/*", MAX_USER_AVATAR_BYTES);
-            if (!response.ok()) return null;
-            if (response.body().length == 0 || !response.contentType().startsWith("image/"))
-                return null;
-            byte[] bytes = response.body();
-            if (userAvatarCache.size() > 128) userAvatarCache.clear();
-            userAvatarCache.put(url, new CacheEntry<>(bytes));
-            return bytes;
-        } catch (RuntimeException e) {
-            if (cached != null) {
-                log.warn("GD user avatar refresh failed; using stale: {}", url, e);
-                return cached.value();
-            }
-            log.warn("GD user avatar fetch failed: {}", url, e);
-            return null;
-        }
-    }
-
     // ════ Helpers ═════════════════
-
-    private static boolean isNotFound(Throwable error) {
-        for (Throwable current = error; current != null; current = current.getCause()) {
-            if (current instanceof ActionFailedException
-                    && current.getMessage() != null
-                    && current.getMessage().contains("Failed to load levels"))
-                return true;
-        }
-        return false;
-    }
 
     private int addPlays(List<GdScore.Play> plays, SubmissionsPage page, boolean beaten) {
         if (page == null || page.submissions() == null) return 0;
@@ -405,17 +281,6 @@ public final class GdService {
                     submission.level().id(), submission.level().displayName(), tier, progress));
         }
         return count;
-    }
-
-    private record CacheEntry<T>(T value, Instant createdAt) {
-
-        CacheEntry(T value) {
-            this(value, Instant.now());
-        }
-
-        boolean expired(Duration ttl) {
-            return Instant.now().isAfter(createdAt.plus(ttl));
-        }
     }
 
     // ════ GDDL DTO ════════════════
@@ -481,7 +346,7 @@ public final class GdService {
         }
     }
 
-    public record ScoreResult(
+    public record GddlB20Result(
             long userId,
             String userName,
             int beatenTotal,

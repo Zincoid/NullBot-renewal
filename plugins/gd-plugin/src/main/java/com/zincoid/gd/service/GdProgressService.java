@@ -2,9 +2,9 @@ package com.zincoid.gd.service;
 
 import com.zincoid.gd.GdException;
 import com.zincoid.gd.config.GdConfig;
-import com.zincoid.gd.service.GdService.GddlLevel;
+import com.zincoid.gd.service.GddlService.GddlLevel;
 import com.zincoid.gd.store.CachedTier;
-import com.zincoid.gd.store.GdStore;
+import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.gd.store.ProgressRecord;
 import jdash.common.entity.GDLevel;
 import lombok.extern.slf4j.Slf4j;
@@ -18,36 +18,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * GD 本地进度服务：注册、进度维护与本地 B20 计算。
- * <p>GD local progress service: registration, progress maintenance, and local B20 calculation.</p>
+ * GD 进度服务：注册、进度维护与本地 B20 计算。
+ * <p>GD progress service: registration, progress maintenance, and local B20 calculation.</p>
  */
 @Slf4j
-public final class GdLocalService implements AutoCloseable {
+public final class GdProgressService implements AutoCloseable {
 
     private static final int FETCH_THREADS = 4;
+    private static final int MAX_USER_AVATAR_BYTES = 5 * 1024 * 1024;
 
-    private final GdStore store;
-    private final GdService gd;
+    private final GdProgressStore store;
+    private final GdLevelService levels;
+    private final GddlService gddl;
     private final GdConfig config;
+    private final GdHttp http;
+    private final Map<String, CacheEntry<byte[]>> userAvatarCache = new ConcurrentHashMap<>();
 
     /**
-     * 创建本地进度服务。
-     * <p>Creates the local progress service.</p>
+     * 创建进度服务。
+     * <p>Creates the progress service.</p>
      *
      * @param store  the progress store
-     * @param gd     the GD data service
+     * @param levels the GD level service
+     * @param gddl   the GDDL service
      * @param config the plugin configuration
+     * @param http   the shared HTTP helper
      */
-    public GdLocalService(GdStore store, GdService gd, GdConfig config) {
+    public GdProgressService(GdProgressStore store, GdLevelService levels,
+                             GddlService gddl, GdConfig config, GdHttp http) {
         this.store = store;
-        this.gd = gd;
+        this.levels = levels;
+        this.gddl = gddl;
         this.config = config;
+        this.http = http;
     }
 
     // ════ Registration ═══════════
@@ -110,7 +120,7 @@ public final class GdLocalService implements AutoCloseable {
     public Optional<UpdateResult> update(String userId, long levelId, int progress) {
         if (progress < 1 || progress > 100)
             throw new GdException("Progress must be between 1 and 100");
-        GDLevel level = gd.level(levelId);
+        GDLevel level = levels.level(levelId);
         if (level == null) return Optional.empty();
         String name = level.name();
         if (name == null || name.isBlank()) name = "#" + levelId;
@@ -139,7 +149,26 @@ public final class GdLocalService implements AutoCloseable {
      * @return the image bytes, or null when unavailable
      */
     public byte[] avatar(String url) {
-        return gd.userAvatar(url);
+        if (url == null || url.isBlank()) return null;
+        CacheEntry<byte[]> cached = userAvatarCache.get(url);
+        if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
+        try {
+            GdHttp.Response response = http.get(url, "image/*", MAX_USER_AVATAR_BYTES);
+            if (!response.ok()) return null;
+            if (response.body().length == 0 || !response.contentType().startsWith("image/"))
+                return null;
+            byte[] bytes = response.body();
+            if (userAvatarCache.size() > 128) userAvatarCache.clear();
+            userAvatarCache.put(url, new CacheEntry<>(bytes));
+            return bytes;
+        } catch (RuntimeException e) {
+            if (cached != null) {
+                log.warn("GD user avatar refresh failed; using stale: {}", url, e);
+                return cached.value();
+            }
+            log.warn("GD user avatar fetch failed: {}", url, e);
+            return null;
+        }
     }
 
     // ════ Local B20 ══════════════
@@ -244,7 +273,7 @@ public final class GdLocalService implements AutoCloseable {
 
     private FetchResult fetchOne(long levelId) {
         try {
-            GddlLevel level = gd.gddlLevel(levelId, false);
+            GddlLevel level = gddl.gddlLevel(levelId, false);
             long now = System.currentTimeMillis();
             if (level == null)
                 return new FetchResult(levelId, new CachedTier(levelId, null, null, now), null);
@@ -278,15 +307,15 @@ public final class GdLocalService implements AutoCloseable {
      * 本地 B20 结果。
      * <p>Local B20 result.</p>
      *
-     * @param userId      the platform user id
-     * @param beatenTotal the number of 100% records
+     * @param userId       the platform user id
+     * @param beatenTotal  the number of 100% records
      * @param beatingTotal the number of in-progress records
-     * @param ratedTotal  the number of records with a GDDL tier
+     * @param ratedTotal   the number of records with a GDDL tier
      * @param unratedTotal the number of records without a GDDL tier
-     * @param score       the B20 score
-     * @param highestTier the highest tier in the B20
-     * @param sample      the number of records averaged
-     * @param top         the scored records
+     * @param score        the B20 score
+     * @param highestTier  the highest tier in the B20
+     * @param sample       the number of records averaged
+     * @param top          the scored records
      */
     public record LocalB20Result(
             String userId,
