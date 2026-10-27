@@ -1,7 +1,8 @@
 package com.zincoid.gd.render;
 
+import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.LevelView;
-import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.LocalB20View;
 import com.zincoid.gd.model.SearchView;
 import com.zincoid.gd.service.GdScore;
 import com.zincoid.gd.GdText;
@@ -42,7 +43,7 @@ public final class GdTextPresenter implements GdPresenter {
     }
 
     @Override
-    public MsgContent rank(Language language, RankView view) {
+    public MsgContent gddlB20(Language language, GddlB20View view) {
         StringBuilder body = new StringBuilder();
         body.append("GDDL: ").append(view.userName())
                 .append(" (ID ").append(view.userId()).append(")\n");
@@ -50,7 +51,7 @@ public final class GdTextPresenter implements GdPresenter {
                 .append(view.beatenTotal()).append(" · ")
                 .append(GdText.IN_PROGRESS.of(language)).append(" ")
                 .append(view.beatingTotal()).append('\n');
-        body.append(GdText.B20.of(language)).append(": ")
+        body.append(GdText.GDDL_B20.of(language)).append(": ")
                 .append(format(view.score())).append('\n');
         body.append(GdText.HIGHEST_TIER.of(language)).append(": ")
                 .append(view.highestTier()).append(" · ")
@@ -63,7 +64,7 @@ public final class GdTextPresenter implements GdPresenter {
         if (limit > 0) {
             body.append(GdText.TOP_N.of(language, limit)).append(":\n");
             for (int i = 0; i < limit; i++) {
-                RankView.Play play = view.top().get(i);
+                GddlB20View.Play play = view.top().get(i);
                 body.append(i + 1).append(". ").append(play.name())
                         .append(" (").append(play.levelId()).append(") — ")
                         .append(GdText.TIER.of(language)).append(" ")
@@ -71,7 +72,43 @@ public final class GdTextPresenter implements GdPresenter {
                         .append("% · rt ").append(format(play.rt())).append('\n');
             }
         }
-        body.append(GdText.RANK_NOTE.of(language));
+        body.append(GdText.GDDL_B20_NOTE.of(language));
+        return MsgContent.of(body.toString());
+    }
+
+    @Override
+    public MsgContent localB20(Language language, LocalB20View view) {
+        StringBuilder body = new StringBuilder();
+        body.append(GdText.LOCAL_B20.of(language)).append(": ")
+                .append(view.userName()).append(" (ID ").append(view.userId()).append(")\n");
+        body.append(GdText.COMPLETED.of(language)).append(" ")
+                .append(view.beatenTotal()).append(" · ")
+                .append(GdText.IN_PROGRESS.of(language)).append(" ")
+                .append(view.beatingTotal()).append('\n');
+        body.append(GdText.LOCAL_B20.of(language)).append(": ")
+                .append(format(view.score())).append('\n');
+        body.append(GdText.HIGHEST_TIER.of(language)).append(": ")
+                .append(view.highestTier()).append(" · ")
+                .append(GdText.SAMPLE.of(language)).append(": ")
+                .append(view.sample());
+        if (view.sample() < GdScore.B20_SIZE)
+            body.append(" (").append(GdText.FEWER_THAN_20.of(language)).append(")");
+        if (view.unratedTotal() > 0)
+            body.append(" · ").append(GdText.UNRATED_SKIPPED.of(language, view.unratedTotal()));
+        body.append('\n');
+        int limit = Math.min(view.limit(), view.top().size());
+        if (limit > 0) {
+            body.append(GdText.TOP_N.of(language, limit)).append(":\n");
+            for (int i = 0; i < limit; i++) {
+                LocalB20View.Play play = view.top().get(i);
+                body.append(i + 1).append(". ").append(play.name())
+                        .append(" (").append(play.levelId()).append(") — ")
+                        .append(GdText.TIER.of(language)).append(" ")
+                        .append(play.tier()).append(" · ").append(play.progress())
+                        .append("% · rt ").append(format(play.rt())).append('\n');
+            }
+        }
+        body.append(GdText.LOCAL_B20_NOTE.of(language));
         return MsgContent.of(body.toString());
     }
 

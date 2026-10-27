@@ -151,17 +151,24 @@ QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg
 
 ### GD 指令
 
-`#GD`/`#几何冲刺` 提供 Geometry Dash 关卡搜索与详情，`#GDDL` 提供 GDDL B20 评分；搜索结果、关卡详情与 B20 均以图片卡片输出：
+`#GD`/`#几何冲刺` 提供 Geometry Dash 关卡搜索、详情与本地进度，`#GDDL` 提供 GDDL B20 评分；搜索结果、关卡详情、本地 B20 与 GDDL B20 均以图片卡片输出：
 
 - `#GD search <关键词> [--diff=...] [--demon=...] [--length=...] [--filter=...] [--page=N]`：搜索关卡，回复序号查看详情，回复 `next` 翻到下一页。
 - `#GD level <关卡ID>`：按 ID 查看关卡详情；卡片内嵌社区缩略图（WebP 自动转为 PNG）。
+- `#GD register`：注册本地进度用户；`update`、`remove`、`b20` 需要先注册。
+- `#GD update <关卡ID> <进度>`：通过 JDash 验证关卡存在后，记录或更新 1–100 的进度；回复会显示关卡名和作者。
+- `#GD remove <关卡ID>`：删除本地进度记录。
+- `#GD b20 [--all]`：用本地记录和 GDDL 关卡评级计算本地 B20；默认显示前 5 条，`--all` 显示完整 20 条。
+- `#GD unregister`：注销本地用户并删除全部进度；有记录时会先要求确认。
 - `#GDDL [GDDL用户名|ID] [--all]`：查询指定 GDDL 用户的 B20；省略用户名时查询当前绑定账号。默认显示前 5 条，`--all` 显示完整 20 条。
 - `#GDDL --bind=<GDDL用户名|ID>`：绑定当前聊天用户的 GDDL 账号；已有绑定不会覆盖。
 - `#GDDL --unbind`：解除当前聊天用户的 GDDL 绑定。
 
-B20 单关 `rt = tier^E × (进度/100)^1.5`，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。GDDL 绑定记录保存在插件数据目录的 `gddl-bindings.properties`，每个聊天用户只能绑定一个账号，更换前需先解绑。
+本地进度保存在插件数据目录的 `gd.db`（SQLite）；注册用户、关卡名/作者快照与进度记录都在其中。本地 B20 使用自报进度，关卡评级来自 GDDL，**不是 GDDL 官方记录**；该关卡在 GDDL 未评级时会被跳过并提示数量。GDDL 评级缓存默认已评级 24 小时、未评级 1 小时，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。
 
-GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默认 8）、`http.request-timeout`（秒，默认 15）、`http.retries`（默认 1）、`http.proxy`（`host:port`，可选 HTTP 代理，暂不支持认证）、`cache-ttl`（秒，默认 600）、`gddl.api-base`、`gddl.avatar-base`、`thumbnail.base`、`http.user-agent`。服务器网络较慢时可使用代理或镜像地址，并适当增大超时；缩略图和头像成功获取后会按 `cache-ttl` 缓存。配置模板见 `plugins/gd-plugin/config.properties.example`。
+B20 单关 `rt = tier^E × (进度/100)^1.5`，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。GDDL 用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。GDDL 绑定记录保存在插件数据目录的 `gddl-bindings.properties`，每个聊天用户只能绑定一个账号，更换前需先解绑。
+
+GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默认 8）、`http.request-timeout`（秒，默认 15）、`http.retries`（默认 1）、`http.proxy`（`host:port`，可选 HTTP 代理，暂不支持认证）、`cache-ttl`（秒，默认 600）、`gddl.tier-cache-ttl`（秒，默认 86400）、`gddl.unrated-cache-ttl`（秒，默认 3600）、`gddl.api-base`、`gddl.avatar-base`、`thumbnail.base`、`http.user-agent`。服务器网络较慢时可使用代理或镜像地址，并适当增大超时；缩略图、GDDL 头像和本地 B20 头像成功获取后会缓存。配置模板见 `plugins/gd-plugin/config.properties.example`。
 
 ## 字体
 

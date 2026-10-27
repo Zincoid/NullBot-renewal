@@ -22,8 +22,10 @@ import java.util.Properties;
  * @param requestTimeout HTTP request timeout
  * @param retries        HTTP retry count after the first attempt
  * @param proxy          optional HTTP proxy, host:port
- * @param cacheTtl       cache lifetime for GDDL data and thumbnails
- * @param tierExponent   exponent applied to the GDDL tier in the B20 formula
+ * @param cacheTtl        cache lifetime for GDDL data and thumbnails
+ * @param tierCacheTtl    cache lifetime for rated GDDL levels
+ * @param unratedCacheTtl cache lifetime for unrated or missing GDDL levels
+ * @param tierExponent    exponent applied to the GDDL tier in the B20 formula
  */
 @Slf4j
 public record GdConfig(
@@ -36,6 +38,8 @@ public record GdConfig(
         int retries,
         String proxy,
         Duration cacheTtl,
+        Duration tierCacheTtl,
+        Duration unratedCacheTtl,
         double tierExponent
 ) {
 
@@ -43,6 +47,8 @@ public record GdConfig(
     private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(15);
     private static final int DEFAULT_RETRIES = 1;
     private static final Duration DEFAULT_CACHE_TTL = Duration.ofMinutes(10);
+    private static final Duration DEFAULT_TIER_CACHE_TTL = Duration.ofHours(24);
+    private static final Duration DEFAULT_UNRATED_CACHE_TTL = Duration.ofHours(1);
     private static final double DEFAULT_TIER_EXPONENT = 1.5;
     private static final String DEFAULT_GDDL_BASE = "https://gdladder.com/api";
     private static final String DEFAULT_GDDL_AVATAR_BASE = "https://cdn.gdladder.com/avatars/";
@@ -85,6 +91,12 @@ public record GdConfig(
                 properties.getProperty("http.proxy", "")).trim();
         Duration cacheTtl = ttl(env("GD_CACHE_TTL",
                 properties.getProperty("cache-ttl", "")), DEFAULT_CACHE_TTL);
+        Duration tierCacheTtl = seconds(env("GD_GDDL_TIER_CACHE_TTL",
+                properties.getProperty("gddl.tier-cache-ttl", "")),
+                DEFAULT_TIER_CACHE_TTL, 60, Duration.ofDays(30).toSeconds());
+        Duration unratedCacheTtl = seconds(env("GD_GDDL_UNRATED_CACHE_TTL",
+                properties.getProperty("gddl.unrated-cache-ttl", "")),
+                DEFAULT_UNRATED_CACHE_TTL, 60, Duration.ofDays(7).toSeconds());
         double tierExponent = exponent(env("GD_TIER_EXPONENT",
                 properties.getProperty("score.tier-exponent", "")), DEFAULT_TIER_EXPONENT);
         return new GdConfig(
@@ -97,6 +109,8 @@ public record GdConfig(
                 retries,
                 proxy,
                 cacheTtl,
+                tierCacheTtl,
+                unratedCacheTtl,
                 tierExponent
         );
     }

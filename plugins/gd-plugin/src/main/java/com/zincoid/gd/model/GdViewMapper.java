@@ -1,5 +1,6 @@
 package com.zincoid.gd.model;
 
+import com.zincoid.gd.service.GdLocalService.LocalB20Result;
 import com.zincoid.gd.service.GdScore;
 import com.zincoid.gd.service.GdService.GddlLevel;
 import com.zincoid.gd.service.GdService.ScoreResult;
@@ -78,17 +79,17 @@ public final class GdViewMapper {
     }
 
     /**
-     * 把 B20 结果映射为排行视图。
-     * <p>Maps the B20 result to a rank view.</p>
+     * 把 GDDL B20 结果映射为排行视图。
+     * <p>Maps a GDDL B20 result to the rank view.</p>
      *
      * @param score  the score result
      * @param all    whether to display the full B20 list
      * @param avatar the GDDL avatar image bytes, nullable
-     * @return the rank view
+     * @return the GDDL B20 view
      */
-    public static RankView rank(ScoreResult score, boolean all, byte[] avatar) {
-        List<RankView.Play> top = score.b20().top().stream()
-                .map(scored -> new RankView.Play(
+    public static GddlB20View gddlB20(ScoreResult score, boolean all, byte[] avatar) {
+        List<GddlB20View.Play> top = score.b20().top().stream()
+                .map(scored -> new GddlB20View.Play(
                         scored.play().levelId(),
                         scored.play().name(),
                         scored.play().tier(),
@@ -97,7 +98,7 @@ public final class GdViewMapper {
                 ))
                 .toList();
         int limit = all ? top.size() : Math.min(5, top.size());
-        return new RankView(
+        return new GddlB20View(
                 score.userId(),
                 score.userName(),
                 score.beatenTotal(),
@@ -108,6 +109,44 @@ public final class GdViewMapper {
                 top,
                 limit,
                 avatar
+        );
+    }
+
+    /**
+     * 把本地 B20 结果映射为本地排行视图。
+     * <p>Maps a local B20 result to the local rank view.</p>
+     *
+     * @param result   the local B20 result
+     * @param all      whether to display the full B20 list
+     * @param avatar   the chat user avatar bytes, nullable
+     * @param userName the chat user name
+     * @return the local rank view
+     */
+    public static LocalB20View localB20(LocalB20Result result, boolean all,
+                                        byte[] avatar, String userName) {
+        List<LocalB20View.Play> top = result.top().stream()
+                .map(scored -> new LocalB20View.Play(
+                        scored.play().levelId(),
+                        scored.play().name(),
+                        scored.play().tier(),
+                        scored.play().progress(),
+                        scored.rt()
+                ))
+                .toList();
+        int limit = all ? top.size() : Math.min(5, top.size());
+        return new LocalB20View(
+                result.userId(),
+                userName,
+                avatar,
+                result.beatenTotal(),
+                result.beatingTotal(),
+                result.ratedTotal(),
+                result.unratedTotal(),
+                result.score(),
+                result.highestTier(),
+                result.sample(),
+                top,
+                limit
         );
     }
 

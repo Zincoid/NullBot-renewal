@@ -24,6 +24,13 @@ thumbnail.base=https://levelthumbs.prevter.me/thumbnail/
 # Cache lifetime for GDDL data, B20, and thumbnails, in seconds.
 cache-ttl=600
 
+# 本地 B20 的 GDDL 评级缓存时间，单位为秒。
+# GDDL rating cache lifetime for local B20, in seconds.
+# 已评级关卡默认 24 小时，未评级/未收录关卡默认 1 小时。
+# Rated levels default to 24 hours; unrated or missing levels default to 1 hour.
+gddl.tier-cache-ttl=86400
+gddl.unrated-cache-ttl=3600
+
 # B20 单关 rt 中 tier 的指数；设为 2 使用平方。
 # Tier exponent in the B20 formula; set to 2 to use squared tiers.
 score.tier-exponent=1.5

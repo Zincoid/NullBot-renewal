@@ -1,7 +1,8 @@
 package com.zincoid.gd.render;
 
+import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.LevelView;
-import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.LocalB20View;
 import com.zincoid.gd.model.SearchView;
 import com.zincoid.gd.service.GdScore;
 import com.zincoid.gd.GdText;
@@ -135,12 +136,12 @@ public final class GdImagePresenter implements GdPresenter {
     }
 
     @Override
-    public MsgContent rank(Language language, RankView view) {
+    public MsgContent gddlB20(Language language, GddlB20View view) {
         try {
             List<List<String>> rows = new ArrayList<>();
             int limit = Math.min(view.limit(), view.top().size());
             for (int i = 0; i < limit; i++) {
-                RankView.Play play = view.top().get(i);
+                GddlB20View.Play play = view.top().get(i);
                 rows.add(List.of(
                         String.format(Locale.ROOT, "%02d.", i + 1),
                         play.name(),
@@ -169,19 +170,71 @@ public final class GdImagePresenter implements GdPresenter {
                     Map.entry("user", SvgText.escape(SvgText.fit(
                             "GDDL: " + view.userName() + " (ID " + view.userId() + ")",
                             760, 26))),
-                    Map.entry("labelB20", SvgText.escape(GdText.B20.of(language))),
+                    Map.entry("labelB20", SvgText.escape(GdText.GDDL_B20.of(language))),
                     Map.entry("score", format(view.score())),
                     Map.entry("stats1", SvgText.escape(stats1)),
                     Map.entry("stats2", SvgText.escape(stats2)),
                     Map.entry("cells", cells),
                     Map.entry("avatar", ImageData.square(view.avatar(), 160)),
-                    Map.entry("note", SvgText.escape(GdText.RANK_NOTE.of(language))),
+                    Map.entry("note", SvgText.escape(GdText.GDDL_B20_NOTE.of(language))),
                     Map.entry("height", height)
             );
-            return image(renderer.template("rank.jte", model));
+            return image(renderer.template("gddl-b20.jte", model));
         } catch (RuntimeException e) {
             log.warn("GD B20 card render failed; falling back to text", e);
-            return fallback.rank(language, view);
+            return fallback.gddlB20(language, view);
+        }
+    }
+
+    @Override
+    public MsgContent localB20(Language language, LocalB20View view) {
+        try {
+            List<List<String>> rows = new ArrayList<>();
+            int limit = Math.min(view.limit(), view.top().size());
+            for (int i = 0; i < limit; i++) {
+                LocalB20View.Play play = view.top().get(i);
+                rows.add(List.of(
+                        String.format(Locale.ROOT, "%02d.", i + 1),
+                        play.name(),
+                        String.valueOf(play.levelId()),
+                        String.valueOf(play.tier()),
+                        play.progress() + "%",
+                        format(play.rt())));
+            }
+            List<SvgColumn> columns = List.of(
+                    new SvgColumn("#", 40, SvgAlign.START),
+                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 350, SvgAlign.START),
+                    new SvgColumn("ID", 130, SvgAlign.END),
+                    new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.END),
+                    new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.END),
+                    new SvgColumn("rt", 120, SvgAlign.END));
+            List<SvgCell> cells = SvgTable.build(
+                    40, 310, 346, 32, columns, rows, 14, 16, "#C9CFD8", "#E6E9EE");
+            String stats1 = GdText.COMPLETED.of(language) + " " + view.beatenTotal()
+                    + " · " + GdText.IN_PROGRESS.of(language) + " " + view.beatingTotal();
+            String stats2 = GdText.HIGHEST_TIER.of(language) + " " + view.highestTier()
+                    + " · " + GdText.SAMPLE.of(language) + " " + view.sample();
+            if (view.sample() < GdScore.B20_SIZE)
+                stats2 += " (" + GdText.FEWER_THAN_20.of(language) + ")";
+            if (view.unratedTotal() > 0)
+                stats2 += " · " + GdText.UNRATED_SKIPPED.of(language, view.unratedTotal());
+            int height = 360 + (rows.size() + 1) * 32 + 50;
+            Map<String, Object> model = Map.ofEntries(
+                    Map.entry("user", SvgText.escape(SvgText.fit(
+                            view.userName() + " (ID " + view.userId() + ")", 760, 26))),
+                    Map.entry("labelB20", SvgText.escape(GdText.LOCAL_B20.of(language))),
+                    Map.entry("score", format(view.score())),
+                    Map.entry("stats1", SvgText.escape(stats1)),
+                    Map.entry("stats2", SvgText.escape(stats2)),
+                    Map.entry("cells", cells),
+                    Map.entry("avatar", ImageData.square(view.avatar(), 160)),
+                    Map.entry("note", SvgText.escape(GdText.LOCAL_B20_NOTE.of(language))),
+                    Map.entry("height", height)
+            );
+            return image(renderer.template("local-b20.jte", model));
+        } catch (RuntimeException e) {
+            log.warn("GD local B20 card render failed; falling back to text", e);
+            return fallback.localB20(language, view);
         }
     }
 

@@ -12,11 +12,16 @@ public enum GdText {
 
     HELP("""
             GD
-            几何冲刺关卡搜索与详情。
+            几何冲刺关卡搜索、详情与本地进度。
 
             用法：
               GD search <关键词> [选项]
               GD level <关卡ID>
+              GD register
+              GD update <关卡ID> <进度>
+              GD remove <关卡ID>
+              GD b20 [--all]
+              GD unregister
 
             选项：
               --diff, -d      难度：easy,normal,hard,harder,insane,demon（逗号分隔）
@@ -24,18 +29,26 @@ public enum GdText {
               --length, -l    长度：tiny,short,medium,long,xl,platformer（逗号分隔）
               --filter        标签：star,no-star,featured,original,two-player,coins,epic,custom-song
               --page, -p      页码，从 1 开始
+              --all, -a       B20 显示完整列表
 
             别名：几何冲刺
             权限：>=0(normal)
             说明：回复序号查看详情，next 下一页，end 取消。
+                  update/remove/unregister/b20 需要先 register；进度为 1–100。
+                  本地 B20 使用自己记录的进度和 GDDL 关卡评级，非 GDDL 官方记录。
                   GDDL B20 请使用 GDDL 指令。""",
             """
             GD
-            Geometry Dash level search and details.
+            Geometry Dash level search, details, and local progress.
 
             Usage:
               GD search <keyword> [options]
               GD level <level id>
+              GD register
+              GD update <level id> <progress>
+              GD remove <level id>
+              GD b20 [--all]
+              GD unregister
 
             Options:
               --diff, -d      difficulties: easy,normal,hard,harder,insane,demon (comma separated)
@@ -43,10 +56,13 @@ public enum GdText {
               --length, -l    lengths: tiny,short,medium,long,xl,platformer (comma separated)
               --filter        tags: star,no-star,featured,original,two-player,coins,epic,custom-song
               --page, -p      page number, starting at 1
+              --all, -a       show the full B20 list
 
             Aliases: 几何冲刺
             Access: >=0(normal)
             Notes: Reply with a number to view details, next for the next page, or end to cancel.
+                   update/remove/unregister/b20 require register; progress is 1-100.
+                   Local B20 uses your recorded progress and GDDL level ratings; it is not an official GDDL record.
                    Use the GDDL command for GDDL B20 ratings."""),
 
     GDDL_HELP("""
@@ -159,13 +175,40 @@ public enum GdText {
     NO_THUMBNAIL("暂无缩略图", "No thumbnail"),
     COMPLETED("通关", "Completed"),
     IN_PROGRESS("进行中", "In progress"),
-    B20("几何冲刺 B20", "GD B20"),
+    GDDL_B20("几何冲刺 B20", "GD B20"),
     HIGHEST_TIER("最高 tier", "Highest tier"),
     SAMPLE("样本", "Sample"),
     FEWER_THAN_20("不足 20 条", "fewer than 20 records"),
     TOP_N("前 %d 条", "Top %d"),
-    RANK_NOTE("仅统计 GDDL 提交记录（beaten/beating）。",
-            "Only GDDL submissions (beaten/beating) are counted.");
+    GDDL_B20_NOTE("仅统计 GDDL 提交记录（beaten/beating）。",
+            "Only GDDL submissions (beaten/beating) are counted."),
+
+    MISSING_PROGRESS("缺少进度百分比", "Missing progress percentage"),
+    INVALID_PROGRESS("进度必须是 1–100 的整数", "Progress must be an integer from 1 to 100"),
+    NOT_REGISTERED("请先使用 GD register 注册", "Register first with GD register"),
+    REGISTER_SUCCESS("已注册本地进度用户", "Registered local progress user"),
+    REGISTER_ALREADY("已经注册过了", "Already registered"),
+    STORAGE_FAILED("本地进度存储失败，请稍后重试",
+            "Local progress storage failed; try again later"),
+    UPDATE_SUCCESS("已记录 %s by %s (#%d) — %d%%",
+            "Recorded %s by %s (#%d) — %d%%"),
+    REMOVE_SUCCESS("已移除关卡 #%d 的进度记录", "Removed progress for level #%d"),
+    REMOVE_NONE("没有该关卡的进度记录", "No progress record for this level"),
+    UNREGISTER_CONFIRM("将删除 %d 条进度并注销，回复 yes 确认（%d 秒）",
+            "This will delete %d progress records and unregister you; reply yes to confirm (%d s)"),
+    UNREGISTER_CANCELLED("已取消注销", "Unregister cancelled"),
+    UNREGISTER_SUCCESS("已注销并删除 %d 条进度记录",
+            "Unregistered and deleted %d progress records"),
+    NO_LOCAL_RECORDS("没有本地进度记录，请先使用 GD update 添加",
+            "No local progress records; add one with GD update"),
+    NO_RATED_RECORDS("没有可用于 B20 的 GDDL 评级记录",
+            "No GDDL-rated records available for B20"),
+    UNRATED_SKIPPED("%d 条无 GDDL 评级，未计入", "%d unrated entries skipped"),
+    LOCAL_B20("本地 B20", "Local B20"),
+    LOCAL_B20_NOTE("本地自报进度，非 GDDL 官方记录。",
+            "Local self-reported progress; not an official GDDL record."),
+    LOCAL_B20_FAILED("本地 B20 计算失败，请稍后重试",
+            "Local B20 calculation failed; try again later");
 
     private final String zh;
     private final String en;

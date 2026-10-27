@@ -3,8 +3,8 @@ package com.zincoid.gd.cmd;
 import com.zincoid.gd.GdException;
 import com.zincoid.gd.GdText;
 import com.zincoid.gd.binding.GdBindings;
+import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.GdViewMapper;
-import com.zincoid.gd.model.RankView;
 import com.zincoid.gd.render.GdPresenter;
 import com.zincoid.gd.service.GdService;
 import com.zincoid.gd.service.GdService.GddlUser;
@@ -70,10 +70,10 @@ public class GddlCmd implements Cmd {
             GdBindings.Binding binding = bindings.get(userId);
             if (binding == null)
                 throw new CmdInfoException(GdText.NO_BINDING.of(ctx.language()));
-            showRank(ctx, new GddlUser(binding.id(), binding.name(), binding.avatar()), all);
+            showB20(ctx, new GddlUser(binding.id(), binding.name(), binding.avatar()), all);
             return;
         }
-        showRank(ctx, resolveUser(ctx, raw), all);
+        showB20(ctx, resolveUser(ctx, raw), all);
     }
 
     private static String bindName(CmdContext ctx, CmdArgs args) {
@@ -123,7 +123,7 @@ public class GddlCmd implements Cmd {
                 ctx.language(), existing.name(), existing.id()));
     }
 
-    private void showRank(CmdContext ctx, GddlUser user, boolean all) {
+    private void showB20(CmdContext ctx, GddlUser user, boolean all) {
         GddlUser current = user;
         if (current.avatar() == null || current.avatar().isBlank()) {
             try {
@@ -143,8 +143,8 @@ public class GddlCmd implements Cmd {
         if (score.b20().sample() == 0)
             throw new CmdInfoException(GdText.NO_RECORDS.of(ctx.language()));
         byte[] avatar = service.avatar(current.id(), current.avatar());
-        RankView view = GdViewMapper.rank(score, all, avatar);
-        ctx.send(presenter.rank(ctx.language(), view));
+        GddlB20View view = GdViewMapper.gddlB20(score, all, avatar);
+        ctx.send(presenter.gddlB20(ctx.language(), view));
         log.info("GD B20 sent: user={}, sample={}, score={}",
                 current.id(), view.sample(), String.format(Locale.ROOT, "%.2f", view.score()));
     }

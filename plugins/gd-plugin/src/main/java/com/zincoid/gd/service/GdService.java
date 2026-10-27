@@ -35,6 +35,7 @@ public final class GdService {
     private static final int MAX_JSON_BYTES = 2 * 1024 * 1024;
     private static final int MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
     private static final int MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+    private static final int MAX_USER_AVATAR_BYTES = 5 * 1024 * 1024;
     private static final Duration JDASH_TIMEOUT = Duration.ofSeconds(20);
 
     private final GdConfig config;
@@ -44,6 +45,7 @@ public final class GdService {
     private final Map<Long, CacheEntry<ScoreResult>> scoreCache = new ConcurrentHashMap<>();
     private final Map<Long, CacheEntry<byte[]>> thumbnailCache = new ConcurrentHashMap<>();
     private final Map<String, CacheEntry<byte[]>> avatarCache = new ConcurrentHashMap<>();
+    private final Map<String, CacheEntry<byte[]>> userAvatarCache = new ConcurrentHashMap<>();
 
     /**
      * 创建数据服务。
@@ -107,6 +109,18 @@ public final class GdService {
      * @return the GDDL level, or null when not rated
      */
     public GddlLevel gddlLevel(long id) {
+        return gddlLevel(id, true);
+    }
+
+    /**
+     * 获取关卡的 GDDL 信息，可选择刷新失败时是否回退旧缓存。
+     * <p>Fetches the GDDL information of a level, optionally falling back to stale data on failure.</p>
+     *
+     * @param id             the level id
+     * @param fallbackStale  whether to return stale cached data on refresh failure
+     * @return the GDDL level, or null when not rated
+     */
+    public GddlLevel gddlLevel(long id, boolean fallbackStale) {
         CacheEntry<Optional<GddlLevel>> cached = levelCache.get(id);
         if (cached != null && !cached.expired(config.cacheTtl()))
             return cached.value().orElse(null);
@@ -125,7 +139,7 @@ public final class GdService {
             levelCache.put(id, new CacheEntry<>(value));
             return value.orElse(null);
         } catch (RuntimeException e) {
-            if (cached != null) {
+            if (cached != null && fallbackStale) {
                 log.warn("GDDL level refresh failed; using stale: id={}", id, e);
                 return cached.value().orElse(null);
             }
@@ -330,6 +344,36 @@ public final class GdService {
                 return cached.value();
             }
             log.warn("GD avatar fetch failed: user={}", userId, e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取聊天用户头像，用于本地 B20 卡片。
+     * <p>Fetches a chat user's avatar for the local B20 card.</p>
+     *
+     * @param url the avatar url, nullable
+     * @return the image bytes, or null when unavailable
+     */
+    public byte[] userAvatar(String url) {
+        if (url == null || url.isBlank()) return null;
+        CacheEntry<byte[]> cached = userAvatarCache.get(url);
+        if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
+        try {
+            GdHttp.Response response = http.get(url, "image/*", MAX_USER_AVATAR_BYTES);
+            if (!response.ok()) return null;
+            if (response.body().length == 0 || !response.contentType().startsWith("image/"))
+                return null;
+            byte[] bytes = response.body();
+            if (userAvatarCache.size() > 128) userAvatarCache.clear();
+            userAvatarCache.put(url, new CacheEntry<>(bytes));
+            return bytes;
+        } catch (RuntimeException e) {
+            if (cached != null) {
+                log.warn("GD user avatar refresh failed; using stale: {}", url, e);
+                return cached.value();
+            }
+            log.warn("GD user avatar fetch failed: {}", url, e);
             return null;
         }
     }

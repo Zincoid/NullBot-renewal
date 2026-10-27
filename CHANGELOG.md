@@ -2,6 +2,15 @@
 
 本项目的所有重要变更都记录在此文件，格式参考 Keep a Changelog。
 
+## [Unreleased]
+
+### Added
+
+**GD 插件**
+
+- `gd-plugin` 新增本地进度：`#GD register`、`#GD update <关卡ID> <进度>`、`#GD remove`、`#GD unregister`；进度保存在插件数据目录的 SQLite `gd.db`，更新时通过 JDash 验证关卡并显示名称/作者，进度范围 1–100。
+- `#GD b20` 使用本地进度与 GDDL 关卡评级计算本地 B20，新增 `local-b20.jte` 卡片、机器人用户头像与未评级提示；GDDL 评级按已评级 24 小时、未评级 1 小时缓存，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。
+
 ## [1.1.0] - 2026-10-27
 
 ### Added

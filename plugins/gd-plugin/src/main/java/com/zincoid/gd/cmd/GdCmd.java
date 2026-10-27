@@ -4,8 +4,12 @@ import com.zincoid.gd.GdException;
 import com.zincoid.gd.GdText;
 import com.zincoid.gd.model.GdViewMapper;
 import com.zincoid.gd.model.LevelView;
+import com.zincoid.gd.model.LocalB20View;
 import com.zincoid.gd.model.SearchView;
 import com.zincoid.gd.render.GdPresenter;
+import com.zincoid.gd.service.GdLocalService;
+import com.zincoid.gd.service.GdLocalService.LocalB20Result;
+import com.zincoid.gd.service.GdLocalService.UpdateResult;
 import com.zincoid.gd.service.GdService;
 import com.zincoid.gd.service.GdService.GddlLevel;
 import com.zincoid.nullbot.bot.cmd.Cmd;
@@ -20,6 +24,7 @@ import com.zincoid.nullbot.bot.cmd.input.InputResult;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import jdash.common.DemonDifficulty;
 import jdash.common.Difficulty;
@@ -32,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
@@ -46,33 +52,208 @@ public class GdCmd implements Cmd {
 
     private static final long WAIT_SECONDS = 30;
     private static final String WAIT_PATTERN = "\\s*(?:[0-9]+|(?i:end|next))\\s*";
+    private static final String CONFIRM_PATTERN = "\\s*(?i:yes|y|是|确认|确定|no|n|否|取消)\\s*";
 
     private final GdService service;
     private final GdPresenter presenter;
     private final PluginContext context;
+    private final GdLocalService local;
 
     // ════ Run ═════════════════════
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        handle(ctx, args, event.groupId(), event.userId(), true);
+        handle(ctx, args, event.groupId(), event.userId(), true, event.nickname());
     }
 
     @Override
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        handle(ctx, args, event.userId(), event.userId(), false);
+        handle(ctx, args, event.userId(), event.userId(), false, event.nickname());
     }
 
-    private void handle(CmdContext ctx, CmdArgs args, String targetId, String userId, boolean group) {
+    private void handle(CmdContext ctx, CmdArgs args, String targetId, String userId,
+                        boolean group, String nickname) {
         String sub = args.next("").toLowerCase(Locale.ROOT);
         if (sub.isBlank()) throw new CmdInfoException(getHelp(ctx.language()));
         switch (sub) {
             case "search" -> search(ctx, args, targetId, userId, group);
             case "level" -> level(ctx, args);
             case "gddl" -> throw new CmdWarnException(GdText.GDDL_SPLIT.of(ctx.language()));
+            case "register" -> register(ctx, userId);
+            case "update" -> update(ctx, args, userId);
+            case "remove" -> remove(ctx, args, userId);
+            case "unregister" -> unregister(ctx, targetId, userId, group);
+            case "b20" -> b20(ctx, args, userId, nickname);
             default -> throw new CmdWarnException(
                     GdText.UNKNOWN_SUBCOMMAND.of(ctx.language(), sub));
         }
+    }
+
+    // ════ Local progress ═════════
+
+    private void register(CmdContext ctx, String userId) {
+        boolean created;
+        try {
+            created = local.register(userId);
+        } catch (GdException e) {
+            log.warn("GD register failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
+        }
+        if (created)
+            throw new CmdInfoException(GdText.REGISTER_SUCCESS.of(ctx.language()));
+        throw new CmdInfoException(GdText.REGISTER_ALREADY.of(ctx.language()));
+    }
+
+    private void update(CmdContext ctx, CmdArgs args, String userId) {
+        long id = levelId(ctx, args);
+        int progress = progress(ctx, args);
+        requireRegistered(ctx, userId);
+        Optional<UpdateResult> result;
+        try {
+            result = local.update(userId, id, progress);
+        } catch (GdException e) {
+            log.warn("GD progress update failed: id={}", id, e);
+            throw new CmdWarnException(GdText.SEARCH_FAILED.of(ctx.language()));
+        }
+        if (result.isEmpty())
+            throw new CmdInfoException(GdText.LEVEL_NOT_FOUND.of(ctx.language()));
+        UpdateResult value = result.get();
+        String author = value.author() == null || value.author().isBlank()
+                ? "-" : value.author();
+        throw new CmdInfoException(GdText.UPDATE_SUCCESS.of(
+                ctx.language(), value.levelName(), author, id, progress));
+    }
+
+    private void remove(CmdContext ctx, CmdArgs args, String userId) {
+        long id = levelId(ctx, args);
+        requireRegistered(ctx, userId);
+        boolean removed;
+        try {
+            removed = local.remove(userId, id);
+        } catch (GdException e) {
+            log.warn("GD progress removal failed: id={}", id, e);
+            throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
+        }
+        if (!removed)
+            throw new CmdInfoException(GdText.REMOVE_NONE.of(ctx.language()));
+        throw new CmdInfoException(GdText.REMOVE_SUCCESS.of(ctx.language(), id));
+    }
+
+    private void unregister(CmdContext ctx, String targetId, String userId, boolean group) {
+        requireRegistered(ctx, userId);
+        int count;
+        try {
+            count = local.progressCount(userId);
+        } catch (GdException e) {
+            log.warn("GD progress count failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
+        }
+        if (count > 0) {
+            ctx.send(GdText.UNREGISTER_CONFIRM.of(
+                    ctx.language(), count, WAIT_SECONDS));
+            InputMode mode = group ? InputMode.GS : InputMode.PS;
+            InputResult input = confirm(ctx, mode, targetId, userId, group);
+            if (input == null || !confirmed(input.message()))
+                throw new CmdInfoException(GdText.UNREGISTER_CANCELLED.of(ctx.language()));
+        }
+        int removed;
+        try {
+            removed = local.unregister(userId);
+        } catch (GdException e) {
+            log.warn("GD unregister failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
+        }
+        throw new CmdInfoException(GdText.UNREGISTER_SUCCESS.of(ctx.language(), removed));
+    }
+
+    private InputResult confirm(CmdContext ctx, InputMode mode, String targetId,
+                                String userId, boolean group) {
+        while (true) {
+            List<InputResult> inputs;
+            try {
+                inputs = context.inputs().request(mode, targetId, CONFIRM_PATTERN, WAIT_SECONDS);
+            } catch (InputException e) {
+                throw new CmdWarnException(GdText.WAIT_CONFLICT.of(ctx.language()));
+            }
+            if (inputs.isEmpty())
+                throw new CmdInfoException(GdText.UNREGISTER_CANCELLED.of(ctx.language()));
+            InputResult input = inputs.getFirst();
+            if (group && !userId.equals(input.userId())) {
+                ctx.send(GdText.INVOKER_ONLY.of(ctx.language()));
+                continue;
+            }
+            return input;
+        }
+    }
+
+    private static boolean confirmed(String value) {
+        String text = value.trim().toLowerCase(Locale.ROOT);
+        return text.equals("yes") || text.equals("y") || text.equals("是")
+                || text.equals("确认") || text.equals("确定");
+    }
+
+    private void b20(CmdContext ctx, CmdArgs args, String userId, String nickname) {
+        requireRegistered(ctx, userId);
+        boolean all = args.hasOpt("all", "a");
+        LocalB20Result result;
+        try {
+            result = local.localB20(userId);
+        } catch (GdException e) {
+            log.warn("GD local B20 failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.LOCAL_B20_FAILED.of(ctx.language()));
+        }
+        if (result.ratedTotal() == 0) {
+            if (result.unratedTotal() == 0)
+                throw new CmdInfoException(GdText.NO_LOCAL_RECORDS.of(ctx.language()));
+            throw new CmdInfoException(GdText.NO_RATED_RECORDS.of(ctx.language()));
+        }
+
+        String userName = nickname;
+        byte[] avatar = null;
+        try {
+            UserInfo info = ctx.client().getUserInfo(userId);
+            if (info != null) {
+                if (info.nickname() != null && !info.nickname().isBlank())
+                    userName = info.nickname();
+                avatar = local.avatar(info.avatar());
+            }
+        } catch (RuntimeException e) {
+            log.warn("GD user profile fetch failed: user={}", userId, e);
+        }
+        if (userName == null || userName.isBlank()) userName = userId;
+
+        LocalB20View view = GdViewMapper.localB20(result, all, avatar, userName);
+        ctx.send(presenter.localB20(ctx.language(), view));
+        log.info("GD local B20 sent: user={}, sample={}, score={}",
+                userId, view.sample(), String.format(Locale.ROOT, "%.2f", view.score()));
+    }
+
+    private void requireRegistered(CmdContext ctx, String userId) {
+        boolean registered;
+        try {
+            registered = local.isRegistered(userId);
+        } catch (GdException e) {
+            log.warn("GD registration check failed: user={}", userId, e);
+            throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
+        }
+        if (!registered)
+            throw new CmdInfoException(GdText.NOT_REGISTERED.of(ctx.language()));
+    }
+
+    private static int progress(CmdContext ctx, CmdArgs args) {
+        String raw = args.next("").trim();
+        if (raw.isEmpty())
+            throw new CmdWarnException(GdText.MISSING_PROGRESS.of(ctx.language()));
+        if (raw.endsWith("%")) raw = raw.substring(0, raw.length() - 1).trim();
+        int value;
+        try {
+            value = Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            throw new CmdWarnException(GdText.INVALID_PROGRESS.of(ctx.language()));
+        }
+        if (value < 1 || value > 100)
+            throw new CmdWarnException(GdText.INVALID_PROGRESS.of(ctx.language()));
+        return value;
     }
 
     // ════ Search ══════════════════

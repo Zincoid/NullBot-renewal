@@ -1,7 +1,8 @@
 package com.zincoid.gd.render;
 
+import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.LevelView;
-import com.zincoid.gd.model.RankView;
+import com.zincoid.gd.model.LocalB20View;
 import com.zincoid.gd.model.SearchView;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -33,12 +34,22 @@ public interface GdPresenter {
     MsgContent level(Language language, LevelView view);
 
     /**
-     * 呈现 B20 排行。
-     * <p>Presents the B20 rank.</p>
+     * 呈现 GDDL B20 排行。
+     * <p>Presents the GDDL B20 rank.</p>
      *
      * @param language the reply language
-     * @param view     the rank view
+     * @param view     the GDDL B20 view
      * @return the message content
      */
-    MsgContent rank(Language language, RankView view);
+    MsgContent gddlB20(Language language, GddlB20View view);
+
+    /**
+     * 呈现本地 B20 排行。
+     * <p>Presents the local B20 rank.</p>
+     *
+     * @param language the reply language
+     * @param view     the local B20 view
+     * @return the message content
+     */
+    MsgContent localB20(Language language, LocalB20View view);
 }

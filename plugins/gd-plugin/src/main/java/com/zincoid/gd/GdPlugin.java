@@ -7,7 +7,9 @@ import com.zincoid.gd.config.GdConfig;
 import com.zincoid.gd.render.GdImagePresenter;
 import com.zincoid.gd.render.GdPresenter;
 import com.zincoid.gd.render.GdTextPresenter;
+import com.zincoid.gd.service.GdLocalService;
 import com.zincoid.gd.service.GdService;
+import com.zincoid.gd.store.GdStore;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
@@ -16,8 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * GD 插件：注册几何冲刺查询与 GDDL 指令。
- * <p>GD plugin registering the Geometry Dash query and GDDL commands.</p>
+ * GD 插件：注册几何冲刺查询、本地进度与 GDDL 指令。
+ * <p>GD plugin registering Geometry Dash queries, local progress, and GDDL commands.</p>
  */
 @Slf4j
 public class GdPlugin implements Plugin {
@@ -26,6 +28,7 @@ public class GdPlugin implements Plugin {
     private volatile GdService service;
     private volatile GdPresenter presenter;
     private volatile GdBindings bindings;
+    private volatile GdLocalService local;
 
     @Override
     public String id() {
@@ -40,33 +43,51 @@ public class GdPlugin implements Plugin {
     @Override
     public List<Cmd> cmds() {
         return List.of(
-                new GdCmd(service(), presenter(), context()),
+                new GdCmd(service(), presenter(), context(), local()),
                 new GddlCmd(service(), presenter(), bindings()));
     }
 
     @Override
     public void start(PluginContext context) {
         GdConfig loaded = GdConfig.load(context.dataDir());
-        this.context = context;
-        this.service = new GdService(loaded);
-        this.bindings = GdBindings.load(context.dataDir());
-        GdPresenter text = new GdTextPresenter();
+        GdService service = new GdService(loaded);
+        GdStore store = GdStore.open(context.dataDir());
         try {
-            this.presenter = new GdImagePresenter(context.renderer(), text);
+            GdBindings bindings = GdBindings.load(context.dataDir());
+            GdPresenter text = new GdTextPresenter();
+            GdPresenter presenter;
+            try {
+                presenter = new GdImagePresenter(context.renderer(), text);
+            } catch (RuntimeException e) {
+                log.warn("GD image renderer unavailable; using text output", e);
+                presenter = text;
+            }
+            GdLocalService local = new GdLocalService(store, service, loaded);
+
+            this.context = context;
+            this.service = service;
+            this.bindings = bindings;
+            this.local = local;
+            this.presenter = presenter;
+            log.info("GD config: gddl={}, thumbnail={}, cacheTtl={}s, tierCacheTtl={}s, "
+                            + "unratedCacheTtl={}s, tierExponent={}, connectTimeout={}s, "
+                            + "requestTimeout={}s, retries={}, proxy={}",
+                    loaded.gddlBase(), loaded.thumbnailBase(),
+                    loaded.cacheTtl().toSeconds(), loaded.tierCacheTtl().toSeconds(),
+                    loaded.unratedCacheTtl().toSeconds(), loaded.tierExponent(),
+                    loaded.connectTimeout().toSeconds(), loaded.requestTimeout().toSeconds(),
+                    loaded.retries(), loaded.proxy().isBlank() ? "none" : "set");
         } catch (RuntimeException e) {
-            log.warn("GD image renderer unavailable; using text output", e);
-            this.presenter = text;
+            store.close();
+            throw e;
         }
-        log.info("GD config: gddl={}, thumbnail={}, cacheTtl={}s, tierExponent={}, "
-                        + "connectTimeout={}s, requestTimeout={}s, retries={}, proxy={}",
-                loaded.gddlBase(), loaded.thumbnailBase(),
-                loaded.cacheTtl().toSeconds(), loaded.tierExponent(),
-                loaded.connectTimeout().toSeconds(), loaded.requestTimeout().toSeconds(),
-                loaded.retries(), loaded.proxy().isBlank() ? "none" : "set");
     }
 
     @Override
     public void stop() {
+        GdLocalService current = this.local;
+        if (current != null) current.close();
+        this.local = null;
         this.presenter = null;
         this.service = null;
         this.bindings = null;
@@ -117,6 +138,18 @@ public class GdPlugin implements Plugin {
      */
     GdBindings bindings() {
         GdBindings value = bindings;
+        if (value == null) throw new IllegalStateException("Plugin not started");
+        return value;
+    }
+
+    /**
+     * 返回本地进度服务。
+     * <p>Returns the local progress service.</p>
+     *
+     * @return the local progress service
+     */
+    GdLocalService local() {
+        GdLocalService value = local;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }
