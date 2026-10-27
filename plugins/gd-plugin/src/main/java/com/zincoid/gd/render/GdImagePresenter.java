@@ -11,7 +11,7 @@ import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.module.render.svg.layout.SvgAlign;
 import com.zincoid.nullbot.module.render.svg.layout.SvgCell;
 import com.zincoid.nullbot.module.render.svg.layout.SvgColumn;
-import com.zincoid.nullbot.module.render.svg.layout.SvgLine;
+import com.zincoid.nullbot.module.render.svg.layout.SvgPositionedLine;
 import com.zincoid.nullbot.module.render.svg.layout.SvgTable;
 import com.zincoid.nullbot.module.render.svg.layout.SvgText;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -29,8 +29,6 @@ import java.util.Map;
 @Slf4j
 public final class GdImagePresenter implements GdPresenter {
 
-    private static final double LEVEL_THUMBNAIL_CENTER_Y = 271.5;
-    // Nerd Font icons.
     private static final String STAR = "\uF005";
     private static final String ICON_DOWNLOAD = "\uF019";
     private static final String ICON_LIKES = "\uF004";
@@ -96,40 +94,34 @@ public final class GdImagePresenter implements GdPresenter {
             String meta = GdText.AUTHOR.of(language) + ": " + view.author()
                     + " · " + GdText.DIFFICULTY.of(language) + ": " + view.difficulty()
                     + " · " + STAR + " " + view.stars();
-            String stats1 = ICON_DOWNLOAD + " " + pad(number(view.downloads()))
-                    + "  " + ICON_LIKES + " " + number(view.likes());
-            String stats2 = ICON_LENGTH + " " + pad(view.length())
-                    + "  " + ICON_OBJECTS + " " + number(view.objects());
-            String description = clean(view.description(), 120);
-            if (!description.isEmpty())
-                description = GdText.DESCRIPTION.of(language) + ": " + description;
-            String song = "";
-            if (view.song() != null && !view.song().isBlank()) {
-                String prefix = GdText.SONG.of(language) + ": ";
-                String suffix = view.songId() == null ? "" : " · ID " + view.songId();
-                int titleWidth = (int) Math.max(0,
-                        480 - SvgText.width(prefix, 15) - SvgText.width(suffix, 15));
-                song = prefix + SvgText.fit(view.song(), titleWidth, 15) + suffix;
-            }
-            GddlLine gddl = gddlLine(language, view);
-            List<SvgLine> textLines = new ArrayList<>();
-            textLines.add(new SvgLine(SvgText.escape(stats1), 0, 15, "#E6E9EE"));
-            textLines.add(new SvgLine(SvgText.escape(stats2), 30, 15, "#E6E9EE"));
-            textLines.add(new SvgLine(SvgText.escape(SvgText.fit(gddl.main(), 480, 15)), 40, 15, "#CDD3DC"));
-            if (!gddl.extra().isBlank())
-                textLines.add(new SvgLine(SvgText.escape(SvgText.fit(gddl.extra(), 480, 15)), 26, 15, "#C9CFD8"));
-            if (!song.isBlank())
-                textLines.add(new SvgLine(SvgText.escape(song), 32, 15, "#C9CFD8"));
-            if (!description.isBlank())
-                textLines.add(new SvgLine(SvgText.escape(SvgText.fit(description, 480, 15)), 30, 15, "#C9CFD8"));
+            List<StatCard> stats = List.of(
+                    new StatCard(464, 170,
+                            statLabel(ICON_DOWNLOAD, GdText.DOWNLOADS, language),
+                            number(view.downloads())),
+                    new StatCard(702, 170,
+                            statLabel(ICON_LIKES, GdText.LIKES, language),
+                            number(view.likes())),
+                    new StatCard(464, 254,
+                            statLabel(ICON_LENGTH, GdText.LENGTH, language),
+                            SvgText.escape(view.length())),
+                    new StatCard(702, 254,
+                            statLabel(ICON_OBJECTS, GdText.OBJECTS, language),
+                            number(view.objects()))
+            );
+            List<SvgPositionedLine> descriptionLines = description(view);
             Map<String, Object> model = Map.ofEntries(
-                    Map.entry("title", SvgText.escape(SvgText.fit(view.name(), 760, 32))),
+                    Map.entry("title", SvgText.escape(SvgText.fit(view.name(), 750, 32))),
                     Map.entry("levelId", String.valueOf(view.id())),
                     Map.entry("meta", SvgText.escape(SvgText.fit(meta, 870, 15))),
-                    Map.entry("lines", SvgText.center(textLines, LEVEL_THUMBNAIL_CENTER_Y)),
-                    Map.entry("thumbnail", ImageData.cover(view.thumbnail(), 720, 405)),
+                    Map.entry("stats", stats),
+                    Map.entry("gddl", gddlCard(language, view)),
+                    Map.entry("songLabel", label(GdText.SONG, language)),
+                    Map.entry("songValue", song(view)),
+                    Map.entry("descriptionLabel", label(GdText.DESCRIPTION, language)),
+                    Map.entry("descriptionLines", descriptionLines),
+                    Map.entry("thumbnail", ImageData.cover(view.thumbnail(), 800, 450)),
                     Map.entry("noThumbnail", SvgText.escape(GdText.NO_THUMBNAIL.of(language))),
-                    Map.entry("height", 450)
+                    Map.entry("height", 560)
             );
             return image(renderer.template("level.jte", model));
         } catch (RuntimeException e) {
@@ -155,8 +147,8 @@ public final class GdImagePresenter implements GdPresenter {
             }
             List<SvgColumn> columns = List.of(
                     new SvgColumn("#", 40, SvgAlign.START),
-                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 390, SvgAlign.START),
-                    new SvgColumn("ID", 90, SvgAlign.END),
+                    new SvgColumn(GdText.HEAD_LEVEL.of(language), 350, SvgAlign.START),
+                    new SvgColumn("ID", 130, SvgAlign.END),
                     new SvgColumn(GdText.TIER.of(language), 120, SvgAlign.END),
                     new SvgColumn(GdText.PROGRESS.of(language), 120, SvgAlign.END),
                     new SvgColumn("rt", 120, SvgAlign.END));
@@ -195,14 +187,33 @@ public final class GdImagePresenter implements GdPresenter {
         return MsgContent.builder().imageBase64(png).build();
     }
 
-    private static GddlLine gddlLine(Language language, LevelView view) {
-        if (view.tier() == null) {
-            return new GddlLine("GDDL · " + (view.gddlFailed()
-                    ? GdText.GDDL_QUERY_FAILED.of(language)
-                    : GdText.GDDL_NOT_RATED.of(language)), "");
+    private static String song(LevelView view) {
+        if (view.song() == null || view.song().isBlank()) return "";
+        String suffix = view.songId() == null ? "" : " · ID " + view.songId();
+        double titleWidth = Math.max(0, 456 - SvgText.width(suffix, 15));
+        return SvgText.escape(SvgText.fit(view.song(), titleWidth, 15))
+                + SvgText.escape(suffix);
+    }
+
+    private static List<SvgPositionedLine> description(LevelView view) {
+        List<String> wrapped = wrap(clean(view.description(), 400), 456, 15, 4);
+        List<SvgPositionedLine> lines = new ArrayList<>(wrapped.size());
+        for (int i = 0; i < wrapped.size(); i++) {
+            lines.add(new SvgPositionedLine(
+                    SvgText.escape(wrapped.get(i)), 427 + i * 22, 15, "#C9CFD8"));
         }
-        String main = "GDDL · " + GdText.TIER.of(language) + " " + view.tier()
-                + " · " + GdText.RATING.of(language) + " " + decimal(view.rating())
+        return lines;
+    }
+
+    private static GddlCard gddlCard(Language language, LevelView view) {
+        Integer tier = view.tier();
+        if (tier == null) {
+            String status = view.gddlFailed()
+                    ? GdText.GDDL_QUERY_FAILED.of(language)
+                    : GdText.GDDL_NOT_RATED.of(language);
+            return new GddlCard("—", "GDDL", SvgText.escape(status), "", "#8F98A3");
+        }
+        String main = GdText.RATING.of(language) + " " + decimal(view.rating())
                 + " · " + GdText.ENJOYMENT.of(language) + " " + decimal(view.enjoyment());
         StringBuilder extra = new StringBuilder();
         if (view.ratingCount() != null)
@@ -212,18 +223,86 @@ public final class GdImagePresenter implements GdPresenter {
             if (!extra.isEmpty()) extra.append(" · ");
             extra.append("AREDL #").append(view.aredlPosition());
         }
-        return new GddlLine(main, extra.toString());
+        return new GddlCard(String.valueOf(tier), label(GdText.TIER, language),
+                SvgText.escape(SvgText.fit(main, 240, 15)),
+                SvgText.escape(SvgText.fit(extra.toString(), 240, 13)),
+                tierAccent(tier));
     }
 
-    private record GddlLine(String main, String extra) {
+    private static String label(GdText text, Language language) {
+        return SvgText.escape(text.of(language).toUpperCase(Locale.ROOT));
+    }
+
+    private static String statLabel(String icon, GdText text, Language language) {
+        return SvgText.escape(icon + " " + text.of(language).toUpperCase(Locale.ROOT));
+    }
+
+    private static String tierAccent(int tier) {
+        if (tier >= 30) return "#D6B4FF";
+        if (tier >= 20) return "#A7C6FF";
+        if (tier >= 10) return "#8FD3A8";
+        return "#E6C46A";
+    }
+
+    private static List<String> wrap(String value, double maxWidth, float size, int maxLines) {
+        List<String> lines = new ArrayList<>();
+        if (value == null || value.isBlank() || maxLines <= 0) return lines;
+        String text = value.strip();
+        int start = 0;
+        while (start < text.length() && lines.size() < maxLines) {
+            if (lines.size() == maxLines - 1) {
+                lines.add(SvgText.fit(text.substring(start), maxWidth, size));
+                break;
+            }
+            int end = start;
+            int lastSpace = -1;
+            while (end < text.length()) {
+                int next = text.offsetByCodePoints(end, 1);
+                if (SvgText.width(text.substring(start, next), size) > maxWidth) break;
+                end = next;
+                if (text.charAt(end - 1) == ' ') lastSpace = end;
+            }
+            if (end == start) end = text.offsetByCodePoints(start, 1);
+            if (end >= text.length()) {
+                lines.add(text.substring(start));
+                break;
+            }
+            int cut = lastSpace > start ? lastSpace : end;
+            String line = text.substring(start, cut).strip();
+            if (!line.isEmpty()) lines.add(line);
+            start = cut;
+            while (start < text.length() && text.charAt(start) == ' ') start++;
+        }
+        return lines;
+    }
+
+    /**
+     * 关卡统计卡片。
+     * <p>A level stat card.</p>
+     *
+     * @param x     the x coordinate
+     * @param y     the y coordinate
+     * @param label the stat label
+     * @param value the stat value
+     */
+    public record StatCard(int x, int y, String label, String value) {
+    }
+
+    /**
+     * GDDL 面板数据。
+     * <p>GDDL panel data.</p>
+     *
+     * @param tier   the tier value, or an em dash when unrated
+     * @param label  the tier label
+     * @param main   the rating summary or unrated status
+     * @param extra  the secondary rating details
+     * @param accent the accent color
+     */
+    public record GddlCard(String tier, String label, String main, String extra, String accent) {
     }
 
     private static String number(int value) {
         return String.format(Locale.ROOT, "%,d", value);
-    }
-
-    private static String pad(String value) {
-        return String.format(Locale.ROOT, "%-12s", value);
     }
 
     private static String decimal(Double value) {

@@ -16,6 +16,9 @@
 - `adapter-qq` 的配置项 `nullbot.qq.api-base` 更名为 `nullbot.qq.api-url`，旧键不再读取。
 - `adapter-qq` 拆分 HTTP/token、OpenAPI、媒体、入站路由与客户端工厂，统一会话目标 `QqTarget`；公开行为不变。
 - `gd-plugin` 将 GDDL B20 从 `#GD gddl` 拆分为独立指令 `#GDDL`，`#GD`/`#几何冲刺` 保留关卡搜索与详情。
+- `gd-plugin` 重做关卡详情卡片：放大缩略图，统计改为带图标和标签的 2×2 信息块，GDDL 独立面板并增加 Tier 强调色，描述支持最多两行，并微调框内文字垂直对齐。
+- `gd-plugin` 加宽 B20 关卡列表的 ID 列，避免长关卡 ID 被截断。
+- `gd-plugin` 将 GDDL 面板宽度对齐缩略图，评分与享受标签缩写为 `Rt.`/`Enj.`，描述移至歌曲下方并支持最多四行。
 
 ## [1.1.0] - 2026-10-27
 
