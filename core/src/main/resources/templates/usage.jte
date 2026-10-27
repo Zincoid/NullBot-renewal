@@ -20,9 +20,15 @@
           fill="#C9CFD8"># USAGE_</text>
     <rect x="34" y="80" width="492" height="1" fill="#2A2D33"/>
 
-    <image x="50" y="120" width="160" height="160" preserveAspectRatio="xMidYMid slice"
-           clip-path="url(#avatarClip)" href="${avatar}"/>
-    <rect x="50" y="120" width="160" height="160" rx="20" fill="none" stroke="#2A2D33"/>
+    @if(!avatar.isBlank())
+        <image x="50" y="120" width="160" height="160" preserveAspectRatio="xMidYMid slice"
+               clip-path="url(#avatarClip)" href="${avatar}"/>
+        <rect x="50" y="120" width="160" height="160" rx="20" fill="none" stroke="#2A2D33"/>
+    @else
+        <rect x="50" y="120" width="160" height="160" rx="20" fill="#17181A" stroke="#2A2D33"/>
+        <text x="130" y="228" text-anchor="middle" font-family="JetBrains Maple Mono"
+              font-size="64" fill="#C9CFD8">&#xF007;</text>
+    @endif
 
     <text x="242" y="170" font-family="JetBrains Maple Mono" font-size="16"
           fill="#E6E9EE">${user}</text>

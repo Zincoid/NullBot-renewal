@@ -14,7 +14,7 @@ public interface RenderService {
      * 渲染用户用量卡片。
      * <p>Renders the user usage card.</p>
      *
-     * @param avatar   the avatar image bytes
+     * @param avatar   the avatar image bytes, nullable
      * @param nickname the user nickname, nullable
      * @param userId   the user id
      * @param times    the total command usage count

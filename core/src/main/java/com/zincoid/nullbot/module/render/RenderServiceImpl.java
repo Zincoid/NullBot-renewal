@@ -22,11 +22,8 @@ public class RenderServiceImpl implements RenderService {
 
     @Override
     public byte[] usage(byte[] avatar, String nickname, String userId, long times) {
-        if (avatar == null || avatar.length == 0) throw new RenderException("Missing key: avatar");
         if (times < 0) throw new RenderException("Invalid usage count: " + times);
-        String dataUri = ImageData.imageDataUri(avatar);
-        if (dataUri.isBlank())
-            throw new RenderException("Unsupported avatar image");
+        String dataUri = avatar == null || avatar.length == 0 ? "" : ImageData.imageDataUri(avatar);
         String id = userId == null ? "" : userId;
         boolean hasNickname = nickname != null && !nickname.isBlank();
         String name = hasNickname ? nickname : id;

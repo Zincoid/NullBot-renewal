@@ -49,7 +49,7 @@ public class UsageCmd implements Cmd {
     private void handle(CmdContext ctx, String userId) {
         long total = total(ctx, userId);
         UserInfo info = userInfo(ctx, userId);
-        byte[] avatar = avatar(ctx, info);
+        byte[] avatar = avatar(info);
         byte[] png = render(ctx, avatar, info.nickname(), userId, total);
         ctx.send(MsgContent.builder()
                 .imageBase64(png)
@@ -82,20 +82,16 @@ public class UsageCmd implements Cmd {
         }
     }
 
-    private byte[] avatar(CmdContext ctx, UserInfo info) {
+    private byte[] avatar(UserInfo info) {
+        if (info.avatar() == null || info.avatar().isBlank()) return null;
         try {
-            if (info.avatar() == null || info.avatar().isBlank())
-                throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED));
             byte[] bytes = HttpUtils.getBytes(info.avatar(), MAX_AVATAR_BYTES);
             String mime = MimeUtils.mime(bytes);
-            if (mime == null || !mime.startsWith("image/"))
-                throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED));
+            if (mime == null || !mime.startsWith("image/")) return null;
             return bytes;
-        } catch (CmdWarnException e) {
-            throw e;
         } catch (RuntimeException e) {
             log.warn("Usage avatar failed: user={}", info.userId(), e);
-            throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED), e);
+            return null;
         }
     }
 
