@@ -43,7 +43,7 @@ public class GdPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new GdCmd(this));
+        return List.of(new GdCmd(service(), presenter(), bindings(), context()));
     }
 
     @Override
@@ -81,7 +81,7 @@ public class GdPlugin implements Plugin {
      *
      * @return the plugin context
      */
-    public PluginContext context() {
+    PluginContext context() {
         PluginContext value = context;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
@@ -93,7 +93,7 @@ public class GdPlugin implements Plugin {
      *
      * @return the data service
      */
-    public GdService service() {
+    GdService service() {
         GdService value = service;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
@@ -105,7 +105,7 @@ public class GdPlugin implements Plugin {
      *
      * @return the output presenter
      */
-    public GdPresenter presenter() {
+    GdPresenter presenter() {
         GdPresenter value = presenter;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
@@ -117,7 +117,7 @@ public class GdPlugin implements Plugin {
      *
      * @return the binding store
      */
-    public GdBindings bindings() {
+    GdBindings bindings() {
         GdBindings value = bindings;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;

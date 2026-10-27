@@ -41,7 +41,10 @@ public class GamePlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new WifeCmd(this), new GuessCmd(this), new QuizCmd(this));
+        return List.of(
+                new WifeCmd(context(), resources()),
+                new GuessCmd(context(), resources()),
+                new QuizCmd(context()));
     }
 
     @Override
@@ -69,7 +72,7 @@ public class GamePlugin implements Plugin {
      *
      * @return the plugin context
      */
-    public PluginContext context() {
+    PluginContext context() {
         PluginContext ctx = context;
         if (ctx == null) throw new IllegalStateException("Plugin not started");
         return ctx;
@@ -81,7 +84,7 @@ public class GamePlugin implements Plugin {
      *
      * @return the resource index
      */
-    public GameResources resources() {
+    GameResources resources() {
         GameResources index = resources;
         if (index == null) throw new IllegalStateException("Plugin not started");
         return index;

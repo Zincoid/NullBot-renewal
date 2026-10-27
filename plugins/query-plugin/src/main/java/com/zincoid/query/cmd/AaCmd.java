@@ -9,10 +9,11 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.query.QueryException;
-import com.zincoid.query.QueryPlugin;
 import com.zincoid.query.QueryText;
+import com.zincoid.query.config.QueryConfig;
 import com.zincoid.query.model.AaMetric;
 import com.zincoid.query.model.AaModel;
+import com.zincoid.query.service.AaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +32,8 @@ public class AaCmd implements Cmd {
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 25;
 
-    private final QueryPlugin plugin;
+    private final AaService service;
+    private final QueryConfig config;
 
     // ════ Run ═════════════════════
 
@@ -52,11 +54,11 @@ public class AaCmd implements Cmd {
             throw new CmdWarnException(
                     QueryText.AA_UNKNOWN_METRIC.of(ctx.language(), option));
         int limit = limit(ctx, args);
-        if (plugin.config().aaApiKey().isBlank())
+        if (config.aaApiKey().isBlank())
             throw new CmdWarnException(QueryText.AA_NO_API_KEY.of(ctx.language()));
         List<AaModel> models;
         try {
-            models = plugin.aa().top(metric, limit);
+            models = service.top(metric, limit);
         } catch (QueryException e) {
             log.warn("AA query failed", e);
             throw new CmdWarnException(QueryText.AA_QUERY_FAILED.of(ctx.language()));

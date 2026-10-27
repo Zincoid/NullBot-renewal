@@ -6,6 +6,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -15,7 +16,6 @@ import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
 import com.zincoid.nullbot.platform.util.HttpUtils;
-import com.zincoid.say.SayPlugin;
 import com.zincoid.say.SayText;
 import com.zincoid.say.render.QuoteCard;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class SayCmd implements Cmd {
 
     private static final int MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
-    private final SayPlugin plugin;
+    private final PluginContext context;
 
     // ════ Run ═════════════════════
 
@@ -52,7 +52,7 @@ public class SayCmd implements Cmd {
         String avatar = avatar(ctx, quote.getUserId());
         byte[] png;
         try {
-            png = QuoteCard.render(plugin.context().renderer(), quote, avatar);
+            png = QuoteCard.render(context.renderer(), quote, avatar);
         } catch (RuntimeException e) {
             log.warn("Say image render failed: quote={}", quote.getId(), e);
             throw new CmdWarnException(SayText.RENDER_FAILED.of(ctx.language()), e);
@@ -66,15 +66,15 @@ public class SayCmd implements Cmd {
     private Quote quote(CmdContext ctx, MsgContent content, CmdArgs args) {
         if (args.hasOpt("id", "i")) {
             long id = quoteId(ctx, args);
-            Quote quote = plugin.context().quotes().getById(id);
+            Quote quote = context.quotes().getById(id);
             if (quote == null) throw new CmdInfoException(ctx.render(Text.QUOTE_NOT_FOUND, id));
             return quote;
         }
         String userId = content.atIds().stream().findFirst().orElse(null);
         if (userId == null && args.hasNext()) userId = args.next();
         Quote quote = userId == null
-                ? plugin.context().quotes().random()
-                : plugin.context().quotes().random(userId);
+                ? context.quotes().random()
+                : context.quotes().random(userId);
         if (quote == null) throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
         return quote;
     }

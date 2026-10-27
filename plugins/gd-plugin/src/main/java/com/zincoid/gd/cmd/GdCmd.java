@@ -1,13 +1,14 @@
 package com.zincoid.gd.cmd;
 
 import com.zincoid.gd.GdException;
-import com.zincoid.gd.GdPlugin;
 import com.zincoid.gd.GdText;
 import com.zincoid.gd.binding.GdBindings;
 import com.zincoid.gd.model.GdViewMapper;
 import com.zincoid.gd.model.LevelView;
 import com.zincoid.gd.model.RankView;
 import com.zincoid.gd.model.SearchView;
+import com.zincoid.gd.render.GdPresenter;
+import com.zincoid.gd.service.GdService;
 import com.zincoid.gd.service.GdService.GddlLevel;
 import com.zincoid.gd.service.GdService.GddlUser;
 import com.zincoid.gd.service.GdService.ScoreResult;
@@ -20,6 +21,7 @@ import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.cmd.input.InputException;
 import com.zincoid.nullbot.bot.cmd.input.InputMode;
 import com.zincoid.nullbot.bot.cmd.input.InputResult;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -50,7 +52,10 @@ public class GdCmd implements Cmd {
     private static final long WAIT_SECONDS = 30;
     private static final String WAIT_PATTERN = "\\s*(?:[0-9]+|(?i:end|next))\\s*";
 
-    private final GdPlugin plugin;
+    private final GdService service;
+    private final GdPresenter presenter;
+    private final GdBindings bindings;
+    private final PluginContext context;
 
     // ════ Run ═════════════════════
 
@@ -89,7 +94,7 @@ public class GdCmd implements Cmd {
 
         List<GDLevel> levels;
         try {
-            levels = plugin.service().search(query, filter, page - 1);
+            levels = service.search(query, filter, page - 1);
         } catch (GdException e) {
             log.warn("GD search failed: query={}", query, e);
             throw new CmdWarnException(GdText.SEARCH_FAILED.of(ctx.language()));
@@ -102,7 +107,7 @@ public class GdCmd implements Cmd {
         }
         SearchView view = new SearchView(
                 query, page, GdViewMapper.summaries(levels), WAIT_SECONDS);
-        ctx.send(plugin.presenter().search(ctx.language(), view));
+        ctx.send(presenter.search(ctx.language(), view));
         waitAndShow(ctx, query, filter, page, levels, targetId, userId, group);
     }
 
@@ -150,7 +155,7 @@ public class GdCmd implements Cmd {
         while (true) {
             List<InputResult> inputs;
             try {
-                inputs = plugin.context().inputs()
+                inputs = context.inputs()
                         .request(mode, targetId, WAIT_PATTERN, WAIT_SECONDS);
             } catch (InputException e) {
                 throw new CmdWarnException(GdText.WAIT_CONFLICT.of(ctx.language()));
@@ -167,7 +172,7 @@ public class GdCmd implements Cmd {
                 throw new CmdInfoException(GdText.CANCELLED.of(ctx.language()));
             if (value.equalsIgnoreCase("next")) {
                 try {
-                    List<GDLevel> next = plugin.service().search(query, filter, currentPage);
+                    List<GDLevel> next = service.search(query, filter, currentPage);
                     if (next.isEmpty()) {
                         ctx.send(GdText.PAGE_LAST.of(ctx.language()));
                         continue;
@@ -180,7 +185,7 @@ public class GdCmd implements Cmd {
                     currentLevels = next;
                     SearchView view = new SearchView(
                             query, currentPage, GdViewMapper.summaries(next), WAIT_SECONDS);
-                    ctx.send(plugin.presenter().search(ctx.language(), view));
+                    ctx.send(presenter.search(ctx.language(), view));
                     continue;
                 } catch (GdException e) {
                     log.warn("GD search page failed: query={}, page={}",
@@ -210,7 +215,7 @@ public class GdCmd implements Cmd {
         long id = levelId(ctx, args);
         GDLevel level;
         try {
-            level = plugin.service().level(id);
+            level = service.level(id);
         } catch (GdException e) {
             log.warn("GD level query failed: id={}", id, e);
             throw new CmdWarnException(GdText.SEARCH_FAILED.of(ctx.language()));
@@ -224,7 +229,7 @@ public class GdCmd implements Cmd {
         LevelExtras extras = loadExtras(level.id());
         LevelView view = GdViewMapper.level(
                 level, extras.gddl(), extras.gddlFailed(), extras.thumbnail());
-        ctx.send(plugin.presenter().level(ctx.language(), view));
+        ctx.send(presenter.level(ctx.language(), view));
         log.info("GD level sent: id={}, tier={}, thumbnail={}",
                 level.id(), view.tier(), extras.thumbnail() != null);
     }
@@ -245,7 +250,7 @@ public class GdCmd implements Cmd {
 
     private GddlResult loadGddl(long id) {
         try {
-            return new GddlResult(plugin.service().gddlLevel(id), false);
+            return new GddlResult(service.gddlLevel(id), false);
         } catch (GdException e) {
             log.warn("GDDL level query failed: id={}", id, e);
             return new GddlResult(null, true);
@@ -254,7 +259,7 @@ public class GdCmd implements Cmd {
 
     private byte[] loadThumbnail(long id) {
         try {
-            return plugin.service().thumbnail(id);
+            return service.thumbnail(id);
         } catch (GdException e) {
             log.warn("GD thumbnail fetch failed: id={}", id, e);
             return null;
@@ -299,7 +304,7 @@ public class GdCmd implements Cmd {
         }
         String raw = args.rest("").trim();
         if (raw.isEmpty()) {
-            GdBindings.Binding binding = plugin.bindings().get(userId);
+            GdBindings.Binding binding = bindings.get(userId);
             if (binding == null)
                 throw new CmdInfoException(GdText.NO_BINDING.of(ctx.language()));
             showRank(ctx, new GddlUser(binding.id(), binding.name(), binding.avatar()), all);
@@ -319,14 +324,14 @@ public class GdCmd implements Cmd {
     }
 
     private void bindUser(CmdContext ctx, String userId, String raw) {
-        GdBindings.Binding current = plugin.bindings().get(userId);
+        GdBindings.Binding current = bindings.get(userId);
         if (current != null)
             throw new CmdInfoException(GdText.BIND_ALREADY.of(
                     ctx.language(), current.name(), current.id()));
         GddlUser user = resolveUser(ctx, raw);
         GdBindings.Binding existing;
         try {
-            existing = plugin.bindings().bind(userId, user.id(), user.name(), user.avatar());
+            existing = bindings.bind(userId, user.id(), user.name(), user.avatar());
         } catch (GdException e) {
             log.warn("GDDL binding save failed: user={}", userId, e);
             throw new CmdWarnException(GdText.BIND_SAVE_FAILED.of(ctx.language()));
@@ -342,7 +347,7 @@ public class GdCmd implements Cmd {
     private void unbindUser(CmdContext ctx, String userId) {
         GdBindings.Binding existing;
         try {
-            existing = plugin.bindings().unbind(userId);
+            existing = bindings.unbind(userId);
         } catch (GdException e) {
             log.warn("GDDL binding removal failed: user={}", userId, e);
             throw new CmdWarnException(GdText.BIND_SAVE_FAILED.of(ctx.language()));
@@ -359,7 +364,7 @@ public class GdCmd implements Cmd {
         GddlUser current = user;
         if (current.avatar() == null || current.avatar().isBlank()) {
             try {
-                GddlUser loaded = plugin.service().user(current.id());
+                GddlUser loaded = service.user(current.id());
                 if (loaded != null) current = loaded;
             } catch (GdException e) {
                 log.warn("GDDL user refresh failed: user={}", current.id(), e);
@@ -367,16 +372,16 @@ public class GdCmd implements Cmd {
         }
         ScoreResult score;
         try {
-            score = plugin.service().userScore(current.id(), current.name());
+            score = service.userScore(current.id(), current.name());
         } catch (GdException e) {
             log.warn("GDDL score query failed: user={}", current.id(), e);
             throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));
         }
         if (score.b20().sample() == 0)
             throw new CmdInfoException(GdText.NO_RECORDS.of(ctx.language()));
-        byte[] avatar = plugin.service().avatar(current.id(), current.avatar());
+        byte[] avatar = service.avatar(current.id(), current.avatar());
         RankView view = GdViewMapper.rank(score, all, avatar);
-        ctx.send(plugin.presenter().rank(ctx.language(), view));
+        ctx.send(presenter.rank(ctx.language(), view));
         log.info("GD B20 sent: user={}, sample={}, score={}",
                 current.id(), view.sample(), String.format(Locale.ROOT, "%.2f", view.score()));
     }
@@ -392,7 +397,7 @@ public class GdCmd implements Cmd {
             if (id > 0) {
                 GddlUser user;
                 try {
-                    user = plugin.service().user(id);
+                    user = service.user(id);
                 } catch (GdException e) {
                     log.warn("GDDL user query failed: id={}", id, e);
                     throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));
@@ -402,7 +407,7 @@ public class GdCmd implements Cmd {
         }
         List<GddlUser> users;
         try {
-            users = plugin.service().searchUsers(raw);
+            users = service.searchUsers(raw);
         } catch (GdException e) {
             log.warn("GDDL user search failed: name={}", raw, e);
             throw new CmdWarnException(GdText.GDDL_FAILED.of(ctx.language()));

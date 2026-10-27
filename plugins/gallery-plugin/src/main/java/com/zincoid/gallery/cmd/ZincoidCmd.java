@@ -1,7 +1,7 @@
 package com.zincoid.gallery.cmd;
 
-import com.zincoid.gallery.GalleryPlugin;
 import com.zincoid.gallery.GalleryText;
+import com.zincoid.gallery.service.GalleryResources;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -13,8 +13,8 @@ import com.zincoid.nullbot.platform.persistence.enums.Language;
 @CmdMapping({"Zincoid", "zn", "锌"})
 public class ZincoidCmd extends GalleryImageCmd {
 
-    public ZincoidCmd(GalleryPlugin plugin) {
-        super(plugin, "zincoid");
+    public ZincoidCmd(GalleryResources resources) {
+        super(resources, "zincoid");
     }
 
     // ════ Cmd ═════════════════════

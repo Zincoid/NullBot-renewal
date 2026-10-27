@@ -34,7 +34,7 @@ public class GalleryPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new AnimeCmd(this), new ZincoidCmd(this));
+        return List.of(new AnimeCmd(images()), new ZincoidCmd(images()));
     }
 
     @Override
@@ -60,7 +60,7 @@ public class GalleryPlugin implements Plugin {
      *
      * @return the resource index
      */
-    public GalleryResources images() {
+    GalleryResources images() {
         GalleryResources index = images;
         if (index == null) throw new IllegalStateException("Plugin not started");
         return index;

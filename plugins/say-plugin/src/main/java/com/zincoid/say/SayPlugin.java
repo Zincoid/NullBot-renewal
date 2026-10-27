@@ -32,7 +32,7 @@ public class SayPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new SayCmd(this));
+        return List.of(new SayCmd(context()));
     }
 
     @Override
@@ -51,7 +51,7 @@ public class SayPlugin implements Plugin {
      *
      * @return the plugin context
      */
-    public PluginContext context() {
+    PluginContext context() {
         PluginContext ctx = context;
         if (ctx == null) throw new IllegalStateException("Plugin not started");
         return ctx;

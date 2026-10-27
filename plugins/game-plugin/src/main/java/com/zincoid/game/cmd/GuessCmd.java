@@ -6,11 +6,11 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
-import com.zincoid.game.GamePlugin;
 import com.zincoid.game.GameText;
 import com.zincoid.game.service.GameResources;
 import com.zincoid.nullbot.bot.cmd.input.InputMode;
 import com.zincoid.nullbot.bot.cmd.input.InputResult;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.config.Conf;
@@ -46,7 +46,8 @@ public class GuessCmd implements Cmd {
     private static final double TRANSPARENT_RATIO = 0.75;
     private static final List<String> ALIASES = List.of("Guess", "猜");
 
-    private final GamePlugin plugin;
+    private final PluginContext context;
+    private final GameResources resources;
 
     private final Map<String, Guess> games = new ConcurrentHashMap<>();
 
@@ -55,11 +56,11 @@ public class GuessCmd implements Cmd {
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
         String groupId = event.groupId();
-        String prefix = plugin.context().config().getString(Conf.CMD_PREFIX);
+        String prefix = context.config().getString(Conf.CMD_PREFIX);
         if (args.hasOpt("forfeit", "f")) {
             if (!games.containsKey(groupId))
                 throw new CmdInfoException(GameText.GUESS_NOT_PLAYING.of(ctx.language()));
-            plugin.context().inputs().cancelWait(InputMode.GS, groupId);
+            context.inputs().cancelWait(InputMode.GS, groupId);
             log.info("Guess forfeited: group={}", groupId);
             return;
         }
@@ -89,7 +90,7 @@ public class GuessCmd implements Cmd {
         String pattern = inputPattern(prefix);
         while (guess.times < MAX_RETRIES) {
             guess.times++;
-            List<InputResult> inputs = plugin.context().inputs().request(
+            List<InputResult> inputs = context.inputs().request(
                     InputMode.GS, groupId, pattern, WAIT_TIMEOUT_SECONDS);
             if (inputs.isEmpty() || forfeit.equals(inputs.getFirst().message().trim())) {
                 end(ctx, groupId, guess,
@@ -129,7 +130,7 @@ public class GuessCmd implements Cmd {
 
     private Guess create(CmdContext ctx, CmdArgs args) {
         String keyword = args.rest("").trim();
-        GameResources.Resource resource = plugin.resources().random(keyword);
+        GameResources.Resource resource = resources.random(keyword);
         if (resource == null)
             throw new CmdInfoException(GameText.GUESS_NO_IMAGES.of(ctx.language()));
         return new Guess(resource, resource.character(), crop(ctx, resource));
@@ -227,7 +228,7 @@ public class GuessCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        String prefix = plugin.context().config().getString(Conf.CMD_PREFIX);
+        String prefix = context.config().getString(Conf.CMD_PREFIX);
         return GameText.GUESS_HELP.of(language, prefix, prefix, prefix);
     }
 }

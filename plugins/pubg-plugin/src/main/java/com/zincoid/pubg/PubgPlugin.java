@@ -30,7 +30,7 @@ public class PubgPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new PubgCmd(this));
+        return List.of(new PubgCmd(dataDir()));
     }
 
     @Override
@@ -47,15 +47,14 @@ public class PubgPlugin implements Plugin {
     }
 
     /**
-     * 返回已解压的地图图片路径。
-     * <p>Returns the extracted map image path.</p>
+     * 返回插件数据目录。
+     * <p>Returns the plugin data directory.</p>
      *
-     * @param file the map image filename
-     * @return the map image path
+     * @return the plugin data directory
      */
-    public Path mapPath(String file) {
+    Path dataDir() {
         Path dir = dataDir;
         if (dir == null) throw new IllegalStateException("Plugin not started");
-        return dir.resolve(file);
+        return dir;
     }
 }

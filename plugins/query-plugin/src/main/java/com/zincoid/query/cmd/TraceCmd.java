@@ -13,8 +13,8 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.query.QueryException;
-import com.zincoid.query.QueryPlugin;
 import com.zincoid.query.QueryText;
+import com.zincoid.query.config.QueryConfig;
 import com.zincoid.query.service.TraceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TraceCmd implements Cmd {
 
-    private final QueryPlugin plugin;
+    private final TraceService service;
+    private final QueryConfig config;
 
     // ════ Run ═════════════════════
 
@@ -47,7 +48,7 @@ public class TraceCmd implements Cmd {
     private void handle(CmdContext ctx, String replyId, CmdArgs args) {
         if (replyId == null)
             throw new CmdWarnException(QueryText.TRACE_MISSING_IMAGE.of(ctx.language()));
-        if (plugin.config().sauceNaoApiKey().isBlank())
+        if (config.sauceNaoApiKey().isBlank())
             throw new CmdWarnException(QueryText.TRACE_NO_API_KEY.of(ctx.language()));
         int count = count(ctx, args);
         MsgDetail detail;
@@ -67,7 +68,7 @@ public class TraceCmd implements Cmd {
 
         List<TraceService.TraceResult> results;
         try {
-            results = plugin.trace().search(image.url(), count);
+            results = service.search(image.url(), count);
         } catch (QueryException e) {
             log.warn("Trace query failed", e);
             throw new CmdWarnException(QueryText.TRACE_FAILED.of(ctx.language()));

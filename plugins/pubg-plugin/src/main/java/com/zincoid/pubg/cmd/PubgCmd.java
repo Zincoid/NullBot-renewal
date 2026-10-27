@@ -9,7 +9,6 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
-import com.zincoid.pubg.PubgPlugin;
 import com.zincoid.pubg.PubgText;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,7 @@ public class PubgCmd implements Cmd {
 
     public static final Map<String, String> MAPS = maps();
 
-    private final PubgPlugin plugin;
+    private final Path dataDir;
 
     // ════ Run ═════════════════════
 
@@ -55,7 +54,7 @@ public class PubgCmd implements Cmd {
         String file = MAPS.get(name.toLowerCase(Locale.ROOT));
         if (file == null)
             throw new CmdWarnException(PubgText.UNSUPPORTED_MAP.of(ctx.language(), name));
-        Path path = plugin.mapPath(file);
+        Path path = dataDir.resolve(file);
         ctx.send(MsgContent.builder().image(path.toUri().toString()).build());
         log.info("PUBG map sent: {}", file);
     }

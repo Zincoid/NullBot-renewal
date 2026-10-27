@@ -1,12 +1,12 @@
 package com.zincoid.hello.cmd;
 
-import com.zincoid.hello.HelloPlugin;
 import com.zincoid.hello.HelloText;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -24,7 +24,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class HelloCmd implements Cmd {
 
-    private final HelloPlugin plugin;
+    private final PluginContext context;
+    private final String pluginId;
+    private final String version;
 
     // ════ Run ═════════════════════
 
@@ -36,7 +38,7 @@ public class HelloCmd implements Cmd {
             return;
         }
         ctx.send("Hello from plugin! Data: "
-                + plugin.context().dataDir());
+                + context.dataDir());
     }
 
     // ════ Image ═══════════════════
@@ -44,9 +46,9 @@ public class HelloCmd implements Cmd {
     private void send(CmdContext ctx) {
         byte[] png;
         try {
-            png = plugin.context().renderer().template("hello.jte", Map.of(
+            png = context.renderer().template("hello.jte", Map.of(
                     "title", "Hello from plugin!",
-                    "subtitle", plugin.id() + " " + plugin.version()
+                    "subtitle", pluginId + " " + version
             ));
         } catch (RuntimeException e) {
             log.warn("Hello image render failed", e);

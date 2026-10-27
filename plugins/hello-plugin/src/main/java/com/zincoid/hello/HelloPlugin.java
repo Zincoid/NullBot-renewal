@@ -34,7 +34,7 @@ public class HelloPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new HelloCmd(this));
+        return List.of(new HelloCmd(context(), id(), version()));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class HelloPlugin implements Plugin {
      *
      * @return the plugin context
      */
-    public PluginContext context() {
+    PluginContext context() {
         PluginContext value = context;
         if (value == null) throw new IllegalStateException("Plugin not started");
         return value;

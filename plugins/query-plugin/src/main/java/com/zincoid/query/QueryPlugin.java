@@ -38,7 +38,10 @@ public class QueryPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new AaCmd(this), new PrtsCmd(this), new TraceCmd(this));
+        return List.of(
+                new AaCmd(aa(), config()),
+                new PrtsCmd(prts()),
+                new TraceCmd(trace(), config()));
     }
 
     @Override
@@ -67,7 +70,7 @@ public class QueryPlugin implements Plugin {
      *
      * @return the AA service
      */
-    public AaService aa() {
+    AaService aa() {
         AaService service = aa;
         if (service == null) throw new IllegalStateException("Plugin not started");
         return service;
@@ -79,7 +82,7 @@ public class QueryPlugin implements Plugin {
      *
      * @return the PRTS service
      */
-    public PrtsService prts() {
+    PrtsService prts() {
         PrtsService service = prts;
         if (service == null) throw new IllegalStateException("Plugin not started");
         return service;
@@ -91,7 +94,7 @@ public class QueryPlugin implements Plugin {
      *
      * @return the trace service
      */
-    public TraceService trace() {
+    TraceService trace() {
         TraceService service = trace;
         if (service == null) throw new IllegalStateException("Plugin not started");
         return service;
@@ -103,7 +106,7 @@ public class QueryPlugin implements Plugin {
      *
      * @return the plugin configuration
      */
-    public QueryConfig config() {
+    QueryConfig config() {
         QueryConfig loaded = config;
         if (loaded == null) throw new IllegalStateException("Plugin not started");
         return loaded;

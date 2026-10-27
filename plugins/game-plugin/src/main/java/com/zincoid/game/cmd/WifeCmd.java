@@ -1,6 +1,5 @@
 package com.zincoid.game.cmd;
 
-import com.zincoid.game.GamePlugin;
 import com.zincoid.game.GameText;
 import com.zincoid.game.service.GameResources;
 import com.zincoid.nullbot.bot.cmd.Cmd;
@@ -10,6 +9,7 @@ import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -33,7 +33,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class WifeCmd implements Cmd {
 
-    private final GamePlugin plugin;
+    private final PluginContext context;
+    private final GameResources resources;
 
     private final Map<String, Pick> memberPicks = new ConcurrentHashMap<>();
     private final Map<String, Pick> animePicks = new ConcurrentHashMap<>();
@@ -108,7 +109,7 @@ public class WifeCmd implements Cmd {
     private void setAnime(CmdContext ctx, GroupMsgEvent event, String keyword) {
         if (keyword.isBlank())
             throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED));
-        GameResources.Resource wife = plugin.resources().random(keyword);
+        GameResources.Resource wife = resources.random(keyword);
         if (wife == null)
             throw new CmdInfoException(GameText.WIFE_NO_RESULT.of(ctx.language()));
         Pick pick = new Pick(wife.path().toString(), wife.character(),
@@ -132,7 +133,7 @@ public class WifeCmd implements Cmd {
     // ════ Helpers ═════════════════
 
     private void requireManager(CmdContext ctx, String userId) {
-        if (plugin.context().users().getAccess(userId).getValue() < Access.MANAGER.getValue())
+        if (context.users().getAccess(userId).getValue() < Access.MANAGER.getValue())
             throw new CmdWarnException(GameText.WIFE_NOT_ALLOWED.of(ctx.language()));
     }
 

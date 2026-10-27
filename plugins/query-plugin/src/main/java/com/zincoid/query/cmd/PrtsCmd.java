@@ -9,8 +9,8 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.query.QueryException;
-import com.zincoid.query.QueryPlugin;
 import com.zincoid.query.QueryText;
+import com.zincoid.query.service.PrtsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
@@ -31,7 +31,7 @@ public class PrtsCmd implements Cmd {
 
     private static final int MAX_TEXT = 1800;
 
-    private final QueryPlugin plugin;
+    private final PrtsService service;
 
     // ════ Run ═════════════════════
 
@@ -62,7 +62,7 @@ public class PrtsCmd implements Cmd {
 
         Document document;
         try {
-            document = plugin.prts().document(keyword);
+            document = service.document(keyword);
         } catch (QueryException e) {
             log.warn("PRTS query failed: {}", keyword, e);
             throw new CmdWarnException(QueryText.PRTS_QUERY_FAILED.of(ctx.language()));

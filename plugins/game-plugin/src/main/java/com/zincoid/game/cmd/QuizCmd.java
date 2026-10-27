@@ -6,10 +6,10 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
-import com.zincoid.game.GamePlugin;
 import com.zincoid.game.GameText;
 import com.zincoid.nullbot.bot.cmd.input.InputMode;
 import com.zincoid.nullbot.bot.cmd.input.InputResult;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
@@ -56,7 +56,7 @@ public class QuizCmd implements Cmd {
             2. Do not use LaTeX for formulas.
             3. Write the question and options in %s.""";
 
-    private final GamePlugin plugin;
+    private final PluginContext context;
 
     private final Set<String> inGame = ConcurrentHashMap.newKeySet();
 
@@ -74,7 +74,7 @@ public class QuizCmd implements Cmd {
             String question = GameText.QUIZ_QUESTION.of(
                     ctx.language(), data.question(), data.timeout());
             ctx.send(MsgContent.builder().at(userId).text(question).build());
-            List<InputResult> inputs = plugin.context().inputs().request(
+            List<InputResult> inputs = context.inputs().request(
                     InputMode.PS, userId, "[A-Za-z]", data.timeout());
             if (inputs.isEmpty()) {
                 ctx.send(GameText.QUIZ_TIMEOUT.of(
@@ -96,7 +96,7 @@ public class QuizCmd implements Cmd {
         String language = GameText.QUIZ_LANGUAGE_NAME.of(ctx.language());
         ModelRes res;
         try {
-            res = plugin.context().model().invoke(ModelReq.of(
+            res = context.model().invoke(ModelReq.of(
                     List.of(AiMessage.system(PROMPT.formatted(topic, language))),
                     Effort.HIGH,
                     MAX_TOKENS));
