@@ -3,6 +3,7 @@ package com.zincoid.say;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
+import com.zincoid.say.cmd.SayCmd;
 
 import java.util.List;
 
@@ -39,13 +40,18 @@ public class SayPlugin implements Plugin {
         this.context = context;
     }
 
+    @Override
+    public void stop() {
+        this.context = null;
+    }
+
     /**
      * 返回插件上下文。
      * <p>Returns the plugin context.</p>
      *
      * @return the plugin context
      */
-    PluginContext context() {
+    public PluginContext context() {
         PluginContext ctx = context;
         if (ctx == null) throw new IllegalStateException("Plugin not started");
         return ctx;

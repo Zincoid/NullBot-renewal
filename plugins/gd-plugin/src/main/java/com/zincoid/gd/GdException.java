@@ -1,8 +1,8 @@
 package com.zincoid.gd;
 
 /**
- * GD 插件内部异常：网络请求、数据解析或服务未就绪。
- * <p>Internal GD plugin exception: network failures, parse failures, or an unavailable service.</p>
+ * GD 插件异常：网络请求或数据解析失败。
+ * <p>GD plugin exception: network or data parsing failures.</p>
  */
 public class GdException extends RuntimeException {
 

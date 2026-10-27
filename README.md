@@ -76,6 +76,8 @@ java -jar launcher/target/launcher-stdin.jar
 
 插件内用户可见文案放在插件自己的 `XxxText` 枚举中，中文与英文成对维护，通过 `of(Language)` 选取当前语言；可参考 `plugins/gd-plugin` 的 `GdText`。
 
+插件源码统一按以下结构组织：根包只放 `XxxPlugin`、`XxxText` 与可选的 `XxxException`；指令统一放在 `cmd` 子包；配置、服务、模型、渲染等按需放入 `config`、`service`、`model`、`render` 子包，单类插件不建空包。
+
 | `apiVersion()` | 能力 |
 | --- | --- |
 | `1`（默认） | 指令 |

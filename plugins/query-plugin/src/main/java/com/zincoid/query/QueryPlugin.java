@@ -3,12 +3,13 @@ package com.zincoid.query;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
-import com.zincoid.query.aa.AaCmd;
-import com.zincoid.query.aa.AaService;
-import com.zincoid.query.prts.PrtsCmd;
-import com.zincoid.query.prts.PrtsService;
-import com.zincoid.query.trace.TraceCmd;
-import com.zincoid.query.trace.TraceService;
+import com.zincoid.query.cmd.AaCmd;
+import com.zincoid.query.cmd.PrtsCmd;
+import com.zincoid.query.cmd.TraceCmd;
+import com.zincoid.query.config.QueryConfig;
+import com.zincoid.query.service.AaService;
+import com.zincoid.query.service.PrtsService;
+import com.zincoid.query.service.TraceService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -68,7 +69,7 @@ public class QueryPlugin implements Plugin {
      */
     public AaService aa() {
         AaService service = aa;
-        if (service == null) throw new QueryException("Plugin not started");
+        if (service == null) throw new IllegalStateException("Plugin not started");
         return service;
     }
 
@@ -80,7 +81,7 @@ public class QueryPlugin implements Plugin {
      */
     public PrtsService prts() {
         PrtsService service = prts;
-        if (service == null) throw new QueryException("Plugin not started");
+        if (service == null) throw new IllegalStateException("Plugin not started");
         return service;
     }
 
@@ -92,7 +93,7 @@ public class QueryPlugin implements Plugin {
      */
     public TraceService trace() {
         TraceService service = trace;
-        if (service == null) throw new QueryException("Plugin not started");
+        if (service == null) throw new IllegalStateException("Plugin not started");
         return service;
     }
 
@@ -104,7 +105,7 @@ public class QueryPlugin implements Plugin {
      */
     public QueryConfig config() {
         QueryConfig loaded = config;
-        if (loaded == null) throw new QueryException("Plugin not started");
+        if (loaded == null) throw new IllegalStateException("Plugin not started");
         return loaded;
     }
 }

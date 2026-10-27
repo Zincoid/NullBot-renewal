@@ -1,5 +1,9 @@
 package com.zincoid.game;
 
+import com.zincoid.game.cmd.GuessCmd;
+import com.zincoid.game.cmd.QuizCmd;
+import com.zincoid.game.cmd.WifeCmd;
+import com.zincoid.game.service.GameResources;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
@@ -53,13 +57,19 @@ public class GamePlugin implements Plugin {
         log.info("Game resources: {}", dataDir);
     }
 
+    @Override
+    public void stop() {
+        this.resources = null;
+        this.context = null;
+    }
+
     /**
      * 返回插件上下文。
      * <p>Returns the plugin context.</p>
      *
      * @return the plugin context
      */
-    PluginContext context() {
+    public PluginContext context() {
         PluginContext ctx = context;
         if (ctx == null) throw new IllegalStateException("Plugin not started");
         return ctx;
@@ -71,7 +81,7 @@ public class GamePlugin implements Plugin {
      *
      * @return the resource index
      */
-    GameResources resources() {
+    public GameResources resources() {
         GameResources index = resources;
         if (index == null) throw new IllegalStateException("Plugin not started");
         return index;

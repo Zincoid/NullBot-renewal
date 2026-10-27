@@ -2,6 +2,7 @@ package com.zincoid.sb6657;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
+import com.zincoid.sb6657.cmd.SB6657Cmd;
 
 import java.util.List;
 

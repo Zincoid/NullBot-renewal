@@ -1,14 +1,15 @@
 package com.zincoid.gd;
 
-import com.zincoid.nullbot.bot.cmd.Cmd;
-import com.zincoid.nullbot.bot.plugin.Plugin;
-import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.gd.binding.GdBindings;
+import com.zincoid.gd.cmd.GdCmd;
 import com.zincoid.gd.config.GdConfig;
 import com.zincoid.gd.render.GdImagePresenter;
 import com.zincoid.gd.render.GdPresenter;
 import com.zincoid.gd.render.GdTextPresenter;
 import com.zincoid.gd.service.GdService;
+import com.zincoid.nullbot.bot.cmd.Cmd;
+import com.zincoid.nullbot.bot.plugin.Plugin;
+import com.zincoid.nullbot.bot.plugin.PluginContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -80,9 +81,9 @@ public class GdPlugin implements Plugin {
      *
      * @return the plugin context
      */
-    PluginContext context() {
+    public PluginContext context() {
         PluginContext value = context;
-        if (value == null) throw new GdException("Plugin not started");
+        if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }
 
@@ -92,9 +93,9 @@ public class GdPlugin implements Plugin {
      *
      * @return the data service
      */
-    GdService service() {
+    public GdService service() {
         GdService value = service;
-        if (value == null) throw new GdException("Plugin not started");
+        if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }
 
@@ -104,9 +105,9 @@ public class GdPlugin implements Plugin {
      *
      * @return the output presenter
      */
-    GdPresenter presenter() {
+    public GdPresenter presenter() {
         GdPresenter value = presenter;
-        if (value == null) throw new GdException("Plugin not started");
+        if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }
 
@@ -116,9 +117,9 @@ public class GdPlugin implements Plugin {
      *
      * @return the binding store
      */
-    GdBindings bindings() {
+    public GdBindings bindings() {
         GdBindings value = bindings;
-        if (value == null) throw new GdException("Plugin not started");
+        if (value == null) throw new IllegalStateException("Plugin not started");
         return value;
     }
 }

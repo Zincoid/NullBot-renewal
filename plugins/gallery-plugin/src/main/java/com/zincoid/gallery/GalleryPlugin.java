@@ -1,5 +1,8 @@
 package com.zincoid.gallery;
 
+import com.zincoid.gallery.cmd.AnimeCmd;
+import com.zincoid.gallery.cmd.ZincoidCmd;
+import com.zincoid.gallery.service.GalleryResources;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
@@ -46,13 +49,18 @@ public class GalleryPlugin implements Plugin {
         log.info("Gallery resources: {}", dataDir);
     }
 
+    @Override
+    public void stop() {
+        this.images = null;
+    }
+
     /**
      * 返回图库资源索引。
      * <p>Returns the gallery resource index.</p>
      *
      * @return the resource index
      */
-    GalleryResources images() {
+    public GalleryResources images() {
         GalleryResources index = images;
         if (index == null) throw new IllegalStateException("Plugin not started");
         return index;

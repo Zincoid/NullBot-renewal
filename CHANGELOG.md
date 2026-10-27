@@ -45,6 +45,7 @@
 - 抽取 emoji 字体分段到 core `SvgText.fontSegments`，将 Noto Emoji 移入 core 字体注册；`Say` 模板改用 `SvgText.Segment`。
 - `Usage` 卡片在计数上方显示用户昵称与用户 ID，昵称过长时自动截断并保留 ID。
 - 重构 `gd-plugin` 包结构：配置、数据服务、视图模型、渲染与绑定按层拆分，`GdText`、`GdException` 保留在根包。
+- 统一全部插件的代码结构：根包保留插件入口、文案与异常，指令移入 `cmd` 子包，配置、服务、模型、渲染按需分层；统一插件生命周期访问器、`stop()` 清理与指令构造器写法。
 - 使用 `SB6657Exception` 统一 `sb6657-plugin` 的接口请求与响应解析错误。
 - `gd-plugin` 排除未使用的 Netty native QUIC 依赖，并在 shade 中合并 LICENSE/NOTICE 与 Netty 版本元数据，消除重复资源警告。
 - 对齐 GD 搜索与 B20 列表的右侧列，并收紧关卡详情卡片底部留白。

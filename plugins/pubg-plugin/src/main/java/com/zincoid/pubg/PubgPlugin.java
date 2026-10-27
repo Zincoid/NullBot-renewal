@@ -4,6 +4,7 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.plugin.PluginResources;
+import com.zincoid.pubg.cmd.PubgCmd;
 
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -40,6 +41,11 @@ public class PubgPlugin implements Plugin {
         this.dataDir = dir;
     }
 
+    @Override
+    public void stop() {
+        this.dataDir = null;
+    }
+
     /**
      * 返回已解压的地图图片路径。
      * <p>Returns the extracted map image path.</p>
@@ -47,7 +53,9 @@ public class PubgPlugin implements Plugin {
      * @param file the map image filename
      * @return the map image path
      */
-    Path mapPath(String file) {
-        return dataDir.resolve(file);
+    public Path mapPath(String file) {
+        Path dir = dataDir;
+        if (dir == null) throw new IllegalStateException("Plugin not started");
+        return dir.resolve(file);
     }
 }
