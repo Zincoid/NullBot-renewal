@@ -1,0 +1,10 @@
+# QQ 官方机器人适配器默认配置，由选中 adapter-qq 的 launcher 构建加载
+qq:
+  app-id: ${nullbot.qq.app-id:}
+  app-secret: ${nullbot.qq.app-secret:}
+  api-base: ${nullbot.qq.api-base:}
+  token-url: ${nullbot.qq.token-url:https://api.bot.qq.com/app/getAppAccessToken}
+  intents: ${nullbot.qq.intents:33554432}
+  shard: ${nullbot.qq.shard:0}
+  shard-count: ${nullbot.qq.shard-count:1}
+  text-limit: ${nullbot.qq.text-limit:1800}

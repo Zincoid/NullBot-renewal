@@ -6,7 +6,9 @@
 # ══════════════════════════════════ #
 
 nullbot:
-  # ─── 启动 ─────────── #
+  # ═══ 启动 ═══════════ #
+
+  # ─── 端口 ─────────── #
   port: 0
 
   # ─── 文档 ─────────── #
@@ -22,7 +24,9 @@ nullbot:
     path: ./logs/output.log
     level: INFO
 
-  # ─── 数据 ─────────── #
+  # ═══ 数据 ═══════════ #
+
+  # ─── Db ──────────── #
   db:
     type: sqlite
     sqlite:
@@ -38,7 +42,14 @@ nullbot:
   file:
     root: ./files
 
-  # ─── 连接 ─────────── #
+  # ─── 插件 ─────────── #
+  plugin:
+    enabled: true
+    dir: ./plugins
+
+  # ═══ 适配 ═══════════ #
+
+  # ─── Shiro ───────── #
   shiro:
     token:
     server:
@@ -48,7 +59,11 @@ nullbot:
       enable: false
       url:
 
-  # ─── 插件 ─────────── #
-  plugin:
-    enabled: false
-    dir: ./plugins
+  # ─── QQ Official ─── #
+  qq:
+    app-id:
+    app-secret:
+    api-base:
+    token-url:
+
+  # ═══════════════════ #

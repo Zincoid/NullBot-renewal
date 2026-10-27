@@ -4,7 +4,7 @@
 
 ## 特性
 
-- **适配器解耦**：业务只依赖 `spi` 的事件模型与 `BotClient`/`BotServer` 端口，内置 Shiro（OneBot 11）与 stdin 两种适配器。
+- **适配器解耦**：业务只依赖 `spi` 的事件模型与 `BotClient`/`BotServer` 端口，内置 Shiro（OneBot 11）、QQ 官方机器人与 stdin 三种适配器。
 - **指令框架**：可配置前缀、别名、限权、限流、关键词触发、输入等待、帮助与调用统计。
 - **AI 对话**：兼容 OpenAI 接口；群聊 @、私聊、戳一戳均可触发，支持群/用户级提示词、推理强度、注入防护与工具调用。
 - **消息能力**：图片/视频/音频/语录收藏与随机发送、入退群通知、防撤回、聊天历史、自动聊天。
@@ -18,7 +18,7 @@
 | --- | --- |
 | `spi` | 事件模型与机器人端口 |
 | `core` | 指令、消息总线、AI、控制台、持久化、图片渲染 |
-| `adapters` | `adapter-shiro`、`adapter-stdin` |
+| `adapters` | `adapter-shiro`、`adapter-qq`、`adapter-stdin` |
 | `launcher` | Spring Boot 入口与打包 |
 | `plugins` | 随仓库分发的外部插件 |
 
@@ -44,6 +44,15 @@ Console UI: http://localhost:<port>/console/ui?token=<token>
 java -jar launcher/target/launcher-stdin.jar
 ```
 
+QQ 官方机器人使用 WebSocket 接入，需要先在 [QQ 开放平台](https://bot.q.qq.com/) 创建机器人并取得 AppID/AppSecret：
+
+```bash
+./mvnw -P adapter-qq package
+java -jar launcher/target/launcher-qq.jar \
+  --nullbot.qq.app-id=<AppID> \
+  --nullbot.qq.app-secret=<AppSecret>
+```
+
 生产环境建议使用 systemd 或 screen 托管进程，并配置数据库、日志与控制台令牌。
 
 ## 配置
@@ -63,6 +72,11 @@ java -jar launcher/target/launcher-stdin.jar
 | `nullbot.shiro.token` | 空 | Shiro 适配器访问令牌 |
 | `nullbot.shiro.server.enable` / `url` | `true` / `/ws` | 反向 WS |
 | `nullbot.shiro.client.enable` / `url` | `false` / 空 | 正向 WS，启用时需关闭反向 |
+| `nullbot.qq.app-id` / `app-secret` | 空 | QQ 官方机器人 AppID 与 AppSecret |
+| `nullbot.qq.api-base` | `https://api.bot.qq.com` | QQ 官方 OpenAPI 地址 |
+| `nullbot.qq.token-url` | `https://api.bot.qq.com/app/getAppAccessToken` | Access token 获取地址 |
+| `nullbot.qq.intents` | `33554432` | 事件订阅位掩码（群聊与 C2C） |
+| `nullbot.qq.text-limit` | `1800` | 单条文本的最大 Unicode code point 数 |
 | `nullbot.plugin.enabled` / `dir` | `false` / `./plugins` | 外部插件开关与目录 |
 
 MySQL 需手动执行 `schema-mysql.sql`。
@@ -70,7 +84,21 @@ MySQL 需手动执行 `schema-mysql.sql`。
 ### 适配器
 
 - `adapter-shiro`（默认）：OneBot 11 实现（如 NapCat）通过反向 WS 连接 `/ws`。
+- `adapter-qq`：QQ 官方机器人（`bot.q.qq.com`）WebSocket 接入，支持 QQ 群与 C2C 私聊；产物为 `launcher-qq.jar`。
 - `adapter-stdin`：从标准输入读取事件，便于调试。
+
+QQ 官方机器人适配器只使用被动回复。平台已停用主动推送，因此群聊回复需在收到消息后 5 分钟内完成（每条消息最多 5 条），C2C 回复需在 60 分钟内完成（最多 4 条）。群内消息默认只有 @机器人 时才会收到；全量群消息需要在开放平台和群设置中授权。
+
+受官方接口限制：
+
+- 群信息、群成员列表为白名单/内邀能力，普通机器人通常无法获取；成员没有头像，`#Usage`、`#Say` 等依赖头像的卡片可能失败，`#Wife` 成员模式可能没有可选成员。
+- 没有群消息历史；引用回复、`#Save`/`#Recall` 依赖被引用消息的场景受限。适配器会缓存收到的消息，供 `#Save --id=<消息ID>` 等使用。
+- 不处理入退群、戳一戳、防撤回等通知类事件；主动消息与入退群通知受平台限制。
+- 图片上传支持 png/jpg，视频 mp4，语音 silk/mp3/wav；本地文件大于 5 MB 首版不支持；WebP/GIF 可能上传失败。
+- 文本中的 `@用户` 不会高亮，适配器以 `@<openid>` 形式显示；真正的群内 @ 需要 Markdown，首版不支持。
+- 文本中包含 URL 时需要在开放平台配置消息 URL 白名单，否则平台会拒绝发送。
+- 群与用户 ID 使用平台 openid 体系，不是 QQ 号；不同机器人的 openid 不通用。
+- 当前 v2 使用统一 `api.bot.qq.com`，不再提供旧版 sandbox 域名；测试用户、测试群和 IP 白名单请在开放平台后台配置。`api-base` 仅用于特殊网络/旧域名兼容。
 
 ## 插件
 

@@ -78,5 +78,18 @@
                 <finalName>launcher-stdin</finalName>
             </build>
         </profile>
+        <profile>
+            <id>adapter-qq</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.zincoid</groupId>
+                    <artifactId>adapter-qq</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <finalName>launcher-qq</finalName>
+            </build>
+        </profile>
     </profiles>
 </project>

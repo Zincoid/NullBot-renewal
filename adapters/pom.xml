@@ -15,6 +15,7 @@
     <modules>
         <module>adapter-shiro</module>
         <module>adapter-stdin</module>
+        <module>adapter-qq</module>
     </modules>
 
     <dependencies>

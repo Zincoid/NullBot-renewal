@@ -35,6 +35,8 @@ public class CmdParser {
     /**
      * 把事件解析为指令请求。
      * <p>Parses an event into a command request.</p>
+     * <p>群聊消息先尝试解析指令，未匹配指令且 @ 了机器人时进入 AI 对话。</p>
+     * <p>Group messages are parsed as commands first and fall back to AI chat when the bot is mentioned.</p>
      *
      * @param event the inbound event
      * @return the command request, or null when the event is not a command
@@ -42,10 +44,10 @@ public class CmdParser {
     public CmdRequest parse(BotEvent event) {
         return switch (event) {
             case GroupMsgEvent e -> {
-                boolean at = e.at();
-                yield at
-                        ? new CmdRequest(CHAT_CMD_NAME, List.of())
-                        : msg(e.content());
+                CmdRequest req = msg(e.content());
+                yield req != null
+                        ? req
+                        : e.at() ? new CmdRequest(CHAT_CMD_NAME, List.of()) : null;
             }
             case PrivateMsgEvent e -> {
                 CmdRequest req = msg(e.content());
@@ -62,8 +64,10 @@ public class CmdParser {
     // ════ Helpers ═════════════════
 
     /**
-     * 判断消息是否以配置的指令前缀开头，回复消息只检查引用后的文本段。
-     * <p>Whether the message starts with the configured command prefix; for reply messages only the text after the quote is checked.</p>
+     * 判断消息是否以配置的指令前缀开头。
+     * <p>Whether the message starts with the configured command prefix.</p>
+     * <p>引用段和开头的提及段会被跳过。</p>
+     * <p>Leading quote and mention segments are skipped.</p>
      *
      * @param content the message content
      * @return true when the message starts with the command prefix
@@ -92,6 +96,7 @@ public class CmdParser {
     private static String cmdText(MsgContent content) {
         List<MsgSegment> segments = content.segments();
         int i = !segments.isEmpty() && segments.getFirst() instanceof MsgSegment.Reply ? 1 : 0;
+        while (i < segments.size() && segments.get(i) instanceof MsgSegment.At) i++;
         if (i >= segments.size() || !(segments.get(i) instanceof MsgSegment.Text(String text))) return null;
         return text;
     }

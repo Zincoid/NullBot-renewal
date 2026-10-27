@@ -72,5 +72,5 @@ bot:
   cmd:
     ignore-case: true
   plugin:
-    enabled: ${nullbot.plugin.enabled:false}
+    enabled: ${nullbot.plugin.enabled:true}
     dir: ${nullbot.plugin.dir:./plugins}
