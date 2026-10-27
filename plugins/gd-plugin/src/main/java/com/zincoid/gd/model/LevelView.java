@@ -45,4 +45,10 @@ public record LevelView(
         boolean gddlFailed,
         byte[] thumbnail
 ) {
+
+    /**
+     * GD 服务端 object count 字段的 16 位上限。
+     * <p>The 16-bit cap of the GD server object-count field.</p>
+     */
+    public static final int OBJECT_COUNT_CAP = 65_535;
 }

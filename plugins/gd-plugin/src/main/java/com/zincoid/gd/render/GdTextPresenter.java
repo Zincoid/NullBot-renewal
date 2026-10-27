@@ -92,7 +92,7 @@ public final class GdTextPresenter implements GdPresenter {
         body.append(GdText.LENGTH.of(language)).append(": ")
                 .append(view.length()).append(" · ")
                 .append(GdText.OBJECTS.of(language)).append(": ")
-                .append(number(view.objects())).append('\n');
+                .append(objectCount(view.objects())).append('\n');
         if (view.tier() != null) {
             body.append("GDDL: ").append(GdText.TIER.of(language)).append(" ")
                     .append(view.tier())
@@ -126,6 +126,10 @@ public final class GdTextPresenter implements GdPresenter {
 
     private static String number(int value) {
         return String.format(Locale.ROOT, "%,d", value);
+    }
+
+    private static String objectCount(int value) {
+        return number(value) + (value == LevelView.OBJECT_COUNT_CAP ? "+" : "");
     }
 
     private static String decimal(Double value) {

@@ -106,7 +106,7 @@ public final class GdImagePresenter implements GdPresenter {
                             SvgText.escape(view.length())),
                     new StatCard(702, 254,
                             statLabel(ICON_OBJECTS, GdText.OBJECTS, language),
-                            number(view.objects()))
+                            objectCount(view.objects()))
             );
             List<SvgPositionedLine> descriptionLines = description(view);
             Map<String, Object> model = Map.ofEntries(
@@ -303,6 +303,10 @@ public final class GdImagePresenter implements GdPresenter {
 
     private static String number(int value) {
         return String.format(Locale.ROOT, "%,d", value);
+    }
+
+    private static String objectCount(int value) {
+        return number(value) + (value == LevelView.OBJECT_COUNT_CAP ? "+" : "");
     }
 
     private static String decimal(Double value) {
