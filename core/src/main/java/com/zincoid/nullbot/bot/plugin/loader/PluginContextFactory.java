@@ -9,6 +9,7 @@ import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.render.JteSvgRenderer;
 import com.zincoid.nullbot.module.render.PluginRenderer;
@@ -38,6 +39,7 @@ public class PluginContextFactory {
     private final UserSettingService userSettings;
     private final QuoteService quotes;
     private final LanguageService languages;
+    private final HttpService http;
     private final SvgRasterizer rasterizer;
 
     /**
@@ -57,6 +59,7 @@ public class PluginContextFactory {
                 groupSettings, userSettings,
                 quotes,
                 languages,
+                http,
                 renderer,
                 properties,
                 dataDir

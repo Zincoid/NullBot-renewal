@@ -7,6 +7,7 @@ import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.render.PluginRenderer;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
@@ -99,6 +100,16 @@ public interface PluginContext {
      * @return the language service
      */
     LanguageService languages();
+
+    /**
+     * 宿主 HTTP 服务。
+     * <p>Host HTTP service.</p>
+     * <p>使用此能力需要插件 API 5。</p>
+     * <p>Using this capability requires plugin API 5.</p>
+     *
+     * @return the host HTTP service
+     */
+    HttpService http();
 
     /**
      * 插件图片渲染器，可渲染原始 SVG 或预编译 JTE 模板。
