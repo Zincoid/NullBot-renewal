@@ -119,7 +119,7 @@ public class MessageStoreMiddleware implements Middleware {
             File saved = fileService.save(userId, BizType.CHAT, url, file);
             return String.valueOf(saved.getId());
         } catch (RuntimeException e) {
-            log.warn("Failed to store attachment: {}", url, e);
+            log.warn("Failed to store attachment: user={}", userId, e);
             return null;
         }
     }

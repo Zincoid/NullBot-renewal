@@ -55,7 +55,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
         try (InputStream in = resp.body()) {
             return store(userId, original, in, type, null);
         } catch (IOException e) {
-            throw new FileException("Failed to read download body: " + url, e);
+            throw new FileException("Failed to read download body", e);
         }
     }
 
@@ -229,21 +229,21 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
                     .GET()
                     .build();
         } catch (IllegalArgumentException e) {
-            throw new FileException("Malformed url: " + url, e);
+            throw new FileException("Malformed URL", e);
         }
         try {
             HttpResponse<InputStream> resp = httpClient.send(
                     request, HttpResponse.BodyHandlers.ofInputStream());
             if (resp.statusCode() / 100 != 2) {
                 IOUtils.closeQuietly(resp.body());
-                throw new FileException("Download failed: status=" + resp.statusCode() + ", url=" + url);
+                throw new FileException("Download failed: status=" + resp.statusCode());
             }
             return resp;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new FileException("Download interrupted: " + url, e);
+            throw new FileException("Download interrupted", e);
         } catch (IOException e) {
-            throw new FileException("Download failed: " + url, e);
+            throw new FileException("Download failed", e);
         }
     }
 }

@@ -25,6 +25,7 @@
 
 - 修复控制台实时日志连接静默断开后仍显示“已连接”、且不会自动重连的问题；前端现在检测 45 秒无数据（含 SSE 心跳）会中止连接并触发重连。
 - 宿主 HTTP 服务的请求失败消息不再拼接完整 URL，避免查询参数中的 API key 等敏感信息进入日志。
+- 文件下载与聊天附件保存失败时不再拼接完整 URL，避免带签名参数的媒体地址进入日志。
 
 ### Changed
 
@@ -40,6 +41,7 @@
 - 插件配置改由宿主在插件启动前自动解压，并通过 `PluginContext.properties()` 提供只读配置快照；插件只保留类型化映射，GD/Query 配置移除环境变量回退，插件 API 升至 4。
 - `GdHttp`、Query、SB6657、Symmetry、Say 改用宿主 HTTP 服务，移除各自的 JDK `HttpClient` 或 `HttpUtils` 导入；插件 API 升至 5。
 - 插件 HTTP 请求统一由各自的 `XxxHttp` 适配器承载（`GdHttp`、`QueryHttp`、`SB6657Http`、`SymmetryHttp`、`SayHttp`），命令不再直接构造 `HttpService.Options`；`HttpService.post` 与 `Options.withHeaders` 作为通用能力保留。
+- `UsageCmd` 的头像获取改用宿主 `HttpService`，移除仅剩此一处使用的 `HttpUtils`。
 - 关卡详情卡片的 `Rt.` / `Enj.` 标签加粗并使用次级色，评分值改为高亮斜体，`Enj.` 数值带 `/10` 后缀；同时拉开两项间距。
 - 关卡详情卡片描述区右下角增加两个浅色平行四边形 `//` 背景装饰，底部与 GDDL 面板对齐。
 - 关卡详情卡片统计数值按类型着色：下载绿色、点赞红色、长度蓝色、物体黄色；GDDL 有数据时长度显示具体时长，如 `Medium · 1:52`。

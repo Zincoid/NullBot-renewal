@@ -9,11 +9,11 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.render.RenderService;
 import com.zincoid.nullbot.module.system.UsageService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
-import com.zincoid.nullbot.platform.util.HttpUtils;
 import com.zincoid.nullbot.platform.util.MimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +33,7 @@ public class UsageCmd implements Cmd {
 
     private final UsageService usageService;
     private final RenderService renderService;
+    private final HttpService http;
 
     // ════ Run ═════════════════════
 
@@ -85,7 +86,10 @@ public class UsageCmd implements Cmd {
     private byte[] avatar(UserInfo info) {
         if (info.avatar() == null || info.avatar().isBlank()) return null;
         try {
-            byte[] bytes = HttpUtils.getBytes(info.avatar(), MAX_AVATAR_BYTES);
+            HttpService.Response response = http.get(info.avatar(),
+                    HttpService.Options.defaults().withMaxBytes(MAX_AVATAR_BYTES));
+            if (!response.ok()) return null;
+            byte[] bytes = response.body();
             String mime = MimeUtils.mime(bytes);
             if (mime == null || !mime.startsWith("image/")) return null;
             return bytes;
