@@ -20,12 +20,12 @@ import java.nio.file.Path;
  * <p>Base gallery image command: sends a random image from a category.</p>
  */
 @Slf4j
-abstract class GalleryImageCmd implements Cmd {
+abstract class GalleryCmd implements Cmd {
 
     private final GalleryResources resources;
     private final String category;
 
-    protected GalleryImageCmd(GalleryResources resources, String category) {
+    protected GalleryCmd(GalleryResources resources, String category) {
         this.resources = resources;
         this.category = category;
     }
@@ -55,10 +55,10 @@ abstract class GalleryImageCmd implements Cmd {
     // ════ Send ════════════════════
 
     private void send(CmdContext ctx) {
-        Path image = resources.randomImage(category);
-        if (image == null)
+        Path resource = resources.random(category);
+        if (resource == null)
             throw new CmdInfoException(ctx.render(Text.NO_IMAGES));
-        ctx.send(MsgContent.builder().image(image.toUri().toString()).build());
-        log.info("{} image sent: {}", name(), image);
+        ctx.send(MsgContent.builder().image(resource.toUri().toString()).build());
+        log.info("{} image sent: {}", name(), resource);
     }
 }

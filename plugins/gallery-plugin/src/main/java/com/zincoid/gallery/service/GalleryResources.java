@@ -38,13 +38,13 @@ public final class GalleryResources {
      * @param category the category directory name
      * @return the image path, or null when the category has no images
      */
-    public Path randomImage(String category) {
+    public Path random(String category) {
         Path directory = root.resolve(category);
         if (!Files.isDirectory(directory)) return null;
-        List<Path> images = new ArrayList<>();
-        collect(directory, images);
-        if (images.isEmpty()) return null;
-        return images.get(ThreadLocalRandom.current().nextInt(images.size()));
+        List<Path> resources = new ArrayList<>();
+        collect(directory, resources);
+        if (resources.isEmpty()) return null;
+        return resources.get(ThreadLocalRandom.current().nextInt(resources.size()));
     }
 
     /**
@@ -52,14 +52,14 @@ public final class GalleryResources {
      * <p>Collects images recursively, skipping hidden entries.</p>
      *
      * @param directory the directory to scan
-     * @param images    the image sink
+     * @param resources the image sink
      */
-    private static void collect(Path directory, List<Path> images) {
+    private static void collect(Path directory, List<Path> resources) {
         try (Stream<Path> entries = Files.list(directory)) {
             entries.forEach(entry -> {
                 if (hidden(entry)) return;
-                if (Files.isDirectory(entry, LinkOption.NOFOLLOW_LINKS)) collect(entry, images);
-                else if (Files.isRegularFile(entry) && isImage(entry)) images.add(entry);
+                if (Files.isDirectory(entry, LinkOption.NOFOLLOW_LINKS)) collect(entry, resources);
+                else if (Files.isRegularFile(entry) && isImage(entry)) resources.add(entry);
             });
         } catch (IOException ignored) {
             // Skip an unreadable directory.

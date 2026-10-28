@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 public class GalleryPlugin implements Plugin {
 
-    private volatile GalleryResources images;
+    private volatile GalleryResources resources;
 
     @Override
     public String id() {
@@ -29,7 +29,7 @@ public class GalleryPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new AnimeCmd(images), new ZincoidCmd(images));
+        return List.of(new AnimeCmd(resources), new ZincoidCmd(resources));
     }
 
     @Override
@@ -40,12 +40,12 @@ public class GalleryPlugin implements Plugin {
         } catch (IOException e) {
             log.warn("Cannot create gallery resource directory: {}", dataDir, e);
         }
-        this.images = new GalleryResources(dataDir);
+        this.resources = new GalleryResources(dataDir);
         log.info("Gallery resources: {}", dataDir);
     }
 
     @Override
     public void stop() {
-        this.images = null;
+        this.resources = null;
     }
 }

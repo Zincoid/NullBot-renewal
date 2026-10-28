@@ -10,7 +10,7 @@ import com.zincoid.nullbot.platform.persistence.enums.Language;
  * <p>Anime command: sends a random image from the anime category in the gallery plugin data directory.</p>
  */
 @CmdMapping({"Anime", "二次元"})
-public class AnimeCmd extends GalleryImageCmd {
+public class AnimeCmd extends GalleryCmd {
 
     public AnimeCmd(GalleryResources resources) {
         super(resources, "anime");

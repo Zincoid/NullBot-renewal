@@ -11,7 +11,7 @@ import com.zincoid.nullbot.platform.persistence.enums.Language;
  * <p>Zincoid command: sends a random image from the zincoid category in the gallery plugin data directory.</p>
  */
 @CmdMapping({"Zincoid", "zn", "锌"})
-public class ZincoidCmd extends GalleryImageCmd {
+public class ZincoidCmd extends GalleryCmd {
 
     public ZincoidCmd(GalleryResources resources) {
         super(resources, "zincoid");
