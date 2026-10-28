@@ -160,21 +160,14 @@ public final class JdkHttpService implements HttpService {
     }
 
     private static ProxySelector proxy(String raw) {
-        int split = raw.lastIndexOf(':');
-        if (split <= 0 || split == raw.length() - 1)
-            throw new HttpException("Invalid proxy: " + raw);
-        String host = raw.substring(0, split);
-        if (host.startsWith("[") && host.endsWith("]"))
-            host = host.substring(1, host.length() - 1);
-        int port;
+        ProxyAddress address;
         try {
-            port = Integer.parseInt(raw.substring(split + 1));
-        } catch (NumberFormatException e) {
+            address = ProxyAddress.parse(raw);
+        } catch (IllegalArgumentException e) {
             throw new HttpException("Invalid proxy: " + raw, e);
         }
-        if (port < 1 || port > 65535)
-            throw new HttpException("Invalid proxy: " + raw);
-        return ProxySelector.of(InetSocketAddress.createUnresolved(host, port));
+        return ProxySelector.of(InetSocketAddress.createUnresolved(
+                address.host(), address.port()));
     }
 
     // ════ Multipart ═══════════════

@@ -23,16 +23,17 @@ public final class GdHttp {
      */
     public GdHttp(HttpService http, GdConfig config) {
         this.http = http;
+        HttpService.Options options = HttpService.Options.defaults()
+                .withConnectTimeout(config.connectTimeout())
+                .withRequestTimeout(config.requestTimeout())
+                .withRetries(config.retries())
+                .withHeader("User-Agent", config.userAgent());
         try {
-            this.base = HttpService.Options.defaults()
-                    .withConnectTimeout(config.connectTimeout())
-                    .withRequestTimeout(config.requestTimeout())
-                    .withRetries(config.retries())
-                    .withProxy(config.proxy())
-                    .withHeader("User-Agent", config.userAgent());
+            options = options.withProxy(config.proxy());
         } catch (IllegalArgumentException e) {
             throw new GdException("Invalid proxy", e);
         }
+        this.base = options;
     }
 
     /**

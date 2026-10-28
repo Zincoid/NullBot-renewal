@@ -289,8 +289,9 @@ public interface HttpService {
          * @return the new options
          */
         public Options withProxy(String proxy) {
-            return new Options(headers, connectTimeout, requestTimeout, retries, maxBytes,
-                    normalizeProxy(proxy));
+            String value = proxy == null || proxy.isBlank()
+                    ? "" : ProxyAddress.parse(proxy).normalized();
+            return new Options(headers, connectTimeout, requestTimeout, retries, maxBytes, value);
         }
 
         // ════ Helpers ═════════════════
@@ -299,29 +300,6 @@ public interface HttpService {
             if (value == null || value.isZero() || value.isNegative())
                 throw new IllegalArgumentException("Invalid " + name + ": " + value);
             return value;
-        }
-
-        private static String normalizeProxy(String raw) {
-            if (raw == null || raw.isBlank()) return "";
-            String value = raw.trim();
-            if (value.startsWith("http://")) value = value.substring("http://".length());
-            else if (value.startsWith("https://")) value = value.substring("https://".length());
-            int split = value.lastIndexOf(':');
-            if (split <= 0 || split == value.length() - 1)
-                throw new IllegalArgumentException("Invalid proxy: " + raw);
-            String host = value.substring(0, split);
-            if (host.startsWith("[") && host.endsWith("]"))
-                host = host.substring(1, host.length() - 1);
-            if (host.isBlank()) throw new IllegalArgumentException("Invalid proxy: " + raw);
-            int port;
-            try {
-                port = Integer.parseInt(value.substring(split + 1));
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid proxy: " + raw, e);
-            }
-            if (port < 1 || port > 65535)
-                throw new IllegalArgumentException("Invalid proxy: " + raw);
-            return host.indexOf(':') >= 0 ? "[" + host + "]:" + port : host + ":" + port;
         }
     }
 }
