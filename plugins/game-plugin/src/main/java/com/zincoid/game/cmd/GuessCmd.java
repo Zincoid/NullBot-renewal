@@ -1,13 +1,13 @@
 package com.zincoid.game.cmd;
 
+import com.zincoid.game.GameText;
+import com.zincoid.game.service.GameResources;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
-import com.zincoid.game.GameText;
-import com.zincoid.game.service.GameResources;
 import com.zincoid.nullbot.bot.cmd.input.InputMode;
 import com.zincoid.nullbot.bot.cmd.input.InputResult;
 import com.zincoid.nullbot.bot.plugin.PluginContext;

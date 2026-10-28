@@ -2,13 +2,13 @@ package com.zincoid.gd.cmd;
 
 import com.zincoid.gd.GdException;
 import com.zincoid.gd.GdText;
-import com.zincoid.gd.binding.GdBindings;
 import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.GdViewMapper;
 import com.zincoid.gd.render.GdPresenter;
 import com.zincoid.gd.service.GddlService;
 import com.zincoid.gd.service.GddlService.GddlB20Result;
 import com.zincoid.gd.service.GddlService.GddlUser;
+import com.zincoid.gd.store.GdBindings;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;

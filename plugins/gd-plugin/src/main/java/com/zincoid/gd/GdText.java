@@ -10,6 +10,8 @@ import java.util.Locale;
  */
 public enum GdText {
 
+    // ════ Help ════════════════════
+
     HELP("""
             GD
             几何冲刺关卡搜索、详情与本地进度。
@@ -103,6 +105,8 @@ public enum GdText {
                    rating is the raw decimal GDDL rating. Set score.tier-exponent=2 in the plugin config to use squared ratings.
                    User scores only count GDDL submissions (beaten/beating)."""),
 
+    // ════ Errors ══════════════════
+
     UNKNOWN_SUBCOMMAND("未知子命令：%s", "Unknown subcommand: %s"),
     GDDL_SPLIT("GDDL 已拆分为独立指令，请使用 GDDL b20 [GDDL用户名|ID] 查询",
             "GDDL is now a separate command; use GDDL b20 [GDDL username|id] to query"),
@@ -146,6 +150,8 @@ public enum GdText {
     AUTO_UNSUPPORTED("GD 搜索接口不支持 auto 难度筛选",
             "GD search does not support filtering by auto difficulty"),
 
+    // ════ Display ═════════════════
+
     SEARCH_TITLE("搜索 \"%s\" · 第 %d 页", "Search \"%s\" · page %d"),
     SEARCH_HEADING("搜索 \"%s\"", "Search \"%s\""),
     SEARCH_PAGE("第 %d 页", "Page %d"),
@@ -179,6 +185,8 @@ public enum GdText {
     TOP_N("前 %d 条", "Top %d"),
     GDDL_B20_NOTE("仅统计 GDDL 提交记录（beaten/beating）。",
             "Only GDDL submissions (beaten/beating) are counted."),
+
+    // ════ Progress ════════════════
 
     MISSING_PROGRESS("缺少进度百分比", "Missing progress percentage"),
     INVALID_PROGRESS("进度必须是 1–100 的整数", "Progress must be an integer from 1 to 100"),

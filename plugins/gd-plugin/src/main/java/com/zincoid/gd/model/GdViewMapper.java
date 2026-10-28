@@ -3,11 +3,11 @@ package com.zincoid.gd.model;
 import com.zincoid.gd.service.GddlService.GddlB20Result;
 import com.zincoid.gd.service.GddlService.GddlLevel;
 import com.zincoid.gd.service.GdProgressService.LocalB20Result;
-import com.zincoid.gd.service.GdScore;
 import jdash.common.DemonDifficulty;
 import jdash.common.Difficulty;
 import jdash.common.Length;
 import jdash.common.entity.GDLevel;
+import jdash.common.entity.GDSong;
 
 import java.util.List;
 import java.util.Locale;
@@ -69,7 +69,7 @@ public final class GdViewMapper {
                 length,
                 level.objectCount(),
                 level.songId().orElseGet(() -> level.song()
-                        .map(jdash.common.entity.GDSong::id).orElse(null)),
+                        .map(GDSong::id).orElse(null)),
                 song,
                 level.description(),
                 tier(gddl),

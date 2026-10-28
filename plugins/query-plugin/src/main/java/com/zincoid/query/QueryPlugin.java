@@ -8,8 +8,8 @@ import com.zincoid.query.cmd.PrtsCmd;
 import com.zincoid.query.cmd.TraceCmd;
 import com.zincoid.query.config.QueryConfig;
 import com.zincoid.query.service.AaService;
-import com.zincoid.query.service.QueryHttp;
 import com.zincoid.query.service.PrtsService;
+import com.zincoid.query.service.QueryHttp;
 import com.zincoid.query.service.TraceService;
 import lombok.extern.slf4j.Slf4j;
 

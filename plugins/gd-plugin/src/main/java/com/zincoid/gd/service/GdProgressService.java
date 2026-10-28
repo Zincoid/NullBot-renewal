@@ -44,7 +44,7 @@ public final class GdProgressService implements AutoCloseable {
     private final GdHttp http;
     private final Map<String, GdCacheEntry<byte[]>> userAvatarCache = new ConcurrentHashMap<>();
 
-    // ════ Registration ═══════════
+    // ════ Registration ════════════
 
     /**
      * 用户是否已注册。
@@ -90,7 +90,7 @@ public final class GdProgressService implements AutoCloseable {
         return store.progressCount(userId);
     }
 
-    // ════ Progress ═══════════════
+    // ════ Progress ════════════════
 
     /**
      * 验证关卡并用其名称/作者写入进度。
@@ -155,7 +155,7 @@ public final class GdProgressService implements AutoCloseable {
         }
     }
 
-    // ════ Local B20 ══════════════
+    // ════ Local B20 ═══════════════
 
     /**
      * 根据本地进度与 GDDL 关卡评级计算 B20。

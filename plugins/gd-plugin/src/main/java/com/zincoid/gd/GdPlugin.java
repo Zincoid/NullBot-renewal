@@ -1,6 +1,5 @@
 package com.zincoid.gd;
 
-import com.zincoid.gd.binding.GdBindings;
 import com.zincoid.gd.cmd.GdCmd;
 import com.zincoid.gd.cmd.GddlCmd;
 import com.zincoid.gd.config.GdConfig;
@@ -11,6 +10,7 @@ import com.zincoid.gd.service.GddlService;
 import com.zincoid.gd.service.GdHttp;
 import com.zincoid.gd.service.GdLevelService;
 import com.zincoid.gd.service.GdProgressService;
+import com.zincoid.gd.store.GdBindings;
 import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;

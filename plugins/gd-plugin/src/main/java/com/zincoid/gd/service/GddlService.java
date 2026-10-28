@@ -37,7 +37,7 @@ public final class GddlService {
     private final Map<Long, GdCacheEntry<GddlB20Result>> scoreCache = new ConcurrentHashMap<>();
     private final Map<String, GdCacheEntry<byte[]>> avatarCache = new ConcurrentHashMap<>();
 
-    // ════ Levels ═════════════════
+    // ════ Levels ══════════════════
 
     /**
      * 获取关卡的 GDDL 信息。
@@ -87,7 +87,7 @@ public final class GddlService {
         }
     }
 
-    // ════ Users ══════════════════
+    // ════ Users ═══════════════════
 
     /**
      * 按用户名搜索 GDDL 用户。

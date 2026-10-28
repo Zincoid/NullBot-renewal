@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -103,7 +104,7 @@ public final class GdProgressStore implements AutoCloseable {
         }
     }
 
-    // ════ User ═══════════════════
+    // ════ User ════════════════════
 
     /**
      * 用户是否已注册。
@@ -181,7 +182,7 @@ public final class GdProgressStore implements AutoCloseable {
         }
     }
 
-    // ════ Progress ═══════════════
+    // ════ Progress ════════════════
 
     /**
      * 新增或覆盖一条进度记录，并刷新用户的更新时间。
@@ -314,7 +315,7 @@ public final class GdProgressStore implements AutoCloseable {
         }
     }
 
-    // ════ Level cache ════════════
+    // ════ Level cache ═════════════
 
     /**
      * 读取指定关卡的 GDDL 评级缓存。
@@ -330,7 +331,7 @@ public final class GdProgressStore implements AutoCloseable {
         Map<Long, CachedRating> result = new LinkedHashMap<>();
         for (int start = 0; start < ids.size(); start += QUERY_CHUNK) {
             List<Long> chunk = ids.subList(start, Math.min(start + QUERY_CHUNK, ids.size()));
-            String placeholders = String.join(", ", java.util.Collections.nCopies(chunk.size(), "?"));
+            String placeholders = String.join(", ", Collections.nCopies(chunk.size(), "?"));
             String sql = "SELECT level_id, rating, fetched_at FROM gd_level_cache "
                     + "WHERE level_id IN (" + placeholders + ")";
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -387,7 +388,7 @@ public final class GdProgressStore implements AutoCloseable {
         }
     }
 
-    // ════ Lifecycle ══════════════
+    // ════ Lifecycle ═══════════════
 
     /**
      * 关闭数据库连接。

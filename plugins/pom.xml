@@ -13,15 +13,15 @@
     <description>External plugins</description>
 
     <modules>
+        <module>gallery-plugin</module>
+        <module>game-plugin</module>
+        <module>gd-plugin</module>
         <module>hello-plugin</module>
-        <module>sb6657-plugin</module>
         <module>pubg-plugin</module>
         <module>query-plugin</module>
-        <module>symmetry-plugin</module>
-        <module>game-plugin</module>
         <module>say-plugin</module>
-        <module>gallery-plugin</module>
-        <module>gd-plugin</module>
+        <module>sb6657-plugin</module>
+        <module>symmetry-plugin</module>
     </modules>
 
     <dependencies>

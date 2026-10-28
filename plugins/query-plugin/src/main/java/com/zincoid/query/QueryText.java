@@ -10,7 +10,7 @@ import java.util.Locale;
  */
 public enum QueryText {
 
-    // ════ AA ═════════════════════
+    // ════ AA ══════════════════════
 
     AA_HELP("""
             AA
@@ -43,7 +43,7 @@ public enum QueryText {
     AA_OUTPUT("输出", "Output"),
     AA_PER_TASK("/任务", "/task"),
 
-    // ════ PRTS ═══════════════════
+    // ════ PRTS ════════════════════
 
     PRTS_HELP("""
             PRTS
@@ -73,7 +73,7 @@ public enum QueryText {
     PRTS_TALENTS("【天赋】", "[Talents]"),
     PRTS_TRUNCATED("\n…（内容过长已截断）", "\n… (truncated)"),
 
-    // ════ Trace ══════════════════
+    // ════ Trace ═══════════════════
 
     TRACE_HELP("""
             Trace

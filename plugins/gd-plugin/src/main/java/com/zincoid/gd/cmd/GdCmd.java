@@ -29,8 +29,8 @@ import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import jdash.common.DemonDifficulty;
 import jdash.common.Difficulty;
-import jdash.common.LevelSearchFilter;
 import jdash.common.Length;
+import jdash.common.LevelSearchFilter;
 import jdash.common.entity.GDLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,7 +91,7 @@ public class GdCmd implements Cmd {
         }
     }
 
-    // ════ Local progress ═════════
+    // ════ Local progress ══════════
 
     private void register(CmdContext ctx, String userId) {
         boolean created;

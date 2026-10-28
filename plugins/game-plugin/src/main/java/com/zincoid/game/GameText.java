@@ -10,7 +10,7 @@ import java.util.Locale;
  */
 public enum GameText {
 
-    // ════ Guess ═════════════════
+    // ════ Guess ═══════════════════
 
     GUESS_HELP("""
             Guess
@@ -40,7 +40,7 @@ public enum GameText {
     GUESS_NO_IMAGES("暂无可用图片", "No images available"),
     GUESS_CROP_FAILED("图片裁剪失败", "Failed to crop image"),
 
-    // ════ Quiz ══════════════════
+    // ════ Quiz ════════════════════
 
     QUIZ_HELP("""
             Quiz
@@ -75,7 +75,7 @@ public enum GameText {
     QUIZ_DEFAULT_TOPIC("二次元", "anime"),
     QUIZ_LANGUAGE_NAME("Chinese", "English"),
 
-    // ════ Wife ══════════════════
+    // ════ Wife ════════════════════
 
     WIFE_HELP("""
             Wife

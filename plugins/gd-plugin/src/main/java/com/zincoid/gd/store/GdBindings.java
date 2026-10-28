@@ -1,4 +1,4 @@
-package com.zincoid.gd.binding;
+package com.zincoid.gd.store;
 
 import com.zincoid.gd.GdException;
 import lombok.extern.slf4j.Slf4j;

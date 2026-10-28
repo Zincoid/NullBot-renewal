@@ -5,9 +5,9 @@ import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.plugin.PluginResources;
 import com.zincoid.pubg.cmd.PubgCmd;
+import com.zincoid.pubg.service.PubgResources;
 
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class PubgPlugin implements Plugin {
 
-    private volatile Path dataDir;
+    private volatile PubgResources resources;
 
     @Override
     public String id() {
@@ -25,19 +25,20 @@ public class PubgPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new PubgCmd(dataDir));
+        return List.of(new PubgCmd(resources));
     }
 
     @Override
     public void start(PluginContext context) {
         Path dir = context.dataDir();
-        for (String file : new LinkedHashSet<>(PubgCmd.MAPS.values()))
+        PubgResources resources = new PubgResources(dir);
+        for (String file : resources.files())
             PluginResources.extract(PubgPlugin.class, "/" + file, dir);
-        this.dataDir = dir;
+        this.resources = resources;
     }
 
     @Override
     public void stop() {
-        this.dataDir = null;
+        this.resources = null;
     }
 }

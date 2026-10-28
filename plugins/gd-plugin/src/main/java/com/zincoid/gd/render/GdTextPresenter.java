@@ -1,11 +1,11 @@
 package com.zincoid.gd.render;
 
+import com.zincoid.gd.GdText;
 import com.zincoid.gd.model.GddlB20View;
 import com.zincoid.gd.model.LevelView;
 import com.zincoid.gd.model.LocalB20View;
 import com.zincoid.gd.model.SearchView;
 import com.zincoid.gd.service.GdScore;
-import com.zincoid.gd.GdText;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 
@@ -114,7 +114,7 @@ public final class GdTextPresenter implements GdPresenter {
         return MsgContent.of(body.toString());
     }
 
-    // ════ Level ══════════════════
+    // ════ Level ═══════════════════
 
     private static String levelText(Language language, LevelView view) {
         StringBuilder body = new StringBuilder();
