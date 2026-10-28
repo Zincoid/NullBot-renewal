@@ -3,7 +3,9 @@ package com.zincoid.gd.service;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zincoid.gd.GdException;
 import com.zincoid.gd.config.GdConfig;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.platform.util.JsonUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URLEncoder;
@@ -20,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>GDDL data service: level ratings, users, submissions, and B20.</p>
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class GddlService {
 
     private static final int PAGE_SIZE = 25;
@@ -30,21 +33,9 @@ public final class GddlService {
 
     private final GdConfig config;
     private final GdHttp http;
-    private final Map<Long, CacheEntry<Optional<GddlLevel>>> levelCache = new ConcurrentHashMap<>();
-    private final Map<Long, CacheEntry<GddlB20Result>> scoreCache = new ConcurrentHashMap<>();
-    private final Map<String, CacheEntry<byte[]>> avatarCache = new ConcurrentHashMap<>();
-
-    /**
-     * 创建 GDDL 数据服务。
-     * <p>Creates the GDDL data service.</p>
-     *
-     * @param config the plugin configuration
-     * @param http   the shared HTTP helper
-     */
-    public GddlService(GdConfig config, GdHttp http) {
-        this.config = config;
-        this.http = http;
-    }
+    private final Map<Long, GdCacheEntry<Optional<GddlLevel>>> levelCache = new ConcurrentHashMap<>();
+    private final Map<Long, GdCacheEntry<GddlB20Result>> scoreCache = new ConcurrentHashMap<>();
+    private final Map<String, GdCacheEntry<byte[]>> avatarCache = new ConcurrentHashMap<>();
 
     // ════ Levels ═════════════════
 
@@ -68,14 +59,14 @@ public final class GddlService {
      * @return the GDDL level, or null when not rated
      */
     public GddlLevel gddlLevel(long id, boolean fallbackStale) {
-        CacheEntry<Optional<GddlLevel>> cached = levelCache.get(id);
+        GdCacheEntry<Optional<GddlLevel>> cached = levelCache.get(id);
         if (cached != null && !cached.expired(config.cacheTtl()))
             return cached.value().orElse(null);
         try {
-            GdHttp.Response response = http.get(
+            HttpService.Response response = http.get(
                     config.gddlBase() + "/levels/" + id, "application/json", MAX_JSON_BYTES);
             if (response.status() == 404) {
-                levelCache.put(id, new CacheEntry<>(Optional.empty()));
+                levelCache.put(id, new GdCacheEntry<>(Optional.empty()));
                 return null;
             }
             if (!response.ok()) throw new GdException("GDDL returned HTTP " + response.status());
@@ -83,7 +74,7 @@ public final class GddlService {
             Optional<GddlLevel> value = level == null || level.rating() == null
                     ? Optional.empty()
                     : Optional.of(level);
-            levelCache.put(id, new CacheEntry<>(value));
+            levelCache.put(id, new GdCacheEntry<>(value));
             return value.orElse(null);
         } catch (RuntimeException e) {
             if (cached != null && fallbackStale) {
@@ -108,7 +99,7 @@ public final class GddlService {
     public List<GddlUser> searchUsers(String name) {
         String url = config.gddlBase() + "/user?name="
                 + URLEncoder.encode(name, StandardCharsets.UTF_8);
-        GdHttp.Response response = http.get(url, "application/json", MAX_JSON_BYTES);
+        HttpService.Response response = http.get(url, "application/json", MAX_JSON_BYTES);
         if (response.status() == 404) return List.of();
         if (!response.ok()) throw new GdException("GDDL returned HTTP " + response.status());
         try {
@@ -131,7 +122,7 @@ public final class GddlService {
      * @return the user, or null when not found
      */
     public GddlUser user(long id) {
-        GdHttp.Response response = http.get(
+        HttpService.Response response = http.get(
                 config.gddlBase() + "/user/" + id, "application/json", MAX_JSON_BYTES);
         if (response.status() == 404) return null;
         if (!response.ok()) throw new GdException("GDDL returned HTTP " + response.status());
@@ -159,7 +150,7 @@ public final class GddlService {
                 + "&page=" + page
                 + "&status=" + status
                 + "&sort=levelRating&sortDirection=desc";
-        GdHttp.Response response = http.get(url, "application/json", MAX_JSON_BYTES);
+        HttpService.Response response = http.get(url, "application/json", MAX_JSON_BYTES);
         if (response.status() == 404) return null;
         if (!response.ok()) throw new GdException("GDDL returned HTTP " + response.status());
         try {
@@ -178,7 +169,7 @@ public final class GddlService {
      * @return the GDDL B20 result
      */
     public GddlB20Result gddlB20(long userId, String userName) {
-        CacheEntry<GddlB20Result> cached = scoreCache.get(userId);
+        GdCacheEntry<GddlB20Result> cached = scoreCache.get(userId);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
             List<GdScore.Play> plays = new ArrayList<>();
@@ -215,7 +206,7 @@ public final class GddlService {
             int highest = b20.top().isEmpty() ? 0 : b20.top().getFirst().play().tier();
             GddlB20Result result = new GddlB20Result(
                     userId, userName, beatenTotal, beatingTotal, values.size(), highest, b20);
-            scoreCache.put(userId, new CacheEntry<>(result));
+            scoreCache.put(userId, new GdCacheEntry<>(result));
             return result;
         } catch (RuntimeException e) {
             if (cached != null) {
@@ -239,10 +230,10 @@ public final class GddlService {
     public byte[] avatar(long userId, String avatarId) {
         if (avatarId == null || avatarId.isBlank()) return null;
         String key = userId + ":" + avatarId;
-        CacheEntry<byte[]> cached = avatarCache.get(key);
+        GdCacheEntry<byte[]> cached = avatarCache.get(key);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
-            GdHttp.Response response = http.get(
+            HttpService.Response response = http.get(
                     config.gddlAvatarBase() + userId + "/" + avatarId + ".png?size=160",
                     "image/*", MAX_AVATAR_BYTES);
             if (response.status() == 404) return null;
@@ -252,7 +243,7 @@ public final class GddlService {
                 return null;
             byte[] bytes = response.body();
             if (avatarCache.size() > 128) avatarCache.clear();
-            avatarCache.put(key, new CacheEntry<>(bytes));
+            avatarCache.put(key, new GdCacheEntry<>(bytes));
             return bytes;
         } catch (RuntimeException e) {
             if (cached != null) {

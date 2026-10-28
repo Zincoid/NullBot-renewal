@@ -2,14 +2,14 @@ package com.zincoid.query.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import com.zincoid.query.QueryException;
 import com.zincoid.query.config.QueryConfig;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.net.URLEncoder;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,15 +19,13 @@ import java.util.List;
  * <p>Image trace service: calls the SauceNAO search API.</p>
  */
 @Slf4j
+@RequiredArgsConstructor
 public class TraceService {
 
     private static final String API_URL = "https://saucenao.com/search.php";
 
     private final QueryConfig config;
-
-    public TraceService(QueryConfig config) {
-        this.config = config;
-    }
+    private final QueryHttp http;
 
     /**
      * 按图片搜索出处。
@@ -38,24 +36,16 @@ public class TraceService {
      * @return the matched results
      */
     public List<TraceResult> search(String imageSource, int count) {
-        byte[] image = Images.load(imageSource, config.userAgent());
+        byte[] image = QueryImages.load(imageSource, http);
         String url = API_URL + "?output_type=2&db=999&numres=" + count;
         if (!config.sauceNaoApiKey().isBlank())
             url += "&api_key=" + URLEncoder.encode(config.sauceNaoApiKey(), StandardCharsets.UTF_8);
 
-        HttpResponse<String> response;
-        try {
-            response = Http.postFile(url, config.userAgent(), "image.jpg", image);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new QueryException("SauceNAO request interrupted", e);
-        } catch (IOException e) {
-            throw new QueryException("SauceNAO request failed", e);
-        }
-        if (response.statusCode() != 200)
-            throw new QueryException("SauceNAO HTTP " + response.statusCode());
+        HttpService.Response response = http.postFile(url, "image.jpg", image);
+        if (response.status() != 200)
+            throw new QueryException("SauceNAO HTTP " + response.status());
 
-        TraceResponse body = JsonUtils.parse(response.body(), TraceResponse.class);
+        TraceResponse body = JsonUtils.parse(response.text(), TraceResponse.class);
         if (body == null || body.header() == null || body.header().status() == null)
             throw new QueryException("SauceNAO returned an invalid response");
         if (body.header().status() != 0)

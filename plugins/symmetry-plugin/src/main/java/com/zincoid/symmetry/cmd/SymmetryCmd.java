@@ -11,9 +11,12 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.symmetry.SymmetryException;
 import com.zincoid.symmetry.SymmetryText;
+import com.zincoid.symmetry.service.SymmetryHttp;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
@@ -24,12 +27,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -41,17 +40,10 @@ import java.util.Locale;
  */
 @Slf4j
 @CmdMapping({"Symmetry", "图像对称", "对称"})
+@RequiredArgsConstructor
 public class SymmetryCmd implements Cmd {
 
-    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
-    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(20);
-    private static final int MAX_IMAGE_BYTES = 32 * 1024 * 1024;
-    private static final String USER_AGENT = "NullBot-Symmetry/1.0";
-
-    private static final HttpClient CLIENT = HttpClient.newBuilder()
-            .connectTimeout(CONNECT_TIMEOUT)
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
+    private final SymmetryHttp http;
 
     // ════ Run ═════════════════════
 
@@ -143,7 +135,7 @@ public class SymmetryCmd implements Cmd {
         return info.avatar();
     }
 
-    private static String render(String source, Mode mode) {
+    private String render(String source, Mode mode) {
         BufferedImage sourceImage = decode(fetch(source));
         BufferedImage result = symmetry(sourceImage, mode);
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -165,7 +157,7 @@ public class SymmetryCmd implements Cmd {
         }
     }
 
-    private static byte[] fetch(String source) {
+    private byte[] fetch(String source) {
         try {
             if (source.startsWith(MsgContent.BASE64_PREFIX))
                 return decodeBase64(source.substring(MsgContent.BASE64_PREFIX.length()));
@@ -175,26 +167,14 @@ public class SymmetryCmd implements Cmd {
                 return decodeBase64(source.substring(comma + 1));
             }
             if (source.startsWith("http://") || source.startsWith("https://")) {
-                HttpRequest request = HttpRequest.newBuilder(URI.create(source))
-                        .timeout(REQUEST_TIMEOUT)
-                        .header("User-Agent", USER_AGENT)
-                        .GET()
-                        .build();
-                HttpResponse<byte[]> response = CLIENT.send(request,
-                        HttpResponse.BodyHandlers.ofByteArray());
-                if (response.statusCode() != 200)
-                    throw new SymmetryException("HTTP " + response.statusCode());
-                byte[] body = response.body();
-                if (body.length > MAX_IMAGE_BYTES)
-                    throw new SymmetryException("Image too large");
-                return body;
+                HttpService.Response response = http.get(source);
+                if (response.status() != 200)
+                    throw new SymmetryException("HTTP " + response.status());
+                return response.body();
             }
             if (source.startsWith("file:"))
                 return Files.readAllBytes(Path.of(URI.create(source)));
             return Files.readAllBytes(Path.of(source));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new SymmetryException("Image download interrupted", e);
         } catch (IOException e) {
             throw new SymmetryException("Image download failed", e);
         } catch (SymmetryException e) {

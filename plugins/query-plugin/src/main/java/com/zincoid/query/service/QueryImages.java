@@ -10,23 +10,23 @@ import java.nio.file.Path;
 import java.util.Base64;
 
 /**
- * 图片读取工具：支持 base64、data URI、HTTP 与本地文件。
- * <p>Image loading helper supporting base64, data URIs, HTTP, and local files.</p>
+ * 查询插件图片读取工具：支持 base64、data URI、HTTP 与本地文件。
+ * <p>Query plugin image loading helper supporting base64, data URIs, HTTP, and local files.</p>
  */
-final class Images {
+final class QueryImages {
 
-    private Images() {
+    private QueryImages() {
     }
 
     /**
      * 读取图片字节。
      * <p>Reads the image bytes.</p>
      *
-     * @param source    image source
-     * @param userAgent HTTP user agent
+     * @param source image source
+     * @param http   the HTTP adapter
      * @return the image bytes
      */
-    static byte[] load(String source, String userAgent) {
+    static byte[] load(String source, QueryHttp http) {
         if (source == null || source.isBlank())
             throw new QueryException("Missing image source");
         try {
@@ -38,13 +38,10 @@ final class Images {
                 return decode(source.substring(comma + 1));
             }
             if (source.startsWith("http://") || source.startsWith("https://"))
-                return Http.getBytes(source, userAgent);
+                return http.getBytes(source).body();
             if (source.startsWith("file:"))
                 return Files.readAllBytes(Path.of(URI.create(source)));
             return Files.readAllBytes(Path.of(source));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new QueryException("Image download interrupted", e);
         } catch (IOException e) {
             throw new QueryException("Image download failed", e);
         }

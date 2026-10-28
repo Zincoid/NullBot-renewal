@@ -6,7 +6,9 @@ import com.zincoid.gd.service.GddlService.GddlLevel;
 import com.zincoid.gd.store.CachedRating;
 import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.gd.store.ProgressRecord;
+import com.zincoid.nullbot.module.http.HttpService;
 import jdash.common.entity.GDLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -29,6 +31,7 @@ import java.util.concurrent.Future;
  * <p>GD progress service: registration, progress maintenance, and local B20 calculation.</p>
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class GdProgressService implements AutoCloseable {
 
     private static final int FETCH_THREADS = 4;
@@ -39,26 +42,7 @@ public final class GdProgressService implements AutoCloseable {
     private final GddlService gddl;
     private final GdConfig config;
     private final GdHttp http;
-    private final Map<String, CacheEntry<byte[]>> userAvatarCache = new ConcurrentHashMap<>();
-
-    /**
-     * 创建进度服务。
-     * <p>Creates the progress service.</p>
-     *
-     * @param store  the progress store
-     * @param levels the GD level service
-     * @param gddl   the GDDL service
-     * @param config the plugin configuration
-     * @param http   the shared HTTP helper
-     */
-    public GdProgressService(GdProgressStore store, GdLevelService levels,
-                             GddlService gddl, GdConfig config, GdHttp http) {
-        this.store = store;
-        this.levels = levels;
-        this.gddl = gddl;
-        this.config = config;
-        this.http = http;
-    }
+    private final Map<String, GdCacheEntry<byte[]>> userAvatarCache = new ConcurrentHashMap<>();
 
     // ════ Registration ═══════════
 
@@ -150,16 +134,16 @@ public final class GdProgressService implements AutoCloseable {
      */
     public byte[] avatar(String url) {
         if (url == null || url.isBlank()) return null;
-        CacheEntry<byte[]> cached = userAvatarCache.get(url);
+        GdCacheEntry<byte[]> cached = userAvatarCache.get(url);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
-            GdHttp.Response response = http.get(url, "image/*", MAX_USER_AVATAR_BYTES);
+            HttpService.Response response = http.get(url, "image/*", MAX_USER_AVATAR_BYTES);
             if (!response.ok()) return null;
             if (response.body().length == 0 || !response.contentType().startsWith("image/"))
                 return null;
             byte[] bytes = response.body();
             if (userAvatarCache.size() > 128) userAvatarCache.clear();
-            userAvatarCache.put(url, new CacheEntry<>(bytes));
+            userAvatarCache.put(url, new GdCacheEntry<>(bytes));
             return bytes;
         } catch (RuntimeException e) {
             if (cached != null) {

@@ -4,15 +4,15 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * 带创建时间的缓存条目。
- * <p>A cache entry with its creation time.</p>
+ * GD 缓存条目，带创建时间。
+ * <p>GD cache entry with its creation time.</p>
  *
  * @param value     the cached value
  * @param createdAt the creation time
  */
-record CacheEntry<T>(T value, Instant createdAt) {
+record GdCacheEntry<T>(T value, Instant createdAt) {
 
-    CacheEntry(T value) {
+    GdCacheEntry(T value) {
         this(value, Instant.now());
     }
 

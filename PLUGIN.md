@@ -82,7 +82,7 @@ public class DemoPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 1; // 仅指令用 1；提供 AI 工具用 2；使用图片渲染用 3；使用 properties 用 4
+        return 1; // 仅指令用 1；提供 AI 工具用 2；使用图片渲染用 3；使用 properties 用 4；使用宿主 HTTP 用 5
     }
 
     @Override
@@ -127,15 +127,16 @@ public class DemoPlugin implements Plugin {
 | `2` | 指令与 AI 工具 |
 | `3` | 指令、AI 工具、图片渲染与插件模板 |
 | `4` | 以上能力，以及插件 `properties()` |
+| `5` | 以上能力，以及宿主 HTTP `http()` |
 
-宿主当前支持 `1`–`4`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
+宿主当前支持 `1`–`5`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
 
 ## 版本管理
 
 - Maven 模块版本由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只改这一处。
 - `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。
 - 从 IDE 或 classpath 运行时可能取不到版本，此时默认返回 `dev`；需要固定版本时可以覆写 `version()`。
-- `apiVersion()` 是宿主兼容版本，当前为 `1`–`4`，不随宿主发布号变化。
+- `apiVersion()` 是宿主兼容版本，当前为 `1`–`5`，不随宿主发布号变化。
 - 外部插件可以使用独立版本；升级宿主时只需确认 `apiVersion()` 仍在支持范围内。
 
 ## 宿主服务
@@ -145,6 +146,7 @@ public class DemoPlugin implements Plugin {
 | 方法 | 用途 |
 | --- | --- |
 | `dataDir()` | 插件独立数据目录 |
+| `http()` | 宿主 HTTP 服务（GET/POST/文件上传，超时、重试、代理与大小限制） |
 | `renderer()` | SVG/JTE 图片渲染与字体注册 |
 | `config()` | 宿主配置存储 |
 | `properties()` | 插件自己的 `config.properties` 配置 |
@@ -157,6 +159,27 @@ public class DemoPlugin implements Plugin {
 | `languages()` | 回复语言服务 |
 
 插件配置和缓存文件放在 `dataDir()` 下，不要依赖宿主的内部工作目录。
+
+### HTTP 请求
+
+使用 `PluginContext.http()` 时 `apiVersion()` 必须为 5。`HttpService` 提供同步的 GET、字节 POST 与单文件 multipart 上传；非 2xx 响应不会抛异常，而是通过状态码返回。
+
+```java
+HttpService http = context.http();
+HttpService.Options options = HttpService.Options.defaults()
+        .withRequestTimeout(Duration.ofSeconds(20))
+        .withMaxBytes(2 * 1024 * 1024)
+        .withHeader("Accept", "application/json");
+HttpService.Response response = http.get(url, options);
+if (!response.ok()) {
+    // 处理 4xx/5xx；response.status() 是状态码
+}
+String body = response.text();
+```
+
+- 默认连接超时 10 秒、请求超时 20 秒、重试 0 次、响应上限 8 MiB、不使用代理。
+- `withProxy("host:port")` 使用 HTTP 代理；`withRetries(n)` 只应对幂等请求启用。
+- `HttpException` 表示网络、URL、代理、响应超限或中断；中断会恢复线程中断标志。
 
 ## 插件结构
 
@@ -449,7 +472,7 @@ java -jar launcher/target/launcher-stdin.jar \
 - `META-INF/services/...Plugin` 缺失或写错；
 - 一个 JAR 中存在多个 `Plugin` 实现；
 - 插件 ID 不合法或与其他插件重复；
-- `apiVersion()` 超出 `1`–`4`；
+- `apiVersion()` 超出 `1`–`5`；
 - 插件 JAR 包含了宿主 `com.zincoid.nullbot.*` 类；
 - 第三方依赖没有 shade，运行时出现 `NoClassDefFoundError`。
 
@@ -475,4 +498,5 @@ java -jar launcher/target/launcher-stdin.jar \
 - [ ] 网络/解析异常转换为本地化 `CmdWarnException`
 - [ ] 使用图片渲染时 `apiVersion() >= 3`
 - [ ] 使用 `properties()` 时 `apiVersion() == 4`
+- [ ] 使用 `PluginContext.http()` 时 `apiVersion() == 5`
 - [ ] 本地 stdin 适配器验证通过

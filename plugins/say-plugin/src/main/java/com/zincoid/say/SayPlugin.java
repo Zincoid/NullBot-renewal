@@ -4,6 +4,7 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.say.cmd.SayCmd;
+import com.zincoid.say.service.SayHttp;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 public class SayPlugin implements Plugin {
 
     private volatile PluginContext context;
+    private volatile SayHttp http;
 
     @Override
     public String id() {
@@ -22,33 +24,23 @@ public class SayPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 3;
+        return 5;
     }
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new SayCmd(context()));
+        return List.of(new SayCmd(context, http));
     }
 
     @Override
     public void start(PluginContext context) {
         this.context = context;
+        this.http = new SayHttp(context.http());
     }
 
     @Override
     public void stop() {
         this.context = null;
-    }
-
-    /**
-     * 返回插件上下文。
-     * <p>Returns the plugin context.</p>
-     *
-     * @return the plugin context
-     */
-    PluginContext context() {
-        PluginContext ctx = context;
-        if (ctx == null) throw new IllegalStateException("Plugin not started");
-        return ctx;
+        this.http = null;
     }
 }

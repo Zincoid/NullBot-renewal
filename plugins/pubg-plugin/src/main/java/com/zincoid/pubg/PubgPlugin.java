@@ -25,7 +25,7 @@ public class PubgPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new PubgCmd(dataDir()));
+        return List.of(new PubgCmd(dataDir));
     }
 
     @Override
@@ -39,17 +39,5 @@ public class PubgPlugin implements Plugin {
     @Override
     public void stop() {
         this.dataDir = null;
-    }
-
-    /**
-     * 返回插件数据目录。
-     * <p>Returns the plugin data directory.</p>
-     *
-     * @return the plugin data directory
-     */
-    Path dataDir() {
-        Path dir = dataDir;
-        if (dir == null) throw new IllegalStateException("Plugin not started");
-        return dir;
     }
 }

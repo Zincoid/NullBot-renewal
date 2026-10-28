@@ -11,13 +11,14 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
-import com.zincoid.nullbot.platform.util.HttpUtils;
 import com.zincoid.say.SayText;
 import com.zincoid.say.render.QuoteCard;
+import com.zincoid.say.service.SayHttp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,9 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SayCmd implements Cmd {
 
-    private static final int MAX_AVATAR_BYTES = 5 * 1024 * 1024;
-
     private final PluginContext context;
+    private final SayHttp http;
 
     // ════ Run ═════════════════════
 
@@ -89,13 +89,14 @@ public class SayCmd implements Cmd {
         }
     }
 
-    private static String avatar(CmdContext ctx, String userId) {
+    private String avatar(CmdContext ctx, String userId) {
         if (userId == null || userId.isBlank()) return "";
         try {
             UserInfo info = ctx.client().getUserInfo(userId);
             if (info == null || info.avatar() == null || info.avatar().isBlank()) return "";
-            byte[] bytes = HttpUtils.getBytes(info.avatar(), MAX_AVATAR_BYTES);
-            return ImageData.imageDataUri(bytes);
+            HttpService.Response response = http.get(info.avatar());
+            if (!response.ok()) return "";
+            return ImageData.imageDataUri(response.body());
         } catch (RuntimeException e) {
             log.warn("Say avatar failed: author={}", userId, e);
             return "";

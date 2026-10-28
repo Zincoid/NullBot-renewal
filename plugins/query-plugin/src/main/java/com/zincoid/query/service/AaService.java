@@ -2,15 +2,15 @@ package com.zincoid.query.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import com.zincoid.query.QueryException;
 import com.zincoid.query.config.QueryConfig;
 import com.zincoid.query.model.AaMetric;
 import com.zincoid.query.model.AaModel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -23,17 +23,15 @@ import java.util.List;
  * <p>AA query service: calls the Free API, merges pages, caches, and sorts.</p>
  */
 @Slf4j
+@RequiredArgsConstructor
 public class AaService {
 
     private static final String API_URL = "https://artificialanalysis.ai/api/v2/language/models/free";
     private static final int MAX_PAGES = 20;
 
     private final QueryConfig config;
+    private final QueryHttp http;
     private volatile Snapshot cache;
-
-    public AaService(QueryConfig config) {
-        this.config = config;
-    }
 
     // ════ Query ═══════════════════
 
@@ -130,18 +128,10 @@ public class AaService {
 
     private AaResponse fetchPage(int page) {
         String url = API_URL + "?page=" + page;
-        HttpResponse<String> response;
-        try {
-            response = Http.get(url, config.aaApiKey(), config.userAgent());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new QueryException("AA request interrupted", e);
-        } catch (IOException e) {
-            throw new QueryException("AA request failed", e);
-        }
-        if (response.statusCode() != 200)
-            throw new QueryException("AA HTTP " + response.statusCode());
-        return JsonUtils.parse(response.body(), AaResponse.class);
+        HttpService.Response response = http.get(url, config.aaApiKey());
+        if (response.status() != 200)
+            throw new QueryException("AA HTTP " + response.status());
+        return JsonUtils.parse(response.text(), AaResponse.class);
     }
 
     private static AaModel normalize(Item item) {

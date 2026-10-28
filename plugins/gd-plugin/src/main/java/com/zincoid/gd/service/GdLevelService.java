@@ -2,6 +2,7 @@ package com.zincoid.gd.service;
 
 import com.zincoid.gd.GdException;
 import com.zincoid.gd.config.GdConfig;
+import com.zincoid.nullbot.module.http.HttpService;
 import jdash.client.GDClient;
 import jdash.client.exception.ActionFailedException;
 import jdash.common.LevelSearchFilter;
@@ -27,7 +28,7 @@ public final class GdLevelService {
     private final GdConfig config;
     private final GdHttp http;
     private final GDClient gd;
-    private final Map<Long, CacheEntry<byte[]>> thumbnailCache = new ConcurrentHashMap<>();
+    private final Map<Long, GdCacheEntry<byte[]>> thumbnailCache = new ConcurrentHashMap<>();
 
     /**
      * 创建关卡数据服务。
@@ -88,10 +89,10 @@ public final class GdLevelService {
      * @return the image bytes, or null when unavailable
      */
     public byte[] thumbnail(long levelId) {
-        CacheEntry<byte[]> cached = thumbnailCache.get(levelId);
+        GdCacheEntry<byte[]> cached = thumbnailCache.get(levelId);
         if (cached != null && !cached.expired(config.cacheTtl())) return cached.value();
         try {
-            GdHttp.Response response = http.get(
+            HttpService.Response response = http.get(
                     config.thumbnailBase() + levelId, "image/*", MAX_THUMBNAIL_BYTES);
             if (response.status() == 404) return null;
             if (!response.ok())
@@ -100,7 +101,7 @@ public final class GdLevelService {
                 return null;
             byte[] bytes = response.body();
             if (thumbnailCache.size() > 64) thumbnailCache.clear();
-            thumbnailCache.put(levelId, new CacheEntry<>(bytes));
+            thumbnailCache.put(levelId, new GdCacheEntry<>(bytes));
             return bytes;
         } catch (RuntimeException e) {
             if (cached != null) {

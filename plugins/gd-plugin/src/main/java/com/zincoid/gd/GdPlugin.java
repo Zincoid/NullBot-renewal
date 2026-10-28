@@ -40,20 +40,20 @@ public class GdPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 4;
+        return 5;
     }
 
     @Override
     public List<Cmd> cmds() {
         return List.of(
-                new GdCmd(levels(), gddl(), presenter(), context(), progress()),
-                new GddlCmd(gddl(), presenter(), bindings()));
+                new GdCmd(levels, gddl, presenter, context, progress),
+                new GddlCmd(gddl, presenter, bindings));
     }
 
     @Override
     public void start(PluginContext context) {
         GdConfig loaded = GdConfig.load(context.properties());
-        GdHttp http = new GdHttp(loaded);
+        GdHttp http = new GdHttp(context.http(), loaded);
         GdLevelService levels = new GdLevelService(loaded, http);
         GddlService gddl = new GddlService(loaded, http);
         GdProgressStore store = GdProgressStore.open(context.dataDir());
@@ -99,77 +99,5 @@ public class GdPlugin implements Plugin {
         this.gddl = null;
         this.bindings = null;
         this.context = null;
-    }
-
-    /**
-     * 返回插件上下文。
-     * <p>Returns the plugin context.</p>
-     *
-     * @return the plugin context
-     */
-    PluginContext context() {
-        PluginContext value = context;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
-    }
-
-    /**
-     * 返回关卡数据服务。
-     * <p>Returns the level data service.</p>
-     *
-     * @return the level data service
-     */
-    GdLevelService levels() {
-        GdLevelService value = levels;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
-    }
-
-    /**
-     * 返回 GDDL 数据服务。
-     * <p>Returns the GDDL data service.</p>
-     *
-     * @return the GDDL data service
-     */
-    GddlService gddl() {
-        GddlService value = gddl;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
-    }
-
-    /**
-     * 返回输出呈现器。
-     * <p>Returns the output presenter.</p>
-     *
-     * @return the output presenter
-     */
-    GdPresenter presenter() {
-        GdPresenter value = presenter;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
-    }
-
-    /**
-     * 返回 GDDL 用户绑定存储。
-     * <p>Returns the GDDL user binding store.</p>
-     *
-     * @return the binding store
-     */
-    GdBindings bindings() {
-        GdBindings value = bindings;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
-    }
-
-    /**
-     * 返回进度服务。
-     * <p>Returns the progress service.</p>
-     *
-     * @return the progress service
-     */
-    GdProgressService progress() {
-        GdProgressService value = progress;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
     }
 }

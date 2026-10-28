@@ -1,16 +1,16 @@
 package com.zincoid.query.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import com.zincoid.query.QueryException;
 import com.zincoid.query.config.QueryConfig;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.IOException;
 import java.net.URLEncoder;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -22,16 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>PRTS query service: calls the MediaWiki API and caches page HTML.</p>
  */
 @Slf4j
+@RequiredArgsConstructor
 public class PrtsService {
 
     private static final String API_URL = "https://prts.wiki/api.php";
 
     private final QueryConfig config;
+    private final QueryHttp http;
     private final Map<String, Cached> cache = new ConcurrentHashMap<>();
-
-    public PrtsService(QueryConfig config) {
-        this.config = config;
-    }
 
     /**
      * 获取并解析 PRTS 页面。
@@ -50,18 +48,10 @@ public class PrtsService {
         String url = API_URL
                 + "?action=parse&page=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8)
                 + "&prop=text&format=json&formatversion=2";
-        HttpResponse<String> response;
-        try {
-            response = Http.get(url, config.userAgent());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new QueryException("PRTS request interrupted", e);
-        } catch (IOException e) {
-            throw new QueryException("PRTS request failed", e);
-        }
-        if (response.statusCode() != 200)
-            throw new QueryException("PRTS HTTP " + response.statusCode());
-        PrtsResponse body = JsonUtils.parse(response.body(), PrtsResponse.class);
+        HttpService.Response response = http.get(url);
+        if (response.status() != 200)
+            throw new QueryException("PRTS HTTP " + response.status());
+        PrtsResponse body = JsonUtils.parse(response.text(), PrtsResponse.class);
         if (body == null || body.parse() == null || body.parse().text() == null
                 || body.parse().text().isBlank())
             throw new QueryException("PRTS page not found: " + keyword);

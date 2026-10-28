@@ -32,9 +32,9 @@ public class GamePlugin implements Plugin {
     @Override
     public List<Cmd> cmds() {
         return List.of(
-                new WifeCmd(context(), resources()),
-                new GuessCmd(context(), resources()),
-                new QuizCmd(context()));
+                new WifeCmd(context, resources),
+                new GuessCmd(context, resources),
+                new QuizCmd(context));
     }
 
     @Override
@@ -54,29 +54,5 @@ public class GamePlugin implements Plugin {
     public void stop() {
         this.resources = null;
         this.context = null;
-    }
-
-    /**
-     * 返回插件上下文。
-     * <p>Returns the plugin context.</p>
-     *
-     * @return the plugin context
-     */
-    PluginContext context() {
-        PluginContext ctx = context;
-        if (ctx == null) throw new IllegalStateException("Plugin not started");
-        return ctx;
-    }
-
-    /**
-     * 返回共享资源索引。
-     * <p>Returns the shared resource index.</p>
-     *
-     * @return the resource index
-     */
-    GameResources resources() {
-        GameResources index = resources;
-        if (index == null) throw new IllegalStateException("Plugin not started");
-        return index;
     }
 }

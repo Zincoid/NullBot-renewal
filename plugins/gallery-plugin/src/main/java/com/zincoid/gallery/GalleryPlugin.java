@@ -29,7 +29,7 @@ public class GalleryPlugin implements Plugin {
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new AnimeCmd(images()), new ZincoidCmd(images()));
+        return List.of(new AnimeCmd(images), new ZincoidCmd(images));
     }
 
     @Override
@@ -47,17 +47,5 @@ public class GalleryPlugin implements Plugin {
     @Override
     public void stop() {
         this.images = null;
-    }
-
-    /**
-     * 返回图库资源索引。
-     * <p>Returns the gallery resource index.</p>
-     *
-     * @return the resource index
-     */
-    GalleryResources images() {
-        GalleryResources index = images;
-        if (index == null) throw new IllegalStateException("Plugin not started");
-        return index;
     }
 }
