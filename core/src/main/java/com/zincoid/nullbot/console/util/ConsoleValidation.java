@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.console.util;
 
-import com.zincoid.nullbot.bot.plugin.PluginJarName;
+import com.zincoid.nullbot.bot.plugin.loader.PluginJarName;
 import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.platform.util.PageUtils;
 import org.springframework.http.HttpStatus;

@@ -27,7 +27,7 @@ import java.nio.file.Path;
  */
 @Component
 @RequiredArgsConstructor
-public class PluginContextFactory {
+class PluginContextFactory {
 
     private final FileService files;
     private final ConfigService config;

@@ -1,7 +1,6 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
 import com.zincoid.nullbot.bot.plugin.PluginException;
-import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.platform.util.AtomicFiles;
 import lombok.extern.slf4j.Slf4j;
 

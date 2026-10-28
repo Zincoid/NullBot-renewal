@@ -5,7 +5,6 @@ import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.bot.plugin.PluginConfigProperties;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.plugin.PluginException;
-import com.zincoid.nullbot.bot.plugin.PluginJarName;
 import com.zincoid.nullbot.bot.plugin.PluginResources;
 import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
 import com.zincoid.nullbot.platform.configuration.PluginProperties;

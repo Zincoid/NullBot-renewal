@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.plugin;
+package com.zincoid.nullbot.bot.plugin.loader;
 
 import java.util.regex.Pattern;
 
