@@ -39,17 +39,17 @@ java -jar launcher/target/launcher-shiro.jar
 Console UI: http://localhost:<port>/console/ui?token=<token>
 ```
 
-调试时可改用 stdin 适配器：
+按适配器切换构建 profile：
+
+| 适配器 | 构建 | 产物 |
+| --- | --- | --- |
+| Shiro（默认） | `./mvnw package` | `launcher-shiro.jar` |
+| stdin | `./mvnw -P adapter-stdin package` | `launcher-stdin.jar` |
+| QQ 官方 | `./mvnw -P adapter-qq package` | `launcher-qq.jar` |
+
+QQ 官方机器人需要先在 [QQ 开放平台](https://bot.q.qq.com/) 创建机器人并取得 AppID/AppSecret：
 
 ```bash
-./mvnw -P adapter-stdin package
-java -jar launcher/target/launcher-stdin.jar
-```
-
-QQ 官方机器人使用 WebSocket 接入，需要先在 [QQ 开放平台](https://bot.q.qq.com/) 创建机器人并取得 AppID/AppSecret：
-
-```bash
-./mvnw -P adapter-qq package
 java -jar launcher/target/launcher-qq.jar \
   --nullbot.qq.app-id=<AppID> \
   --nullbot.qq.app-secret=<AppSecret>
@@ -71,6 +71,7 @@ java -jar launcher/target/launcher-qq.jar \
 | `nullbot.db.sqlite.path` | `./data/sqlite.db` | SQLite 文件 |
 | `nullbot.db.mysql.*` | - | MySQL 主机、端口、库名、账号、密码 |
 | `nullbot.file.root` | `./files` | 文件存储根目录 |
+| `nullbot.plugin.enabled` / `dir` | `true` / `./plugins` | 外部插件开关与目录 |
 | `nullbot.shiro.token` | 空 | Shiro 适配器访问令牌 |
 | `nullbot.shiro.server.enable` / `url` | `true` / `/ws` | 反向 WS |
 | `nullbot.shiro.client.enable` / `url` | `false` / 空 | 正向 WS，启用时需关闭反向 |
@@ -78,44 +79,29 @@ java -jar launcher/target/launcher-qq.jar \
 | `nullbot.qq.api-url` | `https://api.bot.qq.com` | QQ 官方 OpenAPI 地址 |
 | `nullbot.qq.token-url` | `https://api.bot.qq.com/app/getAppAccessToken` | Access token 获取地址 |
 | `nullbot.qq.intents` | `33554432` | 事件订阅位掩码（群聊与 C2C） |
-| `nullbot.qq.shard` / `shard-count` | `0` / `1` | WebSocket 分片编号与总数，通常无需修改 |
+| `nullbot.qq.shard` / `shard-count` | `0` / `1` | WebSocket 分片编号与总数 |
 | `nullbot.qq.text-limit` | `1800` | 单条文本的最大 Unicode code point 数 |
-| `nullbot.plugin.enabled` / `dir` | `true` / `./plugins` | 外部插件开关与目录 |
 
 MySQL 需手动执行 `schema-mysql.sql`。
 
-### 适配器
+## 适配器
 
 - `adapter-shiro`（默认）：OneBot 11 实现（如 NapCat）通过反向 WS 连接 `/ws`。
-- `adapter-qq`：QQ 官方机器人（`bot.q.qq.com`）WebSocket 接入，支持 QQ 群与 C2C 私聊；产物为 `launcher-qq.jar`。
+- `adapter-qq`：QQ 官方机器人（`bot.q.qq.com`）WebSocket 接入，支持 QQ 群与 C2C 私聊。
 - `adapter-stdin`：从标准输入读取事件，便于调试。
 
-QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg_id`），因此不会触发被动回复的自动 @；代价是受开放平台认证、权限与频控限制，额度以平台后台为准，没有主动消息权限时发送会失败。群内消息默认只有 @机器人 时才会收到；全量群消息需要在开放平台和群设置中授权。
+QQ 官方机器人统一以主动消息发送（不携带 `msg_id`），不会触发被动回复的自动 @；额度受开放平台认证、权限与频控限制。群内默认只有 @机器人 时才会收到消息，全量群消息需在开放平台和群设置中授权。其他限制：
 
-受官方接口限制：
-
-- 群信息、群成员列表为白名单/内邀能力，普通机器人通常无法获取；成员没有头像，`#Usage`、`#Say` 等卡片会使用占位头像或省略头像，`#Wife` 成员模式可能没有可选成员。
-- 没有群消息历史；引用回复、`#Save`/`#Recall` 依赖被引用消息的场景受限。适配器会缓存收到的消息，供 `#Save --id=<消息ID>` 等使用。
+- 群信息、群成员列表为白名单/内邀能力，成员没有头像；`#Usage`、`#Say` 等卡片使用占位头像或省略头像，`#Wife` 成员模式可能没有可选成员。
+- 没有群消息历史；引用回复、`#Save`/`#Recall` 等依赖被引用消息的场景受限。适配器会缓存收到的消息，供 `#Save --id=<消息ID>` 使用。
 - 不处理入退群、戳一戳、防撤回等通知类事件。
-- 图片上传支持 png/jpg，视频 mp4，语音 silk/mp3/wav；本地文件大于 5 MB 首版不支持；WebP/GIF 可能上传失败。
-- 文本中的 `@用户` 不会高亮，适配器以 `@<openid>` 形式显示；真正的群内 @ 需要 Markdown，首版不支持。
-- 文本中包含 URL 时需要在开放平台配置消息 URL 白名单，否则平台会拒绝发送。
-- 群与用户 ID 使用平台 openid 体系，不是 QQ 号；不同机器人的 openid 不通用。
-- 当前 v2 使用统一 `api.bot.qq.com`，不再提供旧版 sandbox 域名；测试用户、测试群和 IP 白名单请在开放平台后台配置。`api-url` 仅用于特殊网络/旧域名兼容。
-
-## 插件
-
-插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；可注册指令、AI 工具与图片渲染，并使用宿主 HTTP 服务，支持 JAR 热插拔、独立数据目录和运行时启停。
-
-- 开发指南：[PLUGIN.md](PLUGIN.md)
-- 入门示例：[plugins/hello-plugin](plugins/hello-plugin)；其 `config.properties` 提供 `hello.data` 测试配置，`#Hello` 的 `Data:` 会输出该键值对
-- 完整示例：[plugins/gd-plugin](plugins/gd-plugin)、[plugins/query-plugin](plugins/query-plugin)
-
-插件默认启用；将 JAR 放入 `nullbot.plugin.dir`（默认 `./plugins`），或在控制台“插件”页上传，成功加载后才会注册指令。执行 `./mvnw package` 后，声明了复制步骤的插件 JAR 会进入 `workspace/plugins/`。控制台“插件数据”弹窗分为“配置”和“文件”两页：配置页编辑 `config.properties` 并可保存后重载插件，文件页管理插件数据文件。
+- 图片支持 png/jpg，视频 mp4，语音 silk/mp3/wav；本地文件大于 5 MB 首版不支持，WebP/GIF 可能上传失败。
+- 群与用户 ID 使用平台 openid 体系，不是 QQ 号，不同机器人的 openid 不通用；文本中的 `@用户` 以 `@<openid>` 显示。
+- 文本中包含 URL 时需要在开放平台配置消息 URL 白名单；当前统一使用 `api.bot.qq.com`，测试用户、测试群和 IP 白名单在开放平台后台配置，`api-url` 仅用于特殊网络/旧域名兼容。
 
 ## 指令
 
-默认前缀为 `#`，可通过 `#Config cmd_prefix <值>` 或控制台修改。`#Help`（别名 `#帮助`）以图片列出全部内置指令与已加载插件；`#Help -p=<插件>` 查看指定插件的指令；任意指令后跟 `-H`（如 `#Say -H`）查看该指令详情。
+默认前缀为 `#`，可通过 `#Config cmd_prefix <值>` 或控制台修改。`#Help`（别名 `#帮助`）以图片列出全部内置指令与已加载插件；`#Help -p=<插件>` 查看指定插件；任意指令后跟 `-H`（如 `#Say -H`）查看该指令详情。
 
 群聊中 @机器人 时优先匹配指令，未命中指令才进入 AI 对话；私聊消息与戳一戳（适配器支持时）也会进入 AI 对话。
 
@@ -133,42 +119,30 @@ QQ 官方机器人适配器的回复统一以主动消息发送（不携带 `msg
 
 ### 插件指令
 
-插件需启用并成功加载后才会注册指令：
+插件需启用并成功加载后才会注册指令；各插件的详细用法与配置见插件目录下的 README：
 
 | 插件 | 指令 |
 | --- | --- |
-| `hello` | `#Hello`（别名 `#你好`） |
-| `gallery` | `#Anime`（别名 `#二次元`）、`#Zincoid`（别名 `#zn`、`#锌`） |
-| `game` | `#Wife`（别名 `#今日老婆`）、`#Guess`（别名 `#猜`）、`#Quiz`（别名 `#问答`） |
-| `say` | `#Say`（别名 `#说`；支持 `@用户`、用户 ID、`--id=<语录ID>`） |
-| `gd` | `#GD`（别名 `#几何冲刺`）、`#GDDL` |
-| `pubg` | `#PUBG`（别名 `#吃鸡地图`） |
-| `query` | `#AA`（别名 `#模型查询`）、`#PRTS`（别名 `#PRTS查询`）、`#Trace`（别名 `#图溯源`、`#溯源`） |
-| `sb6657` | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
-| `symmetry` | `#Symmetry`（别名 `#图像对称`、`#对称`） |
+| [`hello`](plugins/hello-plugin/README.md) | `#Hello`（别名 `#你好`） |
+| [`gallery`](plugins/gallery-plugin/README.md) | `#Anime`（别名 `#二次元`）、`#Zincoid`（别名 `#zn`、`#锌`） |
+| [`game`](plugins/game-plugin/README.md) | `#Wife`（别名 `#今日老婆`）、`#Guess`（别名 `#猜`）、`#Quiz`（别名 `#问答`） |
+| [`say`](plugins/say-plugin/README.md) | `#Say`（别名 `#说`；支持 `@用户`、用户 ID、`--id=<语录ID>`） |
+| [`gd`](plugins/gd-plugin/README.md) | `#GD`（别名 `#几何冲刺`）、`#GDDL` |
+| [`pubg`](plugins/pubg-plugin/README.md) | `#PUBG`（别名 `#吃鸡地图`） |
+| [`query`](plugins/query-plugin/README.md) | `#AA`（别名 `#模型查询`）、`#PRTS`（别名 `#PRTS查询`）、`#Trace`（别名 `#图溯源`、`#溯源`） |
+| [`sb6657`](plugins/sb6657-plugin/README.md) | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
+| [`symmetry`](plugins/symmetry-plugin/README.md) | `#Symmetry`（别名 `#图像对称`、`#对称`） |
 
-`query` 插件需在数据目录的 `config.properties` 中配置 `aa.api-key` 与 `saucenao.api-key`；首次加载会自动生成默认配置，模板见 `plugins/query-plugin/config.properties.example`。
+## 插件
 
-### GD 指令
+插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；可注册指令、AI 工具与图片渲染，支持 JAR 热插拔、独立数据目录和运行时启停。
 
-`#GD`/`#几何冲刺` 提供 Geometry Dash 关卡搜索、详情与本地进度，`#GDDL` 提供 GDDL B20 评分；搜索结果、关卡详情、本地 B20 与 GDDL B20 均以图片卡片输出：
+- 开发指南：[PLUGIN.md](PLUGIN.md)
+- 入门示例：[`plugins/hello-plugin`](plugins/hello-plugin)
+- 完整示例：[`plugins/gd-plugin`](plugins/gd-plugin)、[`plugins/query-plugin`](plugins/query-plugin)
+- 各插件的详细用法与配置：见上方插件表或插件目录下的 README
 
-- `#GD search <关键词> [--diff=...] [--demon=...] [--length=...] [--filter=...] [--page=N]`：搜索关卡，回复序号查看详情，回复 `next` 翻到下一页。
-- `#GD level <关卡ID>`：按 ID 查看关卡详情；卡片内嵌社区缩略图（WebP 自动转为 PNG）。
-- `#GD register`：注册本地进度用户；`update`、`remove`、`b20` 需要先注册。
-- `#GD update <关卡ID> <进度>`：通过 JDash 验证关卡存在后，记录或更新 1–100 的进度；回复会显示关卡名和作者。
-- `#GD remove <关卡ID>`：删除本地进度记录。
-- `#GD b20 [--all]`：用本地记录和 GDDL 关卡评级计算本地 B20；默认显示前 5 条，`--all` 显示完整 20 条。
-- `#GD unregister`：注销本地用户并删除全部进度；有记录时会先要求确认。
-- `#GDDL b20 [GDDL用户名|ID] [--all]`：查询指定 GDDL 用户的 B20；不带用户名时查询当前绑定账号。默认显示前 5 条，`--all` 显示完整 20 条。
-- `#GDDL bind <GDDL用户名|ID>`：绑定当前聊天用户的 GDDL 账号；已有绑定不会覆盖。
-- `#GDDL unbind`：解除当前聊天用户的 GDDL 绑定。
-
-本地进度保存在插件数据目录的 `gd.db`（SQLite）；注册用户、关卡名/作者快照与进度记录都在其中。本地 B20 使用自报进度，关卡评级来自 GDDL，**不是 GDDL 官方记录**；该关卡在 GDDL 未评级时会被跳过并提示数量。GDDL 评级缓存默认已评级 24 小时、未评级 1 小时，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。首次加载会自动在数据目录生成默认 `config.properties`，已有文件不会覆盖。
-
-B20 单关 `rt = rating^E × (进度/100)^1.5`，其中 `rating` 使用 GDDL 原始小数评分，取最高的 20 条求平均；`E` 默认 1.5，可在插件数据目录的 `config.properties` 中设置 `score.tier-exponent=2` 使用平方。B20 列表的 tier 列显示四舍五入后的整数和原始评分，例如 `25(25.33)`。GDDL 用户评分仅统计 GDDL 已提交的记录（`beaten`/`beating`），未提交到 GDDL 的关卡不计入。GDDL 绑定记录保存在插件数据目录的 `gddl-bindings.properties`，每个聊天用户只能绑定一个账号，更换前需先解绑。
-
-GDDL 与缩略图请求支持可选配置：`http.connect-timeout`（秒，默认 8）、`http.request-timeout`（秒，默认 15）、`http.retries`（默认 1）、`http.proxy`（`host:port`，可选 HTTP 代理，暂不支持认证）、`cache-ttl`（秒，默认 600）、`gddl.tier-cache-ttl`（秒，默认 86400）、`gddl.unrated-cache-ttl`（秒，默认 3600）、`gddl.api-base`、`gddl.avatar-base`、`thumbnail.base`、`http.user-agent`。服务器网络较慢时可使用代理或镜像地址，并适当增大超时；缩略图、GDDL 头像和本地 B20 头像成功获取后会缓存。配置模板见 `plugins/gd-plugin/config.properties.example`。
+插件默认启用；将 JAR 放入 `nullbot.plugin.dir`（默认 `./plugins`），或在控制台“插件”页上传，成功加载后才会注册指令。执行 `./mvnw package` 后，声明了复制步骤的插件 JAR 会进入 `workspace/plugins/`。控制台“插件数据”弹窗分为“配置”和“文件”两页：配置页编辑 `config.properties` 并可保存后重载插件，文件页管理插件数据文件。
 
 ## 字体
 

@@ -6,7 +6,7 @@
 
 一个插件是一个独立 JAR，包含：
 
-- 一个 `Plugin` 实现，并通过 `ServiceLoader` 注册；
+- 一个 `Plugin` 实现，通过 `ServiceLoader` 注册；
 - 任意数量的 `Cmd` 指令与可选 AI `Tool`；
 - 可选的 JTE 模板、字体和随 JAR 分发的资源。
 
@@ -14,18 +14,22 @@
 
 ```text
 plugins/demo-plugin/
+├── README.md                      # 用法与配置说明
 ├── pom.xml
 └── src/main/
     ├── java/com/zincoid/demo/
-    │   ├── DemoPlugin.java
-    │   ├── DemoText.java
-    │   ├── DemoException.java      # 可选
+    │   ├── DemoPlugin.java          # 插件入口
+    │   ├── DemoText.java            # 双语文案
+    │   ├── DemoException.java       # 可选
     │   ├── cmd/DemoCmd.java
-    │   ├── config/DemoConfig.java
-    │   └── service/DemoService.java
+    │   ├── config/DemoConfig.java   # 可选
+    │   └── service/DemoService.java # 可选
     └── resources/
-        └── META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin
+        ├── META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin
+        └── config.properties        # 可选，默认配置
 ```
+
+根包只放插件入口、文案与可选的插件异常；其余按需分层：`cmd`、`config`、`service`、`model`、`render`、`tool`、`store`（插件自有持久化）。单类插件不需要为了结构完整而创建空包。每个插件目录附带 `README.md`，说明指令、配置与数据布局；根 README 只保留插件索引。
 
 在 `plugins/pom.xml` 的 `<modules>` 中加入 `demo-plugin`，然后声明模块：
 
@@ -41,7 +45,7 @@ plugins/demo-plugin/
 
 `revision` 由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只需修改这一处。
 
-父模块已把 `core` 和 Lombok 设为 `provided`，并提供了复制 JAR 到 `workspace/plugins/` 的 `maven-antrun-plugin` 配置。简单插件只需在 `<build><plugins>` 中声明 `maven-antrun-plugin`；使用 JTE 模板时再声明 `jte-maven-plugin`（参考 `hello-plugin/pom.xml`）。
+父模块已把 `core` 和 Lombok 设为 `provided`，并提供了复制 JAR 到 `workspace/plugins/` 的 `maven-antrun-plugin`。简单插件只需在 `<build><plugins>` 中声明 `maven-antrun-plugin`；使用 JTE 模板时再声明 `jte-maven-plugin`（参考 `hello-plugin/pom.xml`）。
 
 注册文件 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 只写一行实现类全名：
 
@@ -51,7 +55,7 @@ com.zincoid.demo.DemoPlugin
 
 一个 JAR 只能有一个 `Plugin` 实现；缺失或多个实现都会加载失败。
 
-## 插件入口
+## 入口与生命周期
 
 插件入口负责创建服务、组装指令并管理生命周期：
 
@@ -76,13 +80,8 @@ public class DemoPlugin implements Plugin {
     }
 
     @Override
-    public String version() {
-        return "1.1.0";
-    }
-
-    @Override
     public int apiVersion() {
-        return 1; // 仅指令用 1；提供 AI 工具用 2；使用图片渲染用 3；使用 properties 用 4；使用宿主 HTTP 用 5
+        return 4; // 仅指令用 1；AI 工具用 2；图片渲染用 3；properties 用 4；宿主 HTTP 用 5
     }
 
     @Override
@@ -119,7 +118,9 @@ public class DemoPlugin implements Plugin {
 - 指令通过构造器接收 `PluginContext`、服务等依赖，不直接依赖整个插件实例；
 - 插件访问器保持包内可见即可。
 
-## API 版本
+## 版本与兼容
+
+`apiVersion()` 声明插件使用的宿主能力：
 
 | `apiVersion()` | 能力 |
 | --- | --- |
@@ -131,13 +132,9 @@ public class DemoPlugin implements Plugin {
 
 宿主当前支持 `1`–`5`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
 
-## 版本管理
-
 - Maven 模块版本由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只改这一处。
-- `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。
-- 从 IDE 或 classpath 运行时可能取不到版本，此时默认返回 `dev`；需要固定版本时可以覆写 `version()`。
-- `apiVersion()` 是宿主兼容版本，当前为 `1`–`5`，不随宿主发布号变化。
-- 外部插件可以使用独立版本；升级宿主时只需确认 `apiVersion()` 仍在支持范围内。
+- `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。从 IDE 或 classpath 运行时可能取不到版本，此时返回 `dev`。
+- `apiVersion()` 是宿主兼容版本，不随宿主发布号变化。外部插件可以使用独立版本，升级宿主时只需确认 `apiVersion()` 仍在支持范围内。
 
 ## 宿主服务
 
@@ -149,7 +146,7 @@ public class DemoPlugin implements Plugin {
 | `http()` | 宿主 HTTP 服务（GET/POST/文件上传，超时、重试、代理与大小限制） |
 | `renderer()` | SVG/JTE 图片渲染与字体注册 |
 | `config()` | 宿主配置存储 |
-| `properties()` | 插件自己的 `config.properties` 配置 |
+| `properties()` | 插件自己的 `config.properties` 配置快照 |
 | `inputs()` | 多轮输入等待 |
 | `model()` | AI 模型调用 |
 | `users()` / `groups()` | 用户、群记录 |
@@ -181,27 +178,7 @@ String body = response.text();
 - `withProxy("host:port")` 使用 HTTP 代理；`withRetries(n)` 只应对幂等请求启用。
 - `HttpException` 表示网络、URL、代理、响应超限或中断；中断会恢复线程中断标志。
 
-## 插件结构
-
-根包只放插件入口、文案与可选的插件异常；其余按需分层：
-
-```text
-com.zincoid.<plugin>
-├── XxxPlugin.java
-├── XxxText.java
-├── XxxException.java      # 可选
-├── cmd/                   # 指令
-├── config/                # 可选
-├── service/               # 可选
-├── model/                 # 可选
-├── render/                # 可选
-├── tool/                  # 可选，AI 工具
-└── store/                 # 可选，插件自有持久化
-```
-
-单类插件不需要为了结构完整而创建空包。指令统一放在 `cmd`；配置、服务、模型、渲染、工具、存储按实际需要拆分。
-
-## 指令
+## 指令与参数
 
 指令实现 `com.zincoid.nullbot.bot.cmd.Cmd`，用 `@CmdMapping` 声明名称和别名。第一个名称是指令的规范名称。
 
@@ -244,9 +221,7 @@ public class DemoCmd implements Cmd {
 }
 ```
 
-`Cmd` 为群聊消息、私聊消息、群戳一戳、私聊戳一戳分别提供 `run` 重载；未实现的类型默认返回“不支持”的本地化提示。按需覆写即可。
-
-常用回调：
+`Cmd` 为群聊消息、私聊消息、群戳一戳、私聊戳一戳分别提供 `run` 重载；未实现的类型默认返回“不支持”的本地化提示。常用回调：
 
 | 方法 | 说明 |
 | --- | --- |
@@ -256,8 +231,6 @@ public class DemoCmd implements Cmd {
 | `getAccess()` | 所需限权，默认 `Access.NORMAL` |
 
 只在指令确实没有副作用、参数可由 AI 安全生成时才开启 `isAiCallable()`。
-
-## 参数与消息
 
 `CmdArgs` 会自动解析选项，并将其从位置参数中移除：
 
@@ -403,11 +376,7 @@ core 提供以下排版工具，避免每个插件重复测量、截断和列对
 
 ## 数据、配置与资源
 
-`PluginContext.dataDir()` 是宿主为插件创建的独立数据目录，用于：
-
-- `config.properties`：插件配置；
-- 缓存、绑定、用户数据等持久化文件；
-- 解压后的随包资源。
+`PluginContext.dataDir()` 是宿主为插件创建的独立数据目录，用于 `config.properties`、缓存与用户数据等持久化文件，以及解压后的随包资源。
 
 插件可把默认配置放在 `src/main/resources/config.properties`；宿主会在 `start()` 前自动复制到数据目录，目标已存在时不覆盖。默认配置应使用空密钥/安全占位值。
 
@@ -422,11 +391,9 @@ int limit = context.properties().getInt("demo.limit", 10);
 
 控制台“插件数据”弹窗的“配置”页可直接编辑 `config.properties`，保存后可按需重载插件；“文件”页保留插件数据文件管理。
 
-随 JAR 分发的图片/二进制资源可放在 `src/main/resources/`，启动时用 `PluginResources.extract(...)` 解压到数据目录；`pubg-plugin` 是示例。只读资源也可以直接从 classpath 读取。
+随 JAR 分发的图片/二进制资源可放在 `src/main/resources/`，启动时用 `PluginResources.extract(...)` 解压到数据目录；`pubg-plugin` 是示例。只读资源也可以直接从 classpath 读取。插件不应写入 `dataDir()` 之外的路径，也不应依赖宿主的内部工作目录。
 
-插件不应写入 `dataDir()` 之外的路径，也不应依赖宿主的内部工作目录。
-
-## 打包与运行
+## 打包、调试与排错
 
 构建单个插件：
 
@@ -454,8 +421,6 @@ nullbot:
 
 完整配置可参考 `plugins/gd-plugin/pom.xml`。
 
-## 调试
-
 使用 stdin 适配器可以在不连接 QQ 的情况下验证插件：
 
 ```bash
@@ -465,7 +430,7 @@ java -jar launcher/target/launcher-stdin.jar \
   --nullbot.plugin.dir="$PWD/workspace/plugins"
 ```
 
-输入指令并查看日志，例如 `msg g #Demo -H`。也可以在启动后使用 `#Help -p=demo` 检查插件是否加载、指令是否注册。
+输入指令并查看日志，例如 `msg g #Demo -H`；也可以在启动后使用 `#Help -p=demo` 检查插件是否加载、指令是否注册。
 
 常见加载失败原因：
 
@@ -476,7 +441,7 @@ java -jar launcher/target/launcher-stdin.jar \
 - 插件 JAR 包含了宿主 `com.zincoid.nullbot.*` 类；
 - 第三方依赖没有 shade，运行时出现 `NoClassDefFoundError`。
 
-## 代码风格
+## 代码风格与检查清单
 
 - Javadoc 使用中文摘要 + 英文 `<p>` 摘要，`@param` 使用英文；
 - 较长类用 `══════` 分节，分节顺序为 `Run` → 功能 → `Helpers` → `Cmd`；
@@ -485,7 +450,7 @@ java -jar launcher/target/launcher-stdin.jar \
 - 指令、服务、配置通过构造器注入，不使用全局单例；
 - 只有需要区分领域错误时才添加插件异常，不必每个插件都有。
 
-## 检查清单
+提交前检查：
 
 - [ ] `id()`、`version()`、`apiVersion()` 正确
 - [ ] 插件 JAR manifest 含 `Implementation-Version`（默认 `version()` 读取）
