@@ -65,7 +65,7 @@ public final class JdkHttpService implements HttpService {
                 if (attempt <= opts.retries()) sleep();
             }
         }
-        throw new HttpException("HTTP request failed: " + method + " " + url, last);
+        throw new HttpException("HTTP request failed: " + method, last);
     }
 
     private static HttpRequest request(String method, URI uri, byte[] body,
@@ -130,7 +130,7 @@ public final class JdkHttpService implements HttpService {
                 throw new HttpException("Unsupported URL scheme: " + scheme);
             return uri;
         } catch (IllegalArgumentException e) {
-            throw new HttpException("Malformed URL: " + url, e);
+            throw new HttpException("Malformed URL", e);
         }
     }
 

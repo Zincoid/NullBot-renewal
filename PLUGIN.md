@@ -497,6 +497,6 @@ java -jar launcher/target/launcher-stdin.jar \
 - [ ] 用户可见文案走 `XxxText`
 - [ ] 网络/解析异常转换为本地化 `CmdWarnException`
 - [ ] 使用图片渲染时 `apiVersion() >= 3`
-- [ ] 使用 `properties()` 时 `apiVersion() == 4`
+- [ ] 使用 `properties()` 时 `apiVersion() >= 4`
 - [ ] 使用 `PluginContext.http()` 时 `apiVersion() == 5`
 - [ ] 本地 stdin 适配器验证通过
