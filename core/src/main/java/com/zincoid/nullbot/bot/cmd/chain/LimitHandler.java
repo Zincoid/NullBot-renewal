@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * <p>Rate limit handler: limits command execution by group settings.</p>
  */
 @Slf4j
-@Order(2)
+@Order(5)
 @Component
 @RequiredArgsConstructor
 public class LimitHandler implements CmdHandler {

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * <p>Access handler: checks group and user access levels and rejects private chat from disallowed users.</p>
  */
 @Slf4j
-@Order(0)
+@Order(1)
 @Component
 @RequiredArgsConstructor
 public class AccessHandler implements CmdHandler {

@@ -166,6 +166,38 @@ public enum Text {
     PAGE_TIMEOUT("⏳ 操作超时，查询结束", "⏳ Timed out; query ended"),
     PAGE_INVALID("❌ 无效序号：%s", "❌ Invalid index: %s"),
 
+    // ════ Durations ═══════════════
+
+    DURATION_LESS_MINUTE("1 分钟以内", "under 1 min"),
+    DURATION_MINUTES("%d 分钟", "%d min"),
+    DURATION_HOURS("%d 小时", "%d hr"),
+    DURATION_HOURS_MINUTES("%d 小时 %d 分钟", "%d hr %d min"),
+    DURATION_DAYS("%d 天", "%d d"),
+    DURATION_DAYS_HOURS("%d 天 %d 小时", "%d d %d hr"),
+
+    // ════ Cmd Disable ═════════════
+
+    DISABLE_MISSING_USER("私聊中必须指定 --user", "Private chat requires --user"),
+    DISABLE_EMPTY_USER("用户 ID 不能为空", "User ID must not be blank"),
+    DISABLE_MULTIPLE_TARGETS("只能指定一个目标用户", "Only one target user is allowed"),
+    DISABLE_CONFLICT("不能同时使用 -B 和 -U", "Use either -B or -U, not both"),
+    DISABLE_UNEXPECTED_ARG("不支持的参数：%s", "Unsupported argument: %s"),
+    DISABLE_MALFORMED_TEMP("临时时长格式错误：%s（示例：30m、2h、7d）",
+            "Malformed duration: %s (examples: 30m, 2h, 7d)"),
+    DISABLE_TEMP_WITH_UNBAN("解除时不能指定 --temp", "Cannot use --temp with -U"),
+    DISABLE_TARGET_GROUP("整群", "whole group"),
+    DISABLE_TARGET_USER("用户 %s", "user %s"),
+    DISABLE_PERMANENT("永久", "permanent"),
+    DISABLE_REMAINING("剩余 %s", "%s remaining"),
+    DISABLE_ADDED("✅ 已禁用 %s（%s，%s）", "✅ Disabled %s (%s, %s)"),
+    DISABLE_REMOVED("✅ 已启用 %s（%s）", "✅ Enabled %s (%s)"),
+    DISABLE_NOT_FOUND("没有找到对应的禁用规则", "No matching disable rule"),
+    DISABLE_FAILED("禁用规则操作失败", "Failed to update disable rule"),
+    DISABLE_NOTICE_GROUP("🚫 该指令在本群已被禁用（%s）",
+            "🚫 This command is disabled in this group (%s)"),
+    DISABLE_NOTICE_USER("🚫 你已被禁止使用该指令（%s）",
+            "🚫 You are blocked from using this command (%s)"),
+
     // ════ GroupSet ═══════════════
 
     GROUPSET_UNKNOWN_OPTION("未知选项", "Unknown option"),

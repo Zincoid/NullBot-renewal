@@ -238,6 +238,8 @@ public class DemoCmd implements Cmd {
 - `--limit=10`、`-l=10`：带值选项；
 - 其余参数按原顺序作为位置参数。
 
+`-H` / `--help`、`-B` / `--ban`、`-U` / `--unban` 由宿主保留，插件指令不要使用这些参数。
+
 ```java
 boolean all = args.hasOpt("all", "a");
 int limit = args.optInt("limit", "l", 10);

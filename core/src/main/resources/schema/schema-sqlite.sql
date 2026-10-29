@@ -121,3 +121,24 @@ CREATE TABLE IF NOT EXISTS `quote` (
 );
 CREATE INDEX IF NOT EXISTS `idx_quote_user_id` ON `quote` (`user_id`);
 CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
+
+-- 11. Group Command Disable
+CREATE TABLE IF NOT EXISTS `group_cmd_disable` (
+    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `group_id`      VARCHAR(64)     NOT NULL,
+    `user_id`       VARCHAR(64)     NOT NULL DEFAULT '*',  -- '*' for whole-group rules
+    `cmd`           VARCHAR(100)    NOT NULL,
+    `expires_at`    DATETIME        DEFAULT NULL           -- NULL means permanent
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_cmd_disable`
+    ON `group_cmd_disable` (`group_id`, `user_id`, `cmd`);
+
+-- 12. Private Command Disable
+CREATE TABLE IF NOT EXISTS `private_cmd_disable` (
+    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `user_id`       VARCHAR(64)     NOT NULL,
+    `cmd`           VARCHAR(100)    NOT NULL,
+    `expires_at`    DATETIME        DEFAULT NULL           -- NULL means permanent
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_private_cmd_disable`
+    ON `private_cmd_disable` (`user_id`, `cmd`);

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 用量处理器：在指令执行前记录一次指令使用。
  * <p>Usage handler: records one command usage before command execution.</p>
  */
-@Order(3)
+@Order(6)
 @Component
 @RequiredArgsConstructor
 public class UsageHandler implements CmdHandler {

@@ -6,6 +6,13 @@
 
 ### Added
 
+**指令**
+
+- 新增指令禁用：直接使用 `#指令 -B` 可在当前群或私聊禁用该指令，`#指令 -U` 解除；群聊支持整群或 `@用户`/`--user=<ID>`，私聊必须指定 `--user`。
+- 指令禁用支持 `--temp=30m` / `2h` / `7d` 限时规则，到期自动恢复；被禁用时回复剩余时间，永久规则显示“永久”。
+- 群聊规则与私聊规则相互隔离，群规则不影响私聊，私聊规则不影响群规则。
+- MySQL 部署需重新执行 `schema-mysql.sql` 创建 `group_cmd_disable` / `private_cmd_disable` 表；SQLite 启动时自动创建。
+
 **插件与 API**
 
 - 插件 API 5：新增 `PluginContext.http()` 与 `HttpService`，统一提供 GET、字节 POST、单文件 multipart 上传，以及超时、代理、重试和响应大小限制。

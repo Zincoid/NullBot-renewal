@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * 注册处理器：在指令执行前刷新群与用户的名称记录。
  * <p>Registration handler: refreshes group and user name records before command execution.</p>
  */
-@Order(-1)
+@Order(0)
 @Component
 @RequiredArgsConstructor
 public class RegisterHandler implements CmdHandler {

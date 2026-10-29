@@ -133,6 +133,18 @@ QQ 官方机器人统一以主动消息发送（不携带 `msg_id`），不会�
 | [`sb6657`](plugins/sb6657-plugin/README.md) | `#SB6657`（别名 `#6657`、`#玩机器`、`#玩机器烂梗`） |
 | [`symmetry`](plugins/symmetry-plugin/README.md) | `#Symmetry`（别名 `#图像对称`、`#对称`） |
 
+### 指令禁用
+
+直接使用 `#指令 -B` 可在当前会话禁用该指令，`#指令 -U` 解除：
+
+- 群聊：`#Guess -B` 禁用整群，`#Guess -B @用户` 只禁用该用户；
+- 私聊：`#Guess -B --user=<用户ID>` 禁用指定用户，必须指定 `--user`（管理员，且已开启私聊）；
+- 限时：`#Guess -B --temp=30m` 或 `#Guess -B @用户 --temp=30m`，支持 `m`、`h`、`d`；不填 `--temp` 为永久；
+- 解除：`#Guess -U` 解除整群规则，`#Guess -U @用户` 或 `#Guess -U --user=<用户ID>` 解除个人规则；
+- 被禁用时会提示剩余时间；群规则不影响私聊，私聊规则不影响群规则。
+
+`-B` / `-U` 是宿主保留参数，插件指令不要使用。
+
 ## 插件
 
 插件实现 `com.zincoid.nullbot.bot.plugin.Plugin`，一个 JAR 提供一个实现，并在 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 中注册；可注册指令、AI 工具与图片渲染，支持 JAR 热插拔、独立数据目录和运行时启停。

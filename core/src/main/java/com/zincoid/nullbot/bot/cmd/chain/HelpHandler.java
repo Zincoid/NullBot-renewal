@@ -13,7 +13,7 @@ import java.util.List;
  * 收到 {@code --help} / {@code -H} 时输出指令帮助。
  * <p>Outputs command help on {@code --help} / {@code -H}.</p>
  */
-@Order(1)
+@Order(2)
 @Component
 public class HelpHandler implements CmdHandler {
 
