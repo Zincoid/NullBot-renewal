@@ -41,10 +41,10 @@ CREATE INDEX IF NOT EXISTS `idx_file_created_at` ON `file` (`created_at`);
 
 -- 4. User
 CREATE TABLE IF NOT EXISTS `user` (
-    `id`                 VARCHAR(64)  NOT NULL PRIMARY KEY,
-    `name`               VARCHAR(255) NOT NULL,
-    `access`             TINYINT      NOT NULL DEFAULT 0,
-    `allow_private_chat` BOOLEAN      NOT NULL DEFAULT 0
+    `id`                      VARCHAR(64)  NOT NULL PRIMARY KEY,
+    `name`                    VARCHAR(255) NOT NULL,
+    `access`                  TINYINT      NOT NULL DEFAULT 0,
+    `private_message_allowed` BOOLEAN      NOT NULL DEFAULT 0
 );
 
 -- 5. User Setting

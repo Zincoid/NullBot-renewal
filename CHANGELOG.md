@@ -60,6 +60,7 @@
 - 缩短插件加载与上传的临时文件名，并在启动时清理遗留临时文件。
 - `CmdArgs` 的长选项名必须至少两个字符、短选项别名必须是单个字母；`--B` / `-ban` 这类写法不再解析为选项，`hasOpt` / `getOpt` 传入不合法的 name / alias 会抛出 `IllegalArgumentException`。
 - 指令禁用规则合并为 `cmd_disable` 单表，通过 `chat_type`（0=群聊，1=私聊）/ `chat_id` 区分群聊与私聊；已有 `group_cmd_disable` / `user_cmd_disable` 数据需按新表结构手动迁移。
+- 用户私聊开关字段由 `allowPrivateChat` 重命名为 `privateMessageAllowed`，服务方法改为 `isPrivateMessageAllowed` / `setPrivateMessageAllowed`，避免与 AI 对话的 `chat` 混淆；控制台 API 同步改名，已有数据库需手动将 `user.allow_private_chat` 列重命名为 `private_message_allowed`。
 
 ## [1.1.0] - 2026-10-27
 

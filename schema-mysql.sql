@@ -58,10 +58,10 @@ CREATE TABLE IF NOT EXISTS `file` (
 -- 4. User Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user` (
-    `id`                 VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
-    `name`               VARCHAR(255) NOT NULL                 COMMENT 'User nickname',
-    `access`             TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
-    `allow_private_chat` BOOLEAN      NOT NULL DEFAULT FALSE   COMMENT 'Whether private chat is allowed',
+    `id`                      VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
+    `name`                    VARCHAR(255) NOT NULL                 COMMENT 'User nickname',
+    `access`                  TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
+    `private_message_allowed` BOOLEAN      NOT NULL DEFAULT FALSE   COMMENT 'Whether private messages are allowed',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User table';
 

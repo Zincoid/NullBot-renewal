@@ -62,10 +62,10 @@ public class UserController {
 
     /**
      * 修改用户权限与私聊开关。
-     * <p>Updates the user access level and private-chat flag.</p>
+     * <p>Updates the user access level and private-message flag.</p>
      *
      * @param id   platform user id
-     * @param body the new access level and private-chat flag
+     * @param body the new access level and private-message flag
      * @return the updated user
      */
     @PutMapping("/{id}")
@@ -73,9 +73,9 @@ public class UserController {
         User user = user(id);
         userService.setAccess(id, body.access());
         user.setAccess(body.access());
-        if (body.allowPrivateChat() != null) {
-            userService.setPrivateChatAllowed(id, body.allowPrivateChat());
-            user.setAllowPrivateChat(body.allowPrivateChat());
+        if (body.privateMessageAllowed() != null) {
+            userService.setPrivateMessageAllowed(id, body.privateMessageAllowed());
+            user.setPrivateMessageAllowed(body.privateMessageAllowed());
         }
         return UserView.of(user);
     }

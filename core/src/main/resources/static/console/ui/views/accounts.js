@@ -71,7 +71,7 @@ function renderUsers(data) {
                 <td class="private-chat-cell">
                     <div class="checks"><label><input type="checkbox" class="private-chat-toggle"
                         aria-label="${escapeHtml(t('accounts.privateChat'))}"
-                        ${user.allowPrivateChat ? 'checked' : ''}></label></div>
+                        ${user.privateMessageAllowed ? 'checked' : ''}></label></div>
                 </td>
                 <td class="actions">
                     <button class="small primary btn-save" data-save-user>${escapeHtml(t('common.save'))}</button>
@@ -142,12 +142,12 @@ async function saveUser(button) {
     const row = button.closest('tr');
     const id = row.dataset.id;
     const access = Number(row.querySelector('.access-select').value);
-    const allowPrivateChat = row.querySelector('.private-chat-toggle').checked;
+    const privateMessageAllowed = row.querySelector('.private-chat-toggle').checked;
     button.disabled = true;
     try {
         await api('/users/' + encodeURIComponent(id), {
             method: 'PUT',
-            body: JSON.stringify({access, allowPrivateChat})
+            body: JSON.stringify({access, privateMessageAllowed})
         });
         toast(t('accounts.userSaved'), 'ok');
     } catch (e) {

@@ -18,11 +18,12 @@ public class User {
     private String name;
     private Access access;
     @Builder.Default
-    private Boolean allowPrivateChat = false;
+    private Boolean privateMessageAllowed = false;
 
     public User(String id, String name) {
         this.id = id;
         this.name = name;
         this.access = Access.NORMAL;
+        this.privateMessageAllowed = false;
     }
 }
