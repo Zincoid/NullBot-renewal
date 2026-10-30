@@ -236,7 +236,10 @@ public class DemoCmd implements Cmd {
 
 - `--all`、`-a`：布尔选项；
 - `--limit=10`、`-l=10`：带值选项；
+- 长选项名至少两个字符，短选项必须是单个字母；不符合形式的参数按位置参数处理；
 - 其余参数按原顺序作为位置参数。
+
+`hasOpt` / `getOpt` 的 `name` 必须至少两个字符，`alias` 必须是单个字母，否则抛 `IllegalArgumentException`。
 
 `-H` / `--help`、`-B` / `--ban`、`-U` / `--unban` 由宿主保留，插件指令不要使用这些参数。
 

@@ -33,7 +33,10 @@ public final class CmdArgs {
 
     /**
      * 原始参数解析。选项（--flag、-f、--key=value、-k=v）被提取并从位置参数中删除。
+     * <p>长选项名至少两个字符，短选项只接受单个字母；不符合形式的参数保留为位置参数。</p>
      * <p>Parses raw params. Options (--flag, -f, --key=value, -k=v) are extracted and removed from positional.</p>
+     * <p>Long option names need at least two characters; short options are a single letter.
+     * Tokens that do not match either form stay positional.</p>
      *
      * @param params the raw parameters
      */
@@ -60,21 +63,17 @@ public final class CmdArgs {
     // ════ Option access ═══════════
 
     public boolean hasOpt(String name, String alias) {
-        return opt.containsKey(name) ||
-                alias != null && opt.containsKey(alias);
+        return getOpt(name, alias, null) != null;
     }
 
     public String getOpt(String name, String alias) {
-        String v = opt.get(name);
-        if (v != null) return v;
-        if (alias != null) {
-            v = opt.get(alias);
-            if (v != null) return v;
-        }
-        throw missingOpt(name, alias);
+        String v = getOpt(name, alias, null);
+        if (v == null) throw missingOpt(name, alias);
+        return v;
     }
 
     public String getOpt(String name, String alias, String or) {
+        checkOpt(name, alias);
         String v = opt.get(name);
         if (v != null) return v;
         if (alias != null) {
@@ -85,57 +84,30 @@ public final class CmdArgs {
     }
 
     public int optInt(String name, String alias) {
-        try {
-            return Integer.parseInt(getOpt(name, alias));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseInt(getOpt(name, alias));
     }
 
     public int optInt(String name, String alias, int or) {
         String v = getOpt(name, alias, null);
-        if (v == null) return or;
-        try {
-            return Integer.parseInt(v);
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return v == null ? or : parseInt(v);
     }
 
     public long optLong(String name, String alias) {
-        try {
-            return Long.parseLong(getOpt(name, alias));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseLong(getOpt(name, alias));
     }
 
     public long optLong(String name, String alias, long or) {
         String v = getOpt(name, alias, null);
-        if (v == null) return or;
-        try {
-            return Long.parseLong(v);
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return v == null ? or : parseLong(v);
     }
 
     public double optDouble(String name, String alias) {
-        try {
-            return Double.parseDouble(getOpt(name, alias));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseDouble(getOpt(name, alias));
     }
 
     public double optDouble(String name, String alias, double or) {
         String v = getOpt(name, alias, null);
-        if (v == null) return or;
-        try {
-            return Double.parseDouble(v);
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return v == null ? or : parseDouble(v);
     }
 
     // ════ Positional iterator ═════
@@ -182,57 +154,27 @@ public final class CmdArgs {
     }
 
     public int nextInt() {
-        String v = next();
-        try {
-            return Integer.parseInt(v);
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseInt(next());
     }
 
     public int nextInt(int or) {
-        if (!hasNext()) return or;
-        try {
-            return Integer.parseInt(pos.get(cursor++));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return hasNext() ? parseInt(pos.get(cursor++)) : or;
     }
 
     public long nextLong() {
-        String v = next();
-        try {
-            return Long.parseLong(v);
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseLong(next());
     }
 
     public long nextLong(long or) {
-        if (!hasNext()) return or;
-        try {
-            return Long.parseLong(pos.get(cursor++));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return hasNext() ? parseLong(pos.get(cursor++)) : or;
     }
 
     public double nextDouble() {
-        String v = next();
-        try {
-            return Double.parseDouble(v);
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseDouble(next());
     }
 
     public double nextDouble(double or) {
-        if (!hasNext()) return or;
-        try {
-            return Double.parseDouble(pos.get(cursor++));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return hasNext() ? parseDouble(pos.get(cursor++)) : or;
     }
 
     // ════ Positional indexed ══════
@@ -257,54 +199,27 @@ public final class CmdArgs {
     }
 
     public int getInt(int index) {
-        try {
-            return Integer.parseInt(get(index));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseInt(get(index));
     }
 
     public int getInt(int index, int or) {
-        if (index >= pos.size()) return or;
-        try {
-            return Integer.parseInt(pos.get(index));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return index < pos.size() ? parseInt(pos.get(index)) : or;
     }
 
     public long getLong(int index) {
-        try {
-            return Long.parseLong(get(index));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseLong(get(index));
     }
 
     public long getLong(int index, long or) {
-        if (index >= pos.size()) return or;
-        try {
-            return Long.parseLong(pos.get(index));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return index < pos.size() ? parseLong(pos.get(index)) : or;
     }
 
     public double getDouble(int index) {
-        try {
-            return Double.parseDouble(get(index));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return parseDouble(get(index));
     }
 
     public double getDouble(int index, double or) {
-        if (index >= pos.size()) return or;
-        try {
-            return Double.parseDouble(pos.get(index));
-        } catch (NumberFormatException e) {
-            throw formatError();
-        }
+        return index < pos.size() ? parseDouble(pos.get(index)) : or;
     }
 
     // ════ Placeholder ═════════════
@@ -318,6 +233,30 @@ public final class CmdArgs {
     }
 
     // ════ Helpers ═════════════════
+
+    private int parseInt(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw formatError();
+        }
+    }
+
+    private long parseLong(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw formatError();
+        }
+    }
+
+    private double parseDouble(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            throw formatError();
+        }
+    }
 
     private CmdWarnException missingArg() {
         return new CmdWarnException(Text.ARG_MISSING.of(language));
@@ -333,18 +272,22 @@ public final class CmdArgs {
                 : Text.ARG_MISSING_OPTION_ALIAS.of(language, name));
     }
 
+    private static void checkOpt(String name, String alias) {
+        if (name == null || name.length() < 2 || name.startsWith("-"))
+            throw new IllegalArgumentException(
+                    "Long option name must be at least 2 characters and not start with '-': " + name);
+        if (alias != null && (alias.length() != 1 || !Character.isLetter(alias.charAt(0))))
+            throw new IllegalArgumentException("Short option alias must be a single letter: " + alias);
+    }
+
     private static boolean tryParseOpt(String p, Map<String, String> opt) {
         if (p.startsWith("--")) {
             String body = p.substring(2);
             if (body.isEmpty() || body.startsWith("-")) return false;
             int eq = body.indexOf('=');
-            if (eq < 0) {
-                opt.put(body, "true");
-                return true;
-            }
-            String name = body.substring(0, eq);
-            if (name.isEmpty()) return false;
-            opt.put(name, body.substring(eq + 1));
+            String name = eq < 0 ? body : body.substring(0, eq);
+            if (name.length() < 2) return false;
+            opt.put(name, eq < 0 ? "true" : body.substring(eq + 1));
             return true;
         }
         if (p.startsWith("-") && p.length() >= 2 &&
