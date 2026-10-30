@@ -26,50 +26,50 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
 
     @Override
     public List<CmdDisable> listGroup(String groupId) {
-        return list(ChatType.GROUP, normalizeGroupId(groupId));
+        return list(ChatType.GROUP, require(groupId, "groupId"));
     }
 
     @Override
     public CmdDisable findGroup(String groupId, String userId, String cmd) {
-        return find(ChatType.GROUP, normalizeGroupId(groupId),
-                normalizeGroupUserId(userId), normalizeCommand(cmd));
+        return find(ChatType.GROUP, require(groupId, "groupId"),
+                require(userId, "userId"), require(cmd, "cmd"));
     }
 
     @Override
     public CmdDisable addGroup(String groupId, String userId, String cmd, Duration duration) {
-        return add(ChatType.GROUP, normalizeGroupId(groupId),
-                normalizeGroupUserId(userId), normalizeCommand(cmd), duration);
+        return add(ChatType.GROUP, require(groupId, "groupId"),
+                require(userId, "userId"), require(cmd, "cmd"), duration);
     }
 
     @Override
     public boolean removeGroup(String groupId, String userId, String cmd) {
-        return remove(ChatType.GROUP, normalizeGroupId(groupId),
-                normalizeGroupUserId(userId), normalizeCommand(cmd));
+        return remove(ChatType.GROUP, require(groupId, "groupId"),
+                require(userId, "userId"), require(cmd, "cmd"));
     }
 
     // ════ Private ═════════════════
 
     @Override
     public List<CmdDisable> listPrivate(String userId) {
-        return list(ChatType.PRIVATE, normalizeUserId(userId));
+        return list(ChatType.PRIVATE, require(userId, "userId"));
     }
 
     @Override
     public CmdDisable findPrivate(String userId, String cmd) {
-        String uid = normalizeUserId(userId);
-        return find(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd));
+        String uid = require(userId, "userId");
+        return find(ChatType.PRIVATE, uid, uid, require(cmd, "cmd"));
     }
 
     @Override
     public CmdDisable addPrivate(String userId, String cmd, Duration duration) {
-        String uid = normalizeUserId(userId);
-        return add(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd), duration);
+        String uid = require(userId, "userId");
+        return add(ChatType.PRIVATE, uid, uid, require(cmd, "cmd"), duration);
     }
 
     @Override
     public boolean removePrivate(String userId, String cmd) {
-        String uid = normalizeUserId(userId);
-        return remove(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd));
+        String uid = require(userId, "userId");
+        return remove(ChatType.PRIVATE, uid, uid, require(cmd, "cmd"));
     }
 
     // ════ Helpers ═════════════════
@@ -90,25 +90,25 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
     }
 
     private CmdDisable find(ChatType chatType, String chatId, String userId, String cmd) {
-        CmdDisable rule = findRow(chatType, chatId, userId, cmd);
+        CmdDisable rule = load(chatType, chatId, userId, cmd);
         return rule == null || expired(rule.getExpiresAt()) ? null : rule;
     }
 
     private CmdDisable add(ChatType chatType, String chatId, String userId,
                            String cmd, Duration duration) {
-        CmdDisable existing = findRow(chatType, chatId, userId, cmd);
+        CmdDisable existing = load(chatType, chatId, userId, cmd);
         if (existing != null && existing.getExpiresAt() == null) return existing;
         LocalDateTime expiresAt = duration == null ? null : LocalDateTime.now().plus(duration);
         if (existing != null) {
-            lambdaUpdate()
+            if (!lambdaUpdate()
                     .eq(CmdDisable::getId, existing.getId())
                     .set(CmdDisable::getExpiresAt, expiresAt)
-                    .update();
-            CmdDisable stored = getById(existing.getId());
-            if (stored == null) throw new SettingException("Command disable not found: " + cmd);
+                    .update())
+                throw new SettingException("Command disable not found: " + cmd);
+            existing.setExpiresAt(expiresAt);
             log.info("Command disable updated: type={}, chat={}, user={}, cmd={}, expires={}",
                     chatType.getLabel(), chatId, userId, cmd, expiresAt);
-            return stored;
+            return existing;
         }
         CmdDisable rule = CmdDisable.builder()
                 .chatType(chatType)
@@ -137,7 +137,7 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
         return removed;
     }
 
-    private CmdDisable findRow(ChatType chatType, String chatId, String userId, String cmd) {
+    private CmdDisable load(ChatType chatType, String chatId, String userId, String cmd) {
         return lambdaQuery()
                 .eq(CmdDisable::getChatType, chatType)
                 .eq(CmdDisable::getChatId, chatId)
@@ -150,24 +150,9 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
         return expiresAt != null && !expiresAt.isAfter(LocalDateTime.now());
     }
 
-    private static String normalizeGroupId(String groupId) {
-        if (groupId == null || groupId.isBlank())
-            throw new SettingException("Missing key: groupId");
-        return groupId;
-    }
-
-    private static String normalizeGroupUserId(String userId) {
-        return userId == null || userId.isBlank() ? CmdDisableService.WHOLE_GROUP : userId.trim();
-    }
-
-    private static String normalizeUserId(String userId) {
-        if (userId == null || userId.isBlank())
-            throw new SettingException("Missing key: userId");
-        return userId.trim();
-    }
-
-    private static String normalizeCommand(String cmd) {
-        if (cmd == null || cmd.isBlank()) throw new SettingException("Missing key: cmd");
-        return cmd.trim();
+    private static String require(String value, String field) {
+        if (value == null || value.isBlank())
+            throw new SettingException("Missing key: " + field);
+        return value.trim();
     }
 }
