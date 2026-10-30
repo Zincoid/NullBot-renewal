@@ -303,9 +303,11 @@ public enum DemoText {
 异常分层：
 
 - `CmdWarnException`：用户可修正的问题，例如参数错误、缺少输入；
-- `CmdInfoException`：提示性结果，例如没有数据、已取消；
+- `CmdInfoException`：提示后中止，例如没有数据、已取消；
 - 插件自定义 `XxxException`：网络、解析、图片处理等领域边界；
 - 指令层捕获插件异常，记录日志并转换为本地化 `CmdWarnException`。
+
+执行成功的提示直接用 `ctx.send(...)` 后返回，不要为了发消息抛异常。
 
 不要用宽泛的 `catch (Exception)` 吞掉错误，也不要把插件内部技术异常直接暴露给用户。
 

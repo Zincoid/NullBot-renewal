@@ -123,7 +123,8 @@ public class ChatPipeline {
         AgentOptions options = options();
         String trigger = trigger(event);
         String selfName = BotClients.selfName(client, selfId);
-        ChatContext ctx = new ChatContext(client, targetId, group, event, cmdDispatcher, fileService);
+        ChatContext ctx = new ChatContext(client, targetId, group, event,
+                cmdDispatcher, fileService, configService);
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {

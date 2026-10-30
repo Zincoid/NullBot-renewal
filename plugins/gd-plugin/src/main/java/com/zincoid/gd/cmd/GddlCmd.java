@@ -99,8 +99,7 @@ public class GddlCmd implements Cmd {
             throw new CmdInfoException(GdText.BIND_ALREADY.of(
                     ctx.language(), existing.name(), existing.id()));
         log.info("GDDL binding saved: user={}, gddl={} ({})", userId, user.id(), user.name());
-        throw new CmdInfoException(GdText.BIND_SUCCESS.of(
-                ctx.language(), user.name(), user.id()));
+        ctx.send(GdText.BIND_SUCCESS.of(ctx.language(), user.name(), user.id()));
     }
 
     private void unbindUser(CmdContext ctx, String userId) {
@@ -115,8 +114,7 @@ public class GddlCmd implements Cmd {
             throw new CmdInfoException(GdText.UNBIND_NONE.of(ctx.language()));
         log.info("GDDL binding removed: user={}, gddl={} ({})",
                 userId, existing.id(), existing.name());
-        throw new CmdInfoException(GdText.UNBIND_SUCCESS.of(
-                ctx.language(), existing.name(), existing.id()));
+        ctx.send(GdText.UNBIND_SUCCESS.of(ctx.language(), existing.name(), existing.id()));
     }
 
     private void showB20(CmdContext ctx, GddlUser user, boolean all) {

@@ -5,9 +5,8 @@ import com.zincoid.nullbot.bot.cmd.chain.CmdHandler;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.config.Conf;
-import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
+import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,8 @@ public class CmdDispatcher {
     private final CmdParser parser;
     private final List<CmdHandler> handlers;
     private final LanguageService languageService;
-    private final ConfigService configService;
+
+    // ════ Dispatch ════════════════
 
     /**
      * 入站事件解析为指令时进行分发。
@@ -39,19 +39,7 @@ public class CmdDispatcher {
      */
     public void dispatch(BotClient client, BotEvent event) {
         CmdRequest req = parser.parse(event);
-        if (req != null) dispatch(client, event, req);
-    }
-
-    /**
-     * 按显式请求分发指令处理链，执行权限校验。
-     * <p>Dispatches an explicit command request through the handler chain with access checks.</p>
-     *
-     * @param client the outbound port
-     * @param event  the inbound event
-     * @param req    the explicit command request
-     */
-    public void dispatch(BotClient client, BotEvent event, CmdRequest req) {
-        dispatch(client, event, req, true);
+        if (req != null) dispatch(client, event, req, true);
     }
 
     /**
@@ -71,21 +59,19 @@ public class CmdDispatcher {
         }
         CmdContext ctx = new CmdContext(client, event, cmd, req.params(), language(event), checkAccess);
         log.info("Command start: {}", req.name());
-        new CmdChain(handlers).doHandle(ctx);
+        try {
+            new CmdChain(handlers).doHandle(ctx);
+        } catch (CmdInfoException e) {
+            log.info("Cmd info: {}", e.getMessage());
+            ctx.send(e.getMessage());
+        } catch (CmdWarnException e) {
+            log.warn("Cmd warning: {}", e.getMessage());
+            ctx.send(Text.CMD_WARN, e.getMessage());
+        } catch (Exception e) {
+            log.error("Cmd fatal: {}", e.getMessage(), e);
+            ctx.send(Text.CMD_ERROR, e.getMessage());
+        }
         log.info("Command done: {}", req.name());
-    }
-
-    /**
-     * 按 AI 工具请求分发指令；是否校验限权由配置决定。
-     * <p>Dispatches an AI tool command request; access checking is controlled by configuration.</p>
-     *
-     * @param client the outbound port
-     * @param event  the inbound event
-     * @param req    the explicit command request
-     */
-    public void dispatchAi(BotClient client, BotEvent event, CmdRequest req) {
-        boolean checkAccess = configService.getBool(Conf.AI_CMD_ACCESS_CHECK);
-        dispatch(client, event, req, checkAccess);
     }
 
     // ════ Helpers ═════════════════

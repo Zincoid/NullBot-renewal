@@ -7,6 +7,8 @@ import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
+import com.zincoid.nullbot.module.config.Conf;
+import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.MimeUtils;
@@ -23,6 +25,7 @@ import java.util.List;
  * @param event         the triggering event
  * @param cmdDispatcher the command dispatcher
  * @param fileService   the file service
+ * @param configService the config service
  */
 public record ChatContext(
         BotClient client,
@@ -30,7 +33,8 @@ public record ChatContext(
         boolean group,
         BotEvent event,
         CmdDispatcher cmdDispatcher,
-        FileService fileService
+        FileService fileService,
+        ConfigService configService
 ) implements ToolContext {
 
     private static final int MAX_MUTE_MINUTES = 30 * 24 * 60;
@@ -126,7 +130,8 @@ public record ChatContext(
 
     @Override
     public ToolRes cmd(String name, List<String> params) {
-        cmdDispatcher.dispatchAi(client, event, new CmdRequest(name, params));
+        boolean checkAccess = configService.getBool(Conf.AI_CMD_ACCESS_CHECK);
+        cmdDispatcher.dispatch(client, event, new CmdRequest(name, params), checkAccess);
         return ToolRes.of("Command executed: " + name);
     }
 }

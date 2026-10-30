@@ -43,7 +43,7 @@ public class AutoChatMiddleware implements Middleware {
     @Override
     public void handle(BotClient client, BotEvent event, MiddlewareChain chain) {
         if (event instanceof GroupMsgEvent e && shouldChat(e)) {
-            cmdDispatcher.dispatch(client, event, new CmdRequest(CmdParser.CHAT_CMD_NAME, List.of()));
+            cmdDispatcher.dispatch(client, event, new CmdRequest(CmdParser.CHAT_CMD_NAME, List.of()), true);
             chain.consume();
             return;
         }

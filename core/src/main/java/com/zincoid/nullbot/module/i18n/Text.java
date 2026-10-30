@@ -192,7 +192,6 @@ public enum Text {
     DISABLE_ADDED("✅ 已禁用 %s（%s，%s）", "✅ Disabled %s (%s, %s)"),
     DISABLE_REMOVED("✅ 已启用 %s（%s）", "✅ Enabled %s (%s)"),
     DISABLE_NOT_FOUND("没有找到对应的禁用规则", "No matching disable rule"),
-    DISABLE_FAILED("禁用规则操作失败", "Failed to update disable rule"),
     DISABLE_NOTICE_GROUP("🚫 该指令在本群已被禁用（%s）",
             "🚫 This command is disabled in this group (%s)"),
     DISABLE_NOTICE_USER("🚫 你已被禁止使用该指令（%s）",

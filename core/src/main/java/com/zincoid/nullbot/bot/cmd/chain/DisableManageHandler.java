@@ -51,48 +51,41 @@ public class DisableManageHandler implements CmdHandler {
     // ════ Manage ══════════════════
 
     private void manage(CmdContext ctx, CmdArgs args, boolean ban, boolean unban) {
-        try {
-            if (ban && unban)
-                throw new CmdWarnException(ctx.render(Text.DISABLE_CONFLICT));
-            if (!args.isEmpty())
-                throw new CmdWarnException(ctx.render(Text.DISABLE_UNEXPECTED_ARG, args.peek()));
-            Target target = target(ctx, args);
-            if (!checkPermission(ctx, target)) return;
-            String cmd = ctx.cmd().name();
-            if (unban) {
-                if (args.hasOpt("temp", null))
-                    throw new CmdWarnException(ctx.render(Text.DISABLE_TEMP_WITH_UNBAN));
-                boolean removed = target.groupRule()
-                        ? cmdDisableService.removeGroup(target.groupId(), target.userId(), cmd)
-                        : cmdDisableService.removePrivate(target.userId(), cmd);
-                if (!removed) {
-                    ctx.send(Text.CMD_WARN, ctx.render(Text.DISABLE_NOT_FOUND));
-                    return;
-                }
-                ctx.send(Text.DISABLE_REMOVED, cmd, targetLabel(ctx, target));
+        if (ban && unban)
+            throw new CmdWarnException(ctx.render(Text.DISABLE_CONFLICT));
+        if (!args.isEmpty())
+            throw new CmdWarnException(ctx.render(Text.DISABLE_UNEXPECTED_ARG, args.peek()));
+        Target target = target(ctx, args);
+        if (!checkPermission(ctx, target)) return;
+        String cmd = ctx.cmd().name();
+        if (unban) {
+            if (args.hasOpt("temp", null))
+                throw new CmdWarnException(ctx.render(Text.DISABLE_TEMP_WITH_UNBAN));
+            boolean removed = target.groupRule()
+                    ? cmdDisableService.removeGroup(target.groupId(), target.userId(), cmd)
+                    : cmdDisableService.removePrivate(target.userId(), cmd);
+            if (!removed) {
+                ctx.send(Text.CMD_WARN, ctx.render(Text.DISABLE_NOT_FOUND));
                 return;
             }
-            LocalDateTime expiresAt = expiresAt(ctx, args);
-            LocalDateTime storedExpiry;
-            if (target.groupRule()) {
-                storedExpiry = cmdDisableService.addGroup(
-                        target.groupId(), target.userId(), cmd, expiresAt).getExpiresAt();
-            } else {
-                storedExpiry = cmdDisableService.addPrivate(
-                        target.userId(), cmd, expiresAt).getExpiresAt();
-            }
-            String state = storedExpiry == null
-                    ? Text.DISABLE_PERMANENT.of(ctx.language())
-                    : Text.DISABLE_REMAINING.of(ctx.language(),
-                            DurationText.format(ctx.language(),
-                                    Duration.between(LocalDateTime.now(), storedExpiry)));
-            ctx.send(Text.DISABLE_ADDED, cmd, targetLabel(ctx, target), state);
-        } catch (CmdWarnException e) {
-            ctx.send(Text.CMD_WARN, e.getMessage());
-        } catch (RuntimeException e) {
-            log.error("Command disable failed: {}", e.getMessage(), e);
-            ctx.send(Text.CMD_WARN, ctx.render(Text.DISABLE_FAILED));
+            ctx.send(Text.DISABLE_REMOVED, cmd, targetLabel(ctx, target));
+            return;
         }
+        LocalDateTime expiresAt = expiresAt(ctx, args);
+        LocalDateTime storedExpiry;
+        if (target.groupRule()) {
+            storedExpiry = cmdDisableService.addGroup(
+                    target.groupId(), target.userId(), cmd, expiresAt).getExpiresAt();
+        } else {
+            storedExpiry = cmdDisableService.addPrivate(
+                    target.userId(), cmd, expiresAt).getExpiresAt();
+        }
+        String state = storedExpiry == null
+                ? Text.DISABLE_PERMANENT.of(ctx.language())
+                : Text.DISABLE_REMAINING.of(ctx.language(),
+                        DurationText.format(ctx.language(),
+                                Duration.between(LocalDateTime.now(), storedExpiry)));
+        ctx.send(Text.DISABLE_ADDED, cmd, targetLabel(ctx, target), state);
     }
 
     // ════ Target ══════════════════

@@ -101,8 +101,10 @@ public class GdCmd implements Cmd {
             log.warn("GD register failed: user={}", userId, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
         }
-        if (created)
-            throw new CmdInfoException(GdText.REGISTER_SUCCESS.of(ctx.language()));
+        if (created) {
+            ctx.send(GdText.REGISTER_SUCCESS.of(ctx.language()));
+            return;
+        }
         throw new CmdInfoException(GdText.REGISTER_ALREADY.of(ctx.language()));
     }
 
@@ -122,7 +124,7 @@ public class GdCmd implements Cmd {
         UpdateResult value = result.get();
         String author = value.author() == null || value.author().isBlank()
                 ? "-" : value.author();
-        throw new CmdInfoException(GdText.UPDATE_SUCCESS.of(
+        ctx.send(GdText.UPDATE_SUCCESS.of(
                 ctx.language(), value.levelName(), author, id, percent));
     }
 
@@ -138,7 +140,7 @@ public class GdCmd implements Cmd {
         }
         if (!removed)
             throw new CmdInfoException(GdText.REMOVE_NONE.of(ctx.language()));
-        throw new CmdInfoException(GdText.REMOVE_SUCCESS.of(ctx.language(), id));
+        ctx.send(GdText.REMOVE_SUCCESS.of(ctx.language(), id));
     }
 
     private void unregister(CmdContext ctx, String targetId, String userId, boolean group) {
@@ -165,7 +167,7 @@ public class GdCmd implements Cmd {
             log.warn("GD unregister failed: user={}", userId, e);
             throw new CmdWarnException(GdText.STORAGE_FAILED.of(ctx.language()));
         }
-        throw new CmdInfoException(GdText.UNREGISTER_SUCCESS.of(ctx.language(), removed));
+        ctx.send(GdText.UNREGISTER_SUCCESS.of(ctx.language(), removed));
     }
 
     private InputResult confirm(CmdContext ctx, InputMode mode, String targetId,
