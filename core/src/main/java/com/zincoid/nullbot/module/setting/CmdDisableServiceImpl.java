@@ -8,6 +8,7 @@ import com.zincoid.nullbot.platform.persistence.po.CmdDisable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -35,9 +36,9 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
     }
 
     @Override
-    public CmdDisable addGroup(String groupId, String userId, String cmd, LocalDateTime expiresAt) {
+    public CmdDisable addGroup(String groupId, String userId, String cmd, Duration duration) {
         return add(ChatType.GROUP, normalizeGroupId(groupId),
-                normalizeGroupUserId(userId), normalizeCommand(cmd), expiresAt);
+                normalizeGroupUserId(userId), normalizeCommand(cmd), duration);
     }
 
     @Override
@@ -60,9 +61,9 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
     }
 
     @Override
-    public CmdDisable addPrivate(String userId, String cmd, LocalDateTime expiresAt) {
+    public CmdDisable addPrivate(String userId, String cmd, Duration duration) {
         String uid = normalizeUserId(userId);
-        return add(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd), expiresAt);
+        return add(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd), duration);
     }
 
     @Override
@@ -94,10 +95,11 @@ public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisa
     }
 
     private CmdDisable add(ChatType chatType, String chatId, String userId,
-                           String cmd, LocalDateTime expiresAt) {
+                           String cmd, Duration duration) {
         CmdDisable existing = findRow(chatType, chatId, userId, cmd);
+        if (existing != null && existing.getExpiresAt() == null) return existing;
+        LocalDateTime expiresAt = duration == null ? null : LocalDateTime.now().plus(duration);
         if (existing != null) {
-            if (existing.getExpiresAt() == null) return existing;
             lambdaUpdate()
                     .eq(CmdDisable::getId, existing.getId())
                     .set(CmdDisable::getExpiresAt, expiresAt)

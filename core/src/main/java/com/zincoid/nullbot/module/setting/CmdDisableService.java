@@ -3,7 +3,7 @@ package com.zincoid.nullbot.module.setting;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.po.CmdDisable;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -44,13 +44,13 @@ public interface CmdDisableService extends IService<CmdDisable> {
      * 添加或更新群聊规则；已有的永久规则不会被临时规则降级。
      * <p>Adds or updates a group rule; an existing permanent rule is not downgraded by a temporary one.</p>
      *
-     * @param groupId   group id
-     * @param userId    user id, {@code *} for a whole group
-     * @param cmd       the canonical command name
-     * @param expiresAt expiry time, or null for a permanent rule
+     * @param groupId  group id
+     * @param userId   user id, {@code *} for a whole group
+     * @param cmd      the canonical command name
+     * @param duration the disable duration, or null for a permanent rule
      * @return the stored rule
      */
-    CmdDisable addGroup(String groupId, String userId, String cmd, LocalDateTime expiresAt);
+    CmdDisable addGroup(String groupId, String userId, String cmd, Duration duration);
 
     /**
      * 删除一条精确匹配的群聊规则。
@@ -88,12 +88,12 @@ public interface CmdDisableService extends IService<CmdDisable> {
      * 添加或更新私聊规则；已有的永久规则不会被临时规则降级。
      * <p>Adds or updates a private rule; an existing permanent rule is not downgraded by a temporary one.</p>
      *
-     * @param userId    user id
-     * @param cmd       the canonical command name
-     * @param expiresAt expiry time, or null for a permanent rule
+     * @param userId   user id
+     * @param cmd      the canonical command name
+     * @param duration the disable duration, or null for a permanent rule
      * @return the stored rule
      */
-    CmdDisable addPrivate(String userId, String cmd, LocalDateTime expiresAt);
+    CmdDisable addPrivate(String userId, String cmd, Duration duration);
 
     /**
      * 删除一条精确匹配的私聊规则。

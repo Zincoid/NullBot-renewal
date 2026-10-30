@@ -24,9 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.DateTimeException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -71,7 +69,7 @@ public class CmdDisableController {
         String gid = ConsoleValidation.required(groupId, 64, "groupId");
         String uid = ConsoleValidation.required(body.userId(), 64, "userId");
         CmdDisable rule = cmdDisableService.addGroup(
-                gid, uid, command(body.cmd()), expiresAt(body.duration()));
+                gid, uid, command(body.cmd()), parseDuration(body.duration()));
         return CmdDisableView.of(rule);
     }
 
@@ -124,7 +122,7 @@ public class CmdDisableController {
                                      @Valid @RequestBody PrivateCmdDisableCreate body) {
         String uid = ConsoleValidation.required(userId, 64, "userId");
         CmdDisable rule = cmdDisableService.addPrivate(
-                uid, command(body.cmd()), expiresAt(body.duration()));
+                uid, command(body.cmd()), parseDuration(body.duration()));
         return CmdDisableView.of(rule);
     }
 
@@ -155,16 +153,12 @@ public class CmdDisableController {
         return cmd.name();
     }
 
-    private static LocalDateTime expiresAt(String raw) {
+    private static Duration parseDuration(String raw) {
         String value = ConsoleValidation.text(raw, 20, "duration");
         if (value == null) return null;
         Duration duration = DurationUtils.parse(value);
         if (duration == null)
             throw new ConsoleException(HttpStatus.BAD_REQUEST, "Malformed duration: " + value);
-        try {
-            return LocalDateTime.now().plus(duration);
-        } catch (DateTimeException e) {
-            throw new ConsoleException(HttpStatus.BAD_REQUEST, "Malformed duration: " + value, e);
-        }
+        return duration;
     }
 }

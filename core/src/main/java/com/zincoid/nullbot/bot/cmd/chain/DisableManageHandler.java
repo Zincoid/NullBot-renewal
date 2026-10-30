@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,14 +58,14 @@ public class DisableManageHandler implements CmdHandler {
     // ════ Rules ═══════════════════
 
     private void addRule(CmdContext ctx, CmdArgs args, Target target, String cmd) {
-        LocalDateTime expiresAt = expiresAt(ctx, args);
+        Duration duration = parseDuration(ctx, args);
         LocalDateTime storedExpiry;
         if (target.groupRule()) {
             storedExpiry = cmdDisableService.addGroup(
-                    target.groupId(), target.userId(), cmd, expiresAt).getExpiresAt();
+                    target.groupId(), target.userId(), cmd, duration).getExpiresAt();
         } else {
             storedExpiry = cmdDisableService.addPrivate(
-                    target.userId(), cmd, expiresAt).getExpiresAt();
+                    target.userId(), cmd, duration).getExpiresAt();
         }
         String state = storedExpiry == null
                 ? Text.DISABLE_PERMANENT.of(ctx.language())
@@ -134,19 +133,15 @@ public class DisableManageHandler implements CmdHandler {
         return true;
     }
 
-    // ════ Expiry ══════════════════
+    // ════ Duration ════════════════
 
-    private static LocalDateTime expiresAt(CmdContext ctx, CmdArgs args) {
+    private static Duration parseDuration(CmdContext ctx, CmdArgs args) {
         String raw = args.getOpt("temp", null, null);
         if (raw == null) return null;
         Duration duration = DurationUtils.parse(raw);
         if (duration == null)
             throw new CmdWarnException(ctx.render(Text.DISABLE_MALFORMED_TEMP, raw));
-        try {
-            return LocalDateTime.now().plus(duration);
-        } catch (DateTimeException e) {
-            throw new CmdWarnException(ctx.render(Text.DISABLE_MALFORMED_TEMP, raw));
-        }
+        return duration;
     }
 
     private static String targetLabel(CmdContext ctx, Target target) {
