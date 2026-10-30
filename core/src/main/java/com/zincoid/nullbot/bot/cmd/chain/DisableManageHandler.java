@@ -65,7 +65,7 @@ public class DisableManageHandler implements CmdHandler {
             storedExpiry = cmdDisableService.addGroup(
                     target.groupId(), target.userId(), cmd, expiresAt).getExpiresAt();
         } else {
-            storedExpiry = cmdDisableService.addUser(
+            storedExpiry = cmdDisableService.addPrivate(
                     target.userId(), cmd, expiresAt).getExpiresAt();
         }
         String state = storedExpiry == null
@@ -81,7 +81,7 @@ public class DisableManageHandler implements CmdHandler {
             throw new CmdWarnException(ctx.render(Text.DISABLE_TEMP_WITH_UNBAN));
         boolean removed = target.groupRule()
                 ? cmdDisableService.removeGroup(target.groupId(), target.userId(), cmd)
-                : cmdDisableService.removeUser(target.userId(), cmd);
+                : cmdDisableService.removePrivate(target.userId(), cmd);
         if (!removed)
             throw new CmdWarnException(ctx.render(Text.DISABLE_NOT_FOUND));
         ctx.send(Text.DISABLE_REMOVED, cmd, targetLabel(ctx, target));

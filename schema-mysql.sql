@@ -159,26 +159,15 @@ CREATE TABLE IF NOT EXISTS `quote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quote table';
 
 -- =============================================
--- 11. Group Command Disable Table
+-- 11. Command Disable Table
 -- =============================================
-CREATE TABLE IF NOT EXISTS `group_cmd_disable` (
+CREATE TABLE IF NOT EXISTS `cmd_disable` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Platform group id',
-    `user_id`       VARCHAR(64)     NOT NULL DEFAULT '*'     COMMENT 'Target user id; * for whole-group rules',
+    `chat_type`     TINYINT         NOT NULL                 COMMENT 'Chat type: 0=group, 1=private',
+    `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Group id or private user id',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Target user id; * for a whole group',
     `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command canonical name',
     `expires_at`    DATETIME        DEFAULT NULL             COMMENT 'Expiry time; NULL means permanent',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_group_cmd_disable` (`group_id`, `user_id`, `cmd`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group command disable rule table';
-
--- =============================================
--- 12. User Command Disable Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `user_cmd_disable` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Target user id',
-    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command canonical name',
-    `expires_at`    DATETIME        DEFAULT NULL             COMMENT 'Expiry time; NULL means permanent',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_cmd_disable` (`user_id`, `cmd`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User command disable rule table';
+    UNIQUE KEY `uk_cmd_disable` (`chat_type`, `chat_id`, `cmd`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Command disable rule table';

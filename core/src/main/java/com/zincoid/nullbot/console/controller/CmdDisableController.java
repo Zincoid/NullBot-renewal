@@ -4,12 +4,11 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;
 import com.zincoid.nullbot.console.dto.CmdDisableView;
 import com.zincoid.nullbot.console.dto.GroupCmdDisableCreate;
-import com.zincoid.nullbot.console.dto.UserCmdDisableCreate;
+import com.zincoid.nullbot.console.dto.PrivateCmdDisableCreate;
 import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.console.util.ConsoleValidation;
 import com.zincoid.nullbot.module.setting.CmdDisableService;
-import com.zincoid.nullbot.platform.persistence.po.GroupCmdDisable;
-import com.zincoid.nullbot.platform.persistence.po.UserCmdDisable;
+import com.zincoid.nullbot.platform.persistence.po.CmdDisable;
 import com.zincoid.nullbot.platform.util.DurationUtils;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -71,7 +70,7 @@ public class CmdDisableController {
                                    @Valid @RequestBody GroupCmdDisableCreate body) {
         String gid = ConsoleValidation.required(groupId, 64, "groupId");
         String uid = ConsoleValidation.required(body.userId(), 64, "userId");
-        GroupCmdDisable rule = cmdDisableService.addGroup(
+        CmdDisable rule = cmdDisableService.addGroup(
                 gid, uid, command(body.cmd()), expiresAt(body.duration()));
         return CmdDisableView.of(rule);
     }
@@ -97,7 +96,7 @@ public class CmdDisableController {
         return ResponseEntity.noContent().build();
     }
 
-    // ════ User ════════════════════
+    // ════ Private ═════════════════
 
     /**
      * 列出用户私聊中生效的禁用规则。
@@ -107,9 +106,9 @@ public class CmdDisableController {
      * @return the active rules
      */
     @GetMapping("/users/{userId}/cmd-disables")
-    public List<CmdDisableView> listUser(@PathVariable String userId) {
+    public List<CmdDisableView> listPrivate(@PathVariable String userId) {
         String uid = ConsoleValidation.required(userId, 64, "userId");
-        return cmdDisableService.listUser(uid).stream().map(CmdDisableView::of).toList();
+        return cmdDisableService.listPrivate(uid).stream().map(CmdDisableView::of).toList();
     }
 
     /**
@@ -121,10 +120,10 @@ public class CmdDisableController {
      * @return the stored rule
      */
     @PostMapping("/users/{userId}/cmd-disables")
-    public CmdDisableView addUser(@PathVariable String userId,
-                                  @Valid @RequestBody UserCmdDisableCreate body) {
+    public CmdDisableView addPrivate(@PathVariable String userId,
+                                     @Valid @RequestBody PrivateCmdDisableCreate body) {
         String uid = ConsoleValidation.required(userId, 64, "userId");
-        UserCmdDisable rule = cmdDisableService.addUser(
+        CmdDisable rule = cmdDisableService.addPrivate(
                 uid, command(body.cmd()), expiresAt(body.duration()));
         return CmdDisableView.of(rule);
     }
@@ -138,10 +137,11 @@ public class CmdDisableController {
      * @return an empty response
      */
     @DeleteMapping("/users/{userId}/cmd-disables/{cmd}")
-    public ResponseEntity<Void> removeUser(@PathVariable String userId, @PathVariable String cmd) {
+    public ResponseEntity<Void> removePrivate(@PathVariable String userId,
+                                              @PathVariable String cmd) {
         String uid = ConsoleValidation.required(userId, 64, "userId");
         String name = ConsoleValidation.required(cmd, 100, "cmd");
-        if (!cmdDisableService.removeUser(uid, name))
+        if (!cmdDisableService.removePrivate(uid, name))
             throw new ConsoleException(HttpStatus.NOT_FOUND, "Disable rule not found: " + name);
         return ResponseEntity.noContent().build();
     }

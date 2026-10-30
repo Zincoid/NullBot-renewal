@@ -11,7 +11,7 @@
 - 新增指令禁用：直接使用 `#指令 -B` 可在当前群或私聊禁用该指令，`#指令 -U` 解除；群聊支持整群或 `@用户`/`--user=<ID>`，私聊必须指定 `--user`。
 - 指令禁用支持 `--temp=30m` / `2h` / `7d` 限时规则，到期自动恢复；被禁用时回复剩余时间，永久规则显示“永久”。
 - 群聊规则与私聊规则相互隔离，群规则不影响私聊，私聊规则不影响群规则。
-- MySQL 部署需重新执行 `schema-mysql.sql` 创建 `group_cmd_disable` / `user_cmd_disable` 表；SQLite 启动时自动创建。
+- MySQL 部署需重新执行 `schema-mysql.sql` 创建 `cmd_disable` 表；SQLite 启动时自动创建。
 
 **控制台**
 
@@ -59,6 +59,7 @@
 - B20 表格整行文字颜色随 tier 变化，沿用绿到蓝再到红的渐变。
 - 缩短插件加载与上传的临时文件名，并在启动时清理遗留临时文件。
 - `CmdArgs` 的长选项名必须至少两个字符、短选项别名必须是单个字母；`--B` / `-ban` 这类写法不再解析为选项，`hasOpt` / `getOpt` 传入不合法的 name / alias 会抛出 `IllegalArgumentException`。
+- 指令禁用规则合并为 `cmd_disable` 单表，通过 `chat_type`（0=群聊，1=私聊）/ `chat_id` 区分群聊与私聊；已有 `group_cmd_disable` / `user_cmd_disable` 数据需按新表结构手动迁移。
 
 ## [1.1.0] - 2026-10-27
 

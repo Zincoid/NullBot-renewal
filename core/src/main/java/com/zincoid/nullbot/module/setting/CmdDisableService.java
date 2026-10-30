@@ -1,16 +1,16 @@
 package com.zincoid.nullbot.module.setting;
 
-import com.zincoid.nullbot.platform.persistence.po.GroupCmdDisable;
-import com.zincoid.nullbot.platform.persistence.po.UserCmdDisable;
+import com.baomidou.mybatisplus.spring.service.IService;
+import com.zincoid.nullbot.platform.persistence.po.CmdDisable;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 指令禁用服务：分别维护群聊与私聊禁用规则。
- * <p>Command disable service: maintains group-chat and private-chat rules separately.</p>
+ * 指令禁用服务：维护群聊与私聊的禁用规则。
+ * <p>Command disable service: maintains command-disable rules for group and private chats.</p>
  */
-public interface CmdDisableService {
+public interface CmdDisableService extends IService<CmdDisable> {
 
     /**
      * 群规则中表示整群的用户 ID 哨兵。
@@ -27,7 +27,7 @@ public interface CmdDisableService {
      * @param groupId group id
      * @return the active rules
      */
-    List<GroupCmdDisable> listGroup(String groupId);
+    List<CmdDisable> listGroup(String groupId);
 
     /**
      * 查找群聊中生效的规则，未找到或已过期时返回 null。
@@ -38,7 +38,7 @@ public interface CmdDisableService {
      * @param cmd     the canonical command name
      * @return the active rule, or null
      */
-    GroupCmdDisable findGroup(String groupId, String userId, String cmd);
+    CmdDisable findGroup(String groupId, String userId, String cmd);
 
     /**
      * 添加或更新群聊规则；已有的永久规则不会被临时规则降级。
@@ -50,7 +50,7 @@ public interface CmdDisableService {
      * @param expiresAt expiry time, or null for a permanent rule
      * @return the stored rule
      */
-    GroupCmdDisable addGroup(String groupId, String userId, String cmd, LocalDateTime expiresAt);
+    CmdDisable addGroup(String groupId, String userId, String cmd, LocalDateTime expiresAt);
 
     /**
      * 删除一条精确匹配的群聊规则。
@@ -63,7 +63,7 @@ public interface CmdDisableService {
      */
     boolean removeGroup(String groupId, String userId, String cmd);
 
-    // ════ User ════════════════════
+    // ════ Private ═════════════════
 
     /**
      * 列出私聊中生效的规则，按指令名排序。
@@ -72,7 +72,7 @@ public interface CmdDisableService {
      * @param userId user id
      * @return the active rules
      */
-    List<UserCmdDisable> listUser(String userId);
+    List<CmdDisable> listPrivate(String userId);
 
     /**
      * 查找私聊中生效的规则，未找到或已过期时返回 null。
@@ -82,7 +82,7 @@ public interface CmdDisableService {
      * @param cmd    the canonical command name
      * @return the active rule, or null
      */
-    UserCmdDisable findUser(String userId, String cmd);
+    CmdDisable findPrivate(String userId, String cmd);
 
     /**
      * 添加或更新私聊规则；已有的永久规则不会被临时规则降级。
@@ -93,7 +93,7 @@ public interface CmdDisableService {
      * @param expiresAt expiry time, or null for a permanent rule
      * @return the stored rule
      */
-    UserCmdDisable addUser(String userId, String cmd, LocalDateTime expiresAt);
+    CmdDisable addPrivate(String userId, String cmd, LocalDateTime expiresAt);
 
     /**
      * 删除一条精确匹配的私聊规则。
@@ -103,5 +103,5 @@ public interface CmdDisableService {
      * @param cmd    the canonical command name
      * @return true when a rule was removed
      */
-    boolean removeUser(String userId, String cmd);
+    boolean removePrivate(String userId, String cmd);
 }

@@ -1,11 +1,10 @@
 package com.zincoid.nullbot.module.setting;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.zincoid.nullbot.platform.persistence.mapper.GroupCmdDisableMapper;
-import com.zincoid.nullbot.platform.persistence.mapper.UserCmdDisableMapper;
-import com.zincoid.nullbot.platform.persistence.po.GroupCmdDisable;
-import com.zincoid.nullbot.platform.persistence.po.UserCmdDisable;
-import lombok.RequiredArgsConstructor;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
+import com.zincoid.nullbot.platform.persistence.mapper.CmdDisableMapper;
+import com.zincoid.nullbot.platform.persistence.po.CmdDisable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -19,154 +18,131 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class CmdDisableServiceImpl implements CmdDisableService {
-
-    private final GroupCmdDisableMapper groupMapper;
-    private final UserCmdDisableMapper userMapper;
+public class CmdDisableServiceImpl extends ServiceImpl<CmdDisableMapper, CmdDisable>
+        implements CmdDisableService {
 
     // ════ Group ═══════════════════
 
     @Override
-    public List<GroupCmdDisable> listGroup(String groupId) {
-        String gid = normalizeGroupId(groupId);
-        return groupMapper.selectList(Wrappers.lambdaQuery(GroupCmdDisable.class)
-                        .eq(GroupCmdDisable::getGroupId, gid))
-                .stream()
-                .filter(rule -> !expired(rule.getExpiresAt()))
-                .sorted(Comparator
-                        .comparing(GroupCmdDisable::getCmd, String.CASE_INSENSITIVE_ORDER)
-                        .thenComparing(rule -> !CmdDisableService.WHOLE_GROUP.equals(rule.getUserId()))
-                        .thenComparing(GroupCmdDisable::getUserId))
-                .toList();
+    public List<CmdDisable> listGroup(String groupId) {
+        return list(ChatType.GROUP, normalizeGroupId(groupId));
     }
 
     @Override
-    public GroupCmdDisable findGroup(String groupId, String userId, String cmd) {
-        String gid = normalizeGroupId(groupId);
-        String uid = normalizeGroupUserId(userId);
-        String name = normalizeCommand(cmd);
-        GroupCmdDisable rule = groupMapper.selectOne(Wrappers.lambdaQuery(GroupCmdDisable.class)
-                .eq(GroupCmdDisable::getGroupId, gid)
-                .eq(GroupCmdDisable::getUserId, uid)
-                .eq(GroupCmdDisable::getCmd, name));
-        return rule == null || expired(rule.getExpiresAt()) ? null : rule;
+    public CmdDisable findGroup(String groupId, String userId, String cmd) {
+        return find(ChatType.GROUP, normalizeGroupId(groupId),
+                normalizeGroupUserId(userId), normalizeCommand(cmd));
     }
 
     @Override
-    public GroupCmdDisable addGroup(String groupId, String userId, String cmd, LocalDateTime expiresAt) {
-        String gid = normalizeGroupId(groupId);
-        String uid = normalizeGroupUserId(userId);
-        String name = normalizeCommand(cmd);
-        GroupCmdDisable existing = groupMapper.selectOne(Wrappers.lambdaQuery(GroupCmdDisable.class)
-                .eq(GroupCmdDisable::getGroupId, gid)
-                .eq(GroupCmdDisable::getUserId, uid)
-                .eq(GroupCmdDisable::getCmd, name));
-        if (existing != null) {
-            if (existing.getExpiresAt() == null) return existing;
-            groupMapper.update(null, Wrappers.lambdaUpdate(GroupCmdDisable.class)
-                    .eq(GroupCmdDisable::getId, existing.getId())
-                    .set(GroupCmdDisable::getExpiresAt, expiresAt));
-            GroupCmdDisable stored = groupMapper.selectById(existing.getId());
-            if (stored == null) throw new SettingException("Group command disable not found: " + name);
-            log.info("Group command disable updated: group={}, user={}, cmd={}, expires={}",
-                    gid, uid, name, expiresAt);
-            return stored;
-        }
-        GroupCmdDisable rule = GroupCmdDisable.builder()
-                .groupId(gid)
-                .userId(uid)
-                .cmd(name)
-                .expiresAt(expiresAt)
-                .build();
-        if (groupMapper.insert(rule) != 1)
-            throw new SettingException("Group command disable insert failed: " + name);
-        log.info("Group command disable added: group={}, user={}, cmd={}, expires={}",
-                gid, uid, name, expiresAt);
-        return rule;
+    public CmdDisable addGroup(String groupId, String userId, String cmd, LocalDateTime expiresAt) {
+        return add(ChatType.GROUP, normalizeGroupId(groupId),
+                normalizeGroupUserId(userId), normalizeCommand(cmd), expiresAt);
     }
 
     @Override
     public boolean removeGroup(String groupId, String userId, String cmd) {
-        String gid = normalizeGroupId(groupId);
-        String uid = normalizeGroupUserId(userId);
-        String name = normalizeCommand(cmd);
-        boolean removed = groupMapper.delete(Wrappers.lambdaQuery(GroupCmdDisable.class)
-                .eq(GroupCmdDisable::getGroupId, gid)
-                .eq(GroupCmdDisable::getUserId, uid)
-                .eq(GroupCmdDisable::getCmd, name)) > 0;
-        if (removed) {
-            log.info("Group command disable removed: group={}, user={}, cmd={}", gid, uid, name);
-        }
-        return removed;
+        return remove(ChatType.GROUP, normalizeGroupId(groupId),
+                normalizeGroupUserId(userId), normalizeCommand(cmd));
     }
 
-    // ════ User ════════════════════
+    // ════ Private ═════════════════
 
     @Override
-    public List<UserCmdDisable> listUser(String userId) {
-        String uid = normalizeUserId(userId);
-        return userMapper.selectList(Wrappers.lambdaQuery(UserCmdDisable.class)
-                        .eq(UserCmdDisable::getUserId, uid))
-                .stream()
-                .filter(rule -> !expired(rule.getExpiresAt()))
-                .sorted(Comparator.comparing(UserCmdDisable::getCmd, String.CASE_INSENSITIVE_ORDER))
-                .toList();
+    public List<CmdDisable> listPrivate(String userId) {
+        return list(ChatType.PRIVATE, normalizeUserId(userId));
     }
 
     @Override
-    public UserCmdDisable findUser(String userId, String cmd) {
+    public CmdDisable findPrivate(String userId, String cmd) {
         String uid = normalizeUserId(userId);
-        String name = normalizeCommand(cmd);
-        UserCmdDisable rule = userMapper.selectOne(Wrappers.lambdaQuery(UserCmdDisable.class)
-                .eq(UserCmdDisable::getUserId, uid)
-                .eq(UserCmdDisable::getCmd, name));
-        return rule == null || expired(rule.getExpiresAt()) ? null : rule;
+        return find(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd));
     }
 
     @Override
-    public UserCmdDisable addUser(String userId, String cmd, LocalDateTime expiresAt) {
+    public CmdDisable addPrivate(String userId, String cmd, LocalDateTime expiresAt) {
         String uid = normalizeUserId(userId);
-        String name = normalizeCommand(cmd);
-        UserCmdDisable existing = userMapper.selectOne(Wrappers.lambdaQuery(UserCmdDisable.class)
-                .eq(UserCmdDisable::getUserId, uid)
-                .eq(UserCmdDisable::getCmd, name));
-        if (existing != null) {
-            if (existing.getExpiresAt() == null) return existing;
-            userMapper.update(null, Wrappers.lambdaUpdate(UserCmdDisable.class)
-                    .eq(UserCmdDisable::getId, existing.getId())
-                    .set(UserCmdDisable::getExpiresAt, expiresAt));
-            UserCmdDisable stored = userMapper.selectById(existing.getId());
-            if (stored == null) throw new SettingException("User command disable not found: " + name);
-            log.info("User command disable updated: user={}, cmd={}, expires={}",
-                    uid, name, expiresAt);
-            return stored;
-        }
-        UserCmdDisable rule = UserCmdDisable.builder()
-                .userId(uid)
-                .cmd(name)
-                .expiresAt(expiresAt)
-                .build();
-        if (userMapper.insert(rule) != 1)
-            throw new SettingException("User command disable insert failed: " + name);
-        log.info("User command disable added: user={}, cmd={}, expires={}", uid, name, expiresAt);
-        return rule;
+        return add(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd), expiresAt);
     }
 
     @Override
-    public boolean removeUser(String userId, String cmd) {
+    public boolean removePrivate(String userId, String cmd) {
         String uid = normalizeUserId(userId);
-        String name = normalizeCommand(cmd);
-        boolean removed = userMapper.delete(Wrappers.lambdaQuery(UserCmdDisable.class)
-                .eq(UserCmdDisable::getUserId, uid)
-                .eq(UserCmdDisable::getCmd, name)) > 0;
-        if (removed) {
-            log.info("User command disable removed: user={}, cmd={}", uid, name);
-        }
-        return removed;
+        return remove(ChatType.PRIVATE, uid, uid, normalizeCommand(cmd));
     }
 
     // ════ Helpers ═════════════════
+
+    private List<CmdDisable> list(ChatType chatType, String chatId) {
+        return lambdaQuery()
+                .eq(CmdDisable::getChatType, chatType)
+                .eq(CmdDisable::getChatId, chatId)
+                .list()
+                .stream()
+                .filter(rule -> !expired(rule.getExpiresAt()))
+                .sorted(Comparator
+                        .comparing(CmdDisable::getCmd, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(rule -> chatType == ChatType.GROUP
+                                && !CmdDisableService.WHOLE_GROUP.equals(rule.getUserId()))
+                        .thenComparing(CmdDisable::getUserId))
+                .toList();
+    }
+
+    private CmdDisable find(ChatType chatType, String chatId, String userId, String cmd) {
+        CmdDisable rule = findRow(chatType, chatId, userId, cmd);
+        return rule == null || expired(rule.getExpiresAt()) ? null : rule;
+    }
+
+    private CmdDisable add(ChatType chatType, String chatId, String userId,
+                           String cmd, LocalDateTime expiresAt) {
+        CmdDisable existing = findRow(chatType, chatId, userId, cmd);
+        if (existing != null) {
+            if (existing.getExpiresAt() == null) return existing;
+            lambdaUpdate()
+                    .eq(CmdDisable::getId, existing.getId())
+                    .set(CmdDisable::getExpiresAt, expiresAt)
+                    .update();
+            CmdDisable stored = getById(existing.getId());
+            if (stored == null) throw new SettingException("Command disable not found: " + cmd);
+            log.info("Command disable updated: type={}, chat={}, user={}, cmd={}, expires={}",
+                    chatType.getLabel(), chatId, userId, cmd, expiresAt);
+            return stored;
+        }
+        CmdDisable rule = CmdDisable.builder()
+                .chatType(chatType)
+                .chatId(chatId)
+                .userId(userId)
+                .cmd(cmd)
+                .expiresAt(expiresAt)
+                .build();
+        if (!save(rule))
+            throw new SettingException("Command disable insert failed: " + cmd);
+        log.info("Command disable added: type={}, chat={}, user={}, cmd={}, expires={}",
+                chatType.getLabel(), chatId, userId, cmd, expiresAt);
+        return rule;
+    }
+
+    private boolean remove(ChatType chatType, String chatId, String userId, String cmd) {
+        boolean removed = remove(Wrappers.lambdaQuery(CmdDisable.class)
+                .eq(CmdDisable::getChatType, chatType)
+                .eq(CmdDisable::getChatId, chatId)
+                .eq(CmdDisable::getUserId, userId)
+                .eq(CmdDisable::getCmd, cmd));
+        if (removed) {
+            log.info("Command disable removed: type={}, chat={}, user={}, cmd={}",
+                    chatType.getLabel(), chatId, userId, cmd);
+        }
+        return removed;
+    }
+
+    private CmdDisable findRow(ChatType chatType, String chatId, String userId, String cmd) {
+        return lambdaQuery()
+                .eq(CmdDisable::getChatType, chatType)
+                .eq(CmdDisable::getChatId, chatId)
+                .eq(CmdDisable::getUserId, userId)
+                .eq(CmdDisable::getCmd, cmd)
+                .one();
+    }
 
     private static boolean expired(LocalDateTime expiresAt) {
         return expiresAt != null && !expiresAt.isAfter(LocalDateTime.now());

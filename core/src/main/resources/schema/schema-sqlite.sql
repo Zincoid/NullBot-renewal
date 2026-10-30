@@ -122,23 +122,14 @@ CREATE TABLE IF NOT EXISTS `quote` (
 CREATE INDEX IF NOT EXISTS `idx_quote_user_id` ON `quote` (`user_id`);
 CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
 
--- 11. Group Command Disable
-CREATE TABLE IF NOT EXISTS `group_cmd_disable` (
+-- 11. Command Disable
+CREATE TABLE IF NOT EXISTS `cmd_disable` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `group_id`      VARCHAR(64)     NOT NULL,
-    `user_id`       VARCHAR(64)     NOT NULL DEFAULT '*',  -- '*' for whole-group rules
+    `chat_type`     TINYINT         NOT NULL,              -- 0 = group, 1 = private
+    `chat_id`       VARCHAR(64)     NOT NULL,              -- group id or private user id
+    `user_id`       VARCHAR(64)     NOT NULL,              -- target user; '*' for whole group
     `cmd`           VARCHAR(100)    NOT NULL,
     `expires_at`    DATETIME        DEFAULT NULL           -- NULL means permanent
 );
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_cmd_disable`
-    ON `group_cmd_disable` (`group_id`, `user_id`, `cmd`);
-
--- 12. User Command Disable
-CREATE TABLE IF NOT EXISTS `user_cmd_disable` (
-    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `user_id`       VARCHAR(64)     NOT NULL,
-    `cmd`           VARCHAR(100)    NOT NULL,
-    `expires_at`    DATETIME        DEFAULT NULL           -- NULL means permanent
-);
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_user_cmd_disable`
-    ON `user_cmd_disable` (`user_id`, `cmd`);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_disable`
+    ON `cmd_disable` (`chat_type`, `chat_id`, `cmd`, `user_id`);
