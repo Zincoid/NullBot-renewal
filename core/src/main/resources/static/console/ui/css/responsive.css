@@ -185,6 +185,14 @@
         grid-column: 2;
     }
 
+    .cmd-disable-toolbar input,
+    .cmd-disable-toolbar select,
+    .cmd-disable-toolbar .cmd-target,
+    .cmd-disable-toolbar .cmd-duration,
+    .cmd-disable-toolbar .cmd-actions {
+        flex: 1 1 100%;
+    }
+
     .chart-head {
         align-items: flex-start;
         flex-direction: column;

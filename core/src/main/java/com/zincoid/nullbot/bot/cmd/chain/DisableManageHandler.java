@@ -39,18 +39,12 @@ public class DisableManageHandler implements CmdHandler {
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
         CmdArgs args = CmdArgs.of(ctx.params(), ctx.language());
-        boolean ban = args.hasOpt("B", "ban");
-        boolean unban = args.hasOpt("U", "unban");
+        boolean ban = args.hasOpt("ban", "B");
+        boolean unban = args.hasOpt("unban", "U");
         if (!ban && !unban) {
             chain.doHandle(ctx);
             return;
         }
-        manage(ctx, args, ban, unban);
-    }
-
-    // ════ Manage ══════════════════
-
-    private void manage(CmdContext ctx, CmdArgs args, boolean ban, boolean unban) {
         if (ban && unban)
             throw new CmdWarnException(ctx.render(Text.DISABLE_CONFLICT));
         if (!args.isEmpty())
@@ -58,26 +52,20 @@ public class DisableManageHandler implements CmdHandler {
         Target target = target(ctx, args);
         if (!checkPermission(ctx, target)) return;
         String cmd = ctx.cmd().name();
-        if (unban) {
-            if (args.hasOpt("temp", null))
-                throw new CmdWarnException(ctx.render(Text.DISABLE_TEMP_WITH_UNBAN));
-            boolean removed = target.groupRule()
-                    ? cmdDisableService.removeGroup(target.groupId(), target.userId(), cmd)
-                    : cmdDisableService.removePrivate(target.userId(), cmd);
-            if (!removed) {
-                ctx.send(Text.CMD_WARN, ctx.render(Text.DISABLE_NOT_FOUND));
-                return;
-            }
-            ctx.send(Text.DISABLE_REMOVED, cmd, targetLabel(ctx, target));
-            return;
-        }
+        if (unban) removeRule(ctx, args, target, cmd);
+        else addRule(ctx, args, target, cmd);
+    }
+
+    // ════ Rules ═══════════════════
+
+    private void addRule(CmdContext ctx, CmdArgs args, Target target, String cmd) {
         LocalDateTime expiresAt = expiresAt(ctx, args);
         LocalDateTime storedExpiry;
         if (target.groupRule()) {
             storedExpiry = cmdDisableService.addGroup(
                     target.groupId(), target.userId(), cmd, expiresAt).getExpiresAt();
         } else {
-            storedExpiry = cmdDisableService.addPrivate(
+            storedExpiry = cmdDisableService.addUser(
                     target.userId(), cmd, expiresAt).getExpiresAt();
         }
         String state = storedExpiry == null
@@ -86,6 +74,17 @@ public class DisableManageHandler implements CmdHandler {
                         DurationText.format(ctx.language(),
                                 Duration.between(LocalDateTime.now(), storedExpiry)));
         ctx.send(Text.DISABLE_ADDED, cmd, targetLabel(ctx, target), state);
+    }
+
+    private void removeRule(CmdContext ctx, CmdArgs args, Target target, String cmd) {
+        if (args.hasOpt("temp", null))
+            throw new CmdWarnException(ctx.render(Text.DISABLE_TEMP_WITH_UNBAN));
+        boolean removed = target.groupRule()
+                ? cmdDisableService.removeGroup(target.groupId(), target.userId(), cmd)
+                : cmdDisableService.removeUser(target.userId(), cmd);
+        if (!removed)
+            throw new CmdWarnException(ctx.render(Text.DISABLE_NOT_FOUND));
+        ctx.send(Text.DISABLE_REMOVED, cmd, targetLabel(ctx, target));
     }
 
     // ════ Target ══════════════════
@@ -138,12 +137,11 @@ public class DisableManageHandler implements CmdHandler {
     // ════ Expiry ══════════════════
 
     private static LocalDateTime expiresAt(CmdContext ctx, CmdArgs args) {
-        if (!args.hasOpt("temp", null)) return null;
         String raw = args.getOpt("temp", null, null);
+        if (raw == null) return null;
         Duration duration = DurationUtils.parse(raw);
         if (duration == null)
-            throw new CmdWarnException(ctx.render(Text.DISABLE_MALFORMED_TEMP,
-                    raw == null ? "" : raw));
+            throw new CmdWarnException(ctx.render(Text.DISABLE_MALFORMED_TEMP, raw));
         try {
             return LocalDateTime.now().plus(duration);
         } catch (DateTimeException e) {

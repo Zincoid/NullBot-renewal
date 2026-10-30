@@ -583,8 +583,9 @@
     </div>
     <div class="dialog-body">
         <div class="tabs">
-            <button class="tab active" data-group-tab="setting" data-i18n="group.settingTab">群设置</button>
-            <button class="tab" data-group-tab="keywords" data-i18n="group.keywordTab">关键字规则</button>
+            <button type="button" class="tab active" data-group-tab="setting" data-i18n="group.settingTab">群设置</button>
+            <button type="button" class="tab" data-group-tab="keywords" data-i18n="group.keywordTab">关键字规则</button>
+            <button type="button" class="tab" data-group-tab="commands" data-i18n="cmdDisable.tab">指令管理</button>
         </div>
         <div id="group-tab-setting">
             <form id="group-setting-form" class="form">
@@ -695,6 +696,50 @@
                 </table>
             </div>
         </div>
+        <div id="group-tab-commands" hidden>
+            <div class="toolbar cmd-disable-toolbar">
+                <div class="cmd-target">
+                    <select id="gcd-target" data-i18n-aria-label="cmdDisable.target" aria-label="目标">
+                        <option value="*" data-i18n="cmdDisable.wholeGroup">整群</option>
+                        <option value="user" data-i18n="cmdDisable.specificUser">指定用户</option>
+                    </select>
+                    <input id="gcd-user" maxlength="64" hidden
+                           data-i18n-placeholder="cmdDisable.userPlaceholder" placeholder="用户 ID">
+                </div>
+                <input id="gcd-cmd" maxlength="100"
+                       data-i18n-placeholder="cmdDisable.cmdPlaceholder" placeholder="指令名">
+                <div class="cmd-duration">
+                    <input id="gcd-duration-value" type="number" min="1" step="1" disabled
+                           data-i18n-placeholder="cmdDisable.amountPlaceholder" placeholder="数值"
+                           data-i18n-aria-label="cmdDisable.duration" aria-label="时长">
+                    <select id="gcd-duration-unit"
+                            data-i18n-aria-label="cmdDisable.durationUnit" aria-label="时长单位">
+                        <option value="" data-i18n="cmdDisable.permanent">永久</option>
+                        <option value="m" data-i18n="cmdDisable.minutes">分钟</option>
+                        <option value="h" data-i18n="cmdDisable.hours">小时</option>
+                        <option value="d" data-i18n="cmdDisable.days">天</option>
+                    </select>
+                </div>
+                <div class="cmd-actions">
+                    <button id="gcd-add" type="button" class="primary btn-save"
+                            data-i18n="cmdDisable.disable">禁用</button>
+                </div>
+            </div>
+            <p id="gcd-status" class="status"></p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th data-i18n="cmdDisable.target">目标</th>
+                        <th data-i18n="cmdDisable.cmd">指令</th>
+                        <th data-i18n="cmdDisable.expires">到期时间</th>
+                        <th data-i18n="group.tableActions">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="gcd-body"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </dialog>
 
@@ -709,35 +754,78 @@
                 data-i18n-aria-label="common.close" aria-label="关闭">×</button>
     </div>
     <div class="dialog-body">
-        <form id="user-setting-form" class="form">
-            <section class="form-section">
-                <h3 class="form-section__title" data-i18n="group.sectionAi">AI 对话</h3>
-                <label class="field"><span data-i18n="group.effort">AI 强度</span>
-                    <select id="us-effort">
-                        <option value="0" data-i18n="group.effort0">最低</option>
-                        <option value="1" data-i18n="group.effort1">低</option>
-                        <option value="2" data-i18n="group.effort2">中</option>
-                        <option value="3" data-i18n="group.effort3">高</option>
-                        <option value="4" data-i18n="group.effort4">极高</option>
-                        <option value="5" data-i18n="group.effort5">最大</option>
-                        <option value="6" data-i18n="group.effort6">极限</option>
-                    </select>
-                </label>
-                <div class="checks">
-                    <label><span data-i18n="group.guard">防注入</span><input id="us-guard" type="checkbox"></label>
+        <div class="tabs">
+            <button type="button" class="tab active" data-user-tab="setting"
+                    data-i18n="accounts.userSettingTitle">用户设置</button>
+            <button type="button" class="tab" data-user-tab="commands"
+                    data-i18n="cmdDisable.tab">指令管理</button>
+        </div>
+        <div id="user-tab-setting">
+            <form id="user-setting-form" class="form">
+                <section class="form-section">
+                    <h3 class="form-section__title" data-i18n="group.sectionAi">AI 对话</h3>
+                    <label class="field"><span data-i18n="group.effort">AI 强度</span>
+                        <select id="us-effort">
+                            <option value="0" data-i18n="group.effort0">最低</option>
+                            <option value="1" data-i18n="group.effort1">低</option>
+                            <option value="2" data-i18n="group.effort2">中</option>
+                            <option value="3" data-i18n="group.effort3">高</option>
+                            <option value="4" data-i18n="group.effort4">极高</option>
+                            <option value="5" data-i18n="group.effort5">最大</option>
+                            <option value="6" data-i18n="group.effort6">极限</option>
+                        </select>
+                    </label>
+                    <div class="checks">
+                        <label><span data-i18n="group.guard">防注入</span><input id="us-guard" type="checkbox"></label>
+                    </div>
+                    <label class="field"><span data-i18n="accounts.aiPrompt">私聊提示词</span>
+                        <textarea id="us-prompt" rows="5"
+                                  data-i18n-placeholder="accounts.aiPromptPlaceholder"
+                                  placeholder="留空使用默认提示词"></textarea>
+                    </label>
+                </section>
+                <p id="us-status" class="status"></p>
+                <div class="dialog-foot">
+                    <button type="button" data-close data-i18n="common.cancel">取消</button>
+                    <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
                 </div>
-                <label class="field"><span data-i18n="accounts.aiPrompt">私聊提示词</span>
-                    <textarea id="us-prompt" rows="5"
-                              data-i18n-placeholder="accounts.aiPromptPlaceholder"
-                              placeholder="留空使用默认提示词"></textarea>
-                </label>
-            </section>
-            <p id="us-status" class="status"></p>
-            <div class="dialog-foot">
-                <button type="button" data-close data-i18n="common.cancel">取消</button>
-                <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
+            </form>
+        </div>
+        <div id="user-tab-commands" hidden>
+            <div class="toolbar cmd-disable-toolbar">
+                <input id="ucd-cmd" maxlength="100"
+                       data-i18n-placeholder="cmdDisable.cmdPlaceholder" placeholder="指令名">
+                <div class="cmd-duration">
+                    <input id="ucd-duration-value" type="number" min="1" step="1" disabled
+                           data-i18n-placeholder="cmdDisable.amountPlaceholder" placeholder="数值"
+                           data-i18n-aria-label="cmdDisable.duration" aria-label="时长">
+                    <select id="ucd-duration-unit"
+                            data-i18n-aria-label="cmdDisable.durationUnit" aria-label="时长单位">
+                        <option value="" data-i18n="cmdDisable.permanent">永久</option>
+                        <option value="m" data-i18n="cmdDisable.minutes">分钟</option>
+                        <option value="h" data-i18n="cmdDisable.hours">小时</option>
+                        <option value="d" data-i18n="cmdDisable.days">天</option>
+                    </select>
+                </div>
+                <div class="cmd-actions">
+                    <button id="ucd-add" type="button" class="primary btn-save"
+                            data-i18n="cmdDisable.disable">禁用</button>
+                </div>
             </div>
-        </form>
+            <p id="ucd-status" class="status"></p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th data-i18n="cmdDisable.cmd">指令</th>
+                        <th data-i18n="cmdDisable.expires">到期时间</th>
+                        <th data-i18n="group.tableActions">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ucd-body"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </dialog>
 

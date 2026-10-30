@@ -1,23 +1,23 @@
 package com.zincoid.nullbot.bot.bus.middleware;
 
+import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * 输入中间件：把群聊/私聊消息交付给等待中的输入，命中时消费事件。
- * <p>Input middleware: delivers group and private messages to pending inputs and consumes the event on a match.</p>
+ * 输入监听中间件：把群聊/私聊消息交付给等待中的输入，命中时消费事件。
+ * <p>Input listening middleware: delivers group and private messages to pending inputs and consumes the event on a match.</p>
  */
 @Order(1)
 @Component
 @RequiredArgsConstructor
-public class InputMiddleware implements Middleware {
+public class InputListenMiddleware implements Middleware {
 
     private final InputManager inputManager;
 

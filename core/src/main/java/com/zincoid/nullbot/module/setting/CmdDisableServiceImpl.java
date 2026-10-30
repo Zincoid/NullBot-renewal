@@ -2,14 +2,16 @@ package com.zincoid.nullbot.module.setting;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.zincoid.nullbot.platform.persistence.mapper.GroupCmdDisableMapper;
-import com.zincoid.nullbot.platform.persistence.mapper.PrivateCmdDisableMapper;
+import com.zincoid.nullbot.platform.persistence.mapper.UserCmdDisableMapper;
 import com.zincoid.nullbot.platform.persistence.po.GroupCmdDisable;
-import com.zincoid.nullbot.platform.persistence.po.PrivateCmdDisable;
+import com.zincoid.nullbot.platform.persistence.po.UserCmdDisable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * {@link CmdDisableService} 的默认实现。
@@ -21,9 +23,23 @@ import java.time.LocalDateTime;
 public class CmdDisableServiceImpl implements CmdDisableService {
 
     private final GroupCmdDisableMapper groupMapper;
-    private final PrivateCmdDisableMapper privateMapper;
+    private final UserCmdDisableMapper userMapper;
 
     // ════ Group ═══════════════════
+
+    @Override
+    public List<GroupCmdDisable> listGroup(String groupId) {
+        String gid = normalizeGroupId(groupId);
+        return groupMapper.selectList(Wrappers.lambdaQuery(GroupCmdDisable.class)
+                        .eq(GroupCmdDisable::getGroupId, gid))
+                .stream()
+                .filter(rule -> !expired(rule.getExpiresAt()))
+                .sorted(Comparator
+                        .comparing(GroupCmdDisable::getCmd, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(rule -> !CmdDisableService.WHOLE_GROUP.equals(rule.getUserId()))
+                        .thenComparing(GroupCmdDisable::getUserId))
+                .toList();
+    }
 
     @Override
     public GroupCmdDisable findGroup(String groupId, String userId, String cmd) {
@@ -85,56 +101,67 @@ public class CmdDisableServiceImpl implements CmdDisableService {
         return removed;
     }
 
-    // ════ Private ═════════════════
+    // ════ User ════════════════════
 
     @Override
-    public PrivateCmdDisable findPrivate(String userId, String cmd) {
-        String uid = normalizePrivateUserId(userId);
+    public List<UserCmdDisable> listUser(String userId) {
+        String uid = normalizeUserId(userId);
+        return userMapper.selectList(Wrappers.lambdaQuery(UserCmdDisable.class)
+                        .eq(UserCmdDisable::getUserId, uid))
+                .stream()
+                .filter(rule -> !expired(rule.getExpiresAt()))
+                .sorted(Comparator.comparing(UserCmdDisable::getCmd, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    @Override
+    public UserCmdDisable findUser(String userId, String cmd) {
+        String uid = normalizeUserId(userId);
         String name = normalizeCommand(cmd);
-        PrivateCmdDisable rule = privateMapper.selectOne(Wrappers.lambdaQuery(PrivateCmdDisable.class)
-                .eq(PrivateCmdDisable::getUserId, uid)
-                .eq(PrivateCmdDisable::getCmd, name));
+        UserCmdDisable rule = userMapper.selectOne(Wrappers.lambdaQuery(UserCmdDisable.class)
+                .eq(UserCmdDisable::getUserId, uid)
+                .eq(UserCmdDisable::getCmd, name));
         return rule == null || expired(rule.getExpiresAt()) ? null : rule;
     }
 
     @Override
-    public PrivateCmdDisable addPrivate(String userId, String cmd, LocalDateTime expiresAt) {
-        String uid = normalizePrivateUserId(userId);
+    public UserCmdDisable addUser(String userId, String cmd, LocalDateTime expiresAt) {
+        String uid = normalizeUserId(userId);
         String name = normalizeCommand(cmd);
-        PrivateCmdDisable existing = privateMapper.selectOne(Wrappers.lambdaQuery(PrivateCmdDisable.class)
-                .eq(PrivateCmdDisable::getUserId, uid)
-                .eq(PrivateCmdDisable::getCmd, name));
+        UserCmdDisable existing = userMapper.selectOne(Wrappers.lambdaQuery(UserCmdDisable.class)
+                .eq(UserCmdDisable::getUserId, uid)
+                .eq(UserCmdDisable::getCmd, name));
         if (existing != null) {
             if (existing.getExpiresAt() == null) return existing;
-            privateMapper.update(null, Wrappers.lambdaUpdate(PrivateCmdDisable.class)
-                    .eq(PrivateCmdDisable::getId, existing.getId())
-                    .set(PrivateCmdDisable::getExpiresAt, expiresAt));
-            PrivateCmdDisable stored = privateMapper.selectById(existing.getId());
-            if (stored == null) throw new SettingException("Private command disable not found: " + name);
-            log.info("Private command disable updated: user={}, cmd={}, expires={}",
+            userMapper.update(null, Wrappers.lambdaUpdate(UserCmdDisable.class)
+                    .eq(UserCmdDisable::getId, existing.getId())
+                    .set(UserCmdDisable::getExpiresAt, expiresAt));
+            UserCmdDisable stored = userMapper.selectById(existing.getId());
+            if (stored == null) throw new SettingException("User command disable not found: " + name);
+            log.info("User command disable updated: user={}, cmd={}, expires={}",
                     uid, name, expiresAt);
             return stored;
         }
-        PrivateCmdDisable rule = PrivateCmdDisable.builder()
+        UserCmdDisable rule = UserCmdDisable.builder()
                 .userId(uid)
                 .cmd(name)
                 .expiresAt(expiresAt)
                 .build();
-        if (privateMapper.insert(rule) != 1)
-            throw new SettingException("Private command disable insert failed: " + name);
-        log.info("Private command disable added: user={}, cmd={}, expires={}", uid, name, expiresAt);
+        if (userMapper.insert(rule) != 1)
+            throw new SettingException("User command disable insert failed: " + name);
+        log.info("User command disable added: user={}, cmd={}, expires={}", uid, name, expiresAt);
         return rule;
     }
 
     @Override
-    public boolean removePrivate(String userId, String cmd) {
-        String uid = normalizePrivateUserId(userId);
+    public boolean removeUser(String userId, String cmd) {
+        String uid = normalizeUserId(userId);
         String name = normalizeCommand(cmd);
-        boolean removed = privateMapper.delete(Wrappers.lambdaQuery(PrivateCmdDisable.class)
-                .eq(PrivateCmdDisable::getUserId, uid)
-                .eq(PrivateCmdDisable::getCmd, name)) > 0;
+        boolean removed = userMapper.delete(Wrappers.lambdaQuery(UserCmdDisable.class)
+                .eq(UserCmdDisable::getUserId, uid)
+                .eq(UserCmdDisable::getCmd, name)) > 0;
         if (removed) {
-            log.info("Private command disable removed: user={}, cmd={}", uid, name);
+            log.info("User command disable removed: user={}, cmd={}", uid, name);
         }
         return removed;
     }
@@ -155,7 +182,7 @@ public class CmdDisableServiceImpl implements CmdDisableService {
         return userId == null || userId.isBlank() ? CmdDisableService.WHOLE_GROUP : userId.trim();
     }
 
-    private static String normalizePrivateUserId(String userId) {
+    private static String normalizeUserId(String userId) {
         if (userId == null || userId.isBlank())
             throw new SettingException("Missing key: userId");
         return userId.trim();

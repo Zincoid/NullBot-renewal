@@ -1,6 +1,6 @@
 import {
     $, t, api, escapeHtml, setStatus, emptyRow, renderPager,
-    confirmAction, toast, PAGE_SIZE, options, accessOptions
+    confirmAction, toast, PAGE_SIZE, options, accessOptions, formatTime
 } from '../app-shared.js';
 
 // ═══ Accounts ════════════════════
@@ -12,6 +12,8 @@ let currentGroup = null;
 let currentUser = null;
 let currentKeywords = [];
 let editingKeyword = null;
+let groupCmdRules = [];
+let userCmdRules = [];
 const KW_ARG_PRESETS = {user: '{userId}', group: '{groupId}'};
 const KW_ARG_TYPES = [
     {value: 'text', labelKey: 'group.keywordArgText'},
@@ -214,8 +216,11 @@ function openUserDialog(user) {
     $('us-effort').value = '3';
     $('us-guard').checked = true;
     $('us-prompt').value = '';
+    resetUserCmdForm();
+    switchUserTab('setting');
     $('user-dialog').showModal();
     loadUserSetting();
+    loadUserCmds();
 }
 
 async function loadUserSetting() {
@@ -258,10 +263,12 @@ function openGroupDialog(group) {
     setStatus($('gs-status'), '');
     setStatus($('kw-status'), '');
     resetKeywordForm();
+    resetGroupCmdForm();
     switchGroupTab('setting');
     $('group-dialog').showModal();
     loadGroupSetting();
     loadKeywords();
+    loadGroupCmds();
 }
 
 function switchGroupTab(tab) {
@@ -269,6 +276,14 @@ function switchGroupTab(tab) {
         button.classList.toggle('active', button.dataset.groupTab === tab));
     $('group-tab-setting').hidden = tab !== 'setting';
     $('group-tab-keywords').hidden = tab !== 'keywords';
+    $('group-tab-commands').hidden = tab !== 'commands';
+}
+
+function switchUserTab(tab) {
+    document.querySelectorAll('[data-user-tab]').forEach(button =>
+        button.classList.toggle('active', button.dataset.userTab === tab));
+    $('user-tab-setting').hidden = tab !== 'setting';
+    $('user-tab-commands').hidden = tab !== 'commands';
 }
 
 async function loadGroupSetting() {
@@ -530,6 +545,229 @@ async function deleteKeyword(rule) {
     }
 }
 
+// ════ Command disables ═════════
+
+function syncDurationInput(prefix) {
+    const unit = $(prefix + '-duration-unit');
+    const amount = $(prefix + '-duration-value');
+    const permanent = !unit.value;
+    amount.disabled = permanent;
+    if (permanent) {
+        amount.value = '';
+    } else {
+        amount.focus();
+    }
+}
+
+function readDuration(prefix, status) {
+    const unit = $(prefix + '-duration-unit').value;
+    if (!unit) return '';
+    const amount = $(prefix + '-duration-value').valueAsNumber;
+    if (!Number.isSafeInteger(amount) || amount < 1) {
+        setStatus(status, t('cmdDisable.durationInvalid'), 'error');
+        return null;
+    }
+    return amount + unit;
+}
+
+function resetGroupCmdForm() {
+    groupCmdRules = [];
+    $('gcd-target').value = '*';
+    $('gcd-user').value = '';
+    $('gcd-user').hidden = true;
+    $('gcd-cmd').value = '';
+    $('gcd-duration-unit').value = '';
+    syncDurationInput('gcd');
+    setStatus($('gcd-status'), '');
+    renderGroupCmds();
+}
+
+function resetUserCmdForm() {
+    userCmdRules = [];
+    $('ucd-cmd').value = '';
+    $('ucd-duration-unit').value = '';
+    syncDurationInput('ucd');
+    setStatus($('ucd-status'), '');
+    renderUserCmds();
+}
+
+function cmdTarget(rule) {
+    return rule.userId === '*'
+        ? `<span class="badge">${escapeHtml(t('cmdDisable.wholeGroup'))}</span>`
+        : `<code>${escapeHtml(rule.userId)}</code>`;
+}
+
+function cmdExpiry(rule) {
+    return escapeHtml(rule.expiresAt ? formatTime(rule.expiresAt) : t('cmdDisable.permanent'));
+}
+
+async function loadGroupCmds() {
+    if (!currentGroup) return;
+    const groupId = currentGroup.id;
+    try {
+        const rules = await api('/groups/' + encodeURIComponent(groupId) + '/cmd-disables');
+        if (!currentGroup || currentGroup.id !== groupId) return;
+        groupCmdRules = rules;
+        renderGroupCmds();
+        setStatus($('gcd-status'), '');
+    } catch (e) {
+        if (!currentGroup || currentGroup.id !== groupId) return;
+        setStatus($('gcd-status'), t('cmdDisable.loadFailed', {msg: e.message}), 'error');
+    }
+}
+
+async function loadUserCmds() {
+    if (!currentUser) return;
+    const userId = currentUser.id;
+    try {
+        const rules = await api('/users/' + encodeURIComponent(userId) + '/cmd-disables');
+        if (!currentUser || currentUser.id !== userId) return;
+        userCmdRules = rules;
+        renderUserCmds();
+        setStatus($('ucd-status'), '');
+    } catch (e) {
+        if (!currentUser || currentUser.id !== userId) return;
+        setStatus($('ucd-status'), t('cmdDisable.loadFailed', {msg: e.message}), 'error');
+    }
+}
+
+function renderGroupCmds() {
+    const body = $('gcd-body');
+    if (!groupCmdRules.length) {
+        body.innerHTML = emptyRow(4, t('cmdDisable.empty'));
+        return;
+    }
+    body.innerHTML = groupCmdRules.map(rule => `
+        <tr data-id="${rule.id}">
+            <td>${cmdTarget(rule)}</td>
+            <td><code>${escapeHtml(rule.cmd)}</code></td>
+            <td>${cmdExpiry(rule)}</td>
+            <td class="actions">
+                <button class="small btn-toggle btn-enable" data-cmd-remove>${escapeHtml(t('cmdDisable.enable'))}</button>
+            </td>
+        </tr>`).join('');
+}
+
+function renderUserCmds() {
+    const body = $('ucd-body');
+    if (!userCmdRules.length) {
+        body.innerHTML = emptyRow(3, t('cmdDisable.empty'));
+        return;
+    }
+    body.innerHTML = userCmdRules.map(rule => `
+        <tr data-id="${rule.id}">
+            <td><code>${escapeHtml(rule.cmd)}</code></td>
+            <td>${cmdExpiry(rule)}</td>
+            <td class="actions">
+                <button class="small btn-toggle btn-enable" data-cmd-remove>${escapeHtml(t('cmdDisable.enable'))}</button>
+            </td>
+        </tr>`).join('');
+}
+
+function updateGroupTarget() {
+    const specific = $('gcd-target').value === 'user';
+    $('gcd-user').hidden = !specific;
+    if (specific) $('gcd-user').focus();
+}
+
+async function addGroupCmd() {
+    if (!currentGroup) return;
+    const target = $('gcd-target').value;
+    const userId = target === 'user' ? $('gcd-user').value.trim() : '*';
+    const cmd = $('gcd-cmd').value.trim();
+    if (target === 'user' && !userId) {
+        setStatus($('gcd-status'), t('cmdDisable.userRequired'), 'error');
+        return;
+    }
+    if (!cmd) {
+        setStatus($('gcd-status'), t('cmdDisable.cmdRequired'), 'error');
+        return;
+    }
+    const duration = readDuration('gcd', $('gcd-status'));
+    if (duration === null) return;
+    const button = $('gcd-add');
+    button.disabled = true;
+    try {
+        await api('/groups/' + encodeURIComponent(currentGroup.id) + '/cmd-disables', {
+            method: 'POST',
+            body: JSON.stringify({userId, cmd, duration})
+        });
+        $('gcd-cmd').value = '';
+        toast(t('cmdDisable.added'), 'ok');
+        await loadGroupCmds();
+    } catch (e) {
+        setStatus($('gcd-status'), t('cmdDisable.addFailed', {msg: e.message}), 'error');
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function addUserCmd() {
+    if (!currentUser) return;
+    const cmd = $('ucd-cmd').value.trim();
+    if (!cmd) {
+        setStatus($('ucd-status'), t('cmdDisable.cmdRequired'), 'error');
+        return;
+    }
+    const duration = readDuration('ucd', $('ucd-status'));
+    if (duration === null) return;
+    const button = $('ucd-add');
+    button.disabled = true;
+    try {
+        await api('/users/' + encodeURIComponent(currentUser.id) + '/cmd-disables', {
+            method: 'POST',
+            body: JSON.stringify({cmd, duration})
+        });
+        $('ucd-cmd').value = '';
+        toast(t('cmdDisable.added'), 'ok');
+        await loadUserCmds();
+    } catch (e) {
+        setStatus($('ucd-status'), t('cmdDisable.addFailed', {msg: e.message}), 'error');
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function removeGroupCmd(button) {
+    if (!currentGroup) return;
+    const rule = groupCmdRules.find(item => item.id === Number(button.closest('tr').dataset.id));
+    if (!rule) return;
+    const target = rule.userId === '*' ? t('cmdDisable.wholeGroup') : rule.userId;
+    if (!await confirmAction(t('cmdDisable.removeConfirm', {target, cmd: rule.cmd}))) return;
+    if (!currentGroup) return;
+    button.disabled = true;
+    try {
+        const query = new URLSearchParams({userId: rule.userId});
+        await api('/groups/' + encodeURIComponent(currentGroup.id) + '/cmd-disables/'
+            + encodeURIComponent(rule.cmd) + '?' + query.toString(), {method: 'DELETE'});
+        toast(t('cmdDisable.removed'), 'ok');
+        await loadGroupCmds();
+    } catch (e) {
+        setStatus($('gcd-status'), t('cmdDisable.removeFailed', {msg: e.message}), 'error');
+        if (e.status === 404) await loadGroupCmds();
+        else button.disabled = false;
+    }
+}
+
+async function removeUserCmd(button) {
+    if (!currentUser) return;
+    const rule = userCmdRules.find(item => item.id === Number(button.closest('tr').dataset.id));
+    if (!rule) return;
+    if (!await confirmAction(t('cmdDisable.removeConfirm', {target: currentUser.id, cmd: rule.cmd}))) return;
+    if (!currentUser) return;
+    button.disabled = true;
+    try {
+        await api('/users/' + encodeURIComponent(currentUser.id) + '/cmd-disables/'
+            + encodeURIComponent(rule.cmd), {method: 'DELETE'});
+        toast(t('cmdDisable.removed'), 'ok');
+        await loadUserCmds();
+    } catch (e) {
+        setStatus($('ucd-status'), t('cmdDisable.removeFailed', {msg: e.message}), 'error');
+        if (e.status === 404) await loadUserCmds();
+        else button.disabled = false;
+    }
+}
+
 export function bind() {
     $('accounts-refresh').onclick = loadAccounts;
     document.querySelectorAll('[data-tab]').forEach(button =>
@@ -598,6 +836,33 @@ export function bind() {
 
     document.querySelectorAll('[data-group-tab]').forEach(button =>
         button.addEventListener('click', () => switchGroupTab(button.dataset.groupTab)));
+    document.querySelectorAll('[data-user-tab]').forEach(button =>
+        button.addEventListener('click', () => switchUserTab(button.dataset.userTab)));
+    $('gcd-target').addEventListener('change', updateGroupTarget);
+    $('gcd-duration-unit').addEventListener('change', () => syncDurationInput('gcd'));
+    $('ucd-duration-unit').addEventListener('change', () => syncDurationInput('ucd'));
+    $('gcd-add').onclick = addGroupCmd;
+    $('ucd-add').onclick = addUserCmd;
+    $('gcd-cmd').addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addGroupCmd();
+        }
+    });
+    $('ucd-cmd').addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addUserCmd();
+        }
+    });
+    $('gcd-body').addEventListener('click', event => {
+        const button = event.target.closest('[data-cmd-remove]');
+        if (button) removeGroupCmd(button);
+    });
+    $('ucd-body').addEventListener('click', event => {
+        const button = event.target.closest('[data-cmd-remove]');
+        if (button) removeUserCmd(button);
+    });
     $('group-setting-form').addEventListener('submit', saveGroupSetting);
     $('user-setting-form').addEventListener('submit', saveUserSetting);
     $('kw-save').onclick = saveKeyword;
@@ -627,10 +892,12 @@ export function bind() {
 
     $('user-dialog').addEventListener('close', () => {
         currentUser = null;
+        userCmdRules = [];
     });
     $('group-dialog').addEventListener('close', () => {
         currentGroup = null;
         currentKeywords = [];
+        groupCmdRules = [];
         resetKeywordForm();
     });
 }
@@ -638,10 +905,16 @@ export function bind() {
 export function onLocaleChange() {
     setStatus($('gs-status'), '');
     setStatus($('kw-status'), '');
+    setStatus($('gcd-status'), '');
+    setStatus($('ucd-status'), '');
     if (currentGroup && $('group-dialog').open) {
         $('group-dialog-subtitle').textContent = t('group.id', {id: currentGroup.id});
         resetKeywordForm();
         renderKeywords();
+        renderGroupCmds();
+    }
+    if (currentUser && $('user-dialog').open) {
+        renderUserCmds();
     }
 }
 

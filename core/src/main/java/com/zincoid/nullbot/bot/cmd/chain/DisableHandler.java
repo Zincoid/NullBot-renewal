@@ -7,7 +7,7 @@ import com.zincoid.nullbot.module.i18n.DurationText;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.CmdDisableService;
 import com.zincoid.nullbot.platform.persistence.po.GroupCmdDisable;
-import com.zincoid.nullbot.platform.persistence.po.PrivateCmdDisable;
+import com.zincoid.nullbot.platform.persistence.po.UserCmdDisable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -51,7 +51,7 @@ public class DisableHandler implements CmdHandler {
             GroupCmdDisable whole = cmdDisableService.findGroup(group.groupId(), CmdDisableService.WHOLE_GROUP, cmd);
             return whole == null ? null : new Rule(whole.getUserId(), whole.getExpiresAt());
         }
-        PrivateCmdDisable rule = cmdDisableService.findPrivate(event.userId(), cmd);
+        UserCmdDisable rule = cmdDisableService.findUser(event.userId(), cmd);
         return rule == null ? null : new Rule(rule.getUserId(), rule.getExpiresAt());
     }
 

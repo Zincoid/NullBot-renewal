@@ -172,13 +172,13 @@ CREATE TABLE IF NOT EXISTS `group_cmd_disable` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group command disable rule table';
 
 -- =============================================
--- 12. Private Command Disable Table
+-- 12. User Command Disable Table
 -- =============================================
-CREATE TABLE IF NOT EXISTS `private_cmd_disable` (
+CREATE TABLE IF NOT EXISTS `user_cmd_disable` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
     `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Target user id',
     `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command canonical name',
     `expires_at`    DATETIME        DEFAULT NULL             COMMENT 'Expiry time; NULL means permanent',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_private_cmd_disable` (`user_id`, `cmd`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Private command disable rule table';
+    UNIQUE KEY `uk_user_cmd_disable` (`user_id`, `cmd`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User command disable rule table';

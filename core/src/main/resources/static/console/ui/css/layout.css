@@ -506,6 +506,50 @@
     grid-column: 1 / -1;
 }
 
+.cmd-disable-toolbar input,
+.cmd-disable-toolbar select {
+    width: auto;
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.cmd-disable-toolbar .cmd-target {
+    display: flex;
+    flex: 1 1 260px;
+    gap: var(--spacing-sm);
+    min-width: 0;
+}
+
+.cmd-disable-toolbar .cmd-target select,
+.cmd-disable-toolbar .cmd-target input {
+    flex: 1 1 0;
+    width: auto;
+}
+
+.cmd-disable-toolbar .cmd-duration {
+    display: flex;
+    flex: 0 0 220px;
+    gap: var(--spacing-sm);
+    min-width: 0;
+}
+
+.cmd-disable-toolbar .cmd-duration input,
+.cmd-disable-toolbar .cmd-duration select {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+}
+
+.cmd-disable-toolbar .cmd-duration select {
+    flex: 0 0 110px;
+}
+
+.cmd-disable-toolbar .cmd-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
 .card.bot-card {
     display: flex;
     align-items: center;

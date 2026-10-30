@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@TableName("private_cmd_disable")
-public class PrivateCmdDisable {
+@TableName("user_cmd_disable")
+public class UserCmdDisable {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
