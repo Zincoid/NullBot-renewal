@@ -49,6 +49,7 @@
 - 戳一戳触发 AI 后通过 `call` 执行指令时，`ChatContext` 会合成对应的 `GroupMsgEvent` / `PrivateMsgEvent`；命令层只处理消息事件，`Cmd` 移除群 / 私聊戳一戳的 `run` 重载，外部插件需改用消息入口。
 - `RegisterHandler` 由 `BotRegistrar` 替代：`BotRegistrar` 在 bot 层通过 `BotClient` 查询群名 / 用户昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。
 - `BANNED` 用户的所有事件在 `BotDispatcher` 入口直接丢弃，不再进入消息存储、输入等待或 AI 处理。
+- `GroupCmdRateLimiter` 更名为 `GroupRateLimiter`，限速维度 `LimitScope.CMD` 改为 `FUNC`（标签 `func`），控制台显示为“按功能”；原有数据库的 `limit_scope = 2` 不需要改值。
 - `UserSetting` 的 `aiPrompt` / `aiEffort` / `aiInjectionGuard` 统一改为 `privateAiPrompt` / `privateAiEffort` / `privateAiInjectionGuard`，`user_setting` 列同步改名为 `private_ai_prompt` / `private_ai_effort` / `private_ai_injection_guard`；控制台用户设置 API 与表单同步，已有数据库需手动迁移旧列。
 - `User.privateMessageAllowed` 删除并拆分为 `privateCmdEnabled` / `privateAiChatEnabled`；私聊指令不再与私聊 AI 共用开关。`UserService.isPrivateMessageAllowed` / `setPrivateMessageAllowed` 同步移除，外部插件需改用新方法。
 - 已有数据库需手动迁移：`group` 增加 `cmd_enabled` / `ai_chat_enabled`（默认 true），`user` 增加 `private_cmd_enabled` / `private_ai_chat_enabled`（默认 false）并删除 `private_message_allowed`；按新默认值，现有用户的两个私聊权限均为 false，需要重新授权。旧 `cmd_disable` 中的 `Chat` / `Poked` 规则不再生效，可在控制台清理。

@@ -7,7 +7,6 @@ import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.PokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -16,7 +15,7 @@ import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.module.setting.GroupCmdRateLimiter;
+import com.zincoid.nullbot.module.setting.GroupRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
@@ -37,8 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class AiChatMiddleware implements Middleware {
 
-    private static final String RATE_KEY_CHAT = "Chat";
-    private static final String RATE_KEY_POKED = "Poked";
+    private static final String RATE_KEY = "AI";
 
     private final ChatPipeline chatPipeline;
     private final CmdParser cmdParser;
@@ -47,7 +45,7 @@ public class AiChatMiddleware implements Middleware {
     private final BotRegistrar botRegistrar;
     private final GroupService groupService;
     private final UserService userService;
-    private final GroupCmdRateLimiter groupCmdRateLimiter;
+    private final GroupRateLimiter groupRateLimiter;
 
     // ════ Handle ══════════════════
 
@@ -155,8 +153,8 @@ public class AiChatMiddleware implements Middleware {
     }
 
     /**
-     * 对群 AI 触发应用指令限速。
-     * <p>Applies the command rate limit to group AI triggers.</p>
+     * 对群 AI 触发应用群功能限速。
+     * <p>Applies the group rate limit to AI triggers.</p>
      *
      * @param client   the outbound port
      * @param event    the triggering event
@@ -165,10 +163,9 @@ public class AiChatMiddleware implements Middleware {
      */
     private boolean isLimited(BotClient client, BotEvent event, Language language) {
         if (!(event instanceof GroupEvent e)) return true;
-        String key = event instanceof PokeEvent ? RATE_KEY_POKED : RATE_KEY_CHAT;
-        if (groupCmdRateLimiter.tryConsume(e.groupId(), event.userId(), key)) return true;
+        if (groupRateLimiter.tryConsume(e.groupId(), event.userId(), RATE_KEY)) return true;
         log.info("AI rate limited: group={}, user={}, key={}",
-                e.groupId(), event.userId(), key);
+                e.groupId(), event.userId(), RATE_KEY);
         if (event instanceof GroupMsgEvent)
             client.sendGroupMsg(e.groupId(), MsgContent.of(Text.TOO_MANY_REQUESTS.of(language)));
         return false;

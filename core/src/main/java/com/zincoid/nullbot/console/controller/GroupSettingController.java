@@ -3,7 +3,7 @@ package com.zincoid.nullbot.console.controller;
 import com.zincoid.nullbot.console.dto.GroupSettingUpdate;
 import com.zincoid.nullbot.console.dto.GroupSettingView;
 import com.zincoid.nullbot.console.util.ConsoleValidation;
-import com.zincoid.nullbot.module.setting.GroupCmdRateLimiter;
+import com.zincoid.nullbot.module.setting.GroupRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GroupSettingController {
 
     private final GroupSettingService groupSettingService;
-    private final GroupCmdRateLimiter groupCmdRateLimiter;
+    private final GroupRateLimiter groupRateLimiter;
 
     // ════ Query ══════════════════
 
@@ -77,7 +77,7 @@ public class GroupSettingController {
                 .aiChatFrequency(body.aiChatFrequency())
                 .build();
         groupSettingService.update(setting);
-        groupCmdRateLimiter.reset(id);
+        groupRateLimiter.reset(id);
         return GroupSettingView.of(groupSettingService.get(id));
     }
 }

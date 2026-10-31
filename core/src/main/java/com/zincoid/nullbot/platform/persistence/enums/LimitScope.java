@@ -6,15 +6,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * 限速维度：按用户、按群或按指令独立计数。
- * <p>Rate limit scope: counting per user, per group, or per command.</p>
+ * 限速维度：按用户、按群或按功能独立计数。
+ * <p>Rate limit scope: counting per user, per group, or per function.</p>
  */
 @Getter
 public enum LimitScope {
 
     USER(0, "user"),
     GROUP(1, "group"),
-    CMD(2, "cmd");
+    FUNC(2, "func");
 
     @EnumValue
     private final Integer value;

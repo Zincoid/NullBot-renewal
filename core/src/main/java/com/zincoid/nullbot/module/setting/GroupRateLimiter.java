@@ -12,12 +12,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 指令限速器：按群设置对指令消费做令牌桶限速。
- * <p>Command rate limiter: token-bucket limiting driven by group settings.</p>
+ * 群限速器：按群设置对功能消费做令牌桶限速。
+ * <p>Group rate limiter: token-bucket limiting driven by group settings.</p>
  */
 @Component
 @RequiredArgsConstructor
-public class GroupCmdRateLimiter {
+public class GroupRateLimiter {
 
     private static final long SPAM_INTERVAL = 500;
     private static final int CLEANUP_THRESHOLD = 2048;
@@ -31,21 +31,21 @@ public class GroupCmdRateLimiter {
     // ════ Consume ═════════════════
 
     /**
-     * 尝试消费一个指令令牌。
-     * <p>Tries to consume one command token.</p>
+     * 尝试消费一个功能令牌。
+     * <p>Tries to consume one function token.</p>
      *
-     * @param groupId group platform id
-     * @param userId  operator platform user id
-     * @param cmd     command name
+     * @param groupId  group platform id
+     * @param userId   operator platform user id
+     * @param function function name, such as a command name or AI chat
      * @return true when the call is allowed
      */
-    public boolean tryConsume(String groupId, String userId, String cmd) {
+    public boolean tryConsume(String groupId, String userId, String function) {
         if (isSpam(groupId)) return false;
         GroupSetting setting = groupSettingService.get(groupId);
         String key = switch (setting.getLimitScope()) {
             case GROUP -> "[%s]".formatted(groupId);
             case USER -> "[%s][User:%s]".formatted(groupId, userId);
-            case CMD -> "[%s][Cmd:%s]".formatted(groupId, cmd);
+            case FUNC -> "[%s][Func:%s]".formatted(groupId, function);
         };
         return resolveBucket(key, setting).tryConsume(1);
     }

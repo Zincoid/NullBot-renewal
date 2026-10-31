@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `leave_notice_enabled` BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Leave notice enabled',
     `anti_recall_enabled`  BOOLEAN     NOT NULL DEFAULT FALSE   COMMENT 'Anti-recall enabled',
     `limit_enabled`        BOOLEAN     NOT NULL DEFAULT TRUE    COMMENT 'Rate limit enabled',
-    `limit_scope`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=CMD',
+    `limit_scope`          TINYINT     NOT NULL DEFAULT 0       COMMENT 'Rate limit scope: 0=USER, 1=GROUP, 2=FUNC',
     `limit_capacity`       INT         NOT NULL DEFAULT 5       COMMENT 'Rate limit capacity',
     `limit_refill`         INT         NOT NULL DEFAULT 2       COMMENT 'Rate limit refill amount',
     `limit_interval`       INT         NOT NULL DEFAULT 1       COMMENT 'Rate limit refill interval in minutes',

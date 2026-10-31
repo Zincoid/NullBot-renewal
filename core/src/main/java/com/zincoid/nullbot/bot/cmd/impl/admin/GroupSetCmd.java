@@ -8,7 +8,7 @@ import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.module.setting.GroupCmdRateLimiter;
+import com.zincoid.nullbot.module.setting.GroupRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.SettingException;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
@@ -31,7 +31,7 @@ import java.util.Locale;
 public class GroupSetCmd implements Cmd {
 
     private final GroupSettingService groupSettingService;
-    private final GroupCmdRateLimiter groupCmdRateLimiter;
+    private final GroupRateLimiter groupRateLimiter;
     private final LanguageService languageService;
 
     // ════ Run ═════════════════════
@@ -101,7 +101,7 @@ public class GroupSetCmd implements Cmd {
             default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_LIMIT, name));
         }
         save(update);
-        groupCmdRateLimiter.reset(groupId);
+        groupRateLimiter.reset(groupId);
         ctx.send(Text.GROUPSET_UPDATED, message);
     }
 
@@ -261,7 +261,7 @@ public class GroupSetCmd implements Cmd {
                        GroupSet -g|--lang <auto|zh|en>
                        GroupSet -n|--notice <join|leave> <on|off>
                        GroupSet -r|--anti-recall <on|off>
-                Values: scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
+                Values: scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
                 Note: "GroupSet ai prompt reset" clears the group prompt; "auto" follows the global default_language.
                 Aliases: 群设置
                 Access: >=1(manager)""" : """
@@ -273,7 +273,7 @@ public class GroupSetCmd implements Cmd {
                       GroupSet -g|--lang <auto|zh|en>
                       GroupSet -n|--notice <join|leave> <on|off>
                       GroupSet -r|--anti-recall <on|off>
-                取值：scope=user|group|cmd, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
+                取值：scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
                 说明："GroupSet ai prompt reset" 清空群提示词；"auto" 跟随全局 default_language。
                 别名：群设置
                 权限：>=1(manager)""";
