@@ -4,7 +4,6 @@ import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
-import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.i18n.DurationText;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -90,14 +89,14 @@ public class DisableManageHandler implements CmdHandler {
 
     private Target target(CmdContext ctx, CmdArgs args) {
         String user = userOption(ctx, args);
-        if (ctx.event() instanceof GroupEvent group) {
+        if (ctx.event() instanceof GroupEvent e) {
             List<String> mentions = mentions(ctx);
             if (mentions.size() > 1 || (user != null && !mentions.isEmpty()))
                 throw new CmdWarnException(ctx.render(Text.DISABLE_MULTIPLE_TARGETS));
             String userId = user;
             if (userId == null)
                 userId = mentions.isEmpty() ? CmdDisableService.WHOLE_GROUP : mentions.getFirst();
-            return new Target(true, group.groupId(), userId);
+            return new Target(true, e.groupId(), userId);
         }
         if (user == null)
             throw new CmdWarnException(ctx.render(Text.DISABLE_MISSING_USER));
@@ -113,8 +112,7 @@ public class DisableManageHandler implements CmdHandler {
     }
 
     private static List<String> mentions(CmdContext ctx) {
-        if (!(ctx.event() instanceof MsgEvent msg)) return List.of();
-        return msg.content().atIds().stream()
+        return ctx.event().content().atIds().stream()
                 .filter(id -> id != null && !id.isBlank() && !id.equals(ctx.event().selfId()))
                 .toList();
     }

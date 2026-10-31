@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.bot.bus.middleware;
 
-import com.zincoid.nullbot.bot.bus.EntityRegistrar;
+import com.zincoid.nullbot.bot.bus.BotRegistrar;
 import com.zincoid.nullbot.bot.chat.ChatPipeline;
 import com.zincoid.nullbot.bot.cmd.CmdParser;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
@@ -44,7 +44,7 @@ public class AiChatMiddleware implements Middleware {
     private final CmdParser cmdParser;
     private final GroupSettingService groupSettingService;
     private final LanguageService languageService;
-    private final EntityRegistrar entityRegistrar;
+    private final BotRegistrar botRegistrar;
     private final GroupService groupService;
     private final UserService userService;
     private final GroupCmdRateLimiter groupCmdRateLimiter;
@@ -61,49 +61,49 @@ public class AiChatMiddleware implements Middleware {
      */
     @Override
     public void handle(BotClient client, BotEvent event, MiddlewareChain chain) {
-        if (event instanceof GroupMsgEvent group) {
-            if (group.selfId().equals(group.userId()) || cmdParser.parse(group) != null) {
+        if (event instanceof GroupMsgEvent e) {
+            if (e.selfId().equals(e.userId()) || cmdParser.parse(e) != null) {
                 chain.doHandle(client, event);
                 return;
             }
-            Language language = languageService.group(group.groupId());
-            if (group.at()) {
-                run(client, group, language, chain, () -> chatPipeline.chat(client, group, language));
+            Language language = languageService.group(e.groupId());
+            if (e.at()) {
+                run(client, e, language, chain, () -> chatPipeline.chat(client, e, language));
                 return;
             }
-            if (shouldAutoChat(group)) {
-                log.info("Auto chat: group={}, user={}", group.groupId(), group.userId());
-                run(client, group, language, chain, () -> chatPipeline.chat(client, group, language));
+            if (isAuto(e)) {
+                log.info("Auto chat: group={}, user={}", e.groupId(), e.userId());
+                run(client, e, language, chain, () -> chatPipeline.chat(client, e, language));
                 return;
             }
             chain.doHandle(client, event);
             return;
         }
-        if (event instanceof PrivateMsgEvent privateMsg) {
-            if (cmdParser.parse(privateMsg) != null) {
+        if (event instanceof PrivateMsgEvent e) {
+            if (cmdParser.parse(e) != null) {
                 chain.doHandle(client, event);
                 return;
             }
             Language language = languageService.defaultLanguage();
-            run(client, privateMsg, language, chain, () -> chatPipeline.chat(client, privateMsg, language));
+            run(client, e, language, chain, () -> chatPipeline.chat(client, e, language));
             return;
         }
-        if (event instanceof GroupPokeEvent poke) {
-            if (!poke.selfId().equals(poke.targetId())) {
+        if (event instanceof GroupPokeEvent e) {
+            if (!e.selfId().equals(e.targetId())) {
                 chain.doHandle(client, event);
                 return;
             }
-            Language language = languageService.group(poke.groupId());
-            run(client, poke, language, chain, () -> chatPipeline.poke(client, poke, language));
+            Language language = languageService.group(e.groupId());
+            run(client, e, language, chain, () -> chatPipeline.poke(client, e, language));
             return;
         }
-        if (event instanceof PrivatePokeEvent poke) {
-            if (!poke.selfId().equals(poke.targetId())) {
+        if (event instanceof PrivatePokeEvent e) {
+            if (!e.selfId().equals(e.targetId())) {
                 chain.doHandle(client, event);
                 return;
             }
             Language language = languageService.defaultLanguage();
-            run(client, poke, language, chain, () -> chatPipeline.poke(client, poke, language));
+            run(client, e, language, chain, () -> chatPipeline.poke(client, e, language));
             return;
         }
         chain.doHandle(client, event);
@@ -124,9 +124,9 @@ public class AiChatMiddleware implements Middleware {
     private void run(BotClient client, BotEvent event, Language language,
                      MiddlewareChain chain, Runnable action) {
         try {
-            entityRegistrar.ensure(client, event);
-            if (!aiAllowed(event)) return;
-            if (!allowRate(client, event, language)) return;
+            botRegistrar.ensure(client, event);
+            if (!isAllowed(event)) return;
+            if (!isLimited(client, event, language)) return;
             action.run();
         } catch (RuntimeException e) {
             log.error("AI reply failed: {}", e.getMessage(), e);
@@ -143,10 +143,10 @@ public class AiChatMiddleware implements Middleware {
      * @param event the triggering event
      * @return true when AI chat is allowed
      */
-    private boolean aiAllowed(BotEvent event) {
-        if (event instanceof GroupEvent group) {
-            boolean allowed = groupService.isAiChatEnabled(group.groupId());
-            if (!allowed) log.info("AI disabled: {}", group.groupId());
+    private boolean isAllowed(BotEvent event) {
+        if (event instanceof GroupEvent e) {
+            boolean allowed = groupService.isAiChatEnabled(e.groupId());
+            if (!allowed) log.info("AI disabled: {}", e.groupId());
             return allowed;
         }
         boolean allowed = userService.isPrivateAiChatEnabled(event.userId());
@@ -163,14 +163,14 @@ public class AiChatMiddleware implements Middleware {
      * @param language the reply language
      * @return true when the trigger is allowed
      */
-    private boolean allowRate(BotClient client, BotEvent event, Language language) {
-        if (!(event instanceof GroupEvent group)) return true;
+    private boolean isLimited(BotClient client, BotEvent event, Language language) {
+        if (!(event instanceof GroupEvent e)) return true;
         String key = event instanceof PokeEvent ? RATE_KEY_POKED : RATE_KEY_CHAT;
-        if (groupCmdRateLimiter.tryConsume(group.groupId(), event.userId(), key)) return true;
+        if (groupCmdRateLimiter.tryConsume(e.groupId(), event.userId(), key)) return true;
         log.info("AI rate limited: group={}, user={}, key={}",
-                group.groupId(), event.userId(), key);
+                e.groupId(), event.userId(), key);
         if (event instanceof GroupMsgEvent)
-            client.sendGroupMsg(group.groupId(), MsgContent.of(Text.TOO_MANY_REQUESTS.of(language)));
+            client.sendGroupMsg(e.groupId(), MsgContent.of(Text.TOO_MANY_REQUESTS.of(language)));
         return false;
     }
 
@@ -181,7 +181,7 @@ public class AiChatMiddleware implements Middleware {
      * @param event the group message event
      * @return true when the message should trigger an automatic chat
      */
-    private boolean shouldAutoChat(GroupMsgEvent event) {
+    private boolean isAuto(GroupMsgEvent event) {
         if (event.selfId().equals(event.userId())) return false;
         if (event.at()) return false;
         if (cmdParser.isCmd(event.content())) return false;
@@ -201,9 +201,10 @@ public class AiChatMiddleware implements Middleware {
      * @param language the reply language
      * @param error    the failure
      */
-    private static void sendError(BotClient client, BotEvent event, Language language, RuntimeException error) {
+    private static void sendError(BotClient client, BotEvent event,
+                                  Language language, RuntimeException error) {
         MsgContent content = MsgContent.of(Text.CMD_ERROR.of(language, error.getMessage()));
-        if (event instanceof GroupEvent group) client.sendGroupMsg(group.groupId(), content);
+        if (event instanceof GroupEvent e) client.sendGroupMsg(e.groupId(), content);
         else client.sendPrivateMsg(event.userId(), content);
     }
 }

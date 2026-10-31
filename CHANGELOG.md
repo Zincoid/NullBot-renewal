@@ -46,7 +46,8 @@
 ### Changed
 
 - AI 触发从 `Chat` / `Poked` 指令迁移到 `AiChatMiddleware`：群 @、私聊、戳一戳和自动聊天直接调用 `ChatPipeline`，不再经过指令链；移除 `#Chat` / `#Poked`，群 AI 继续复用指令限速。AI 用量记录暂不写入 `usage`，后续由独立的 AI 数据表接管。关键词规则中引用 `Chat` / `Poked` 的配置也会失效，需要改用其他指令。
-- `RegisterHandler` 由 `EntityRegistrar` 替代：`EntityRegistrar` 在 bot 层通过 `BotClient` 查询群名 / 用户昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。
+- 戳一戳触发 AI 后通过 `call` 执行指令时，`ChatContext` 会合成对应的 `GroupMsgEvent` / `PrivateMsgEvent`；命令层只处理消息事件，`Cmd` 移除群 / 私聊戳一戳的 `run` 重载，外部插件需改用消息入口。
+- `RegisterHandler` 由 `BotRegistrar` 替代：`BotRegistrar` 在 bot 层通过 `BotClient` 查询群名 / 用户昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。
 - `BANNED` 用户的所有事件在 `BotDispatcher` 入口直接丢弃，不再进入消息存储、输入等待或 AI 处理。
 - `UserSetting` 的 `aiPrompt` / `aiEffort` / `aiInjectionGuard` 统一改为 `privateAiPrompt` / `privateAiEffort` / `privateAiInjectionGuard`，`user_setting` 列同步改名为 `private_ai_prompt` / `private_ai_effort` / `private_ai_injection_guard`；控制台用户设置 API 与表单同步，已有数据库需手动迁移旧列。
 - `User.privateMessageAllowed` 删除并拆分为 `privateCmdEnabled` / `privateAiChatEnabled`；私聊指令不再与私聊 AI 共用开关。`UserService.isPrivateMessageAllowed` / `setPrivateMessageAllowed` 同步移除，外部插件需改用新方法。

@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.cmd.chain;
 
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -34,9 +34,9 @@ public class AccessHandler implements CmdHandler {
             return;
         }
         Access required = ctx.cmd().getAccess();
-        BotEvent event = ctx.event();
-        boolean allowed = event instanceof GroupEvent group
-                ? checkGroup(ctx, required, group.groupId(), event.userId())
+        MsgEvent event = ctx.event();
+        boolean allowed = event instanceof GroupEvent e
+                ? checkGroup(ctx, required, e.groupId(), event.userId())
                 : checkUser(ctx, required, event.userId());
         if (allowed) chain.doHandle(ctx);
     }

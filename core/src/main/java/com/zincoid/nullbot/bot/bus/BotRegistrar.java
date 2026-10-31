@@ -10,12 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * 事件实体懒注册：确保事件涉及的群与用户记录存在。
- * <p>Lazy entity registration: ensures the group and user records referenced by an event exist.</p>
+ * 机器人实体懒注册：确保事件涉及的群与用户记录存在。
+ * <p>Bot entity registrar: ensures the group and user records referenced by an event exist.</p>
  */
 @Component
 @RequiredArgsConstructor
-public class EntityRegistrar {
+public class BotRegistrar {
 
     private final GroupService groupService;
     private final UserService userService;

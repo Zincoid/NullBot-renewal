@@ -6,9 +6,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.common.QuoteService;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -41,16 +39,6 @@ public class QuoteRandCmd implements Cmd {
     @Override
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
         handle(ctx, event.content(), args);
-    }
-
-    @Override
-    public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        handle(ctx, null, args);
-    }
-
-    @Override
-    public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        handle(ctx, null, args);
     }
 
     private void handle(CmdContext ctx, MsgContent content, CmdArgs args) {

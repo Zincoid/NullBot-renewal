@@ -1,9 +1,9 @@
 package com.zincoid.nullbot.bot.cmd.chain;
 
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupCmdRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
@@ -30,8 +30,8 @@ public class LimitHandler implements CmdHandler {
 
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
-        BotEvent event = ctx.event();
-        if (event instanceof GroupEvent group && !check(ctx, group.groupId(), event.userId())) return;
+        MsgEvent event = ctx.event();
+        if (event instanceof GroupEvent e && !check(ctx, e.groupId(), event.userId())) return;
         chain.doHandle(ctx);
     }
 

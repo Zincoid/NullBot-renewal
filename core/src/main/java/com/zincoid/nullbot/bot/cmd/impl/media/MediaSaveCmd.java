@@ -5,9 +5,7 @@ import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
@@ -45,16 +43,6 @@ abstract class MediaSaveCmd implements Cmd {
     @Override
     public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
         handle(ctx, event.userId(), event.content().replyId(), args);
-    }
-
-    @Override
-    public void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        handle(ctx, event.userId(), null, args);
-    }
-
-    @Override
-    public void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        handle(ctx, event.userId(), null, args);
     }
 
     // ════ Cmd ═════════════════════

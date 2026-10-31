@@ -6,8 +6,8 @@ import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 
 /**
- * 机器人指令：每种路由事件一个 run 槽位。
- * <p>A bot command: one run slot per routed event type.</p>
+ * 机器人指令：群聊消息与私聊消息各一个 run 槽位。
+ * <p>A bot command: one run slot each for group and private message events.</p>
  */
 public interface Cmd {
 
@@ -33,30 +33,6 @@ public interface Cmd {
      */
     default void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
         throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_MSG));
-    }
-
-    /**
-     * 在群聊戳一戳事件上执行指令。
-     * <p>Runs the command on a group poke event.</p>
-     *
-     * @param ctx   the command context
-     * @param event the triggering event
-     * @param args  the parsed arguments
-     */
-    default void run(CmdContext ctx, GroupPokeEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_GROUP_POKE));
-    }
-
-    /**
-     * 在私聊戳一戳事件上执行指令。
-     * <p>Runs the command on a private poke event.</p>
-     *
-     * @param ctx   the command context
-     * @param event the triggering event
-     * @param args  the parsed arguments
-     */
-    default void run(CmdContext ctx, PrivatePokeEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_POKE));
     }
 
     /**

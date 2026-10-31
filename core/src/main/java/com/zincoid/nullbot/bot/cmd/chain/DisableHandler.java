@@ -1,8 +1,8 @@
 package com.zincoid.nullbot.bot.cmd.chain;
 
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.module.i18n.DurationText;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.CmdDisableService;
@@ -43,11 +43,11 @@ public class DisableHandler implements CmdHandler {
 
     // ════ Effective ═══════════════
 
-    private CmdDisable effective(BotEvent event, String cmd) {
-        if (event instanceof GroupEvent group) {
-            CmdDisable personal = cmdDisableService.findGroup(group.groupId(), event.userId(), cmd);
+    private CmdDisable effective(MsgEvent event, String cmd) {
+        if (event instanceof GroupEvent e) {
+            CmdDisable personal = cmdDisableService.findGroup(e.groupId(), event.userId(), cmd);
             if (personal != null) return personal;
-            return cmdDisableService.findGroup(group.groupId(), CmdDisableService.WHOLE_GROUP, cmd);
+            return cmdDisableService.findGroup(e.groupId(), CmdDisableService.WHOLE_GROUP, cmd);
         }
         return cmdDisableService.findPrivate(event.userId(), cmd);
     }

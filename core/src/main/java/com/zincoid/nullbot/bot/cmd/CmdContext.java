@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.cmd;
 
-import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -10,11 +10,11 @@ import com.zincoid.nullbot.platform.persistence.enums.Language;
 import java.util.List;
 
 /**
- * 指令执行上下文：触发事件、绑定指令与出站端口。
- * <p>Command execution context: the triggering event, the bound command and the outbound port.</p>
+ * 指令执行上下文：触发消息、绑定指令与出站端口。
+ * <p>Command execution context: the triggering message, the bound command and the outbound port.</p>
  *
  * @param client      the outbound port
- * @param event       the triggering event
+ * @param event       the triggering message event
  * @param cmd         the bound command
  * @param params      the raw command parameters
  * @param language    the resolved reply language
@@ -22,7 +22,7 @@ import java.util.List;
  */
 public record CmdContext(
         BotClient client,
-        BotEvent event,
+        MsgEvent event,
         Cmd cmd,
         List<String> params,
         Language language,
@@ -74,8 +74,8 @@ public record CmdContext(
      * @param content the message content
      */
     public void send(MsgContent content) {
-        if (event instanceof GroupEvent group)
-            client.sendGroupMsg(group.groupId(), content);
+        if (event instanceof GroupEvent e)
+            client.sendGroupMsg(e.groupId(), content);
         else client.sendPrivateMsg(event.userId(), content);
     }
 }

@@ -1,8 +1,15 @@
 package com.zincoid.nullbot.bot.chat;
 
+import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.cmd.CmdRequest;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PokeEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
@@ -14,6 +21,7 @@ import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.MimeUtils;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 聊天工具上下文：向当前会话发送文本与媒体（图片、视频、音频）并执行机器人指令。
@@ -130,8 +138,35 @@ public record ChatContext(
 
     @Override
     public ToolRes cmd(String name, List<String> params) {
+        MsgEvent cmdEvent = cmdEvent();
+        if (cmdEvent == null) return ToolRes.error("Command not available for this event");
         boolean checkAccess = configService.getBool(Conf.AI_CMD_ACCESS_CHECK);
-        cmdDispatcher.dispatch(client, event, new CmdRequest(name, params), checkAccess);
+        cmdDispatcher.dispatch(client, cmdEvent, new CmdRequest(name, params), checkAccess);
         return ToolRes.of("Command executed: " + name);
+    }
+
+    // ════ Helpers ═════════════════
+
+    /**
+     * 指令只接受消息事件；戳一戳触发 AI 时合成为对应的消息事件。
+     * <p>Commands accept message events only; a poke-triggered AI call is converted to the matching message event.</p>
+     *
+     * @return the command message event, or null when unsupported
+     */
+    private MsgEvent cmdEvent() {
+        if (event instanceof MsgEvent e) return e;
+        if (!(event instanceof PokeEvent)) return null;
+        String messageId = "poke-" + UUID.randomUUID();
+        String nickname = BotClients.nickname(client, event.userId());
+        MsgContent content = MsgContent.of("");
+        if (event instanceof GroupPokeEvent e) {
+            return new GroupMsgEvent(e.selfId(), e.userId(), e.groupId(),
+                    messageId, nickname, content, false, false);
+        }
+        if (event instanceof PrivatePokeEvent e) {
+            return new PrivateMsgEvent(e.selfId(), e.userId(),
+                    messageId, nickname, content, false, false);
+        }
+        return null;
     }
 }

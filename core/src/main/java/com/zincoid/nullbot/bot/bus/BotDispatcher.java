@@ -5,6 +5,7 @@ import com.zincoid.nullbot.bot.bus.middleware.MiddlewareChain;
 import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.bot.spi.port.BotServer;
 import com.zincoid.nullbot.module.common.GroupService;
@@ -44,7 +45,7 @@ public class BotDispatcher implements BotServer {
         try {
             String online = lifecycleTracker.onlineId();
             if (online == null || !online.equals(event.selfId())) {
-                log.info("Event ignored: account={}, online={}", event.selfId(), online);
+                log.info("Event ignored: in={}, online={}", event.selfId(), online);
                 return;
             }
             if (event instanceof GroupEvent e
@@ -58,7 +59,7 @@ public class BotDispatcher implements BotServer {
             }
             log.info("Event dispatched: {}", event.getClass().getSimpleName());
             if (new MiddlewareChain(middlewares).process(client, event)) return;
-            dispatcher.dispatch(client, event);
+            if (event instanceof MsgEvent e) dispatcher.dispatch(client, e);
         } catch (Exception e) {
             log.error("Event failed: {}", e.getMessage(), e);
         }

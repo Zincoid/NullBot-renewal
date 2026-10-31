@@ -1,9 +1,8 @@
 package com.zincoid.nullbot.bot.cmd;
 
-import com.zincoid.nullbot.bot.bus.EntityRegistrar;
+import com.zincoid.nullbot.bot.bus.BotRegistrar;
 import com.zincoid.nullbot.bot.cmd.chain.CmdChain;
 import com.zincoid.nullbot.bot.cmd.chain.CmdHandler;
-import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
@@ -31,22 +30,21 @@ public class CmdDispatcher {
     private final CmdParser parser;
     private final List<CmdHandler> handlers;
     private final LanguageService languageService;
-    private final EntityRegistrar entityRegistrar;
+    private final BotRegistrar botRegistrar;
     private final GroupService groupService;
     private final UserService userService;
 
     // ════ Dispatch ════════════════
 
     /**
-     * 入站事件解析为指令时进行分发。
-     * <p>Dispatches an inbound event when it parses as a command.</p>
+     * 入站消息解析为指令时进行分发。
+     * <p>Dispatches an inbound message when it parses as a command.</p>
      *
      * @param client the outbound port
-     * @param event  the inbound event
+     * @param event  the inbound message event
      */
-    public void dispatch(BotClient client, BotEvent event) {
-        if (!(event instanceof MsgEvent msg)) return;
-        CmdRequest req = parser.parse(msg);
+    public void dispatch(BotClient client, MsgEvent event) {
+        CmdRequest req = parser.parse(event);
         if (req != null) dispatch(client, event, req, true);
     }
 
@@ -55,17 +53,17 @@ public class CmdDispatcher {
      * <p>Dispatches an explicit command request through the handler chain with optional access checks.</p>
      *
      * @param client      the outbound port
-     * @param event       the inbound event
+     * @param event       the inbound message event
      * @param req         the explicit command request
      * @param checkAccess whether to run access checks
      */
-    public void dispatch(BotClient client, BotEvent event, CmdRequest req, boolean checkAccess) {
+    public void dispatch(BotClient client, MsgEvent event, CmdRequest req, boolean checkAccess) {
         Cmd cmd = registry.get(req.name());
         if (cmd == null) {
             log.info("Unknown command: {}", req.name());
             return;
         }
-        entityRegistrar.ensure(client, event);
+        botRegistrar.ensure(client, event);
         if (!cmdEnabled(event)) {
             log.info("Command disabled: {}", req.name());
             return;
@@ -89,15 +87,15 @@ public class CmdDispatcher {
 
     // ════ Helpers ═════════════════
 
-    private boolean cmdEnabled(BotEvent event) {
-        return event instanceof GroupEvent group
-                ? groupService.isCmdEnabled(group.groupId())
+    private boolean cmdEnabled(MsgEvent event) {
+        return event instanceof GroupEvent e
+                ? groupService.isCmdEnabled(e.groupId())
                 : userService.isPrivateCmdEnabled(event.userId());
     }
 
-    private Language language(BotEvent event) {
-        return event instanceof GroupEvent group
-                ? languageService.group(group.groupId())
+    private Language language(MsgEvent event) {
+        return event instanceof GroupEvent e
+                ? languageService.group(e.groupId())
                 : languageService.defaultLanguage();
     }
 }

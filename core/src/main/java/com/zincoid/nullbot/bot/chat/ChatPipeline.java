@@ -113,7 +113,7 @@ public class ChatPipeline {
         boolean guard = group
                 ? groupSetting.getAiInjectionGuard()
                 : userSetting.getPrivateAiInjectionGuard();
-        if (event instanceof MsgEvent msg && guard && chatGuard.check(msg.content().text())) {
+        if (event instanceof MsgEvent e && guard && chatGuard.check(e.content().text())) {
             send(client, targetId, group, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
             log.info("Injection blocked: chat={}", chatId);
             return;
@@ -129,11 +129,11 @@ public class ChatPipeline {
         lock.lock();
         try {
             List<AiMessage> history = new ArrayList<>(memory.get(chatId));
-            if (event instanceof PokeEvent poke) {
-                AiMessage incoming = AiMessage.user(poke.userId(), "[Rubbed you]", List.of());
+            if (event instanceof PokeEvent e) {
+                AiMessage incoming = AiMessage.user(e.userId(), "[Rubbed you]", List.of());
                 history.add(incoming);
                 memory.add(chatId, "poke-" + UUID.randomUUID(),
-                        poke.userId(), poke.userId(), incoming);
+                        e.userId(), e.userId(), incoming);
             }
             ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
             String content = ChatText.compact(reply.getContent());

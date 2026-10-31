@@ -637,7 +637,7 @@
                 <section class="form-section">
                     <h3 class="form-section__title" data-i18n="group.sectionAi">AI 对话</h3>
                     <div class="form-grid">
-                        <label class="field"><span data-i18n="group.effort">AI 强度</span>
+                        <label class="field"><span data-i18n="group.effort">强度</span>
                             <select id="gs-effort">
                                 <option value="0" data-i18n="group.effort0">最低</option>
                                 <option value="1" data-i18n="group.effort1">低</option>
@@ -656,7 +656,7 @@
                         <label><span data-i18n="group.autoChat">自动回复</span><input id="gs-auto-chat" type="checkbox"></label>
                         <label><span data-i18n="group.guard">防注入</span><input id="gs-guard" type="checkbox"></label>
                     </div>
-                    <label class="field"><span data-i18n="group.prompt">群提示词</span>
+                    <label class="field"><span data-i18n="group.prompt">提示词</span>
                         <textarea id="gs-prompt" rows="5"
                                   data-i18n-placeholder="group.promptPlaceholder"
                                   placeholder="留空使用全局提示词"></textarea>
@@ -761,13 +761,13 @@
             <button type="button" class="tab active" data-user-tab="setting"
                     data-i18n="accounts.userSettingTitle">用户设置</button>
             <button type="button" class="tab" data-user-tab="commands"
-                    data-i18n="cmdDisable.tab">指令管理</button>
+                    data-i18n="cmdDisable.privateTab">私聊指令管理</button>
         </div>
         <div id="user-tab-setting">
             <form id="user-setting-form" class="form">
                 <section class="form-section">
-                    <h3 class="form-section__title" data-i18n="group.sectionAi">AI 对话</h3>
-                    <label class="field"><span data-i18n="group.effort">AI 强度</span>
+                    <h3 class="form-section__title" data-i18n="accounts.privateAiSection">私聊 AI 对话</h3>
+                    <label class="field"><span data-i18n="group.effort">强度</span>
                         <select id="us-effort">
                             <option value="0" data-i18n="group.effort0">最低</option>
                             <option value="1" data-i18n="group.effort1">低</option>
@@ -781,7 +781,7 @@
                     <div class="checks">
                         <label><span data-i18n="group.guard">防注入</span><input id="us-guard" type="checkbox"></label>
                     </div>
-                    <label class="field"><span data-i18n="accounts.aiPrompt">私聊提示词</span>
+                    <label class="field"><span data-i18n="accounts.aiPrompt">提示词</span>
                         <textarea id="us-prompt" rows="5"
                                   data-i18n-placeholder="accounts.aiPromptPlaceholder"
                                   placeholder="留空使用默认提示词"></textarea>
