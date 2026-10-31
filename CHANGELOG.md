@@ -46,8 +46,9 @@
 ### Changed
 
 - AI 触发从 `Chat` / `Poked` 指令迁移到 `AiChatMiddleware`：群 @、私聊、戳一戳和自动聊天直接调用 `ChatPipeline`，不再经过指令链；移除 `#Chat` / `#Poked`，群 AI 继续复用指令限速。AI 用量记录暂不写入 `usage`，后续由独立的 AI 数据表接管。关键词规则中引用 `Chat` / `Poked` 的配置也会失效，需要改用其他指令。
-- `RegisterHandler` 由 `EntityRegistrar` 替代：`EntityRegistrar` 在 bot 层从事件或 `BotClient` 解析群名 / 昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。
-- `BANNED` 用户的私聊消息与私聊戳一戳在 `BotDispatcher` 入口直接丢弃，不再进入消息存储、输入等待或 AI 处理。
+- `RegisterHandler` 由 `EntityRegistrar` 替代：`EntityRegistrar` 在 bot 层通过 `BotClient` 查询群名 / 用户昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。
+- `BANNED` 用户的所有事件在 `BotDispatcher` 入口直接丢弃，不再进入消息存储、输入等待或 AI 处理。
+- `UserSetting` 的 `aiPrompt` / `aiEffort` / `aiInjectionGuard` 统一改为 `privateAiPrompt` / `privateAiEffort` / `privateAiInjectionGuard`，`user_setting` 列同步改名为 `private_ai_prompt` / `private_ai_effort` / `private_ai_injection_guard`；控制台用户设置 API 与表单同步，已有数据库需手动迁移旧列。
 - `User.privateMessageAllowed` 删除并拆分为 `privateCmdEnabled` / `privateAiChatEnabled`；私聊指令不再与私聊 AI 共用开关。`UserService.isPrivateMessageAllowed` / `setPrivateMessageAllowed` 同步移除，外部插件需改用新方法。
 - 已有数据库需手动迁移：`group` 增加 `cmd_enabled` / `ai_chat_enabled`（默认 true），`user` 增加 `private_cmd_enabled` / `private_ai_chat_enabled`（默认 false）并删除 `private_message_allowed`；按新默认值，现有用户的两个私聊权限均为 false，需要重新授权。旧 `cmd_disable` 中的 `Chat` / `Poked` 规则不再生效，可在控制台清理。
 - `gd-plugin` 拆分数据访问：`GdLevelService` 负责 JDash 关卡与缩略图，`GddlService` 负责 GDDL 关卡/用户/提交记录与 B20，`GdProgressService` 负责本地进度；`GdStore` 更名为 `GdProgressStore`，`ScoreResult` 更名为 `GddlB20Result`，GDDL B20 视图/模板统一为 `GddlB20View` / `gddl-b20.jte`。

@@ -19,7 +19,7 @@ public class UserSetting {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     private String userId;
-    private String aiPrompt;
-    private Effort aiEffort;
-    private Boolean aiInjectionGuard;
+    private String privateAiPrompt;
+    private Effort privateAiEffort;
+    private Boolean privateAiInjectionGuard;
 }

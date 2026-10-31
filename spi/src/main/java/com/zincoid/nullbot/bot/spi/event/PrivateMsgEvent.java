@@ -22,5 +22,5 @@ public record PrivateMsgEvent(
         MsgContent content,
         boolean at,
         boolean reply
-) implements MsgEvent {
+) implements MsgEvent, PrivateEvent {
 }

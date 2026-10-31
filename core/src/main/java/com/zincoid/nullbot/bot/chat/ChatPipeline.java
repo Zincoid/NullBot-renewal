@@ -112,14 +112,14 @@ public class ChatPipeline {
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
                 ? groupSetting.getAiInjectionGuard()
-                : userSetting.getAiInjectionGuard();
+                : userSetting.getPrivateAiInjectionGuard();
         if (event instanceof MsgEvent msg && guard && chatGuard.check(msg.content().text())) {
             send(client, targetId, group, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
             log.info("Injection blocked: chat={}", chatId);
             return;
         }
-        String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getAiPrompt());
-        Effort effort = group ? groupSetting.getAiEffort() : userSetting.getAiEffort();
+        String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getPrivateAiPrompt());
+        Effort effort = group ? groupSetting.getAiEffort() : userSetting.getPrivateAiEffort();
         AgentOptions options = options();
         String trigger = trigger(event);
         String selfName = BotClients.selfName(client, selfId);

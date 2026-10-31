@@ -23,8 +23,8 @@ public class UserSettingServiceImpl extends ServiceImpl<UserSettingMapper, UserS
         UserSetting setting = lambdaQuery().eq(UserSetting::getUserId, userId).one();
         return setting != null ? setting : UserSetting.builder()
                 .userId(userId)
-                .aiEffort(Effort.HIGH)
-                .aiInjectionGuard(true)
+                .privateAiEffort(Effort.HIGH)
+                .privateAiInjectionGuard(true)
                 .build();
     }
 

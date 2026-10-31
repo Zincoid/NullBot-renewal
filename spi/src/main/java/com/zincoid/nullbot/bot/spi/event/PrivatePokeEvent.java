@@ -12,5 +12,5 @@ public record PrivatePokeEvent(
         String selfId,
         String userId,
         String targetId
-) implements PokeEvent {
+) implements PokeEvent, PrivateEvent {
 }

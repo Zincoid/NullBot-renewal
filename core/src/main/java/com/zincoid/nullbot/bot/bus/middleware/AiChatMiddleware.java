@@ -137,17 +137,13 @@ public class AiChatMiddleware implements Middleware {
     }
 
     /**
-     * 判断当前用户与会话是否允许 AI 对话。
-     * <p>Whether the user and chat allow an AI conversation.</p>
+     * 判断当前会话是否允许 AI 对话。
+     * <p>Whether the chat allows an AI conversation.</p>
      *
      * @param event the triggering event
      * @return true when AI chat is allowed
      */
     private boolean aiAllowed(BotEvent event) {
-        if (userService.isBanned(event.userId())) {
-            log.info("AI blocked by user ban: {}", event.userId());
-            return false;
-        }
         if (event instanceof GroupEvent group) {
             boolean allowed = groupService.isAiChatEnabled(group.groupId());
             if (!allowed) log.info("AI disabled: {}", group.groupId());

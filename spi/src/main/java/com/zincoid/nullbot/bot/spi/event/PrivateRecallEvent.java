@@ -12,5 +12,5 @@ public record PrivateRecallEvent(
         String selfId,
         String userId,
         String messageId
-) implements RecallEvent {
+) implements RecallEvent, PrivateEvent {
 }

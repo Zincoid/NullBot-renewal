@@ -61,7 +61,7 @@ public class PromptCmd implements Cmd {
     // ════ Operations ══════════════
 
     private void view(CmdContext ctx, String userId) {
-        String prompt = userSettingService.get(userId).getAiPrompt();
+        String prompt = userSettingService.get(userId).getPrivateAiPrompt();
         if (prompt == null || prompt.isBlank())
             prompt = configService.getString(Conf.AI_DEFAULT_PROMPT);
         ctx.send(Text.PROMPT_VIEW, prompt);
@@ -69,7 +69,7 @@ public class PromptCmd implements Cmd {
 
     private void update(CmdContext ctx, String userId, String prompt) {
         UserSetting setting = userSettingService.get(userId);
-        setting.setAiPrompt(prompt);
+        setting.setPrivateAiPrompt(prompt);
         userSettingService.update(setting);
         int cleared = messageWindowStore.clear(ChatIds.ofPrivate(userId));
         ctx.send(prompt.isBlank() ? Text.PROMPT_RESET : Text.PROMPT_UPDATED);

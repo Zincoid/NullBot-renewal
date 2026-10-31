@@ -245,9 +245,9 @@ async function loadUserSetting() {
     if (!currentUser) return;
     try {
         const setting = await api('/users/' + encodeURIComponent(currentUser.id) + '/setting');
-        $('us-effort').value = String(setting.aiEffort);
-        $('us-guard').checked = setting.aiInjectionGuard;
-        $('us-prompt').value = setting.aiPrompt || '';
+        $('us-effort').value = String(setting.privateAiEffort);
+        $('us-guard').checked = setting.privateAiInjectionGuard;
+        $('us-prompt').value = setting.privateAiPrompt || '';
         setStatus($('us-status'), '');
     } catch (e) {
         setStatus($('us-status'), e.message, 'error');
@@ -262,9 +262,9 @@ async function saveUserSetting(event) {
         await api('/users/' + encodeURIComponent(currentUser.id) + '/setting', {
             method: 'PUT',
             body: JSON.stringify({
-                aiEffort: Number($('us-effort').value),
-                aiPrompt: $('us-prompt').value,
-                aiInjectionGuard: $('us-guard').checked
+                privateAiEffort: Number($('us-effort').value),
+                privateAiPrompt: $('us-prompt').value,
+                privateAiInjectionGuard: $('us-guard').checked
             })
         });
         $('user-dialog').close();

@@ -100,22 +100,22 @@ public class UserController {
     }
 
     /**
-     * 更新用户 AI 设置（强度、提示词、防注入）。
-     * <p>Updates the user's AI settings (effort, prompt, injection guard).</p>
+     * 更新用户私聊 AI 设置（强度、提示词、防注入）。
+     * <p>Updates the user's private AI settings (effort, prompt, injection guard).</p>
      *
      * @param id   platform user id
-     * @param body the new settings
+     * @param body the new private AI settings
      * @return the updated user settings
      */
     @PutMapping("/{id}/setting")
     public UserSettingView updateSetting(@PathVariable String id, @Valid @RequestBody UserSettingUpdate body) {
         user(id);
-        String prompt = body.aiPrompt() == null ? "" : body.aiPrompt().trim();
+        String prompt = body.privateAiPrompt() == null ? "" : body.privateAiPrompt().trim();
         userSettingService.update(UserSetting.builder()
                 .userId(id)
-                .aiPrompt(prompt)
-                .aiEffort(body.aiEffort())
-                .aiInjectionGuard(body.aiInjectionGuard())
+                .privateAiPrompt(prompt)
+                .privateAiEffort(body.privateAiEffort())
+                .privateAiInjectionGuard(body.privateAiInjectionGuard())
                 .build());
         return UserSettingView.of(id, userSettingService.get(id));
     }

@@ -8,6 +8,7 @@ import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.bot.spi.port.BotServer;
 import com.zincoid.nullbot.module.common.GroupService;
+import com.zincoid.nullbot.module.common.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -28,6 +29,7 @@ public class BotDispatcher implements BotServer {
     private final CmdDispatcher dispatcher;
     private final BotLifecycleTracker lifecycleTracker;
     private final GroupService groupService;
+    private final UserService userService;
 
     /**
      * 处理入站事件：按当前在线账号过滤，再经过中间件链和指令分发。
@@ -45,8 +47,13 @@ public class BotDispatcher implements BotServer {
                 log.info("Event ignored: account={}, online={}", event.selfId(), online);
                 return;
             }
-            if (event instanceof GroupEvent group && groupService.isBanned(group.groupId())) {
-                log.info("Group banned: {}", group.groupId());
+            if (event instanceof GroupEvent e
+                    && groupService.isBanned(e.groupId())) {
+                log.info("Group banned: {}", e.groupId());
+                return;
+            }
+            if (userService.isBanned(event.userId())) {
+                log.info("User banned: {}", event.userId());
                 return;
             }
             log.info("Event dispatched: {}", event.getClass().getSimpleName());
