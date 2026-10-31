@@ -18,12 +18,15 @@ public class User {
     private String name;
     private Access access;
     @Builder.Default
-    private Boolean privateMessageAllowed = false;
+    private Boolean privateCmdEnabled = false;
+    @Builder.Default
+    private Boolean privateAiChatEnabled = false;
 
     public User(String id, String name) {
         this.id = id;
         this.name = name;
         this.access = Access.NORMAL;
-        this.privateMessageAllowed = false;
+        this.privateCmdEnabled = false;
+        this.privateAiChatEnabled = false;
     }
 }

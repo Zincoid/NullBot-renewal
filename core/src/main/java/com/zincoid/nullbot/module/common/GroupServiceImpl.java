@@ -75,6 +75,40 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         if (!updated) throw new CommonException("Group not found: " + id);
     }
 
+    // ════ Permissions ═════════════
+
+    @Override
+    public boolean isCmdEnabled(String id) {
+        if (id == null || id.isBlank()) return true;
+        Group group = getById(id);
+        return group == null || !Boolean.FALSE.equals(group.getCmdEnabled());
+    }
+
+    @Override
+    public boolean isAiChatEnabled(String id) {
+        if (id == null || id.isBlank()) return true;
+        Group group = getById(id);
+        return group == null || !Boolean.FALSE.equals(group.getAiChatEnabled());
+    }
+
+    @Override
+    public void setCmdEnabled(String id, boolean enabled) {
+        boolean updated = lambdaUpdate()
+                .eq(Group::getId, id)
+                .set(Group::getCmdEnabled, enabled)
+                .update();
+        if (!updated) throw new CommonException("Group not found: " + id);
+    }
+
+    @Override
+    public void setAiChatEnabled(String id, boolean enabled) {
+        boolean updated = lambdaUpdate()
+                .eq(Group::getId, id)
+                .set(Group::getAiChatEnabled, enabled)
+                .update();
+        if (!updated) throw new CommonException("Group not found: " + id);
+    }
+
     // ════ Delete ══════════════════
 
     @Override
@@ -93,4 +127,5 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
                 .orderByAsc(Group::getId)
                 .page(PageUtils.of(page, size));
     }
+
 }

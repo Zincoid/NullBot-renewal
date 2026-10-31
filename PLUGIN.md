@@ -232,6 +232,8 @@ public class DemoCmd implements Cmd {
 
 只在指令确实没有副作用、参数可由 AI 安全生成时才开启 `isAiCallable()`。
 
+宿主的群 / 用户“指令”权限总开关对插件指令同样生效，包括关键词触发和 AI `call`（`checkAccess=false`）路径；权限关闭时 `CmdDispatcher` 不会执行指令。事件入口会先懒注册群 / 用户记录，插件不需要自行注册。
+
 `CmdArgs` 会自动解析选项，并将其从位置参数中移除：
 
 - `--all`、`-a`：布尔选项；

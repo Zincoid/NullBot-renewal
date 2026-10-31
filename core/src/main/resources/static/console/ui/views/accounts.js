@@ -50,7 +50,7 @@ async function loadUsers() {
         userState.items = data.items;
         renderUsers(data);
     } catch (e) {
-        $('users-body').innerHTML = emptyRow(5, t('common.loadError', {msg: e.message}));
+        $('users-body').innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
         $('users-total').textContent = '';
         $('users-pager').innerHTML = '';
         toast(t('accounts.loadUsersFailed', {msg: e.message}), 'error');
@@ -61,17 +61,22 @@ function renderUsers(data) {
     $('users-total').textContent = t('accounts.usersTotal', {n: data.total});
     const body = $('users-body');
     if (!data.items.length) {
-        body.innerHTML = emptyRow(5, t('accounts.usersEmpty'));
+        body.innerHTML = emptyRow(6, t('accounts.usersEmpty'));
     } else {
         body.innerHTML = data.items.map(user => `
             <tr data-id="${escapeHtml(user.id)}">
                 <td><code>${escapeHtml(user.id)}</code></td>
                 <td><span class="name-text">${escapeHtml(user.name || '-')}</span></td>
                 <td><select class="access-select">${accessOptions(user.access)}</select></td>
-                <td class="private-chat-cell">
-                    <div class="checks"><label><input type="checkbox" class="private-chat-toggle"
-                        aria-label="${escapeHtml(t('accounts.privateChat'))}"
-                        ${user.privateMessageAllowed ? 'checked' : ''}></label></div>
+                <td class="flag-cell">
+                    <div class="checks"><label><input type="checkbox" class="private-cmd-toggle"
+                        aria-label="${escapeHtml(t('accounts.privateCmd'))}"
+                        ${user.privateCmdEnabled ? 'checked' : ''}></label></div>
+                </td>
+                <td class="flag-cell">
+                    <div class="checks"><label><input type="checkbox" class="private-ai-toggle"
+                        aria-label="${escapeHtml(t('accounts.privateAiChat'))}"
+                        ${user.privateAiChatEnabled ? 'checked' : ''}></label></div>
                 </td>
                 <td class="actions">
                     <button class="small primary btn-save" data-save-user>${escapeHtml(t('common.save'))}</button>
@@ -102,7 +107,7 @@ async function loadGroups() {
         groupState.items = data.items;
         renderGroups(data);
     } catch (e) {
-        $('groups-body').innerHTML = emptyRow(4, t('common.loadError', {msg: e.message}));
+        $('groups-body').innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
         $('groups-total').textContent = '';
         $('groups-pager').innerHTML = '';
         toast(t('accounts.loadGroupsFailed', {msg: e.message}), 'error');
@@ -113,13 +118,23 @@ function renderGroups(data) {
     $('groups-total').textContent = t('accounts.groupsTotal', {n: data.total});
     const body = $('groups-body');
     if (!data.items.length) {
-        body.innerHTML = emptyRow(4, t('accounts.groupsEmpty'));
+        body.innerHTML = emptyRow(6, t('accounts.groupsEmpty'));
     } else {
         body.innerHTML = data.items.map(group => `
             <tr data-id="${escapeHtml(group.id)}">
                 <td><code>${escapeHtml(group.id)}</code></td>
                 <td><span class="name-text">${escapeHtml(group.name || '-')}</span></td>
                 <td><select class="access-select">${accessOptions(group.access)}</select></td>
+                <td class="flag-cell">
+                    <div class="checks"><label><input type="checkbox" class="cmd-enabled-toggle"
+                        aria-label="${escapeHtml(t('accounts.groupCmd'))}"
+                        ${group.cmdEnabled ? 'checked' : ''}></label></div>
+                </td>
+                <td class="flag-cell">
+                    <div class="checks"><label><input type="checkbox" class="ai-chat-toggle"
+                        aria-label="${escapeHtml(t('accounts.groupAiChat'))}"
+                        ${group.aiChatEnabled ? 'checked' : ''}></label></div>
+                </td>
                 <td class="actions">
                     <button class="small primary btn-save" data-save-group>${escapeHtml(t('common.save'))}</button>
                     <button class="small danger btn-delete" data-delete-group>${escapeHtml(t('common.delete'))}</button>
@@ -142,12 +157,13 @@ async function saveUser(button) {
     const row = button.closest('tr');
     const id = row.dataset.id;
     const access = Number(row.querySelector('.access-select').value);
-    const privateMessageAllowed = row.querySelector('.private-chat-toggle').checked;
+    const privateCmdEnabled = row.querySelector('.private-cmd-toggle').checked;
+    const privateAiChatEnabled = row.querySelector('.private-ai-toggle').checked;
     button.disabled = true;
     try {
         await api('/users/' + encodeURIComponent(id), {
             method: 'PUT',
-            body: JSON.stringify({access, privateMessageAllowed})
+            body: JSON.stringify({access, privateCmdEnabled, privateAiChatEnabled})
         });
         toast(t('accounts.userSaved'), 'ok');
     } catch (e) {
@@ -161,11 +177,13 @@ async function saveGroup(button) {
     const row = button.closest('tr');
     const id = row.dataset.id;
     const access = Number(row.querySelector('.access-select').value);
+    const cmdEnabled = row.querySelector('.cmd-enabled-toggle').checked;
+    const aiChatEnabled = row.querySelector('.ai-chat-toggle').checked;
     button.disabled = true;
     try {
         await api('/groups/' + encodeURIComponent(id), {
             method: 'PUT',
-            body: JSON.stringify({access})
+            body: JSON.stringify({access, cmdEnabled, aiChatEnabled})
         });
         toast(t('accounts.groupSaved'), 'ok');
     } catch (e) {

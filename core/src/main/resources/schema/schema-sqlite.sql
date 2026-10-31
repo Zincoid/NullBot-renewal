@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS `user` (
     `id`                      VARCHAR(64)  NOT NULL PRIMARY KEY,
     `name`                    VARCHAR(255) NOT NULL,
     `access`                  TINYINT      NOT NULL DEFAULT 0,
-    `private_message_allowed` BOOLEAN      NOT NULL DEFAULT 0
+    `private_cmd_enabled`     BOOLEAN      NOT NULL DEFAULT 0,
+    `private_ai_chat_enabled` BOOLEAN      NOT NULL DEFAULT 0
 );
 
 -- 5. User Setting
@@ -59,9 +60,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS `uk_user_setting_user_id` ON `user_setting` (`
 
 -- 6. Group
 CREATE TABLE IF NOT EXISTS `group` (
-    `id`            VARCHAR(64)     NOT NULL PRIMARY KEY,
-    `name`          VARCHAR(255)    NOT NULL,
-    `access`        TINYINT         NOT NULL DEFAULT 0
+    `id`              VARCHAR(64)     NOT NULL PRIMARY KEY,
+    `name`            VARCHAR(255)    NOT NULL,
+    `access`          TINYINT         NOT NULL DEFAULT 0,
+    `cmd_enabled`     BOOLEAN         NOT NULL DEFAULT 1,
+    `ai_chat_enabled` BOOLEAN         NOT NULL DEFAULT 1
 );
 
 -- 7. Group Setting

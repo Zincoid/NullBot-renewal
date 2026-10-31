@@ -57,10 +57,10 @@ public class GroupController {
 
     /**
      * 修改群权限。
-     * <p>Updates the group access level.</p>
+     * <p>Updates the group permissions.</p>
      *
      * @param id   platform group id
-     * @param body the new access level
+     * @param body the new group permissions
      * @return the updated group
      */
     @PutMapping("/{id}")
@@ -68,6 +68,14 @@ public class GroupController {
         Group group = group(id);
         groupService.setAccess(id, body.access());
         group.setAccess(body.access());
+        if (body.cmdEnabled() != null) {
+            groupService.setCmdEnabled(id, body.cmdEnabled());
+            group.setCmdEnabled(body.cmdEnabled());
+        }
+        if (body.aiChatEnabled() != null) {
+            groupService.setAiChatEnabled(id, body.aiChatEnabled());
+            group.setAiChatEnabled(body.aiChatEnabled());
+        }
         return GroupView.of(group);
     }
 

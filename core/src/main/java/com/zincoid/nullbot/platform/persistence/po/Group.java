@@ -17,10 +17,16 @@ public class Group {
     private String id;
     private String name;
     private Access access;
+    @Builder.Default
+    private Boolean cmdEnabled = true;
+    @Builder.Default
+    private Boolean aiChatEnabled = true;
 
     public Group(String id, String name) {
         this.id = id;
         this.name = name;
         this.access = Access.ADMIN;
+        this.cmdEnabled = true;
+        this.aiChatEnabled = true;
     }
 }

@@ -179,47 +179,54 @@ td.actions > .actions-divider {
 }
 
 #tab-users thead th:nth-child(1) {
-    width: 14%;
+    width: 12%;
 }
 
 #tab-users thead th:nth-child(2) {
-    width: 24%;
-}
-
-#tab-users thead th:nth-child(3) {
     width: 20%;
 }
 
-#tab-users thead th:nth-child(4) {
+#tab-users thead th:nth-child(3) {
     width: 14%;
+}
+
+#tab-users thead th:nth-child(4),
+#tab-users thead th:nth-child(5) {
+    width: 12%;
     text-align: center;
 }
 
-#tab-users thead th:nth-child(5) {
+#tab-users thead th:nth-child(6) {
     width: 320px;
 }
 
 #tab-groups thead th:nth-child(1) {
-    width: 16%;
+    width: 14%;
 }
 
 #tab-groups thead th:nth-child(2) {
-    width: 24%;
+    width: 22%;
 }
 
 #tab-groups thead th:nth-child(3) {
-    width: 32%;
+    width: 16%;
 }
 
-#tab-groups thead th:nth-child(4) {
-    width: 320px;
-}
-
-.private-chat-cell {
+#tab-groups thead th:nth-child(4),
+#tab-groups thead th:nth-child(5) {
+    width: 12%;
     text-align: center;
 }
 
-.private-chat-cell .checks {
+#tab-groups thead th:nth-child(6) {
+    width: 320px;
+}
+
+.flag-cell {
+    text-align: center;
+}
+
+.flag-cell .checks {
     justify-content: center;
 }
 

@@ -13,8 +13,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * 权限处理器：在指令执行前校验群与用户的限权等级，并拦截不允许私聊的用户。
- * <p>Access handler: checks group and user access levels and rejects private messages from disallowed users.</p>
+ * 权限处理器：在指令执行前校验群与用户的限权等级。
+ * <p>Access handler: checks group and user access levels before command execution.</p>
  */
 @Slf4j
 @Order(1)
@@ -37,19 +37,11 @@ public class AccessHandler implements CmdHandler {
         BotEvent event = ctx.event();
         boolean allowed = event instanceof GroupEvent group
                 ? checkGroup(ctx, required, group.groupId(), event.userId())
-                : checkPrivate(ctx, required, event.userId());
+                : checkUser(ctx, required, event.userId());
         if (allowed) chain.doHandle(ctx);
     }
 
     // ════ Helpers ═════════════════
-
-    private boolean checkPrivate(CmdContext ctx, Access required, String userId) {
-        if (!userService.isPrivateMessageAllowed(userId)) {
-            log.info("Private message denied: user={}", userId);
-            return false;
-        }
-        return checkUser(ctx, required, userId);
-    }
 
     private boolean checkGroup(CmdContext ctx, Access required, String groupId, String userId) {
         Access groupAccess = groupService.getAccess(groupId);

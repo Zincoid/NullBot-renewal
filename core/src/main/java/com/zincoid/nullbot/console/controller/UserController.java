@@ -61,11 +61,11 @@ public class UserController {
     // ════ Update ═════════════════
 
     /**
-     * 修改用户权限与私聊开关。
-     * <p>Updates the user access level and private-message flag.</p>
+     * 修改用户权限。
+     * <p>Updates the user permissions.</p>
      *
      * @param id   platform user id
-     * @param body the new access level and private-message flag
+     * @param body the new user permissions
      * @return the updated user
      */
     @PutMapping("/{id}")
@@ -73,9 +73,13 @@ public class UserController {
         User user = user(id);
         userService.setAccess(id, body.access());
         user.setAccess(body.access());
-        if (body.privateMessageAllowed() != null) {
-            userService.setPrivateMessageAllowed(id, body.privateMessageAllowed());
-            user.setPrivateMessageAllowed(body.privateMessageAllowed());
+        if (body.privateCmdEnabled() != null) {
+            userService.setPrivateCmdEnabled(id, body.privateCmdEnabled());
+            user.setPrivateCmdEnabled(body.privateCmdEnabled());
+        }
+        if (body.privateAiChatEnabled() != null) {
+            userService.setPrivateAiChatEnabled(id, body.privateAiChatEnabled());
+            user.setPrivateAiChatEnabled(body.privateAiChatEnabled());
         }
         return UserView.of(user);
     }

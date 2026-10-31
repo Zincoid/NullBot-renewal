@@ -68,20 +68,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!updated) throw new CommonException("User not found: " + id);
     }
 
-    // ════ Private message ═════════
+    @Override
+    public boolean isBanned(String id) {
+        if (id == null || id.isBlank()) return false;
+        User user = getById(id);
+        return user != null && user.getAccess() == Access.BANNED;
+    }
+
+    // ════ Permissions ═════════════
 
     @Override
-    public boolean isPrivateMessageAllowed(String id) {
+    public boolean isPrivateCmdEnabled(String id) {
+        if (id == null || id.isBlank()) return false;
         User user = getById(id);
-        if (user == null) throw new CommonException("User not found: " + id);
-        return user.getPrivateMessageAllowed();
+        return user != null && Boolean.TRUE.equals(user.getPrivateCmdEnabled());
     }
 
     @Override
-    public void setPrivateMessageAllowed(String id, boolean allowed) {
+    public boolean isPrivateAiChatEnabled(String id) {
+        if (id == null || id.isBlank()) return false;
+        User user = getById(id);
+        return user != null && Boolean.TRUE.equals(user.getPrivateAiChatEnabled());
+    }
+
+    @Override
+    public void setPrivateCmdEnabled(String id, boolean enabled) {
         boolean updated = lambdaUpdate()
                 .eq(User::getId, id)
-                .set(User::getPrivateMessageAllowed, allowed)
+                .set(User::getPrivateCmdEnabled, enabled)
+                .update();
+        if (!updated) throw new CommonException("User not found: " + id);
+    }
+
+    @Override
+    public void setPrivateAiChatEnabled(String id, boolean enabled) {
+        boolean updated = lambdaUpdate()
+                .eq(User::getId, id)
+                .set(User::getPrivateAiChatEnabled, enabled)
                 .update();
         if (!updated) throw new CommonException("User not found: " + id);
     }
@@ -104,4 +127,5 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .orderByAsc(User::getId)
                 .page(PageUtils.of(page, size));
     }
+
 }

@@ -53,25 +53,52 @@ public interface UserService extends IService<User> {
      */
     void setAccess(String id, Access access);
 
-    // ════ Private message ═════════
-
     /**
-     * 返回用户是否允许私聊，未设置时视为不允许。
-     * <p>Returns whether the user may use private messages, treating unset as disallowed.</p>
+     * 判断用户是否已被封禁，用户记录不存在时返回 false。
+     * <p>Whether the user is banned, returning false when the user record is absent.</p>
      *
      * @param id platform user id
-     * @return true when private messages are allowed
+     * @return true when the user is banned
      */
-    boolean isPrivateMessageAllowed(String id);
+    boolean isBanned(String id);
+
+    // ════ Permissions ═════════════
 
     /**
-     * 设置用户是否允许私聊。
-     * <p>Sets whether the user may use private messages.</p>
+     * 返回用户是否允许私聊指令，未设置时视为不允许。
+     * <p>Returns whether private commands are enabled for the user, treating unset as disabled.</p>
+     *
+     * @param id platform user id
+     * @return true when private commands are enabled
+     */
+    boolean isPrivateCmdEnabled(String id);
+
+    /**
+     * 返回用户是否允许私聊 AI 对话，未设置时视为不允许。
+     * <p>Returns whether private AI chat is enabled for the user, treating unset as disabled.</p>
+     *
+     * @param id platform user id
+     * @return true when private AI chat is enabled
+     */
+    boolean isPrivateAiChatEnabled(String id);
+
+    /**
+     * 设置用户是否允许私聊指令。
+     * <p>Sets whether private commands are enabled for the user.</p>
      *
      * @param id      platform user id
-     * @param allowed whether private messages are allowed
+     * @param enabled whether private commands are enabled
      */
-    void setPrivateMessageAllowed(String id, boolean allowed);
+    void setPrivateCmdEnabled(String id, boolean enabled);
+
+    /**
+     * 设置用户是否允许私聊 AI 对话。
+     * <p>Sets whether private AI chat is enabled for the user.</p>
+     *
+     * @param id      platform user id
+     * @param enabled whether private AI chat is enabled
+     */
+    void setPrivateAiChatEnabled(String id, boolean enabled);
 
     // ════ Delete ══════════════════
 

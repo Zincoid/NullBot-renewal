@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS `user` (
     `id`                      VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
     `name`                    VARCHAR(255) NOT NULL                 COMMENT 'User nickname',
     `access`                  TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
-    `private_message_allowed` BOOLEAN      NOT NULL DEFAULT FALSE   COMMENT 'Whether private messages are allowed',
+    `private_cmd_enabled`     BOOLEAN      NOT NULL DEFAULT FALSE   COMMENT 'Whether private commands are enabled',
+    `private_ai_chat_enabled` BOOLEAN      NOT NULL DEFAULT FALSE   COMMENT 'Whether private AI chat is enabled',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User table';
 
@@ -82,9 +83,11 @@ CREATE TABLE IF NOT EXISTS `user_setting` (
 -- 6. Group Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group` (
-    `id`          VARCHAR(64)  NOT NULL                 COMMENT 'Platform group id',
-    `name`        VARCHAR(255) NOT NULL                 COMMENT 'Group name',
-    `access`      TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
+    `id`              VARCHAR(64)  NOT NULL                 COMMENT 'Platform group id',
+    `name`            VARCHAR(255) NOT NULL                 COMMENT 'Group name',
+    `access`          TINYINT      NOT NULL DEFAULT 0       COMMENT 'Access level: -2=BANNED, -1=RESTRICTED, 0=NORMAL, 1=MANAGER, 2=ADMIN',
+    `cmd_enabled`     BOOLEAN      NOT NULL DEFAULT TRUE    COMMENT 'Whether commands are enabled',
+    `ai_chat_enabled` BOOLEAN      NOT NULL DEFAULT TRUE    COMMENT 'Whether AI chat is enabled',
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group table';
 

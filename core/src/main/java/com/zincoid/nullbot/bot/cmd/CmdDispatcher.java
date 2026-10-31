@@ -1,10 +1,14 @@
 package com.zincoid.nullbot.bot.cmd;
 
+import com.zincoid.nullbot.bot.bus.EntityRegistrar;
 import com.zincoid.nullbot.bot.cmd.chain.CmdChain;
 import com.zincoid.nullbot.bot.cmd.chain.CmdHandler;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
+import com.zincoid.nullbot.module.common.GroupService;
+import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -27,6 +31,9 @@ public class CmdDispatcher {
     private final CmdParser parser;
     private final List<CmdHandler> handlers;
     private final LanguageService languageService;
+    private final EntityRegistrar entityRegistrar;
+    private final GroupService groupService;
+    private final UserService userService;
 
     // ════ Dispatch ════════════════
 
@@ -38,7 +45,8 @@ public class CmdDispatcher {
      * @param event  the inbound event
      */
     public void dispatch(BotClient client, BotEvent event) {
-        CmdRequest req = parser.parse(event);
+        if (!(event instanceof MsgEvent msg)) return;
+        CmdRequest req = parser.parse(msg);
         if (req != null) dispatch(client, event, req, true);
     }
 
@@ -55,6 +63,11 @@ public class CmdDispatcher {
         Cmd cmd = registry.get(req.name());
         if (cmd == null) {
             log.info("Unknown command: {}", req.name());
+            return;
+        }
+        entityRegistrar.ensure(client, event);
+        if (!cmdEnabled(event)) {
+            log.info("Command disabled: {}", req.name());
             return;
         }
         CmdContext ctx = new CmdContext(client, event, cmd, req.params(), language(event), checkAccess);
@@ -75,6 +88,12 @@ public class CmdDispatcher {
     }
 
     // ════ Helpers ═════════════════
+
+    private boolean cmdEnabled(BotEvent event) {
+        return event instanceof GroupEvent group
+                ? groupService.isCmdEnabled(group.groupId())
+                : userService.isPrivateCmdEnabled(event.userId());
+    }
 
     private Language language(BotEvent event) {
         return event instanceof GroupEvent group

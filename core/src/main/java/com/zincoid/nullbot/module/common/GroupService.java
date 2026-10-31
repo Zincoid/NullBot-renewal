@@ -62,6 +62,44 @@ public interface GroupService extends IService<Group> {
      */
     void setAccess(String id, Access access);
 
+    // ════ Permissions ═════════════
+
+    /**
+     * 返回群是否允许使用指令，记录缺失时视为允许。
+     * <p>Returns whether commands are enabled for the group, treating an absent record as enabled.</p>
+     *
+     * @param id platform group id
+     * @return true when commands are enabled
+     */
+    boolean isCmdEnabled(String id);
+
+    /**
+     * 返回群是否允许 AI 对话，记录缺失时视为允许。
+     * <p>Returns whether AI chat is enabled for the group, treating an absent record as enabled.</p>
+     *
+     * @param id platform group id
+     * @return true when AI chat is enabled
+     */
+    boolean isAiChatEnabled(String id);
+
+    /**
+     * 设置群是否允许使用指令。
+     * <p>Sets whether commands are enabled for the group.</p>
+     *
+     * @param id      platform group id
+     * @param enabled whether commands are enabled
+     */
+    void setCmdEnabled(String id, boolean enabled);
+
+    /**
+     * 设置群是否允许 AI 对话。
+     * <p>Sets whether AI chat is enabled for the group.</p>
+     *
+     * @param id      platform group id
+     * @param enabled whether AI chat is enabled
+     */
+    void setAiChatEnabled(String id, boolean enabled);
+
     // ════ Delete ══════════════════
 
     /**
