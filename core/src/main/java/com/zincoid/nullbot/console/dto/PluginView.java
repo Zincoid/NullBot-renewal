@@ -12,7 +12,7 @@ import java.util.List;
  * @param id         the plugin id from the loaded instance or persisted mapping, null when unknown
  * @param version    the plugin version, null when not loaded
  * @param apiVersion the plugin API version, null when not loaded
- * @param cmds       the registered command aliases
+ * @param cmds       the canonical command names
  * @param tools      the registered AI tool names
  * @param state      the load state
  * @param error      the load failure message, null unless failed

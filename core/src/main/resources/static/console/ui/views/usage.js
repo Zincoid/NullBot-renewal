@@ -143,8 +143,8 @@ function aiTriggerLabel(key) {
 function aiRankLabel(rank) {
     return t('usage.aiRank', {
         count: formatNumber(rank.count),
-        input: formatNumber(rank.inputTokens),
-        output: formatNumber(rank.outputTokens)
+        input: compactNumber(rank.inputTokens),
+        output: compactNumber(rank.outputTokens)
     });
 }
 

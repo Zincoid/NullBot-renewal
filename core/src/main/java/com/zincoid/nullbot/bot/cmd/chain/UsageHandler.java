@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Order(6)
 @Component
 @RequiredArgsConstructor
-public class CmdUsageHandler implements CmdHandler {
+public class UsageHandler implements CmdHandler {
 
     private final CmdUsageService cmdUsageService;
 

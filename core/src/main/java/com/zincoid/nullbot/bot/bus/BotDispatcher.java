@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 入站事件分发入口。
- * <p>Inbound event dispatch entry point.</p>
+ * 入站事件分发入口：过滤后运行中间件链，未消费的消息事件交给指令分发。
+ * <p>Inbound event dispatch entry point: filters events, runs the middleware chain, and dispatches unconsumed messages.</p>
  */
 @Slf4j
 @Component
@@ -27,14 +27,14 @@ import java.util.List;
 public class BotDispatcher implements BotServer {
 
     private final List<Middleware> middlewares;
-    private final CmdDispatcher dispatcher;
+    private final CmdDispatcher cmdDispatcher;
     private final BotLifecycleTracker lifecycleTracker;
     private final GroupService groupService;
     private final UserService userService;
 
     /**
-     * 处理入站事件：按当前在线账号过滤，再经过中间件链和指令分发。
-     * <p>Handles an inbound event by filtering against the online account, then running the middleware chain and command dispatch.</p>
+     * 异步处理入站事件。
+     * <p>Handles an inbound event asynchronously.</p>
      *
      * @param client the outbound port
      * @param event  the inbound event
@@ -45,7 +45,7 @@ public class BotDispatcher implements BotServer {
         try {
             String online = lifecycleTracker.onlineId();
             if (online == null || !online.equals(event.selfId())) {
-                log.info("Event ignored: in={}, online={}", event.selfId(), online);
+                log.info("Event ignored: self={}", event.selfId());
                 return;
             }
             if (event instanceof GroupEvent e
@@ -59,7 +59,7 @@ public class BotDispatcher implements BotServer {
             }
             log.info("Event dispatched: {}", event.getClass().getSimpleName());
             if (new MiddlewareChain(middlewares).process(client, event)) return;
-            if (event instanceof MsgEvent e) dispatcher.dispatch(client, e);
+            if (event instanceof MsgEvent e) cmdDispatcher.dispatch(client, e);
         } catch (Exception e) {
             log.error("Event failed: {}", e.getMessage(), e);
         }

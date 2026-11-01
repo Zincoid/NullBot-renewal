@@ -70,7 +70,7 @@ public class MemberNoticeMiddleware implements Middleware {
      */
     private void notice(BotClient client, String groupId, String userId, Text text) {
         Language language = languageService.group(groupId);
-        String nickname = BotClients.nickname(client, userId);
+        String nickname = BotClients.userName(client, userId);
         client.sendGroupMsg(groupId, text.of(language, nickname, userId));
         log.info("Member notice: group={}, user={}, type={}", groupId, userId, text.name());
     }

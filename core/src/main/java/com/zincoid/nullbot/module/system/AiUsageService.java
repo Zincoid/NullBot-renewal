@@ -25,8 +25,16 @@ public interface AiUsageService extends IService<AiUsage> {
      * @param inputTokens  input token count, nullable
      * @param outputTokens output token count, nullable
      */
-    void record(ChatType chatType, String chatId, String userId, AiSource source,
-                Integer inputTokens, Integer outputTokens);
+    void increase(ChatType chatType, String chatId, String userId, AiSource source,
+                  Integer inputTokens, Integer outputTokens);
+
+    /**
+     * 统计全量 AI 用量。
+     * <p>Counts the all-time AI usage.</p>
+     *
+     * @return the all-time AI usage
+     */
+    Total total();
 
     /**
      * 汇总指定日期范围内的 AI 用量。
@@ -38,14 +46,6 @@ public interface AiUsageService extends IService<AiUsage> {
      * @return the AI usage statistics
      */
     Stats stats(LocalDate start, LocalDate end, int limit);
-
-    /**
-     * 统计全量 AI 用量。
-     * <p>Counts the all-time AI usage.</p>
-     *
-     * @return the all-time AI usage
-     */
-    Total total();
 
     /**
      * 单日 AI 用量。

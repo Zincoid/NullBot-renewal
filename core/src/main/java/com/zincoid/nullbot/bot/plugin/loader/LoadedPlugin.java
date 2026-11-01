@@ -1,16 +1,13 @@
 package com.zincoid.nullbot.bot.plugin.loader;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
-import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.plugin.Plugin;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * 已加载插件：元数据、JAR 信息、类加载器、插件实例与注册贡献。
@@ -72,10 +69,7 @@ record LoadedPlugin(
      */
     PluginStatus status() {
         List<String> cmds = cmds().stream()
-                .flatMap(cmd -> {
-                    CmdMapping mapping = cmd.getClass().getAnnotation(CmdMapping.class);
-                    return mapping == null ? Stream.empty() : Arrays.stream(mapping.value());
-                })
+                .map(Cmd::name)
                 .distinct()
                 .toList();
         List<String> tools = tools().stream()

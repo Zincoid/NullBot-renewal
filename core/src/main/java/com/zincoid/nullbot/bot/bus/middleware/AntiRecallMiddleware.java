@@ -78,7 +78,7 @@ public class AntiRecallMiddleware implements Middleware {
         Language language = languageService.group(event.groupId());
         String content = message.getContent() == null ? "" : message.getContent();
         MsgContent.Builder msg = MsgContent.builder().text(Text.ANTI_RECALL_DETECTED.of(
-                language, BotClients.nickname(client, event.userId()), event.userId(), content));
+                language, BotClients.userName(client, event.userId()), event.userId(), content));
         if (message.getFiles() != null) {
             for (String fileId : message.getFiles()) {
                 String uri = fileService.imageUri(fileId);

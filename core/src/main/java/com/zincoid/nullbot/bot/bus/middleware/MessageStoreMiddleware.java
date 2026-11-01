@@ -102,7 +102,7 @@ public class MessageStoreMiddleware implements Middleware {
      */
     private static String at(BotClient client, String selfId, String userId) {
         if (userId.equals(selfId)) return "@you";
-        return "@" + BotClients.nickname(client, userId) + "(" + userId + ")";
+        return "@" + BotClients.userName(client, userId) + "(" + userId + ")";
     }
 
     /**

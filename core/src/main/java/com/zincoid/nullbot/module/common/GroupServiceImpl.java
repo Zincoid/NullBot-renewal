@@ -59,13 +59,6 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     }
 
     @Override
-    public boolean isBanned(String id) {
-        if (id == null || id.isBlank()) return false;
-        Group group = getById(id);
-        return group != null && group.getAccess() == Access.BANNED;
-    }
-
-    @Override
     public void setAccess(String id, Access access) {
         if (access == null) throw new CommonException("Missing key: access");
         boolean updated = lambdaUpdate()
@@ -73,6 +66,13 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
                 .set(Group::getAccess, access)
                 .update();
         if (!updated) throw new CommonException("Group not found: " + id);
+    }
+
+    @Override
+    public boolean isBanned(String id) {
+        if (id == null || id.isBlank()) return false;
+        Group group = getById(id);
+        return group != null && group.getAccess() == Access.BANNED;
     }
 
     // ════ Permissions ═════════════

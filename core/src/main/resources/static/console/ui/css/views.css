@@ -31,20 +31,20 @@
     font-size: var(--text-xs);
 }
 
-#usage-tab-ai .token-cards .stat {
+.token-cards .stat {
     grid-column: span 2;
 }
 
-#usage-tab-ai .token-cards .stat:nth-child(1) {
+.token-cards .stat:nth-child(1) {
     --stat-accent: var(--color-warning);
 }
 
-#usage-tab-ai .token-cards .stat:nth-child(2) {
+.token-cards .stat:nth-child(2) {
     --stat-accent: var(--color-success);
 }
 
-#usage-tab-totals .cards .stat:nth-child(4) {
-    --stat-accent: var(--color-success);
+#usage-tab-totals .cards .stat {
+    grid-column: span 2;
 }
 
 .chart-card {
@@ -118,7 +118,7 @@
 
 .chart .line {
     fill: none;
-    stroke: var(--chart-primary);
+    stroke: var(--chart-line);
     stroke-width: 1.5;
     stroke-linejoin: round;
 }
@@ -136,12 +136,12 @@
 }
 
 .chart .fill-start {
-    stop-color: var(--chart-primary);
+    stop-color: var(--chart-line);
     stop-opacity: 0.12;
 }
 
 .chart .fill-end {
-    stop-color: var(--chart-primary);
+    stop-color: var(--chart-line);
     stop-opacity: 0;
 }
 
@@ -151,7 +151,7 @@
 }
 
 .chart .guide {
-    stroke: var(--chart-primary);
+    stroke: var(--chart-line);
     stroke-width: 1;
     stroke-dasharray: 3 3;
     stroke-opacity: 0.6;
@@ -162,7 +162,7 @@
 
 .chart .dot {
     fill: var(--color-surface);
-    stroke: var(--chart-primary);
+    stroke: var(--chart-line);
     stroke-width: 1.5;
     opacity: 0;
     pointer-events: none;
@@ -236,45 +236,69 @@
 
 /* ═══ Config ═════════════════════ */
 
+#configs {
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-lg);
+}
+
 .config {
-    position: relative;
-    --edge-glow: #ec66a6;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
         "head actions"
         "value value";
-    align-items: center;
-    gap: var(--spacing-xs) var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-    padding: var(--spacing-md);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--rounded-lg);
-    transition: border-color var(--transition-fast);
+    align-items: start;
+    gap: var(--spacing-sm) var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border-light);
+    transition: background var(--transition-fast);
+}
+
+.config:last-child {
+    border-bottom: none;
+}
+
+.config:hover {
+    background: var(--color-primary-bg);
 }
 
 .config-head {
     grid-area: head;
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.config-title {
+    display: flex;
+    align-items: center;
     gap: var(--spacing-sm);
     min-width: 0;
 }
 
-.config-head .badge {
+.config-title .badge {
     flex-shrink: 0;
+    padding: 1px 6px;
+    font-size: 10px;
+    line-height: 1.4;
 }
 
 .config-head code {
+    min-width: 0;
+    overflow: hidden;
     padding: 0;
     background: none;
     font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .config .desc {
-    flex: 1 1 auto;
     min-width: 0;
     margin: 0;
     overflow: hidden;
@@ -301,6 +325,7 @@
     height: 48px;
     min-height: 48px;
     padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-bg);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
 }

@@ -664,7 +664,11 @@
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--rounded-lg);
-    transition: border-color var(--transition-fast);
+    transition: border-color var(--transition-fast), transform var(--transition-normal);
+}
+
+.card:hover {
+    transform: translateY(-4px);
 }
 
 /* Rotating gradient edge on card hover, mirrors Zincoid's user card. */
@@ -678,8 +682,7 @@
     to { --edge-angle: 360deg; }
 }
 
-.card::after,
-.config::after {
+.card::after {
     content: '';
     position: absolute;
     inset: -1px;
@@ -696,16 +699,14 @@
     pointer-events: none;
 }
 
-.card:hover::after,
-.config:hover::after {
+.card:hover::after {
     opacity: 1;
     filter: drop-shadow(0 0 5px var(--edge-glow));
     animation: edge-spin 2.5s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .card:hover::after,
-    .config:hover::after {
+    .card:hover::after {
         animation: none;
     }
 }
@@ -726,6 +727,10 @@
 
 .cards .stat:nth-child(4) {
     --stat-accent: #6b21a8;
+}
+
+.cards .stat.stat-blue {
+    --stat-accent: #58a6ff;
 }
 
 .stat .label {

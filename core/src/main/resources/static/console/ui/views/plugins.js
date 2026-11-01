@@ -9,14 +9,14 @@ let pluginBusy = false;
 
 async function loadPlugins() {
     const body = $('plugins-body');
-    body.innerHTML = emptyRow(7, t('common.loading'));
+    body.innerHTML = emptyRow(6, t('common.loading'));
     try {
         const data = await api('/plugins');
         pluginEnabled = data.enabled !== false;
         pluginItems = Array.isArray(data.items) ? data.items : [];
         renderPlugins();
     } catch (e) {
-        body.innerHTML = emptyRow(7, t('common.loadError', {msg: e.message}));
+        body.innerHTML = emptyRow(6, t('common.loadError', {msg: e.message}));
         $('plugins-total').textContent = '';
         $('plugins-notice').hidden = true;
         $('plugins-upload').hidden = true;
@@ -34,13 +34,12 @@ function renderPlugins() {
     notice.textContent = pluginEnabled ? '' : t('plugins.globalDisabled');
     const body = $('plugins-body');
     if (!pluginItems.length) {
-        body.innerHTML = emptyRow(7, t('plugins.empty'));
+        body.innerHTML = emptyRow(6, t('plugins.empty'));
         return;
     }
     body.innerHTML = pluginItems.map(plugin => {
-        const jar = escapeHtml(plugin.jar);
         const id = plugin.id
-            ? `<code>${escapeHtml(plugin.id)}</code>`
+            ? escapeHtml(plugin.id)
             : '<span class="muted">-</span>';
         const versionText = plugin.version
             ? escapeHtml(plugin.version)
@@ -62,9 +61,8 @@ function renderPlugins() {
             : '';
         return `
             <tr>
-                <td>${jar}</td>
-                <td class="col-center">${id}</td>
-                <td class="col-center">${version}</td>
+                <td title="${escapeHtml(plugin.id || '')}">${id}</td>
+                <td>${version}</td>
                 <td>${cmds}</td>
                 <td>${tools}</td>
                 <td class="col-center">${pluginBadge(plugin.state)}${error}</td>

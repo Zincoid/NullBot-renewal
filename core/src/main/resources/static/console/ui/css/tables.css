@@ -156,70 +156,161 @@ td.actions > .actions-divider {
     text-align: center;
 }
 
-/* ID / Type / Size / Time columns are centered. */
+/* Checkbox / Type / Size / Uploader / Time columns are centered. */
 #view-files thead th:nth-child(1),
 #view-files tbody td:nth-child(1),
-#view-files thead th:nth-child(4),
-#view-files tbody td:nth-child(4),
 #view-files thead th:nth-child(5),
 #view-files tbody td:nth-child(5),
+#view-files thead th:nth-child(6),
+#view-files tbody td:nth-child(6),
 #view-files thead th:nth-child(7),
 #view-files tbody td:nth-child(7),
-#view-quotes thead th:nth-child(1),
-#view-quotes tbody td:nth-child(1),
+#view-files thead th:nth-child(8),
+#view-files tbody td:nth-child(8),
 #view-quotes thead th:nth-child(5),
 #view-quotes tbody td:nth-child(5) {
     text-align: center;
 }
 
-/* Fixed column widths for the role tables; the action columns fit their sticky buttons. */
+/* Fixed column widths for the file table; description takes the remaining space. */
+#view-files table {
+    table-layout: fixed;
+    min-width: 1220px;
+}
+
+#view-files thead th:nth-child(2) {
+    width: 72px;
+}
+
+#view-files thead th:nth-child(3) {
+    width: 180px;
+}
+
+#view-files thead th:nth-child(5) {
+    width: 84px;
+}
+
+#view-files thead th:nth-child(6) {
+    width: 90px;
+}
+
+#view-files thead th:nth-child(7) {
+    width: 120px;
+}
+
+#view-files thead th:nth-child(8) {
+    width: 180px;
+}
+
+#view-files thead th:nth-child(9) {
+    width: 300px;
+}
+
+/* Fixed column widths for the role tables; name columns take the remaining space. */
 #tab-users table,
 #tab-groups table {
     table-layout: fixed;
+    min-width: 1000px;
 }
 
-#tab-users thead th:nth-child(1) {
-    width: 12%;
+#tab-users thead th:nth-child(1),
+#tab-groups thead th:nth-child(1) {
+    width: 140px;
 }
 
-#tab-users thead th:nth-child(2) {
-    width: 20%;
+#tab-users thead th:nth-child(3),
+#tab-groups thead th:nth-child(3) {
+    width: 135px;
 }
 
-#tab-users thead th:nth-child(3) {
-    width: 14%;
+#tab-users thead th:nth-child(n+3),
+#tab-groups thead th:nth-child(n+3) {
+    text-align: center;
 }
 
 #tab-users thead th:nth-child(4),
-#tab-users thead th:nth-child(5) {
-    width: 12%;
-    text-align: center;
-}
-
-#tab-users thead th:nth-child(6) {
-    width: 320px;
-}
-
-#tab-groups thead th:nth-child(1) {
-    width: 14%;
-}
-
-#tab-groups thead th:nth-child(2) {
-    width: 22%;
-}
-
-#tab-groups thead th:nth-child(3) {
-    width: 16%;
-}
-
+#tab-users thead th:nth-child(5),
 #tab-groups thead th:nth-child(4),
 #tab-groups thead th:nth-child(5) {
-    width: 12%;
+    width: 84px;
     text-align: center;
 }
 
+#tab-users thead th:nth-child(6),
 #tab-groups thead th:nth-child(6) {
-    width: 320px;
+    width: 340px;
+}
+
+#tab-users tbody td:nth-child(1) code,
+#tab-groups tbody td:nth-child(1) code,
+#view-quotes tbody td:nth-child(3) code,
+#view-files tbody td:nth-child(7) code {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Fixed column widths for the quote table; content takes the remaining space. */
+#view-quotes table {
+    table-layout: fixed;
+    min-width: 900px;
+}
+
+#view-quotes thead th:nth-child(1) {
+    width: 90px;
+}
+
+#view-quotes thead th:nth-child(2) {
+    width: 120px;
+}
+
+#view-quotes thead th:nth-child(3) {
+    width: 120px;
+}
+
+#view-quotes thead th:nth-child(5) {
+    width: 190px;
+}
+
+#view-quotes thead th:nth-child(6) {
+    width: 120px;
+}
+
+#view-quotes tbody td:nth-child(2) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Fixed column widths for the plugin table; command and tool lists share the remaining space. */
+#view-plugins table {
+    table-layout: fixed;
+    min-width: 1220px;
+}
+
+#view-plugins thead th:nth-child(1) {
+    width: 100px;
+}
+
+#view-plugins tbody td:nth-child(1) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#view-plugins thead th:nth-child(2) {
+    width: 140px;
+}
+
+#view-plugins thead th:nth-child(5) {
+    width: 150px;
+}
+
+#view-plugins thead th:nth-child(6) {
+    width: 440px;
 }
 
 .flag-cell {
@@ -257,10 +348,6 @@ td.actions > .actions-divider {
     white-space: nowrap;
 }
 
-.file-name {
-    max-width: 220px;
-}
-
 button.file-name--link {
     padding: 0;
     border: 0;
@@ -283,10 +370,6 @@ button.file-name--link:active {
     transform: none;
 }
 
-.file-description {
-    max-width: 160px;
-}
-
 td select.access-select {
     min-width: 100px;
     height: 28px;
@@ -295,11 +378,37 @@ td select.access-select {
     line-height: 18px;
 }
 
+.quote-cell {
+    white-space: nowrap;
+}
+
 .quote-text {
-    max-width: 520px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    line-height: var(--leading-relaxed);
+    display: inline-block;
+    max-width: calc(100% - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+button.quote-copy {
+    margin-left: var(--spacing-xs);
+    padding: 2px;
+    border: 0;
+    background: none;
+    color: var(--color-text-tertiary);
+    vertical-align: middle;
+}
+
+button.quote-copy:hover {
+    border-color: transparent;
+    background: none;
+    color: var(--color-primary);
+}
+
+button.quote-copy svg {
+    width: 14px;
+    height: 14px;
 }
 
 .empty {

@@ -74,7 +74,7 @@ function renderFiles(data) {
                 <td><span class="file-description" title="${escapeHtml(file.description || '')}">${escapeHtml(file.description || '-')}</span></td>
                 <td class="nowrap">${escapeHtml(bizLabel(file.type) || file.type || '-')}</td>
                 <td class="nowrap">${formatBytes(file.size)}</td>
-                <td class="nowrap"><code>${escapeHtml(file.userId || '-')}</code></td>
+                <td class="nowrap" title="${escapeHtml(file.userId || '-')}"><code>${escapeHtml(file.userId || '-')}</code></td>
                 <td class="nowrap">${formatTime(file.createdAt)}</td>
                 <td class="actions">
                     <button class="small btn-edit" data-action="edit" data-id="${file.id}">${escapeHtml(t('common.edit'))}</button>

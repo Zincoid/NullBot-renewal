@@ -31,9 +31,11 @@ function renderConfigs(list) {
         const defaultText = t('config.default') + defaultValue;
         card.innerHTML = `
             <div class="config-head">
-                <span class="badge"${item.customized ? '' : ' hidden'}>${escapeHtml(t('config.modified'))}</span>
-                <code>${escapeHtml(item.key)}</code>
-                <span class="desc" title="${escapeHtml(description)} · ${escapeHtml(defaultText)}">${escapeHtml(description)}<span class="default"> · ${escapeHtml(t('config.default'))}<code>${escapeHtml(defaultValue)}</code></span></span>
+                <div class="config-title">
+                    <code>${escapeHtml(item.key)}</code>
+                    <span class="badge"${item.customized ? '' : ' hidden'}>${escapeHtml(t('config.modified'))}</span>
+                </div>
+                <p class="desc" title="${escapeHtml(description)} · ${escapeHtml(defaultText)}">${escapeHtml(description)}<span class="default"> · ${escapeHtml(t('config.default'))}<code>${escapeHtml(defaultValue)}</code></span></p>
             </div>
             <textarea class="value" rows="2" spellcheck="false"></textarea>
             <div class="actions">

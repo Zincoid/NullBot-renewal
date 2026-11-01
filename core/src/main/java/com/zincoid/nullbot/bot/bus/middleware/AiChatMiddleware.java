@@ -65,14 +65,13 @@ public class AiChatMiddleware implements Middleware {
             chain.doHandle(client, event);
             return;
         }
+        botRegistrar.ensure(client, event);
         Language language = language(event);
         try {
-            botRegistrar.ensure(client, event);
-            if (isAllowed(event) && isLimited(client, event, language)) {
-                chatPipeline.reply(client, event, language, source);
-            }
+            if (!isAllowed(event) || isLimited(client, event, language)) return;
+            chatPipeline.chat(client, event, language, source);
         } catch (RuntimeException e) {
-            log.error("AI reply failed: {}", e.getMessage(), e);
+            log.error("AI handling failed: {}", e.getMessage(), e);
             sendError(client, event, language, e);
         } finally {
             chain.consume();
@@ -91,13 +90,13 @@ public class AiChatMiddleware implements Middleware {
     private AiSource source(BotEvent event) {
         return switch (event) {
             case GroupMsgEvent e -> {
-                if (e.selfId().equals(e.userId()) || cmdParser.parse(e) != null) yield null;
+                if (e.selfId().equals(e.userId()) || cmdParser.isCmd(e.content())) yield null;
                 if (e.at()) yield AiSource.GROUP_CHAT;
                 if (!isAuto(e)) yield null;
                 log.info("Auto chat: group={}, user={}", e.groupId(), e.userId());
                 yield AiSource.GROUP_AUTO_CHAT;
             }
-            case PrivateMsgEvent e -> cmdParser.parse(e) == null ? AiSource.PRIVATE_CHAT : null;
+            case PrivateMsgEvent e -> cmdParser.isCmd(e.content()) ? null : AiSource.PRIVATE_CHAT;
             case GroupPokeEvent e -> e.selfId().equals(e.targetId()) ? AiSource.GROUP_POKE : null;
             case PrivatePokeEvent e -> e.selfId().equals(e.targetId()) ? AiSource.PRIVATE_POKE : null;
             default -> null;
@@ -127,11 +126,11 @@ public class AiChatMiddleware implements Middleware {
     private boolean isAllowed(BotEvent event) {
         if (event instanceof GroupEvent e) {
             boolean allowed = groupService.isAiChatEnabled(e.groupId());
-            if (!allowed) log.info("AI disabled: {}", e.groupId());
+            if (!allowed) log.info("AI disabled: group={}", e.groupId());
             return allowed;
         }
         boolean allowed = userService.isPrivateAiChatEnabled(event.userId());
-        if (!allowed) log.info("AI disabled: {}", event.userId());
+        if (!allowed) log.info("AI disabled: user={}", event.userId());
         return allowed;
     }
 
@@ -142,16 +141,14 @@ public class AiChatMiddleware implements Middleware {
      * @param client   the outbound port
      * @param event    the triggering event
      * @param language the reply language
-     * @return true when the trigger is allowed
+     * @return true when the trigger is rate limited
      */
     private boolean isLimited(BotClient client, BotEvent event, Language language) {
-        if (!(event instanceof GroupEvent e)) return true;
-        if (groupRateLimiter.tryConsume(e.groupId(), event.userId(), LIMIT_KEY)) return true;
-        log.info("AI rate limited: group={}, user={}, key={}",
-                e.groupId(), event.userId(), LIMIT_KEY);
-        if (event instanceof GroupMsgEvent)
-            client.sendGroupMsg(e.groupId(), MsgContent.of(Text.TOO_MANY_REQUESTS.of(language)));
-        return false;
+        if (!(event instanceof GroupEvent e)) return false;
+        if (groupRateLimiter.tryConsume(e.groupId(), event.userId(), LIMIT_KEY)) return false;
+        log.info("AI rate limited: group={}, user={}", e.groupId(), event.userId());
+        client.sendGroupMsg(e.groupId(), MsgContent.of(Text.TOO_MANY_REQUESTS.of(language)));
+        return true;
     }
 
     /**
@@ -162,7 +159,6 @@ public class AiChatMiddleware implements Middleware {
      * @return true when the message should trigger an automatic chat
      */
     private boolean isAuto(GroupMsgEvent event) {
-        if (cmdParser.isCmd(event.content())) return false;
         GroupSetting setting = groupSettingService.get(event.groupId());
         if (!Boolean.TRUE.equals(setting.getAiAutoChatEnabled())) return false;
         Double frequency = setting.getAiChatFrequency();
@@ -178,8 +174,7 @@ public class AiChatMiddleware implements Middleware {
      * @param language the reply language
      * @param error    the failure
      */
-    private static void sendError(BotClient client, BotEvent event,
-                                  Language language, RuntimeException error) {
+    private static void sendError(BotClient client, BotEvent event, Language language, RuntimeException error) {
         MsgContent content = MsgContent.of(Text.CMD_ERROR.of(language, error.getMessage()));
         if (event instanceof GroupEvent e) client.sendGroupMsg(e.groupId(), content);
         else client.sendPrivateMsg(event.userId(), content);

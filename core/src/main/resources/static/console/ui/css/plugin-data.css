@@ -59,7 +59,7 @@
 button.btn-save-reload {
     display: inline-flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
 }
 
 button.btn-save-reload svg {

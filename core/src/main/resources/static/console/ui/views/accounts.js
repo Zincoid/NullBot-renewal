@@ -65,7 +65,7 @@ function renderUsers(data) {
     } else {
         body.innerHTML = data.items.map(user => `
             <tr data-id="${escapeHtml(user.id)}">
-                <td><code>${escapeHtml(user.id)}</code></td>
+                <td><code title="${escapeHtml(user.id)}">${escapeHtml(user.id)}</code></td>
                 <td><span class="name-text">${escapeHtml(user.name || '-')}</span></td>
                 <td><select class="access-select">${accessOptions(user.access)}</select></td>
                 <td class="flag-cell">
@@ -122,7 +122,7 @@ function renderGroups(data) {
     } else {
         body.innerHTML = data.items.map(group => `
             <tr data-id="${escapeHtml(group.id)}">
-                <td><code>${escapeHtml(group.id)}</code></td>
+                <td><code title="${escapeHtml(group.id)}">${escapeHtml(group.id)}</code></td>
                 <td><span class="name-text">${escapeHtml(group.name || '-')}</span></td>
                 <td><select class="access-select">${accessOptions(group.access)}</select></td>
                 <td class="flag-cell">

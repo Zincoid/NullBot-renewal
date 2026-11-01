@@ -64,7 +64,7 @@ public class CmdDispatcher {
             return;
         }
         botRegistrar.ensure(client, event);
-        if (!cmdEnabled(event)) {
+        if (!enabled(event)) {
             log.info("Command disabled: {}", req.name());
             return;
         }
@@ -87,7 +87,7 @@ public class CmdDispatcher {
 
     // ════ Helpers ═════════════════
 
-    private boolean cmdEnabled(MsgEvent event) {
+    private boolean enabled(MsgEvent event) {
         return event instanceof GroupEvent e
                 ? groupService.isCmdEnabled(e.groupId())
                 : userService.isPrivateCmdEnabled(event.userId());

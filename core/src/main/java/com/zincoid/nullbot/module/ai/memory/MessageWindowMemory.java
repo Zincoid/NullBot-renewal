@@ -53,14 +53,13 @@ public class MessageWindowMemory implements Memory {
     // ════ Helpers ═════════════════
 
     private AiMessage toAiMessage(Message message) {
-        String content = message.getContent() == null || message.getContent().isEmpty()
-                ? "(No content)"
-                : message.getContent();
+        String content = message.getContent();
+        if (content == null || content.isEmpty()) content = "(No content)";
         if (message.getRole() == MessageRole.ASSISTANT)
             return AiMessage.assistant(content).withReasoning(message.getReasoning());
         String name = message.getNickname();
         if (name == null || name.isBlank()) name = message.getUserId();
-        return AiMessage.user("[id=" + message.getId() + "] "
-                + name + "(" + message.getUserId() + "): " + content);
+        return AiMessage.user("[id=%s] %s(%s): %s".formatted(
+                message.getId(), name, message.getUserId(), content));
     }
 }

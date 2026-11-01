@@ -33,6 +33,6 @@ public class BotRegistrar {
         if (event == null || client == null) return;
         if (event instanceof GroupEvent e)
             groupService.register(e.groupId(), BotClients.groupName(client, e.groupId()));
-        userService.register(event.userId(), BotClients.nickname(client, event.userId()));
+        userService.register(event.userId(), BotClients.userName(client, event.userId()));
     }
 }

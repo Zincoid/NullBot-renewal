@@ -199,7 +199,7 @@
                 <span class="usage-section-desc" data-i18n="usage.sectionStatsDesc">区间汇总</span>
             </div>
             <div class="cards">
-                <div class="card stat">
+                <div class="card stat stat-blue">
                     <div class="label ico-total" data-i18n="usage.total">指令调用</div>
                     <div class="value" id="usage-total">-</div>
                 </div>
@@ -252,7 +252,7 @@
                 <span class="usage-section-desc" data-i18n="usage.sectionStatsDesc">区间汇总</span>
             </div>
             <div class="cards">
-                <div class="card stat">
+                <div class="card stat stat-blue">
                     <div class="label ico-total" data-i18n="usage.aiTotal">AI 调用</div>
                     <div class="value" id="ai-usage-total">-</div>
                 </div>
@@ -271,11 +271,11 @@
             </div>
             <div class="cards token-cards">
                 <div class="card stat">
-                    <div class="label ico-input" data-i18n="usage.aiInput">输入 Token</div>
+                    <div class="label ico-input" data-i18n="usage.aiInput">输入词元</div>
                     <div class="value" id="ai-usage-input">-</div>
                 </div>
                 <div class="card stat">
-                    <div class="label ico-output" data-i18n="usage.aiOutput">输出 Token</div>
+                    <div class="label ico-output" data-i18n="usage.aiOutput">输出词元</div>
                     <div class="value" id="ai-usage-output">-</div>
                 </div>
             </div>
@@ -324,24 +324,30 @@
         </div>
         <div id="usage-tab-totals">
             <div class="usage-section-head">
-                <p class="usage-section-title" data-i18n="usage.sectionTotals">累计数据</p>
+                <p class="usage-section-title" data-i18n="usage.sectionCalls">调用累计</p>
                 <span class="usage-section-desc" data-i18n="usage.sectionTotalsDesc">不限时间范围</span>
             </div>
             <div class="cards">
-                <div class="card stat">
+                <div class="card stat stat-blue">
                     <div class="label ico-total" data-i18n="usage.total">指令调用</div>
                     <div class="value" id="total-cmd">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-blue">
                     <div class="label ico-total" data-i18n="usage.aiTotal">AI 调用</div>
                     <div class="value" id="total-ai">-</div>
                 </div>
+            </div>
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionTokens">词元累计</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionTotalsDesc">不限时间范围</span>
+            </div>
+            <div class="cards token-cards">
                 <div class="card stat">
-                    <div class="label ico-input" data-i18n="usage.aiInput">输入 Token</div>
+                    <div class="label ico-input" data-i18n="usage.aiInput">输入词元</div>
                     <div class="value" id="total-input">-</div>
                 </div>
                 <div class="card stat">
-                    <div class="label ico-output" data-i18n="usage.aiOutput">输出 Token</div>
+                    <div class="label ico-output" data-i18n="usage.aiOutput">输出词元</div>
                     <div class="value" id="total-output">-</div>
                 </div>
             </div>
@@ -600,9 +606,8 @@
             <table>
                 <thead>
                 <tr>
-                    <th data-i18n="plugins.jar">JAR 文件</th>
-                    <th class="col-center" data-i18n="plugins.id">插件 ID</th>
-                    <th class="col-center" data-i18n="plugins.version">版本</th>
+                    <th data-i18n="plugins.id">插件 ID</th>
+                    <th data-i18n="plugins.version">版本</th>
                     <th data-i18n="plugins.cmds">指令</th>
                     <th data-i18n="plugins.tools">工具</th>
                     <th class="col-center" data-i18n="plugins.state">状态</th>

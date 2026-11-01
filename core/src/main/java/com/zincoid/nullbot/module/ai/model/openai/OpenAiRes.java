@@ -7,7 +7,6 @@ import com.zincoid.nullbot.module.ai.model.TokenUsage;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * OpenAI 兼容的 Chat Completions 响应体。
@@ -22,15 +21,14 @@ public record OpenAiRes(List<Choice> choices, Usage usage) {
 
     public record Message(String content,
                           @JsonProperty("reasoning_content") String reasoning,
-                          @JsonProperty("tool_calls") List<ToolCallNode> tcs) {}
+                          @JsonProperty("tool_calls") List<ToolCallNode> tcns) {}
 
     public record ToolCallNode(String id, Function function) {}
 
     public record Function(String name, String arguments) {}
 
     public record Usage(@JsonProperty("prompt_tokens") Integer promptTokens,
-                        @JsonProperty("completion_tokens") Integer completionTokens) {
-    }
+                        @JsonProperty("completion_tokens") Integer completionTokens) {}
 
     /**
      * 转换为模型响应。
@@ -39,23 +37,29 @@ public record OpenAiRes(List<Choice> choices, Usage usage) {
      * @return the model response
      */
     public ModelRes toModelRes() {
-        Message msg = Optional.ofNullable(choices)
-                .filter(c -> !c.isEmpty())
-                .map(c -> c.getFirst().message)
-                .orElse(null);
+        Message msg = choices == null || choices.isEmpty()
+                ? null
+                : choices.getFirst().message();
         if (msg == null)
             throw new AiException("AI no message");
-        TokenUsage tokens = usage == null ? null : new TokenUsage(usage.promptTokens(), usage.completionTokens());
-        String content = msg.content != null ? msg.content : "";
-        String reasoning = msg.reasoning != null ? msg.reasoning : "";
-        if (msg.tcs == null || msg.tcs.isEmpty()) {
+        TokenUsage tokens = usage == null
+                ? null
+                : new TokenUsage(usage.promptTokens(), usage.completionTokens());
+        String content = msg.content() == null ? "" : msg.content();
+        String reasoning = msg.reasoning() == null ? "" : msg.reasoning();
+        List<ToolCallNode> tcns = msg.tcns();
+        if (tcns == null || tcns.isEmpty()) {
             if (content.isBlank() && !reasoning.isBlank())
                 throw new AiException("AI reasoning truncated");
             return ModelRes.of(content, reasoning, tokens);
         }
-        List<ToolCall> calls = msg.tcs.stream()
-                .map(tc -> new ToolCall(tc.id, tc.function.name, tc.function.arguments))
+        List<ToolCall> tcs = tcns.stream()
+                .map(node -> new ToolCall(
+                        node.id(),
+                        node.function().name(),
+                        node.function().arguments()
+                ))
                 .toList();
-        return ModelRes.of(calls, reasoning, tokens);
+        return ModelRes.of(tcs, reasoning, tokens);
     }
 }

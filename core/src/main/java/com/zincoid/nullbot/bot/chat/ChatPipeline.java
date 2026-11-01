@@ -81,7 +81,7 @@ public class ChatPipeline {
     private final AiUsageService aiUsageService;
     private final ReentrantLock[] locks = stripes();
 
-    // ════ Reply ═══════════════════
+    // ════ Chat ════════════════════
 
     /**
      * 按触发事件执行一次 AI 回复。
@@ -92,11 +92,11 @@ public class ChatPipeline {
      * @param language the reply language
      * @param source   the trigger source
      */
-    public void reply(BotClient client, BotEvent event, Language language, AiSource source) {
+    public void chat(BotClient client, BotEvent event, Language language, AiSource source) {
         if (event instanceof GroupEvent e) {
-            chat(client, ChatIds.ofGroup(e.groupId()), event.selfId(), e.groupId(), true, language, event, source);
+            run(client, ChatIds.ofGroup(e.groupId()), event.selfId(), e.groupId(), true, language, event, source);
         } else if (event instanceof PrivateEvent e) {
-            chat(client, ChatIds.ofPrivate(e.userId()), event.selfId(), e.userId(), false, language, event, source);
+            run(client, ChatIds.ofPrivate(e.userId()), event.selfId(), e.userId(), false, language, event, source);
         }
     }
 
@@ -115,8 +115,8 @@ public class ChatPipeline {
      * @param event     the triggering event
      * @param aiSource  the trigger source
      */
-    private void chat(BotClient client, String chatId, String selfId, String targetId,
-                      boolean group, Language language, BotEvent event, AiSource aiSource) {
+    private void run(BotClient client, String chatId, String selfId, String targetId,
+                     boolean group, Language language, BotEvent event, AiSource aiSource) {
         GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
@@ -127,7 +127,7 @@ public class ChatPipeline {
             log.info("Injection blocked: chat={}", chatId);
             return;
         }
-        String base = promptBase(group ? groupSetting.getAiPrompt() : userSetting.getPrivateAiPrompt());
+        String base = prompt(group ? groupSetting.getAiPrompt() : userSetting.getPrivateAiPrompt());
         Effort effort = group ? groupSetting.getAiEffort() : userSetting.getPrivateAiEffort();
         AgentOptions options = options();
         String trigger = trigger(event);
@@ -144,8 +144,8 @@ public class ChatPipeline {
                 memory.add(chatId, "poke-" + UUID.randomUUID(),
                         e.userId(), e.userId(), incoming);
             }
-            ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
-            recordUsage(group, targetId, event, aiSource, reply.getUsage());
+            ModelRes reply = agentClient.invoke(history, compose(base, trigger), effort, ctx, options);
+            record(group, targetId, event, aiSource, reply.getUsage());
             String content = ChatText.compact(reply.getContent());
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
@@ -165,7 +165,7 @@ public class ChatPipeline {
      * @param trigger the trigger note, nullable
      * @return the system prompt
      */
-    private static String prompt(String base, String trigger) {
+    private static String compose(String base, String trigger) {
         return Stream.of(base, FORMAT_PROMPT, trigger)
                 .filter(text -> text != null && !text.isBlank())
                 .collect(Collectors.joining("\n\n"));
@@ -207,11 +207,11 @@ public class ChatPipeline {
      * 选择会话的提示词基底：群设置或用户设置优先，否则使用全局配置。
      * <p>Selects the prompt base of the chat: the group or user setting wins, otherwise the global configuration.</p>
      *
-     * @param prompt the per-chat prompt, nullable
+     * @param base the per-chat prompt, nullable
      * @return the prompt base
      */
-    private String promptBase(String prompt) {
-        if (prompt != null && !prompt.isBlank()) return prompt;
+    private String prompt(String base) {
+        if (base != null && !base.isBlank()) return base;
         return configService.getString(Conf.AI_DEFAULT_PROMPT);
     }
 
@@ -237,10 +237,10 @@ public class ChatPipeline {
      * @param source    the trigger source
      * @param usage     the token usage, nullable
      */
-    private void recordUsage(boolean group, String targetId, BotEvent event,
-                             AiSource source, TokenUsage usage) {
+    private void record(boolean group, String targetId, BotEvent event,
+                        AiSource source, TokenUsage usage) {
         try {
-            aiUsageService.record(
+            aiUsageService.increase(
                     group ? ChatType.GROUP : ChatType.PRIVATE,
                     targetId,
                     event.userId(),

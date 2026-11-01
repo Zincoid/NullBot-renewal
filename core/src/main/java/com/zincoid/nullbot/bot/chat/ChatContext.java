@@ -157,16 +157,14 @@ public record ChatContext(
         if (event instanceof MsgEvent e) return e;
         if (!(event instanceof PokeEvent)) return null;
         String messageId = "poke-" + UUID.randomUUID();
-        String nickname = BotClients.nickname(client, event.userId());
+        String nickname = BotClients.userName(client, event.userId());
         MsgContent content = MsgContent.of("");
-        if (event instanceof GroupPokeEvent e) {
+        if (event instanceof GroupPokeEvent e)
             return new GroupMsgEvent(e.selfId(), e.userId(), e.groupId(),
                     messageId, nickname, content, false, false);
-        }
-        if (event instanceof PrivatePokeEvent e) {
+        if (event instanceof PrivatePokeEvent e)
             return new PrivateMsgEvent(e.selfId(), e.userId(),
                     messageId, nickname, content, false, false);
-        }
         return null;
     }
 }
