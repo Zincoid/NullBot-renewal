@@ -5,6 +5,7 @@ import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
+import com.zincoid.nullbot.module.ai.model.TokenUsage;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
@@ -51,8 +52,9 @@ public class AgentClient {
         if (prompt != null && !prompt.isBlank())
             work.add(AiMessage.system(prompt));
         work.addAll(history);
+        TokenUsage usage = null;
         if (maxTcs <= 0)
-            return replyFinal(work, effort, maxTokens);
+            return replyFinal(work, effort, maxTokens, usage);
         for (int i = 0; i < maxTcs; i++) {
             ModelRes res = model.invoke(ModelReq.of(
                     work,
@@ -60,7 +62,8 @@ public class AgentClient {
                     effort,
                     maxTokens
             ));
-            if (!res.hasTcs()) return requireContent(res);
+            usage = TokenUsage.plus(usage, res.getUsage());
+            if (!res.hasTcs()) return requireContent(res).withUsage(usage);
             log.info("Tool round {}: {} call(s)", i + 1, res.getTcs().size());
             work.add(AiMessage.assistant(res.getTcs())
                     .withReasoning(res.getReasoning()));
@@ -84,13 +87,14 @@ public class AgentClient {
                 Please provide the final answer based on the available information.
                 Do not call any more tools!!!"""
         ));
-        return replyFinal(work, effort, maxTokens);
+        return replyFinal(work, effort, maxTokens, usage);
     }
 
     // ════ Helpers ═════════════════
 
-    private ModelRes replyFinal(List<AiMessage> work, Effort effort, int maxTokens) {
-        return requireContent(model.invoke(ModelReq.of(work, effort, maxTokens)));
+    private ModelRes replyFinal(List<AiMessage> work, Effort effort, int maxTokens, TokenUsage usage) {
+        ModelRes res = requireContent(model.invoke(ModelReq.of(work, effort, maxTokens)));
+        return res.withUsage(TokenUsage.plus(usage, res.getUsage()));
     }
 
     private static ModelRes requireContent(ModelRes res) {

@@ -13,33 +13,7 @@ CREATE TABLE IF NOT EXISTS `config` (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_config_key` ON `config` (`key`);
 
--- 2. Usage
-CREATE TABLE IF NOT EXISTS `usage` (
-    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `time`          DATE            NOT NULL,
-    `group_id`      VARCHAR(64)     NOT NULL,
-    `user_id`       VARCHAR(64)     NOT NULL,
-    `cmd`           VARCHAR(100)    NOT NULL,
-    `count`         BIGINT          NOT NULL DEFAULT 0
-);
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_usage_key` ON `usage` (`time`, `group_id`, `user_id`, `cmd`);
-
--- 3. File
-CREATE TABLE IF NOT EXISTS `file` (
-    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `user_id`       VARCHAR(64)     NOT NULL,
-    `original`      VARCHAR(255)    NOT NULL,
-    `stored`        VARCHAR(255)    NOT NULL,
-    `description`   VARCHAR(255)    DEFAULT NULL,
-    `size`          BIGINT          NOT NULL DEFAULT 0,
-    `type`          TINYINT         NOT NULL DEFAULT 0,
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS `idx_file_user_id` ON `file` (`user_id`);
-CREATE INDEX IF NOT EXISTS `idx_file_type` ON `file` (`type`);
-CREATE INDEX IF NOT EXISTS `idx_file_created_at` ON `file` (`created_at`);
-
--- 4. User
+-- 2. User
 CREATE TABLE IF NOT EXISTS `user` (
     `id`                      VARCHAR(64)  NOT NULL PRIMARY KEY,
     `name`                    VARCHAR(255) NOT NULL,
@@ -48,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `private_ai_chat_enabled` BOOLEAN      NOT NULL DEFAULT 0
 );
 
--- 5. User Setting
+-- 3. User Setting
 CREATE TABLE IF NOT EXISTS `user_setting` (
     `id`                         INTEGER     PRIMARY KEY AUTOINCREMENT,
     `user_id`                    VARCHAR(64) NOT NULL,
@@ -58,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `user_setting` (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_user_setting_user_id` ON `user_setting` (`user_id`);
 
--- 6. Group
+-- 4. Group
 CREATE TABLE IF NOT EXISTS `group` (
     `id`              VARCHAR(64)     NOT NULL PRIMARY KEY,
     `name`            VARCHAR(255)    NOT NULL,
@@ -67,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `group` (
     `ai_chat_enabled` BOOLEAN         NOT NULL DEFAULT 1
 );
 
--- 7. Group Setting
+-- 5. Group Setting
 CREATE TABLE IF NOT EXISTS `group_setting` (
     `id`                   INTEGER     PRIMARY KEY AUTOINCREMENT,
     `group_id`             VARCHAR(64) NOT NULL,
@@ -88,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_setting_group_id` ON `group_setting` (`group_id`);
 
--- 8. Group Keyword
+-- 6. Group Keyword
 CREATE TABLE IF NOT EXISTS `group_keyword` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `group_id`      VARCHAR(64)     NOT NULL,
@@ -98,6 +72,33 @@ CREATE TABLE IF NOT EXISTS `group_keyword` (
     `enabled`       BOOLEAN         NOT NULL DEFAULT 1
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_group_keyword` ON `group_keyword` (`group_id`, `keyword`);
+
+-- 7. Command Disable
+CREATE TABLE IF NOT EXISTS `cmd_disable` (
+    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `chat_type`     TINYINT         NOT NULL,              -- 0 = group, 1 = private
+    `chat_id`       VARCHAR(64)     NOT NULL,              -- group id or private user id
+    `user_id`       VARCHAR(64)     NOT NULL,              -- target user; '*' for whole group
+    `cmd`           VARCHAR(100)    NOT NULL,
+    `expires_at`    DATETIME        DEFAULT NULL           -- NULL means permanent
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_disable`
+    ON `cmd_disable` (`chat_type`, `chat_id`, `cmd`, `user_id`);
+
+-- 8. File
+CREATE TABLE IF NOT EXISTS `file` (
+    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `user_id`       VARCHAR(64)     NOT NULL,
+    `original`      VARCHAR(255)    NOT NULL,
+    `stored`        VARCHAR(255)    NOT NULL,
+    `description`   VARCHAR(255)    DEFAULT NULL,
+    `size`          BIGINT          NOT NULL DEFAULT 0,
+    `type`          TINYINT         NOT NULL DEFAULT 0,
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS `idx_file_user_id` ON `file` (`user_id`);
+CREATE INDEX IF NOT EXISTS `idx_file_type` ON `file` (`type`);
+CREATE INDEX IF NOT EXISTS `idx_file_created_at` ON `file` (`created_at`);
 
 -- 9. Message
 CREATE TABLE IF NOT EXISTS `message` (
@@ -125,14 +126,28 @@ CREATE TABLE IF NOT EXISTS `quote` (
 CREATE INDEX IF NOT EXISTS `idx_quote_user_id` ON `quote` (`user_id`);
 CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
 
--- 11. Command Disable
-CREATE TABLE IF NOT EXISTS `cmd_disable` (
+-- 11. Usage
+CREATE TABLE IF NOT EXISTS `usage` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `chat_type`     TINYINT         NOT NULL,              -- 0 = group, 1 = private
-    `chat_id`       VARCHAR(64)     NOT NULL,              -- group id or private user id
-    `user_id`       VARCHAR(64)     NOT NULL,              -- target user; '*' for whole group
+    `time`          DATE            NOT NULL,
+    `group_id`      VARCHAR(64)     NOT NULL,
+    `user_id`       VARCHAR(64)     NOT NULL,
     `cmd`           VARCHAR(100)    NOT NULL,
-    `expires_at`    DATETIME        DEFAULT NULL           -- NULL means permanent
+    `count`         BIGINT          NOT NULL DEFAULT 0
 );
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_disable`
-    ON `cmd_disable` (`chat_type`, `chat_id`, `cmd`, `user_id`);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_usage_key` ON `usage` (`time`, `group_id`, `user_id`, `cmd`);
+
+-- 12. AI Usage
+CREATE TABLE IF NOT EXISTS `ai_usage` (
+    `id`             INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `time`           DATE            NOT NULL,              -- statistics date
+    `chat_type`      TINYINT         NOT NULL,              -- 0 = group, 1 = private
+    `chat_id`        VARCHAR(64)     NOT NULL,              -- raw group id or user id
+    `user_id`        VARCHAR(64)     NOT NULL,              -- triggering user id
+    `trigger_type`   TINYINT         NOT NULL,              -- 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke
+    `count`          BIGINT          NOT NULL DEFAULT 0,    -- AI turn count
+    `input_tokens`   BIGINT          NOT NULL DEFAULT 0,
+    `output_tokens`  BIGINT          NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_ai_usage_key`
+    ON `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `trigger_type`);

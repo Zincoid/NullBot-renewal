@@ -23,39 +23,7 @@ CREATE TABLE IF NOT EXISTS `config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Config table';
 
 -- =============================================
--- 2. Usage Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `usage` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `time`          DATE            NOT NULL                 COMMENT 'Statistics date',
-    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Group platform id, 0 for private chat',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Operator platform user id',
-    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name',
-    `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Usage count',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_time_group_user_cmd` (`time`, `group_id`, `user_id`, `cmd`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily command usage table';
-
--- =============================================
--- 3. File Table
--- =============================================
-CREATE TABLE IF NOT EXISTS `file` (
-    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Uploader platform user id',
-    `original`      VARCHAR(255)    NOT NULL                 COMMENT 'Original filename',
-    `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
-    `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'File description',
-    `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
-    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMAGE_COLLECTION, 1=VIDEO_COLLECTION, 2=AUDIO_COLLECTION, 3=CHAT, 4=MEME',
-    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
-    PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_type` (`type`),
-    KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File table';
-
--- =============================================
--- 4. User Table
+-- 2. User Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user` (
     `id`                      VARCHAR(64)  NOT NULL                 COMMENT 'Platform user id',
@@ -67,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User table';
 
 -- =============================================
--- 5. User Setting Table
+-- 3. User Setting Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `user_setting` (
     `id`                         BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -80,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `user_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='User setting table';
 
 -- =============================================
--- 6. Group Table
+-- 4. Group Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group` (
     `id`              VARCHAR(64)  NOT NULL                 COMMENT 'Platform group id',
@@ -92,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `group` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group table';
 
 -- =============================================
--- 7. Group Setting Table
+-- 5. Group Setting Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_setting` (
     `id`                   BIGINT      NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -116,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group setting table';
 
 -- =============================================
--- 8. Group Keyword Table
+-- 6. Group Keyword Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `group_keyword` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -128,6 +96,38 @@ CREATE TABLE IF NOT EXISTS `group_keyword` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_group_keyword` (`group_id`, `keyword`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Group keyword rule table';
+
+-- =============================================
+-- 7. Command Disable Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `cmd_disable` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `chat_type`     TINYINT         NOT NULL                 COMMENT 'Chat type: 0=group, 1=private',
+    `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Group id or private user id',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Target user id; * for a whole group',
+    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command canonical name',
+    `expires_at`    DATETIME        DEFAULT NULL             COMMENT 'Expiry time; NULL means permanent',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_cmd_disable` (`chat_type`, `chat_id`, `cmd`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Command disable rule table';
+
+-- =============================================
+-- 8. File Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `file` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Uploader platform user id',
+    `original`      VARCHAR(255)    NOT NULL                 COMMENT 'Original filename',
+    `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
+    `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'File description',
+    `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMAGE_COLLECTION, 1=VIDEO_COLLECTION, 2=AUDIO_COLLECTION, 3=CHAT, 4=MEME',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_type` (`type`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='File table';
 
 -- =============================================
 -- 9. Message Table
@@ -162,15 +162,32 @@ CREATE TABLE IF NOT EXISTS `quote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quote table';
 
 -- =============================================
--- 11. Command Disable Table
+-- 11. Usage Table
 -- =============================================
-CREATE TABLE IF NOT EXISTS `cmd_disable` (
+CREATE TABLE IF NOT EXISTS `usage` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
-    `chat_type`     TINYINT         NOT NULL                 COMMENT 'Chat type: 0=group, 1=private',
-    `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Group id or private user id',
-    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Target user id; * for a whole group',
-    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command canonical name',
-    `expires_at`    DATETIME        DEFAULT NULL             COMMENT 'Expiry time; NULL means permanent',
+    `time`          DATE            NOT NULL                 COMMENT 'Statistics date',
+    `group_id`      VARCHAR(64)     NOT NULL                 COMMENT 'Group platform id, 0 for private chat',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Operator platform user id',
+    `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name',
+    `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Usage count',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_cmd_disable` (`chat_type`, `chat_id`, `cmd`, `user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Command disable rule table';
+    UNIQUE KEY `uk_time_group_user_cmd` (`time`, `group_id`, `user_id`, `cmd`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily command usage table';
+
+-- =============================================
+-- 12. AI Usage Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `ai_usage` (
+    `id`             BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `time`           DATE            NOT NULL                 COMMENT 'Statistics date',
+    `chat_type`      TINYINT         NOT NULL                 COMMENT 'Chat type: 0=group, 1=private',
+    `chat_id`        VARCHAR(64)     NOT NULL                 COMMENT 'Raw group id or user id',
+    `user_id`        VARCHAR(64)     NOT NULL                 COMMENT 'Triggering platform user id',
+    `trigger_type`   TINYINT         NOT NULL                 COMMENT 'Trigger: 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke',
+    `count`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'AI turn count',
+    `input_tokens`   BIGINT          NOT NULL DEFAULT 0       COMMENT 'Input token count',
+    `output_tokens`  BIGINT          NOT NULL DEFAULT 0       COMMENT 'Output token count',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_ai_usage_key` (`time`, `chat_type`, `chat_id`, `user_id`, `trigger_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily AI usage table';

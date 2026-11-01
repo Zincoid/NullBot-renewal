@@ -16,12 +16,16 @@ import com.zincoid.nullbot.module.ai.client.AgentOptions;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
+import com.zincoid.nullbot.module.ai.model.TokenUsage;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
+import com.zincoid.nullbot.module.system.AiUsageService;
+import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
@@ -72,24 +76,25 @@ public class ChatPipeline {
     private final CmdDispatcher cmdDispatcher;
     private final ChatGuard chatGuard;
     private final FileService fileService;
+    private final AiUsageService aiUsageService;
     private final ReentrantLock[] locks = stripes();
 
     // ════ Reply ═══════════════════
 
-    public void chat(BotClient client, GroupMsgEvent event, Language language) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event);
+    public void chat(BotClient client, GroupMsgEvent event, Language language, AiTrigger trigger) {
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, trigger);
     }
 
-    public void chat(BotClient client, PrivateMsgEvent event, Language language) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event);
+    public void chat(BotClient client, PrivateMsgEvent event, Language language, AiTrigger trigger) {
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, trigger);
     }
 
-    public void poke(BotClient client, GroupPokeEvent event, Language language) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event);
+    public void poke(BotClient client, GroupPokeEvent event, Language language, AiTrigger trigger) {
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, trigger);
     }
 
-    public void poke(BotClient client, PrivatePokeEvent event, Language language) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event);
+    public void poke(BotClient client, PrivatePokeEvent event, Language language, AiTrigger trigger) {
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, trigger);
     }
 
     // ════ Core ════════════════════
@@ -98,16 +103,17 @@ public class ChatPipeline {
      * 执行一次会话：校验注入、组装上下文，锁定会话后调用模型并写回回复。
      * <p>Runs one conversation: checks injection, builds the context, then locks the chat to invoke the model and store the reply.</p>
      *
-     * @param client   the outbound port
-     * @param chatId   chat identifier
-     * @param selfId   the bot's platform user id
-     * @param targetId group or user platform id
-     * @param group    whether the target is a group
-     * @param language the reply language
-     * @param event    the triggering event
+     * @param client    the outbound port
+     * @param chatId    chat identifier
+     * @param selfId    the bot's platform user id
+     * @param targetId  group or user platform id
+     * @param group     whether the target is a group
+     * @param language  the reply language
+     * @param event     the triggering event
+     * @param aiTrigger the trigger source
      */
     private void chat(BotClient client, String chatId, String selfId, String targetId,
-                      boolean group, Language language, BotEvent event) {
+                      boolean group, Language language, BotEvent event, AiTrigger aiTrigger) {
         GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
@@ -136,6 +142,7 @@ public class ChatPipeline {
                         e.userId(), e.userId(), incoming);
             }
             ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
+            recordUsage(group, targetId, event, aiTrigger, reply.getUsage());
             String content = ChatText.compact(reply.getContent());
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
@@ -200,6 +207,31 @@ public class ChatPipeline {
         return new AgentOptions(
                 configService.getInt(Conf.AI_MAX_TOKENS),
                 configService.getInt(Conf.AI_MAX_TOOL_CALLS));
+    }
+
+    /**
+     * 记录一次 AI 回合的用量，失败时不影响对话。
+     * <p>Records one AI turn usage; failures do not affect the conversation.</p>
+     *
+     * @param group     whether the target is a group
+     * @param targetId  group or user platform id
+     * @param event     the triggering event
+     * @param trigger   the trigger source
+     * @param usage     the token usage, nullable
+     */
+    private void recordUsage(boolean group, String targetId, BotEvent event,
+                             AiTrigger trigger, TokenUsage usage) {
+        try {
+            aiUsageService.record(
+                    group ? ChatType.GROUP : ChatType.PRIVATE,
+                    targetId,
+                    event.userId(),
+                    trigger,
+                    usage == null ? null : usage.inputTokens(),
+                    usage == null ? null : usage.outputTokens());
+        } catch (RuntimeException e) {
+            log.warn("Failed to record AI usage: {}", e.getMessage());
+        }
     }
 
     /**

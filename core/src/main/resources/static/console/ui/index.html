@@ -152,7 +152,7 @@
         <div class="view-head">
             <div class="page-header">
                 <h1 class="page-header__title"># <span data-i18n="view.usage">概览</span><span class="cursor">_</span></h1>
-                <p class="page-header__subtitle" data-i18n="view.usage.sub">调用趋势与排行</p>
+                <p class="page-header__subtitle" data-i18n="view.usage.sub">指令与 AI 调用统计</p>
             </div>
             <div class="view-actions">
                 <label class="field inline">
@@ -188,43 +188,137 @@
             </div>
             <div class="bot-state" id="bot-state">-</div>
         </div>
-        <div class="cards">
-            <div class="card stat">
-                <div class="label ico-total" data-i18n="usage.total">总调用</div>
-                <div class="value" id="usage-total">-</div>
+        <div class="tabs">
+            <button class="tab active" data-usage-tab="commands" data-i18n="usage.tabCommands">指令统计</button>
+            <button class="tab" data-usage-tab="ai" data-i18n="usage.tabAi">AI 统计</button>
+        </div>
+        <div id="usage-tab-commands">
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionStats">数据概览</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionStatsDesc">区间汇总</span>
             </div>
-            <div class="card stat">
-                <div class="label ico-users" data-i18n="usage.users">活跃用户</div>
-                <div class="value" id="usage-users">-</div>
+            <div class="cards">
+                <div class="card stat">
+                    <div class="label ico-total" data-i18n="usage.total">指令调用</div>
+                    <div class="value" id="usage-total">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-users" data-i18n="usage.users">活跃用户</div>
+                    <div class="value" id="usage-users">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-groups" data-i18n="usage.groups">活跃群</div>
+                    <div class="value" id="usage-groups">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-period" data-i18n="usage.period">统计区间</div>
+                    <div class="value" id="usage-range">-</div>
+                </div>
             </div>
-            <div class="card stat">
-                <div class="label ico-groups" data-i18n="usage.groups">活跃群</div>
-                <div class="value" id="usage-groups">-</div>
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionTrend">调用趋势</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionTrendDesc">按天统计</span>
             </div>
-            <div class="card stat">
-                <div class="label ico-period" data-i18n="usage.period">统计区间</div>
-                <div class="value" id="usage-range">-</div>
+            <div class="card chart-card">
+                <div class="chart-head">
+                    <h2 class="ico-daily" data-i18n="usage.daily">每日调用</h2>
+                    <span class="muted" id="usage-chart-note"></span>
+                </div>
+                <div class="chart" id="usage-chart"></div>
+            </div>
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionRank">调用排行</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionRankDesc">按调用次数排序</span>
+            </div>
+            <div class="rank-grid">
+                <div class="card">
+                    <h2 class="ico-cmds" data-i18n="usage.cmds">指令排行</h2>
+                    <div class="ranks" id="cmd-ranks"></div>
+                </div>
+                <div class="card">
+                    <h2 class="ico-groups-rank" data-i18n="usage.groupsRank">群排行</h2>
+                    <div class="ranks" id="group-ranks"></div>
+                </div>
+                <div class="card">
+                    <h2 class="ico-users" data-i18n="usage.usersRank">用户排行</h2>
+                    <div class="ranks" id="user-ranks"></div>
+                </div>
             </div>
         </div>
-        <div class="card chart-card">
-            <div class="chart-head">
-                <h2 class="ico-daily" data-i18n="usage.daily">每日调用</h2>
-                <span class="muted" id="usage-chart-note"></span>
+        <div id="usage-tab-ai" hidden>
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionStats">数据概览</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionStatsDesc">区间汇总</span>
             </div>
-            <div class="chart" id="usage-chart"></div>
-        </div>
-        <div class="rank-grid">
-            <div class="card">
-                <h2 class="ico-cmds" data-i18n="usage.cmds">指令排行</h2>
-                <div class="ranks" id="cmd-ranks"></div>
+            <div class="cards">
+                <div class="card stat">
+                    <div class="label ico-total" data-i18n="usage.aiTotal">AI 调用</div>
+                    <div class="value" id="ai-usage-total">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-users" data-i18n="usage.users">活跃用户</div>
+                    <div class="value" id="ai-usage-users">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-groups" data-i18n="usage.groups">活跃群</div>
+                    <div class="value" id="ai-usage-groups">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-period" data-i18n="usage.period">统计区间</div>
+                    <div class="value" id="ai-usage-range">-</div>
+                </div>
             </div>
-            <div class="card">
-                <h2 class="ico-groups-rank" data-i18n="usage.groupsRank">群排行</h2>
-                <div class="ranks" id="group-ranks"></div>
+            <div class="cards token-cards">
+                <div class="card stat">
+                    <div class="label ico-input" data-i18n="usage.aiInput">输入 Token</div>
+                    <div class="value" id="ai-usage-input">-</div>
+                </div>
+                <div class="card stat">
+                    <div class="label ico-output" data-i18n="usage.aiOutput">输出 Token</div>
+                    <div class="value" id="ai-usage-output">-</div>
+                </div>
             </div>
-            <div class="card">
-                <h2 class="ico-users" data-i18n="usage.usersRank">用户排行</h2>
-                <div class="ranks" id="user-ranks"></div>
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionTrend">调用趋势</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionTrendDesc">按天统计</span>
+            </div>
+            <div class="card chart-card">
+                <div class="chart-head">
+                    <h2 class="ico-daily" data-i18n="usage.aiDaily">每日调用</h2>
+                    <span class="muted" id="ai-usage-chart-note"></span>
+                </div>
+                <div class="chart" id="ai-usage-chart"></div>
+            </div>
+            <div class="card chart-card">
+                <div class="chart-head">
+                    <h2 class="ico-token" data-i18n="usage.aiTokenDaily">每日词元</h2>
+                    <span class="chart-head-side">
+                        <span class="chart-legend">
+                            <span class="legend-item"><span class="legend-line input"></span><span data-i18n="usage.aiInputShort">输入</span></span>
+                            <span class="legend-item"><span class="legend-line output"></span><span data-i18n="usage.aiOutputShort">输出</span></span>
+                        </span>
+                        <span class="muted" id="ai-token-chart-note"></span>
+                    </span>
+                </div>
+                <div class="chart" id="ai-token-chart"></div>
+            </div>
+            <div class="usage-section-head">
+                <p class="usage-section-title" data-i18n="usage.sectionRank">调用排行</p>
+                <span class="usage-section-desc" data-i18n="usage.sectionRankDesc">按调用次数排序</span>
+            </div>
+            <div class="rank-grid">
+                <div class="card">
+                    <h2 class="ico-trigger" data-i18n="usage.aiTriggers">触发来源</h2>
+                    <div class="ranks" id="ai-trigger-ranks"></div>
+                </div>
+                <div class="card">
+                    <h2 class="ico-groups-rank" data-i18n="usage.groupsRank">群排行</h2>
+                    <div class="ranks" id="ai-group-ranks"></div>
+                </div>
+                <div class="card">
+                    <h2 class="ico-users" data-i18n="usage.usersRank">用户排行</h2>
+                    <div class="ranks" id="ai-user-ranks"></div>
+                </div>
             </div>
         </div>
     </section>

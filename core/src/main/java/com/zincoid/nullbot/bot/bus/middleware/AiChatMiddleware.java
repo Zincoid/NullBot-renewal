@@ -17,6 +17,7 @@ import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
+import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class AiChatMiddleware implements Middleware {
 
-    private static final String RATE_KEY = "AI";
+    private static final String LIMIT_KEY = "AI";
 
     private final ChatPipeline chatPipeline;
     private final CmdParser cmdParser;
@@ -66,12 +67,14 @@ public class AiChatMiddleware implements Middleware {
             }
             Language language = languageService.group(e.groupId());
             if (e.at()) {
-                run(client, e, language, chain, () -> chatPipeline.chat(client, e, language));
+                run(client, e, language, chain,
+                        () -> chatPipeline.chat(client, e, language, AiTrigger.GROUP_CHAT));
                 return;
             }
             if (isAuto(e)) {
                 log.info("Auto chat: group={}, user={}", e.groupId(), e.userId());
-                run(client, e, language, chain, () -> chatPipeline.chat(client, e, language));
+                run(client, e, language, chain,
+                        () -> chatPipeline.chat(client, e, language, AiTrigger.GROUP_AUTO_CHAT));
                 return;
             }
             chain.doHandle(client, event);
@@ -83,7 +86,8 @@ public class AiChatMiddleware implements Middleware {
                 return;
             }
             Language language = languageService.defaultLanguage();
-            run(client, e, language, chain, () -> chatPipeline.chat(client, e, language));
+            run(client, e, language, chain,
+                    () -> chatPipeline.chat(client, e, language, AiTrigger.PRIVATE_CHAT));
             return;
         }
         if (event instanceof GroupPokeEvent e) {
@@ -92,7 +96,8 @@ public class AiChatMiddleware implements Middleware {
                 return;
             }
             Language language = languageService.group(e.groupId());
-            run(client, e, language, chain, () -> chatPipeline.poke(client, e, language));
+            run(client, e, language, chain,
+                    () -> chatPipeline.poke(client, e, language, AiTrigger.GROUP_POKE));
             return;
         }
         if (event instanceof PrivatePokeEvent e) {
@@ -101,7 +106,8 @@ public class AiChatMiddleware implements Middleware {
                 return;
             }
             Language language = languageService.defaultLanguage();
-            run(client, e, language, chain, () -> chatPipeline.poke(client, e, language));
+            run(client, e, language, chain,
+                    () -> chatPipeline.poke(client, e, language, AiTrigger.PRIVATE_POKE));
             return;
         }
         chain.doHandle(client, event);
@@ -163,9 +169,9 @@ public class AiChatMiddleware implements Middleware {
      */
     private boolean isLimited(BotClient client, BotEvent event, Language language) {
         if (!(event instanceof GroupEvent e)) return true;
-        if (groupRateLimiter.tryConsume(e.groupId(), event.userId(), RATE_KEY)) return true;
+        if (groupRateLimiter.tryConsume(e.groupId(), event.userId(), LIMIT_KEY)) return true;
         log.info("AI rate limited: group={}, user={}, key={}",
-                e.groupId(), event.userId(), RATE_KEY);
+                e.groupId(), event.userId(), LIMIT_KEY);
         if (event instanceof GroupMsgEvent)
             client.sendGroupMsg(e.groupId(), MsgContent.of(Text.TOO_MANY_REQUESTS.of(language)));
         return false;
