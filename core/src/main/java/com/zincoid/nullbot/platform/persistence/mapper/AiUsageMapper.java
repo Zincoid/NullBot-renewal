@@ -1,6 +1,8 @@
 package com.zincoid.nullbot.platform.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.po.AiUsage;
 import com.zincoid.nullbot.platform.persistence.row.AiUsageDailyRow;
 import com.zincoid.nullbot.platform.persistence.row.AiUsageRankRow;
@@ -25,18 +27,18 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
      * <p>Increases the AI turn count and tokens for the same day, chat, user, and trigger.</p>
      *
      * @param time         the statistics date
-     * @param chatType     the chat type value
+     * @param chatType     the chat type
      * @param chatId       raw group or user platform id
      * @param userId       triggering platform user id
-     * @param triggerType  the trigger type value
+     * @param source       the trigger source
      * @param inputTokens  the input token count, nullable
      * @param outputTokens the output token count, nullable
      */
     void increase(@Param("time") LocalDate time,
-                  @Param("chatType") Integer chatType,
+                  @Param("chatType") ChatType chatType,
                   @Param("chatId") String chatId,
                   @Param("userId") String userId,
-                  @Param("triggerType") Integer triggerType,
+                  @Param("source") AiSource source,
                   @Param("inputTokens") Integer inputTokens,
                   @Param("outputTokens") Integer outputTokens);
 
@@ -88,14 +90,14 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
      * @return the trigger rows
      */
     @Select("""
-            SELECT `trigger_type` AS `triggerType`,
+            SELECT `source`,
                    COALESCE(SUM(`count`), 0) AS `count`,
                    COALESCE(SUM(`input_tokens`), 0) AS `inputTokens`,
                    COALESCE(SUM(`output_tokens`), 0) AS `outputTokens`
             FROM `ai_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
-            GROUP BY `trigger_type`
-            ORDER BY `count` DESC, `trigger_type`
+            GROUP BY `source`
+            ORDER BY `count` DESC, `source`
             """)
     List<AiUsageTriggerRow> triggers(@Param("start") LocalDate start, @Param("end") LocalDate end);
 

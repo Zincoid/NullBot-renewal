@@ -66,19 +66,14 @@ public class UsageController {
                 .toList();
         List<String> groupIds = stats.topGroups().stream()
                 .map(UsageService.Rank::key)
-                .filter(key -> !"0".equals(key))
                 .toList();
         Map<String, String> groupNames = groupIds.isEmpty()
                 ? Map.of()
                 : groupService.listByIds(groupIds).stream()
                 .collect(Collectors.toMap(Group::getId, Group::getName));
         List<UsageView.Rank> groups = stats.topGroups().stream()
-                .map(rank -> new UsageView.Rank(
-                        rank.key(),
-                        "0".equals(rank.key())
-                                ? "Private chat"
-                                : groupNames.getOrDefault(rank.key(), rank.key()),
-                        rank.count()))
+                .map(rank -> new UsageView.Rank(rank.key(),
+                        groupNames.getOrDefault(rank.key(), rank.key()), rank.count()))
                 .toList();
         List<String> userIds = stats.topUsers().stream()
                 .map(UsageService.Rank::key)

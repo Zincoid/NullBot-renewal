@@ -4,9 +4,9 @@
 
     <!-- databaseId 由 DatabaseIdProvider 选择。 -->
     <insert id="increase" databaseId="mysql">
-        INSERT INTO `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `trigger_type`,
+        INSERT INTO `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `source`,
                                 `count`, `input_tokens`, `output_tokens`)
-        VALUES (#{time}, #{chatType}, #{chatId}, #{userId}, #{triggerType}, 1,
+        VALUES (#{time}, #{chatType}, #{chatId}, #{userId}, #{source}, 1,
                 COALESCE(#{inputTokens}, 0), COALESCE(#{outputTokens}, 0))
         ON DUPLICATE KEY UPDATE
             `count` = `count` + 1,
@@ -15,11 +15,11 @@
     </insert>
 
     <insert id="increase" databaseId="sqlite">
-        INSERT INTO `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `trigger_type`,
+        INSERT INTO `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `source`,
                                 `count`, `input_tokens`, `output_tokens`)
-        VALUES (#{time}, #{chatType}, #{chatId}, #{userId}, #{triggerType}, 1,
+        VALUES (#{time}, #{chatType}, #{chatId}, #{userId}, #{source}, 1,
                 COALESCE(#{inputTokens}, 0), COALESCE(#{outputTokens}, 0))
-        ON CONFLICT(`time`, `chat_type`, `chat_id`, `user_id`, `trigger_type`) DO UPDATE SET
+        ON CONFLICT(`time`, `chat_type`, `chat_id`, `user_id`, `source`) DO UPDATE SET
             `count` = `count` + 1,
             `input_tokens` = `input_tokens` + COALESCE(#{inputTokens}, 0),
             `output_tokens` = `output_tokens` + COALESCE(#{outputTokens}, 0)

@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.module.system;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
-import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.mapper.AiUsageMapper;
 import com.zincoid.nullbot.platform.persistence.po.AiUsage;
@@ -19,10 +19,10 @@ import java.util.List;
 public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> implements AiUsageService {
 
     @Override
-    public void record(ChatType chatType, String chatId, String userId, AiTrigger trigger,
+    public void record(ChatType chatType, String chatId, String userId, AiSource source,
                        Integer inputTokens, Integer outputTokens) {
-        baseMapper.increase(LocalDate.now(), chatType.getValue(), chatId, userId,
-                trigger.getValue(), inputTokens, outputTokens);
+        baseMapper.increase(LocalDate.now(), chatType, chatId, userId,
+                source, inputTokens, outputTokens);
     }
 
     // ════ Stats ═══════════════════
@@ -38,7 +38,7 @@ public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> impl
                         count(row.getInputTokens()), count(row.getOutputTokens())))
                 .toList();
         List<Rank> triggers = baseMapper.triggers(start, end).stream()
-                .map(row -> rank(triggerKey(row.getTriggerType()), row.getCount(),
+                .map(row -> rank(sourceKey(row.getSource()), row.getCount(),
                         row.getInputTokens(), row.getOutputTokens()))
                 .toList();
         List<Rank> topGroups = baseMapper.groups(start, end, top).stream()
@@ -64,9 +64,8 @@ public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> impl
         return new Rank(key, count(count), count(inputTokens), count(outputTokens));
     }
 
-    private static String triggerKey(Integer value) {
-        AiTrigger trigger = AiTrigger.fromValue(value);
-        return trigger == null ? String.valueOf(value) : trigger.getLabel();
+    private static String sourceKey(AiSource source) {
+        return source == null ? null : source.getLabel();
     }
 
     private static long count(Long value) {

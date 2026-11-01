@@ -129,13 +129,15 @@ CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
 -- 11. Usage
 CREATE TABLE IF NOT EXISTS `usage` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
-    `time`          DATE            NOT NULL,
-    `group_id`      VARCHAR(64)     NOT NULL,
-    `user_id`       VARCHAR(64)     NOT NULL,
-    `cmd`           VARCHAR(100)    NOT NULL,
-    `count`         BIGINT          NOT NULL DEFAULT 0
+    `time`          DATE            NOT NULL,              -- statistics date
+    `chat_type`     TINYINT         NOT NULL,              -- 0 = group, 1 = private
+    `chat_id`       VARCHAR(64)     NOT NULL,              -- raw group id or user id
+    `user_id`       VARCHAR(64)     NOT NULL,              -- operator user id
+    `cmd`           VARCHAR(100)    NOT NULL,              -- command name
+    `count`         BIGINT          NOT NULL DEFAULT 0     -- usage count
 );
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_usage_key` ON `usage` (`time`, `group_id`, `user_id`, `cmd`);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_usage_key`
+    ON `usage` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`);
 
 -- 12. AI Usage
 CREATE TABLE IF NOT EXISTS `ai_usage` (
@@ -144,10 +146,10 @@ CREATE TABLE IF NOT EXISTS `ai_usage` (
     `chat_type`      TINYINT         NOT NULL,              -- 0 = group, 1 = private
     `chat_id`        VARCHAR(64)     NOT NULL,              -- raw group id or user id
     `user_id`        VARCHAR(64)     NOT NULL,              -- triggering user id
-    `trigger_type`   TINYINT         NOT NULL,              -- 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke
+    `source`         TINYINT         NOT NULL,              -- 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke
     `count`          BIGINT          NOT NULL DEFAULT 0,    -- AI turn count
     `input_tokens`   BIGINT          NOT NULL DEFAULT 0,
     `output_tokens`  BIGINT          NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_ai_usage_key`
-    ON `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `trigger_type`);
+    ON `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `source`);

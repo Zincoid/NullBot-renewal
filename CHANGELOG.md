@@ -8,7 +8,7 @@
 
 **权限与 AI**
 
-- 新增 `ai_usage` 按日汇总表，以 `time + chat_type + chat_id + user_id + trigger_type` 为唯一键，累计 AI 回合数、输入/输出 token；不再逐条保存每次对话。SQLite 启动时自动创建，现有 MySQL 库需手动创建该表；若已建过旧版逐条记录表，需删除重建（SQLite 删除文件中的旧表或数据库文件后重启）。
+- 新增 `ai_usage` 按日汇总表，以 `time + chat_type + chat_id + user_id + source` 为唯一键，累计 AI 回合数、输入/输出 token；不再逐条保存每次对话。SQLite 启动时自动创建，现有 MySQL 库需手动创建该表；若已建过旧版逐条记录表，需删除重建（SQLite 删除文件中的旧表或数据库文件后重启）。
 - 群记录新增 `cmdEnabled` / `aiChatEnabled`，用户记录新增 `privateCmdEnabled` / `privateAiChatEnabled`；群默认开启，用户私聊默认关闭。
 - 控制台角色页的群 / 用户表新增“指令”和“AI 对话”权限开关；私聊 AI 与私聊指令独立授权，用户私聊开关不影响群内功能。
 
@@ -47,6 +47,7 @@
 
 ### Changed
 
+- `usage` 表结构与 `ai_usage` 对齐：`group_id` 改为 `chat_id`，新增 `chat_type`（0=群聊，1=私聊），私聊不再用 `'0'` 占位；唯一键同步改为 `time + chat_type + chat_id + user_id + cmd`，群排行只统计群聊。已有数据库需手动迁移旧列与索引。
 - AI 触发从 `Chat` / `Poked` 指令迁移到 `AiChatMiddleware`：群 @、私聊、戳一戳和自动聊天直接调用 `ChatPipeline`，不再经过指令链；移除 `#Chat` / `#Poked`，群 AI 继续复用指令限速。AI 用量改由独立的 `ai_usage` 表记录。关键词规则中引用 `Chat` / `Poked` 的配置也会失效，需要改用其他指令。
 - 戳一戳触发 AI 后通过 `call` 执行指令时，`ChatContext` 会合成对应的 `GroupMsgEvent` / `PrivateMsgEvent`；命令层只处理消息事件，`Cmd` 移除群 / 私聊戳一戳的 `run` 重载，外部插件需改用消息入口。
 - `RegisterHandler` 由 `BotRegistrar` 替代：`BotRegistrar` 在 bot 层通过 `BotClient` 查询群名 / 用户昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。

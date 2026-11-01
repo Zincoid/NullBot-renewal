@@ -4,6 +4,7 @@ import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.module.system.UsageService;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -23,8 +24,16 @@ public class UsageHandler implements CmdHandler {
     public void handle(CmdContext ctx, CmdChain chain) {
         String cmd = ctx.cmd().name();
         MsgEvent event = ctx.event();
-        String groupId = event instanceof GroupEvent e ? e.groupId() : "0";
-        usageService.increase(groupId, event.userId(), cmd);
+        ChatType chatType;
+        String chatId;
+        if (event instanceof GroupEvent e) {
+            chatType = ChatType.GROUP;
+            chatId = e.groupId();
+        } else {
+            chatType = ChatType.PRIVATE;
+            chatId = event.userId();
+        }
+        usageService.increase(chatType, chatId, event.userId(), cmd);
         chain.doHandle(ctx);
     }
 }

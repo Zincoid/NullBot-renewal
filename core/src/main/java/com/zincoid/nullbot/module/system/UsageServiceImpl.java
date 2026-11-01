@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.system;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.mapper.UsageMapper;
 import com.zincoid.nullbot.platform.persistence.po.Usage;
 import com.zincoid.nullbot.platform.persistence.row.UsageRankRow;
@@ -20,11 +21,12 @@ public class UsageServiceImpl extends ServiceImpl<UsageMapper, Usage> implements
     // ════ Increase ════════════════
 
     @Override
-    public void increase(String groupId, String userId, String cmd) {
-        if (groupId == null || groupId.isBlank()) throw new SystemException("Missing key: groupId");
+    public void increase(ChatType chatType, String chatId, String userId, String cmd) {
+        if (chatType == null) throw new SystemException("Missing key: chatType");
+        if (chatId == null || chatId.isBlank()) throw new SystemException("Missing key: chatId");
         if (userId == null || userId.isBlank()) throw new SystemException("Missing key: userId");
         if (cmd == null || cmd.isBlank()) throw new SystemException("Missing key: cmd");
-        baseMapper.increase(LocalDate.now(), groupId, userId, cmd);
+        baseMapper.increase(LocalDate.now(), chatType, chatId, userId, cmd);
     }
 
     // ════ Stats ═══════════════════

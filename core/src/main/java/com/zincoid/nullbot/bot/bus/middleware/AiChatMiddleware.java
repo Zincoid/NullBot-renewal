@@ -17,7 +17,7 @@ import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupRateLimiter;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
-import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import lombok.RequiredArgsConstructor;
@@ -68,13 +68,13 @@ public class AiChatMiddleware implements Middleware {
             Language language = languageService.group(e.groupId());
             if (e.at()) {
                 run(client, e, language, chain,
-                        () -> chatPipeline.chat(client, e, language, AiTrigger.GROUP_CHAT));
+                        () -> chatPipeline.chat(client, e, language, AiSource.GROUP_CHAT));
                 return;
             }
             if (isAuto(e)) {
                 log.info("Auto chat: group={}, user={}", e.groupId(), e.userId());
                 run(client, e, language, chain,
-                        () -> chatPipeline.chat(client, e, language, AiTrigger.GROUP_AUTO_CHAT));
+                        () -> chatPipeline.chat(client, e, language, AiSource.GROUP_AUTO_CHAT));
                 return;
             }
             chain.doHandle(client, event);
@@ -87,7 +87,7 @@ public class AiChatMiddleware implements Middleware {
             }
             Language language = languageService.defaultLanguage();
             run(client, e, language, chain,
-                    () -> chatPipeline.chat(client, e, language, AiTrigger.PRIVATE_CHAT));
+                    () -> chatPipeline.chat(client, e, language, AiSource.PRIVATE_CHAT));
             return;
         }
         if (event instanceof GroupPokeEvent e) {
@@ -97,7 +97,7 @@ public class AiChatMiddleware implements Middleware {
             }
             Language language = languageService.group(e.groupId());
             run(client, e, language, chain,
-                    () -> chatPipeline.poke(client, e, language, AiTrigger.GROUP_POKE));
+                    () -> chatPipeline.poke(client, e, language, AiSource.GROUP_POKE));
             return;
         }
         if (event instanceof PrivatePokeEvent e) {
@@ -107,7 +107,7 @@ public class AiChatMiddleware implements Middleware {
             }
             Language language = languageService.defaultLanguage();
             run(client, e, language, chain,
-                    () -> chatPipeline.poke(client, e, language, AiTrigger.PRIVATE_POKE));
+                    () -> chatPipeline.poke(client, e, language, AiSource.PRIVATE_POKE));
             return;
         }
         chain.doHandle(client, event);

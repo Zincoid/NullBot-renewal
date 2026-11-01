@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.system;
 
 import com.baomidou.mybatisplus.spring.service.IService;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.po.Usage;
 
 import java.time.LocalDate;
@@ -18,11 +19,12 @@ public interface UsageService extends IService<Usage> {
      * 增加一次指令使用计数。
      * <p>Increases the command usage count by one.</p>
      *
-     * @param groupId group platform id, {@code 0} for private chat
-     * @param userId  operator platform user id
-     * @param cmd     command name
+     * @param chatType chat type
+     * @param chatId   raw group or user platform id
+     * @param userId   operator platform user id
+     * @param cmd      command name
      */
-    void increase(String groupId, String userId, String cmd);
+    void increase(ChatType chatType, String chatId, String userId, String cmd);
 
     // ════ Stats ═══════════════════
 

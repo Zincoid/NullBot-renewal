@@ -10,7 +10,7 @@ import lombok.Getter;
  * <p>AI chat trigger source.</p>
  */
 @Getter
-public enum AiTrigger {
+public enum AiSource {
 
     GROUP_CHAT(0, "group_chat"),
     GROUP_AUTO_CHAT(1, "group_auto_chat"),
@@ -22,7 +22,7 @@ public enum AiTrigger {
     private final Integer value;
     private final String label;
 
-    AiTrigger(Integer value, String label) {
+    AiSource(Integer value, String label) {
         this.value = value;
         this.label = label;
     }
@@ -33,10 +33,10 @@ public enum AiTrigger {
     }
 
     @JsonCreator
-    public static AiTrigger fromValue(Integer value) {
+    public static AiSource fromValue(Integer value) {
         if (value == null) return null;
-        for (AiTrigger trigger : values())
-            if (trigger.value.equals(value)) return trigger;
+        for (AiSource source : values())
+            if (source.value.equals(value)) return source;
         return null;
     }
 }

@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.platform.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.po.Usage;
 import com.zincoid.nullbot.platform.persistence.row.UsageDailyRow;
 import com.zincoid.nullbot.platform.persistence.row.UsageRankRow;
@@ -19,13 +20,15 @@ public interface UsageMapper extends BaseMapper<Usage> {
      * 增加一条使用计数，同日同会话同用户同指令累加。
      * <p>Increases the usage count for the same day, chat, user, and command.</p>
      *
-     * @param time    the statistics date
-     * @param groupId the group platform id, {@code 0} for private chat
-     * @param userId  the operator platform user id
-     * @param cmd     the command name
+     * @param time     the statistics date
+     * @param chatType the chat type
+     * @param chatId   raw group or user platform id
+     * @param userId   the operator platform user id
+     * @param cmd      the command name
      */
     void increase(@Param("time") LocalDate time,
-                  @Param("groupId") String groupId,
+                  @Param("chatType") ChatType chatType,
+                  @Param("chatId") String chatId,
                   @Param("userId") String userId,
                   @Param("cmd") String cmd);
 
@@ -54,7 +57,7 @@ public interface UsageMapper extends BaseMapper<Usage> {
     @Select("""
             SELECT COALESCE(SUM(`count`), 0) AS `total`,
                    COUNT(DISTINCT `user_id`) AS `users`,
-                   COUNT(DISTINCT CASE WHEN `group_id` <> '0' THEN `group_id` END) AS `groups`
+                   COUNT(DISTINCT CASE WHEN `chat_type` = 0 THEN `chat_id` END) AS `groups`
             FROM `usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             """)
@@ -108,10 +111,11 @@ public interface UsageMapper extends BaseMapper<Usage> {
      * @return the group ranking rows
      */
     @Select("""
-            SELECT `group_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
+            SELECT `chat_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
             FROM `usage`
-            WHERE `time` BETWEEN #{start} AND #{end}
-            GROUP BY `group_id`
+            WHERE `chat_type` = 0
+              AND `time` BETWEEN #{start} AND #{end}
+            GROUP BY `chat_id`
             ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)

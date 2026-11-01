@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.platform.persistence.row;
 
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import lombok.Data;
 
 /**
@@ -9,7 +10,7 @@ import lombok.Data;
 @Data
 public class AiUsageTriggerRow {
 
-    private Integer triggerType;
+    private AiSource source;
     private Long count;
     private Long inputTokens;
     private Long outputTokens;

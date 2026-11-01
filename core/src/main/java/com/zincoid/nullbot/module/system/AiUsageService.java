@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.module.system;
 
 import com.baomidou.mybatisplus.spring.service.IService;
-import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.po.AiUsage;
 
@@ -21,11 +21,11 @@ public interface AiUsageService extends IService<AiUsage> {
      * @param chatType     chat type
      * @param chatId       raw group or user platform id
      * @param userId       triggering platform user id
-     * @param trigger      trigger source
+     * @param source       trigger source
      * @param inputTokens  input token count, nullable
      * @param outputTokens output token count, nullable
      */
-    void record(ChatType chatType, String chatId, String userId, AiTrigger trigger,
+    void record(ChatType chatType, String chatId, String userId, AiSource source,
                 Integer inputTokens, Integer outputTokens);
 
     /**

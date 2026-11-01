@@ -24,7 +24,7 @@ import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.module.system.AiUsageService;
-import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -81,20 +81,20 @@ public class ChatPipeline {
 
     // ════ Reply ═══════════════════
 
-    public void chat(BotClient client, GroupMsgEvent event, Language language, AiTrigger trigger) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, trigger);
+    public void chat(BotClient client, GroupMsgEvent event, Language language, AiSource source) {
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, source);
     }
 
-    public void chat(BotClient client, PrivateMsgEvent event, Language language, AiTrigger trigger) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, trigger);
+    public void chat(BotClient client, PrivateMsgEvent event, Language language, AiSource source) {
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, source);
     }
 
-    public void poke(BotClient client, GroupPokeEvent event, Language language, AiTrigger trigger) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, trigger);
+    public void poke(BotClient client, GroupPokeEvent event, Language language, AiSource source) {
+        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, source);
     }
 
-    public void poke(BotClient client, PrivatePokeEvent event, Language language, AiTrigger trigger) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, trigger);
+    public void poke(BotClient client, PrivatePokeEvent event, Language language, AiSource source) {
+        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, source);
     }
 
     // ════ Core ════════════════════
@@ -110,10 +110,10 @@ public class ChatPipeline {
      * @param group     whether the target is a group
      * @param language  the reply language
      * @param event     the triggering event
-     * @param aiTrigger the trigger source
+     * @param aiSource  the trigger source
      */
     private void chat(BotClient client, String chatId, String selfId, String targetId,
-                      boolean group, Language language, BotEvent event, AiTrigger aiTrigger) {
+                      boolean group, Language language, BotEvent event, AiSource aiSource) {
         GroupSetting groupSetting = group ? groupSettingService.get(targetId) : null;
         UserSetting userSetting = group ? null : userSettingService.get(targetId);
         boolean guard = group
@@ -142,7 +142,7 @@ public class ChatPipeline {
                         e.userId(), e.userId(), incoming);
             }
             ModelRes reply = agentClient.invoke(history, prompt(base, trigger), effort, ctx, options);
-            recordUsage(group, targetId, event, aiTrigger, reply.getUsage());
+            recordUsage(group, targetId, event, aiSource, reply.getUsage());
             String content = ChatText.compact(reply.getContent());
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
@@ -216,17 +216,17 @@ public class ChatPipeline {
      * @param group     whether the target is a group
      * @param targetId  group or user platform id
      * @param event     the triggering event
-     * @param trigger   the trigger source
+     * @param source    the trigger source
      * @param usage     the token usage, nullable
      */
     private void recordUsage(boolean group, String targetId, BotEvent event,
-                             AiTrigger trigger, TokenUsage usage) {
+                             AiSource source, TokenUsage usage) {
         try {
             aiUsageService.record(
                     group ? ChatType.GROUP : ChatType.PRIVATE,
                     targetId,
                     event.userId(),
-                    trigger,
+                    source,
                     usage == null ? null : usage.inputTokens(),
                     usage == null ? null : usage.outputTokens());
         } catch (RuntimeException e) {

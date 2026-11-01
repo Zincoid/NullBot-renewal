@@ -3,7 +3,7 @@ package com.zincoid.nullbot.platform.persistence.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.zincoid.nullbot.platform.persistence.enums.AiTrigger;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +29,7 @@ public class AiUsage {
     private ChatType chatType;
     private String chatId;
     private String userId;
-    private AiTrigger triggerType;
+    private AiSource source;
     private Long count;
     private Long inputTokens;
     private Long outputTokens;
