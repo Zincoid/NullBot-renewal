@@ -60,84 +60,61 @@ public class AiChatMiddleware implements Middleware {
      */
     @Override
     public void handle(BotClient client, BotEvent event, MiddlewareChain chain) {
-        if (event instanceof GroupMsgEvent e) {
-            if (e.selfId().equals(e.userId()) || cmdParser.parse(e) != null) {
-                chain.doHandle(client, event);
-                return;
-            }
-            Language language = languageService.group(e.groupId());
-            if (e.at()) {
-                run(client, e, language, chain,
-                        () -> chatPipeline.chat(client, e, language, AiSource.GROUP_CHAT));
-                return;
-            }
-            if (isAuto(e)) {
-                log.info("Auto chat: group={}, user={}", e.groupId(), e.userId());
-                run(client, e, language, chain,
-                        () -> chatPipeline.chat(client, e, language, AiSource.GROUP_AUTO_CHAT));
-                return;
-            }
+        AiSource source = source(event);
+        if (source == null) {
             chain.doHandle(client, event);
             return;
         }
-        if (event instanceof PrivateMsgEvent e) {
-            if (cmdParser.parse(e) != null) {
-                chain.doHandle(client, event);
-                return;
-            }
-            Language language = languageService.defaultLanguage();
-            run(client, e, language, chain,
-                    () -> chatPipeline.chat(client, e, language, AiSource.PRIVATE_CHAT));
-            return;
-        }
-        if (event instanceof GroupPokeEvent e) {
-            if (!e.selfId().equals(e.targetId())) {
-                chain.doHandle(client, event);
-                return;
-            }
-            Language language = languageService.group(e.groupId());
-            run(client, e, language, chain,
-                    () -> chatPipeline.poke(client, e, language, AiSource.GROUP_POKE));
-            return;
-        }
-        if (event instanceof PrivatePokeEvent e) {
-            if (!e.selfId().equals(e.targetId())) {
-                chain.doHandle(client, event);
-                return;
-            }
-            Language language = languageService.defaultLanguage();
-            run(client, e, language, chain,
-                    () -> chatPipeline.poke(client, e, language, AiSource.PRIVATE_POKE));
-            return;
-        }
-        chain.doHandle(client, event);
-    }
-
-    // ════ Helpers ═════════════════
-
-    /**
-     * 执行 AI 调用，消费事件并统一处理异常。
-     * <p>Runs an AI call, consumes the event, and handles exceptions uniformly.</p>
-     *
-     * @param client   the outbound port
-     * @param event    the triggering event
-     * @param language the reply language
-     * @param chain    the remaining middleware chain
-     * @param action   the AI action
-     */
-    private void run(BotClient client, BotEvent event, Language language,
-                     MiddlewareChain chain, Runnable action) {
+        Language language = language(event);
         try {
             botRegistrar.ensure(client, event);
-            if (!isAllowed(event)) return;
-            if (!isLimited(client, event, language)) return;
-            action.run();
+            if (isAllowed(event) && isLimited(client, event, language)) {
+                chatPipeline.reply(client, event, language, source);
+            }
         } catch (RuntimeException e) {
             log.error("AI reply failed: {}", e.getMessage(), e);
             sendError(client, event, language, e);
         } finally {
             chain.consume();
         }
+    }
+
+    // ════ Helpers ═════════════════
+
+    /**
+     * 判断事件对应的 AI 来源。
+     * <p>Resolves the AI source of the event.</p>
+     *
+     * @param event the inbound event
+     * @return the source, or null when the event is not an AI trigger
+     */
+    private AiSource source(BotEvent event) {
+        return switch (event) {
+            case GroupMsgEvent e -> {
+                if (e.selfId().equals(e.userId()) || cmdParser.parse(e) != null) yield null;
+                if (e.at()) yield AiSource.GROUP_CHAT;
+                if (!isAuto(e)) yield null;
+                log.info("Auto chat: group={}, user={}", e.groupId(), e.userId());
+                yield AiSource.GROUP_AUTO_CHAT;
+            }
+            case PrivateMsgEvent e -> cmdParser.parse(e) == null ? AiSource.PRIVATE_CHAT : null;
+            case GroupPokeEvent e -> e.selfId().equals(e.targetId()) ? AiSource.GROUP_POKE : null;
+            case PrivatePokeEvent e -> e.selfId().equals(e.targetId()) ? AiSource.PRIVATE_POKE : null;
+            default -> null;
+        };
+    }
+
+    /**
+     * 选择回复语言：群事件使用群语言，私聊使用默认语言。
+     * <p>Selects the reply language: the group language for group events, the default language for private events.</p>
+     *
+     * @param event the inbound event
+     * @return the reply language
+     */
+    private Language language(BotEvent event) {
+        return event instanceof GroupEvent e
+                ? languageService.group(e.groupId())
+                : languageService.defaultLanguage();
     }
 
     /**
@@ -185,14 +162,11 @@ public class AiChatMiddleware implements Middleware {
      * @return true when the message should trigger an automatic chat
      */
     private boolean isAuto(GroupMsgEvent event) {
-        if (event.selfId().equals(event.userId())) return false;
-        if (event.at()) return false;
         if (cmdParser.isCmd(event.content())) return false;
         GroupSetting setting = groupSettingService.get(event.groupId());
         if (!Boolean.TRUE.equals(setting.getAiAutoChatEnabled())) return false;
         Double frequency = setting.getAiChatFrequency();
-        if (frequency == null) return false;
-        return ThreadLocalRandom.current().nextDouble() < frequency;
+        return frequency != null && ThreadLocalRandom.current().nextDouble() < frequency;
     }
 
     /**

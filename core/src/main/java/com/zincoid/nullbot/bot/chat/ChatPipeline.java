@@ -3,10 +3,12 @@ package com.zincoid.nullbot.bot.chat;
 import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PokeEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivateEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -81,20 +83,21 @@ public class ChatPipeline {
 
     // ════ Reply ═══════════════════
 
-    public void chat(BotClient client, GroupMsgEvent event, Language language, AiSource source) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, source);
-    }
-
-    public void chat(BotClient client, PrivateMsgEvent event, Language language, AiSource source) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, source);
-    }
-
-    public void poke(BotClient client, GroupPokeEvent event, Language language, AiSource source) {
-        chat(client, ChatIds.ofGroup(event.groupId()), event.selfId(), event.groupId(), true, language, event, source);
-    }
-
-    public void poke(BotClient client, PrivatePokeEvent event, Language language, AiSource source) {
-        chat(client, ChatIds.ofPrivate(event.userId()), event.selfId(), event.userId(), false, language, event, source);
+    /**
+     * 按触发事件执行一次 AI 回复。
+     * <p>Runs one AI reply for the triggering event.</p>
+     *
+     * @param client   the outbound port
+     * @param event    the triggering event
+     * @param language the reply language
+     * @param source   the trigger source
+     */
+    public void reply(BotClient client, BotEvent event, Language language, AiSource source) {
+        if (event instanceof GroupEvent e) {
+            chat(client, ChatIds.ofGroup(e.groupId()), event.selfId(), e.groupId(), true, language, event, source);
+        } else if (event instanceof PrivateEvent e) {
+            chat(client, ChatIds.ofPrivate(e.userId()), event.selfId(), e.userId(), false, language, event, source);
+        }
     }
 
     // ════ Core ════════════════════
