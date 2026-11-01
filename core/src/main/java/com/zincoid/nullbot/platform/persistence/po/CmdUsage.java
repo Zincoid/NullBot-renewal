@@ -19,8 +19,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@TableName("`usage`")
-public class Usage {
+@TableName("`cmd_usage`")
+public class CmdUsage {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

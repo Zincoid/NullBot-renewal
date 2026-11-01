@@ -7,7 +7,7 @@ import lombok.Data;
  * <p>Usage summary query row.</p>
  */
 @Data
-public class UsageSummaryRow {
+public class CmdUsageSummaryRow {
 
     private Long total;
     private Long users;

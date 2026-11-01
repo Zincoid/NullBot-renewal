@@ -7,7 +7,7 @@ import lombok.Data;
  * <p>Usage ranking query row.</p>
  */
 @Data
-public class UsageRankRow {
+public class CmdUsageRankRow {
 
     private String name;
     private Long count;

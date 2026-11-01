@@ -2,10 +2,10 @@ package com.zincoid.nullbot.platform.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
-import com.zincoid.nullbot.platform.persistence.po.Usage;
-import com.zincoid.nullbot.platform.persistence.row.UsageDailyRow;
-import com.zincoid.nullbot.platform.persistence.row.UsageRankRow;
-import com.zincoid.nullbot.platform.persistence.row.UsageSummaryRow;
+import com.zincoid.nullbot.platform.persistence.po.CmdUsage;
+import com.zincoid.nullbot.platform.persistence.row.CmdUsageDailyRow;
+import com.zincoid.nullbot.platform.persistence.row.CmdUsageRankRow;
+import com.zincoid.nullbot.platform.persistence.row.CmdUsageSummaryRow;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
-public interface UsageMapper extends BaseMapper<Usage> {
+public interface CmdUsageMapper extends BaseMapper<CmdUsage> {
 
     /**
      * 增加一条使用计数，同日同会话同用户同指令累加。
@@ -41,10 +41,22 @@ public interface UsageMapper extends BaseMapper<Usage> {
      */
     @Select("""
             SELECT COALESCE(SUM(`count`), 0)
-            FROM `usage`
+            FROM `cmd_usage`
             WHERE `user_id` = #{userId}
             """)
     long totalByUser(@Param("userId") String userId);
+
+    /**
+     * 统计全量指令用量。
+     * <p>Counts the all-time total usage.</p>
+     *
+     * @return the total usage count
+     */
+    @Select("""
+            SELECT COALESCE(SUM(`count`), 0)
+            FROM `cmd_usage`
+            """)
+    long total();
 
     /**
      * 汇总指定日期范围内的用量、活跃用户与活跃群。
@@ -58,10 +70,10 @@ public interface UsageMapper extends BaseMapper<Usage> {
             SELECT COALESCE(SUM(`count`), 0) AS `total`,
                    COUNT(DISTINCT `user_id`) AS `users`,
                    COUNT(DISTINCT CASE WHEN `chat_type` = 0 THEN `chat_id` END) AS `groups`
-            FROM `usage`
+            FROM `cmd_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             """)
-    UsageSummaryRow summary(@Param("start") LocalDate start, @Param("end") LocalDate end);
+    CmdUsageSummaryRow summary(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     /**
      * 按天汇总指定日期范围内的用量。
@@ -73,12 +85,12 @@ public interface UsageMapper extends BaseMapper<Usage> {
      */
     @Select("""
             SELECT `time` AS `day`, COALESCE(SUM(`count`), 0) AS `count`
-            FROM `usage`
+            FROM `cmd_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             GROUP BY `time`
             ORDER BY `time`
             """)
-    List<UsageDailyRow> daily(@Param("start") LocalDate start, @Param("end") LocalDate end);
+    List<CmdUsageDailyRow> daily(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     /**
      * 汇总指定日期范围内使用最多的指令。
@@ -91,13 +103,13 @@ public interface UsageMapper extends BaseMapper<Usage> {
      */
     @Select("""
             SELECT `cmd` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
-            FROM `usage`
+            FROM `cmd_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             GROUP BY `cmd`
             ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)
-    List<UsageRankRow> cmds(@Param("start") LocalDate start,
+    List<CmdUsageRankRow> cmds(@Param("start") LocalDate start,
                             @Param("end") LocalDate end,
                             @Param("limit") int limit);
 
@@ -112,14 +124,14 @@ public interface UsageMapper extends BaseMapper<Usage> {
      */
     @Select("""
             SELECT `chat_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
-            FROM `usage`
+            FROM `cmd_usage`
             WHERE `chat_type` = 0
               AND `time` BETWEEN #{start} AND #{end}
             GROUP BY `chat_id`
             ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)
-    List<UsageRankRow> groups(@Param("start") LocalDate start,
+    List<CmdUsageRankRow> groups(@Param("start") LocalDate start,
                               @Param("end") LocalDate end,
                               @Param("limit") int limit);
 
@@ -134,13 +146,13 @@ public interface UsageMapper extends BaseMapper<Usage> {
      */
     @Select("""
             SELECT `user_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
-            FROM `usage`
+            FROM `cmd_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             GROUP BY `user_id`
             ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)
-    List<UsageRankRow> users(@Param("start") LocalDate start,
+    List<CmdUsageRankRow> users(@Param("start") LocalDate start,
                              @Param("end") LocalDate end,
                              @Param("limit") int limit);
 }

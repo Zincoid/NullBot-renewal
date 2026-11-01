@@ -16,7 +16,7 @@ import java.util.List;
  * @param groups       the top groups
  * @param topUsers     the top users
  */
-public record UsageView(
+public record CmdUsageView(
         int days,
         long total,
         long activeUsers,

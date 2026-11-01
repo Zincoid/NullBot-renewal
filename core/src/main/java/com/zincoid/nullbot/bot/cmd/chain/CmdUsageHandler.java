@@ -3,22 +3,22 @@ package com.zincoid.nullbot.bot.cmd.chain;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
-import com.zincoid.nullbot.module.system.UsageService;
+import com.zincoid.nullbot.module.system.CmdUsageService;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * 用量处理器：在指令执行前记录一次指令使用。
- * <p>Usage handler: records one command usage before command execution.</p>
+ * 指令用量处理器：在指令执行前记录一次指令使用。
+ * <p>Command usage handler: records one command usage before command execution.</p>
  */
 @Order(6)
 @Component
 @RequiredArgsConstructor
-public class UsageHandler implements CmdHandler {
+public class CmdUsageHandler implements CmdHandler {
 
-    private final UsageService usageService;
+    private final CmdUsageService cmdUsageService;
 
     @Override
     public void handle(CmdContext ctx, CmdChain chain) {
@@ -33,7 +33,7 @@ public class UsageHandler implements CmdHandler {
             chatType = ChatType.PRIVATE;
             chatId = event.userId();
         }
-        usageService.increase(chatType, chatId, event.userId(), cmd);
+        cmdUsageService.increase(chatType, chatId, event.userId(), cmd);
         chain.doHandle(ctx);
     }
 }

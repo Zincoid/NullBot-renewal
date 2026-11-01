@@ -40,6 +40,14 @@ public interface AiUsageService extends IService<AiUsage> {
     Stats stats(LocalDate start, LocalDate end, int limit);
 
     /**
+     * 统计全量 AI 用量。
+     * <p>Counts the all-time AI usage.</p>
+     *
+     * @return the all-time AI usage
+     */
+    Total total();
+
+    /**
      * 单日 AI 用量。
      * <p>AI usage of a single day.</p>
      *
@@ -80,5 +88,16 @@ public interface AiUsageService extends IService<AiUsage> {
     record Stats(long total, long inputTokens, long outputTokens, long users, long groups,
                  List<Daily> daily, List<Rank> triggers,
                  List<Rank> topGroups, List<Rank> topUsers) {
+    }
+
+    /**
+     * 全量 AI 用量。
+     * <p>All-time AI usage.</p>
+     *
+     * @param count        the total AI turn count
+     * @param inputTokens  the total input token count
+     * @param outputTokens the total output token count
+     */
+    record Total(long count, long inputTokens, long outputTokens) {
     }
 }

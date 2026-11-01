@@ -162,9 +162,9 @@ CREATE TABLE IF NOT EXISTS `quote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quote table';
 
 -- =============================================
--- 11. Usage Table
+-- 11. Cmd Usage Table
 -- =============================================
-CREATE TABLE IF NOT EXISTS `usage` (
+CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
     `time`          DATE            NOT NULL                 COMMENT 'Statistics date',
     `chat_type`     TINYINT         NOT NULL                 COMMENT 'Chat type: 0=group, 1=private',
@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS `usage` (
     `cmd`           VARCHAR(100)    NOT NULL                 COMMENT 'Command name',
     `count`         BIGINT          NOT NULL DEFAULT 0       COMMENT 'Usage count',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_usage_key` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`)
+    UNIQUE KEY `uk_cmd_usage_key` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily command usage table';
 
 -- =============================================
@@ -192,15 +192,3 @@ CREATE TABLE IF NOT EXISTS `ai_usage` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_ai_usage_key` (`time`, `chat_type`, `chat_id`, `user_id`, `source`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily AI usage table';
-
-ALTER TABLE `usage`
-    ADD COLUMN `chat_type` TINYINT NOT NULL DEFAULT 0 COMMENT 'Chat type: 0=group, 1=private' AFTER `time`,
-    CHANGE COLUMN `group_id` `chat_id` VARCHAR(64) NOT NULL COMMENT 'Raw group id or user id',
-    DROP INDEX `uk_time_group_user_cmd`,
-    ADD UNIQUE KEY `uk_usage_key` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`);
-UPDATE `usage` SET `chat_type` = 1, `chat_id` = `user_id` WHERE `chat_id` = '0';
-
-ALTER TABLE `ai_usage`
-    CHANGE COLUMN `trigger_type` `source` TINYINT NOT NULL COMMENT 'Trigger: 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke',
-    DROP INDEX `uk_ai_usage_key`,
-    ADD UNIQUE KEY `uk_ai_usage_key` (`time`, `chat_type`, `chat_id`, `user_id`, `source`);

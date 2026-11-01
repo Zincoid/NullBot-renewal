@@ -126,8 +126,8 @@ CREATE TABLE IF NOT EXISTS `quote` (
 CREATE INDEX IF NOT EXISTS `idx_quote_user_id` ON `quote` (`user_id`);
 CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
 
--- 11. Usage
-CREATE TABLE IF NOT EXISTS `usage` (
+-- 11. Cmd Usage
+CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATE            NOT NULL,              -- statistics date
     `chat_type`     TINYINT         NOT NULL,              -- 0 = group, 1 = private
@@ -136,8 +136,8 @@ CREATE TABLE IF NOT EXISTS `usage` (
     `cmd`           VARCHAR(100)    NOT NULL,              -- command name
     `count`         BIGINT          NOT NULL DEFAULT 0     -- usage count
 );
-CREATE UNIQUE INDEX IF NOT EXISTS `uk_usage_key`
-    ON `usage` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`);
+CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_usage_key`
+    ON `cmd_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`);
 
 -- 12. AI Usage
 CREATE TABLE IF NOT EXISTS `ai_usage` (

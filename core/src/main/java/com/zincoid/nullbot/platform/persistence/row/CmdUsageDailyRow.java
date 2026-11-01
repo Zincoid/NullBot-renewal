@@ -9,7 +9,7 @@ import java.time.LocalDate;
  * <p>Daily usage query row.</p>
  */
 @Data
-public class UsageDailyRow {
+public class CmdUsageDailyRow {
 
     private LocalDate day;
     private Long count;

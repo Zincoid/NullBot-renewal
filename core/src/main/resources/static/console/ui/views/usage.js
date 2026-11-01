@@ -3,7 +3,7 @@ import {$, t, api, escapeHtml, toast} from '../app-shared.js';
 // ═══ Usage ═══════════════════════
 
 const usageState = {days: 14};
-let usageTab = 'commands';
+let usageTab = 'totals';
 let usageData = null;
 let aiUsageData = null;
 let usageResizeFrame = 0;
@@ -48,6 +48,7 @@ function renderBot(data) {
 
 async function loadUsage() {
     if (usageTab === 'ai') return loadAiUsage();
+    if (usageTab === 'totals') return loadTotals();
     return loadCommandUsage();
 }
 
@@ -75,6 +76,21 @@ async function loadAiUsage() {
             chart.innerHTML = `<p class="empty">${escapeHtml(message)}</p>`;
         });
         toast(message, 'error');
+    }
+}
+
+async function loadTotals() {
+    try {
+        const [cmd, ai] = await Promise.all([
+            api('/usage/total'),
+            api('/ai-usage/total')
+        ]);
+        $('total-cmd').textContent = formatNumber(cmd.total);
+        $('total-ai').textContent = formatNumber(ai.total);
+        $('total-input').textContent = formatNumber(ai.inputTokens);
+        $('total-output').textContent = formatNumber(ai.outputTokens);
+    } catch (e) {
+        toast(t('usage.loadFailed', {msg: e.message}), 'error');
     }
 }
 
@@ -327,11 +343,13 @@ function renderRanks(element, ranks, empty, label, value) {
 }
 
 function showUsageTab(tab) {
-    usageTab = tab === 'ai' ? 'ai' : 'commands';
+    usageTab = tab === 'ai' || tab === 'totals' ? tab : 'commands';
     document.querySelectorAll('[data-usage-tab]').forEach(button =>
         button.classList.toggle('active', button.dataset.usageTab === usageTab));
     $('usage-tab-commands').hidden = usageTab !== 'commands';
     $('usage-tab-ai').hidden = usageTab !== 'ai';
+    $('usage-tab-totals').hidden = usageTab !== 'totals';
+    $('usage-days-field').hidden = usageTab === 'totals';
 }
 
 export function bind() {

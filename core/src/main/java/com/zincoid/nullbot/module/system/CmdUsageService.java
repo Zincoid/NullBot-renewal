@@ -2,7 +2,7 @@ package com.zincoid.nullbot.module.system;
 
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
-import com.zincoid.nullbot.platform.persistence.po.Usage;
+import com.zincoid.nullbot.platform.persistence.po.CmdUsage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
  * 指令用量服务：按天累积使用次数。
  * <p>Command usage service: accumulates daily usage counts.</p>
  */
-public interface UsageService extends IService<Usage> {
+public interface CmdUsageService extends IService<CmdUsage> {
 
     // ════ Increase ════════════════
 
@@ -36,6 +36,14 @@ public interface UsageService extends IService<Usage> {
      * @return the total usage count
      */
     long total(String userId);
+
+    /**
+     * 统计全量指令用量。
+     * <p>Counts the all-time command usage.</p>
+     *
+     * @return the all-time usage count
+     */
+    long total();
 
     /**
      * 汇总指定日期范围内的用量。

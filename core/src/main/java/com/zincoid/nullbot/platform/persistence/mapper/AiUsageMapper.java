@@ -62,6 +62,20 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
     AiUsageSummaryRow summary(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     /**
+     * 汇总全量 AI 用量。
+     * <p>Summarizes the all-time AI usage.</p>
+     *
+     * @return the all-time summary row
+     */
+    @Select("""
+            SELECT COALESCE(SUM(`count`), 0) AS `total`,
+                   COALESCE(SUM(`input_tokens`), 0) AS `inputTokens`,
+                   COALESCE(SUM(`output_tokens`), 0) AS `outputTokens`
+            FROM `ai_usage`
+            """)
+    AiUsageSummaryRow total();
+
+    /**
      * 按天汇总指定日期范围内的 AI 对话与 token。
      * <p>Summarizes AI turns and tokens per day in the date range.</p>
      *

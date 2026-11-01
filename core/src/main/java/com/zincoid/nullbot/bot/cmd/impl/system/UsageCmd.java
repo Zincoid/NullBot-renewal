@@ -12,7 +12,7 @@ import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.module.http.HttpService;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.render.RenderService;
-import com.zincoid.nullbot.module.system.UsageService;
+import com.zincoid.nullbot.module.system.CmdUsageService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.util.MimeUtils;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class UsageCmd implements Cmd {
 
     private static final int MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
-    private final UsageService usageService;
+    private final CmdUsageService cmdUsageService;
     private final RenderService renderService;
     private final HttpService http;
 
@@ -62,7 +62,7 @@ public class UsageCmd implements Cmd {
 
     private long total(CmdContext ctx, String userId) {
         try {
-            return usageService.total(userId);
+            return cmdUsageService.total(userId);
         } catch (RuntimeException e) {
             log.warn("Usage count failed: user={}", userId, e);
             throw new CmdWarnException(ctx.render(Text.USAGE_COUNT_FAILED), e);

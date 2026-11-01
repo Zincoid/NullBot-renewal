@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.console.controller;
 
+import com.zincoid.nullbot.console.dto.AiUsageTotalView;
 import com.zincoid.nullbot.console.dto.AiUsageView;
 import com.zincoid.nullbot.console.exception.ConsoleException;
 import com.zincoid.nullbot.module.common.GroupService;
@@ -39,6 +40,18 @@ public class AiUsageController {
     private final UserService userService;
 
     // ════ Query ══════════════════
+
+    /**
+     * 查询全量 AI 用量。
+     * <p>Returns the all-time AI usage.</p>
+     *
+     * @return the all-time AI usage total
+     */
+    @GetMapping("/total")
+    public AiUsageTotalView total() {
+        AiUsageService.Total total = aiUsageService.total();
+        return new AiUsageTotalView(total.count(), total.inputTokens(), total.outputTokens());
+    }
 
     /**
      * 查询最近若干天的 AI 用量汇总。

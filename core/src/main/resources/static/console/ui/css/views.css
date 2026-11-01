@@ -43,6 +43,10 @@
     --stat-accent: var(--color-success);
 }
 
+#usage-tab-totals .cards .stat:nth-child(4) {
+    --stat-accent: var(--color-success);
+}
+
 .chart-card {
     margin-bottom: var(--spacing-xl);
     padding: var(--spacing-xl);

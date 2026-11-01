@@ -58,6 +58,15 @@ public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> impl
                 daily, triggers, topGroups, topUsers);
     }
 
+    @Override
+    public Total total() {
+        AiUsageSummaryRow row = baseMapper.total();
+        return row == null
+                ? new Total(0, 0, 0)
+                : new Total(count(row.getTotal()), count(row.getInputTokens()),
+                count(row.getOutputTokens()));
+    }
+
     // ════ Helpers ═════════════════
 
     private static Rank rank(String key, Long count, Long inputTokens, Long outputTokens) {
