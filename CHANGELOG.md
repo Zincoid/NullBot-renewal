@@ -4,81 +4,76 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-02
+
+本版本重构 AI 触发链路与用量统计，新增指令禁用和群 / 用户功能权限，插件 API 升级至 5。从 1.1.0 升级时请先阅读“数据结构与迁移”和“AI 触发”。
+
 ### Added
 
-**权限与 AI**
+**AI 与统计**
 
-- 新增 `ai_usage` 按日汇总表，以 `time + chat_type + chat_id + user_id + source` 为唯一键，累计 AI 回合数、输入/输出 token；不再逐条保存每次对话。SQLite 启动时自动创建，现有 MySQL 库需手动创建该表；若已建过旧版逐条记录表，需删除重建（SQLite 删除文件中的旧表或数据库文件后重启）。
-- 群记录新增 `cmdEnabled` / `aiChatEnabled`，用户记录新增 `privateCmdEnabled` / `privateAiChatEnabled`；群默认开启，用户私聊默认关闭。
-- 控制台角色页的群 / 用户表新增“指令”和“AI 对话”权限开关；私聊 AI 与私聊指令独立授权，用户私聊开关不影响群内功能。
+- 新增 `ai_usage` 按日汇总表，以 `time + chat_type + chat_id + user_id + source` 为唯一键，累计 AI 回合数与输入/输出词元；来源区分群聊、群自动聊天、群戳一戳、私聊与私聊戳一戳。
+- 控制台概览新增 AI 子页：展示按天调用与词元趋势、输入/输出词元汇总、活跃用户 / 群、触发来源以及群 / 用户排行。
+- 控制台概览新增“累计”子页，分别汇总不限时间的调用数与词元数。
 
-**指令**
+**指令与权限**
 
-- 新增指令禁用：直接使用 `#指令 -B` 可在当前群或私聊禁用该指令，`#指令 -U` 解除；群聊支持整群或 `@用户`/`--user=<ID>`，私聊必须指定 `--user`。
-- 指令禁用支持 `--temp=30m` / `2h` / `7d` 限时规则，到期自动恢复；被禁用时回复剩余时间，永久规则显示“永久”。
-- 群聊规则与私聊规则相互隔离，群规则不影响私聊，私聊规则不影响群规则。
-- MySQL 部署需重新执行 `schema-mysql.sql` 创建 `cmd_disable` 表；SQLite 启动时自动创建。
-
-**控制台**
-
-- 概览页新增“AI 统计”子页：按天展示 AI 对话数与 token 消耗，并提供输入/输出 token 汇总、活跃用户/群、触发来源及群/用户排行。
-- 概览页新增“累计”子页：展示全量指令调用数、AI 调用数与输入/输出 token 累计值；该子页不显示统计区间选择。
-- 角色页的群设置与用户设置新增“指令管理”页：列出并管理整群、群内指定用户与私聊的指令禁用规则，支持永久或按分钟、小时、天手动填写时长，可直接解除。
+- 新增指令禁用：`#指令 -B` / `-U` 可在当前会话禁用或解除，支持整群、`@用户`、`--user=<ID>` 与私聊规则，支持 `--temp=30m|2h|7d` 限时，到期自动恢复；被禁用时提示剩余时间，永久规则显示“永久”，群聊与私聊规则相互隔离。
+- 控制台角色页的群设置与用户设置新增“指令管理”页，可查看、添加和解除禁用规则。
+- 控制台角色页的群 / 用户表新增“指令 / AI 对话”开关：群默认开启，用户私聊默认关闭，可独立授权。
 
 **插件与 API**
 
-- 插件 API 5：新增 `PluginContext.http()` 与 `HttpService`，统一提供 GET、字节 POST、单文件 multipart 上传，以及超时、代理、重试和响应大小限制。
+- 插件 API 5：新增 `PluginContext.http()`，统一提供 GET、字节 POST 与单文件 multipart 上传，支持超时、代理、重试与响应大小限制。
+- 插件 API 4：新增 `PluginContext.properties()`；宿主在插件启动前把 JAR 内的 `config.properties` 复制到数据目录，已有文件不会覆盖。
+- 控制台插件数据弹窗新增“配置”页，可在线编辑并保存 `config.properties`、保存后重载插件；文件页支持逐项删除。
+- `hello-plugin` 新增 `hello.data` 配置示例，首次加载自动生成 `config.properties`。
 
 **GD 插件**
 
-- `gd-plugin` 新增本地进度：`#GD register`、`#GD update <关卡ID> <进度>`、`#GD remove`、`#GD unregister`；进度保存在插件数据目录的 SQLite `gd.db`，更新时通过 JDash 验证关卡并显示名称/作者，进度范围 1–100。
-- `#GD b20` 使用本地进度与 GDDL 关卡评级计算本地 B20，新增 `local-b20.jte` 卡片、机器人用户头像与未评级提示；GDDL 评级按已评级 24 小时、未评级 1 小时缓存，可通过 `gddl.tier-cache-ttl` / `gddl.unrated-cache-ttl` 调整。
-- `gd-plugin` 与 `query-plugin` 首次加载时自动从 JAR 内默认配置创建数据目录的 `config.properties`，已有配置不会覆盖。
-- 控制台“插件数据”弹窗新增“配置”页，可直接编辑并保存 `config.properties`，支持保存后重载插件；原文件管理保留在“文件”页。
-- 插件配置页的“保存并重载”改为带重载图标的按钮，`config.properties` 改为带文件图标的纯文本标签，并与工具栏按钮对齐；配置状态提示移到按钮行左侧。
-- 插件列表中的 JAR 文件名改为普通文本显示。
-- `hello-plugin` 新增测试配置：首次加载自动创建 `config.properties`，`Hello` 指令的 `Data:` 输出改为配置项 `hello.data=<value>`（默认 `hello-plugin-test`）。
-- 控制台插件数据文件列表为每个条目新增独立删除按钮，文件夹支持逐项删除。
-
-### Fixed
-
-- 修复 AI 看不到群聊/私聊发送者昵称的问题：历史消息与触发说明改为在正文中携带“昵称(用户 ID)”，不再依赖部分 OpenAI 兼容接口会忽略的 `name` 字段。
-- 修复控制台实时日志连接静默断开后仍显示“已连接”、且不会自动重连的问题；前端现在检测 45 秒无数据（含 SSE 心跳）会中止连接并触发重连。
-- 宿主 HTTP 服务的请求失败消息不再拼接完整 URL，避免查询参数中的 API key 等敏感信息进入日志。
-- 文件下载与聊天附件保存失败时不再拼接完整 URL，避免带签名参数的媒体地址进入日志。
+- 新增本地进度：`#GD register`、`#GD update <关卡ID> <进度>`、`#GD remove`、`#GD unregister`，以及 `#GD b20 [--all]`；进度保存在插件数据目录的 SQLite `gd.db` 中，更新时通过 JDash 验证关卡并显示名称 / 作者，进度范围 1–100。
+- `#GD b20` 使用本地进度与 GDDL 评级计算本地 B20，新增 `local-b20.jte` 卡片；GDDL 评级按已评级 24 小时、未评级 1 小时缓存。
+- `#GDDL` 改为子指令模式：`GDDL bind <用户名|ID>`、`GDDL unbind`、`GDDL b20 [用户名|ID] [--all]`；B20 改用 GDDL 原始小数评分计算，tier 由 rating 派生，表格显示为 `25(25.33)`。
+- `#GD search` 结果新增关卡 ID 列，页码移到右上角；关卡详情与 B20 卡片调整评分、颜色、用户标识与文字样式。
 
 ### Changed
 
-- `usage` 表更名为 `cmd_usage`，并与 `ai_usage` 对齐：`group_id` 改为 `chat_id`，新增 `chat_type`（0=群聊，1=私聊），私聊不再用 `'0'` 占位；唯一键同步改为 `time + chat_type + chat_id + user_id + cmd`（索引名 `uk_cmd_usage_key`），群排行只统计群聊。Java 侧同步改名为 `CmdUsage` / `CmdUsageService` / `CmdUsageMapper` 等，控制台接口路径保持 `/console/usage` 不变。已有数据库需手动迁移旧表名、列与索引。
-- AI 触发从 `Chat` / `Poked` 指令迁移到 `AiChatMiddleware`：群 @、私聊、戳一戳和自动聊天直接调用 `ChatPipeline`，不再经过指令链；移除 `#Chat` / `#Poked`，群 AI 继续复用指令限速。AI 用量改由独立的 `ai_usage` 表记录。关键词规则中引用 `Chat` / `Poked` 的配置也会失效，需要改用其他指令。
-- 戳一戳触发 AI 后通过 `call` 执行指令时，`ChatContext` 会合成对应的 `GroupMsgEvent` / `PrivateMsgEvent`；命令层只处理消息事件，`Cmd` 移除群 / 私聊戳一戳的 `run` 重载，外部插件需改用消息入口。
-- `RegisterHandler` 由 `BotRegistrar` 替代：`BotRegistrar` 在 bot 层通过 `BotClient` 查询群名 / 用户昵称，再调用 `GroupService.register` / `UserService.register` 完成懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退为平台 ID。
-- `BANNED` 用户的所有事件在 `BotDispatcher` 入口直接丢弃，不再进入消息存储、输入等待或 AI 处理。
-- `GroupCmdRateLimiter` 更名为 `GroupRateLimiter`，限速维度 `LimitScope.CMD` 改为 `FUNC`（标签 `func`），控制台显示为“按功能”；原有数据库的 `limit_scope = 2` 不需要改值。
-- `UserSetting` 的 `aiPrompt` / `aiEffort` / `aiInjectionGuard` 统一改为 `privateAiPrompt` / `privateAiEffort` / `privateAiInjectionGuard`，`user_setting` 列同步改名为 `private_ai_prompt` / `private_ai_effort` / `private_ai_injection_guard`；控制台用户设置 API 与表单同步，已有数据库需手动迁移旧列。
-- `User.privateMessageAllowed` 删除并拆分为 `privateCmdEnabled` / `privateAiChatEnabled`；私聊指令不再与私聊 AI 共用开关。`UserService.isPrivateMessageAllowed` / `setPrivateMessageAllowed` 同步移除，外部插件需改用新方法。
-- 已有数据库需手动迁移：`group` 增加 `cmd_enabled` / `ai_chat_enabled`（默认 true），`user` 增加 `private_cmd_enabled` / `private_ai_chat_enabled`（默认 false）并删除 `private_message_allowed`；按新默认值，现有用户的两个私聊权限均为 false，需要重新授权。旧 `cmd_disable` 中的 `Chat` / `Poked` 规则不再生效，可在控制台清理。
-- `gd-plugin` 拆分数据访问：`GdLevelService` 负责 JDash 关卡与缩略图，`GddlService` 负责 GDDL 关卡/用户/提交记录与 B20，`GdProgressService` 负责本地进度；`GdStore` 更名为 `GdProgressStore`，`ScoreResult` 更名为 `GddlB20Result`，GDDL B20 视图/模板统一为 `GddlB20View` / `gddl-b20.jte`。
-- B20 计算改用 GDDL 原始小数 `rating`，不再使用四舍五入后的 tier；结果表格的 tier 列显示为 `25(25.33)` 形式。
-- `gd_level_cache` 只保留原始 `rating`，tier 由 rating 派生；数据库 schema 为 v1，首次启动直接创建不含 `tier` 列的表。
-- `GDDL` 改为子指令模式：`GDDL bind <用户名|ID>`、`GDDL unbind`、`GDDL b20 [用户名|ID] [--all]`；原 `--bind` / `--unbind` 和直接用户名形式不再支持。
-- `#GD search` 搜索结果卡片新增关卡 ID 列，ID 左对齐并左移列位置；同步调整关卡名、难度与作者列宽以适配。
-- `#GD search` 搜索卡片的页码改为右上角右对齐显示。
-- `#GDDL b20` 卡片用户名前不再显示 `GDDL:` 前缀。
-- GDDL 与本地 B20 卡片的用户 ID 改为 `#id` 形式。
-- B20 卡片用户名加大到 32px 并加粗，用户 ID 使用 20px 小字号；关卡详情卡片的关卡名改为加粗显示。
-- 插件配置改由宿主在插件启动前自动解压，并通过 `PluginContext.properties()` 提供只读配置快照；插件只保留类型化映射，GD/Query 配置移除环境变量回退，插件 API 升至 4。
-- `GdHttp`、Query、SB6657、Symmetry、Say 改用宿主 HTTP 服务，移除各自的 JDK `HttpClient` 或 `HttpUtils` 导入；插件 API 升至 5。
-- 插件 HTTP 请求统一由各自的 `XxxHttp` 适配器承载（`GdHttp`、`QueryHttp`、`SB6657Http`、`SymmetryHttp`、`SayHttp`），命令不再直接构造 `HttpService.Options`；`HttpService.post` 与 `Options.withHeaders` 作为通用能力保留。
-- `UsageCmd` 的头像获取改用宿主 `HttpService`，移除仅剩此一处使用的 `HttpUtils`。
-- 关卡详情卡片的 `Rt.` / `Enj.` 标签加粗并使用次级色，评分值改为高亮斜体，`Enj.` 数值带 `/10` 后缀；同时拉开两项间距。
-- 关卡详情卡片描述区右下角增加两个浅色平行四边形 `//` 背景装饰，底部与 GDDL 面板对齐。
-- 关卡详情卡片统计数值按类型着色：下载绿色、点赞红色、长度蓝色、物体黄色；GDDL 有数据时长度显示具体时长，如 `Medium · 1:52`。
-- B20 表格整行文字颜色随 tier 变化，沿用绿到蓝再到红的渐变。
-- 缩短插件加载与上传的临时文件名，并在启动时清理遗留临时文件。
-- `CmdArgs` 的长选项名必须至少两个字符、短选项别名必须是单个字母；`--B` / `-ban` 这类写法不再解析为选项，`hasOpt` / `getOpt` 传入不合法的 name / alias 会抛出 `IllegalArgumentException`。
-- 指令禁用规则合并为 `cmd_disable` 单表，通过 `chat_type`（0=群聊，1=私聊）/ `chat_id` 区分群聊与私聊；已有 `group_cmd_disable` / `user_cmd_disable` 数据需按新表结构手动迁移。
-- 用户私聊开关字段由 `allowPrivateChat` 重命名为 `privateMessageAllowed`，服务方法改为 `isPrivateMessageAllowed` / `setPrivateMessageAllowed`，避免与 AI 对话的 `chat` 混淆；控制台 API 同步改名，已有数据库需手动将 `user.allow_private_chat` 列重命名为 `private_message_allowed`。
+**数据结构与迁移**
+
+- `usage` 表更名为 `cmd_usage`：`group_id` 改为 `chat_id`，新增 `chat_type`（0=群聊，1=私聊），唯一键改为 `time + chat_type + chat_id + user_id + cmd`；控制台接口路径保持 `/console/usage`。
+- 新增 `cmd_disable` 单表，使用 `chat_type` / `chat_id` 区分群聊与私聊规则。
+- 群记录新增 `cmd_enabled` / `ai_chat_enabled`（默认 true）；用户记录新增 `private_cmd_enabled` / `private_ai_chat_enabled`（默认 false），删除 `private_message_allowed`。升级后现有用户的两个私聊权限均为 false，需要重新授权。
+- `UserSetting` 的 `aiPrompt` / `aiEffort` / `aiInjectionGuard` 更名为 `privateAiPrompt` / `privateAiEffort` / `privateAiInjectionGuard`，数据库列同步改名。
+- SQLite 新增表会在启动时自动创建；MySQL 需重新执行 `schema-mysql.sql`。已有数据库的表名、列与索引需手动迁移；若使用过旧版开发构建的逐条 `ai_usage` 记录表，需要删除重建。
+
+**AI 触发**
+
+- AI 触发从 `Chat` / `Poked` 指令迁移到 `AiChatMiddleware`：群 @、私聊、戳一戳与自动聊天直接调用 `ChatPipeline`，移除 `#Chat` / `#Poked`；关键词规则中引用 `Chat` / `Poked` 的配置失效。
+- 群 AI 复用群功能限速（键 `AI`），私聊 AI 暂不限速；AI 用量改由 `ai_usage` 记录，不再计入 `cmd_usage`。
+- 戳一戳触发 AI 后调用指令时，宿主合成对应的消息事件；`Cmd` 移除戳一戳的 `run` 重载，外部插件需改用消息入口。
+- `RegisterHandler` 由 `BotRegistrar` 替代，通过 `BotClient` 查询群名 / 昵称并懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退平台 ID。
+- `BANNED` 用户的所有事件在 `BotDispatcher` 入口直接丢弃。
+- `GroupCmdRateLimiter` 更名为 `GroupRateLimiter`，限速维度 `LimitScope.CMD` 改为 `FUNC`（控制台显示“按功能”）；已有数据库的 `limit_scope = 2` 无需修改。
+
+**插件与工程**
+
+- 插件配置改由宿主统一解压，并通过 `properties()` 提供只读快照；GD / Query 配置移除环境变量回退。
+- `GdHttp`、Query、SB6657、Symmetry、Say 与 `UsageCmd` 改用宿主 HTTP 服务，移除各自的 JDK `HttpClient` / `HttpUtils`；插件 HTTP 请求统一由各自的 `XxxHttp` 适配器承载。
+- 插件加载与上传的临时文件名缩短，启动时清理遗留临时文件。
+- `CmdArgs` 的长选项名至少两个字符、短选项必须是单个字母；`hasOpt` / `getOpt` 传入非法 name / alias 会抛 `IllegalArgumentException`。
+
+**控制台**
+
+- 角色、语录、文件与插件表统一为固定列宽，长 ID / 内容省略并在悬浮时显示完整值；语录内容新增复制按钮。
+- 插件列表移除 JAR 列，JAR 文件名可在插件数据窗口查看；指令列改用 `Cmd.name()` 返回的规范名称。
+- 配置页重做排版；概览“累计”拆分为“调用累计”和“词元累计”，AI 排行中的词元使用 k/M/B 缩写。
+
+### Fixed
+
+- 修复 AI 看不到群聊 / 私聊发送者昵称的问题：历史消息与触发说明改为在正文中携带“昵称(用户 ID)”，不再依赖部分 OpenAI 兼容接口会忽略的 `name` 字段。
+- 修复控制台实时日志连接静默断开后仍显示“已连接”且不会自动重连的问题；前端检测 45 秒无数据（含 SSE 心跳）会中止连接并触发重连。
+- 宿主 HTTP 服务的请求失败消息不再拼接完整 URL，避免查询参数中的 API key 等敏感信息进入日志。
+- 文件下载与聊天附件保存失败时不再拼接完整 URL，避免带签名参数的媒体地址进入日志。
 
 ## [1.1.0] - 2026-10-27
 
