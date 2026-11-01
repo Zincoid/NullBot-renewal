@@ -52,7 +52,7 @@ import java.util.stream.Stream;
 public class ChatPipeline {
 
     private static final String FORMAT_PROMPT = """
-            Messages are prefixed with [id=<message id>].
+            User messages are prefixed with [id=<message id>] nickname(userId): followed by the text.
             A [Reply id=<message id>] marker quotes another message; use the read tool when you need its content or attachments.
             @你 means the user mentioned you.
             Image data is not included in history; use read to list attachment file ids and view to view an image.
@@ -177,12 +177,27 @@ public class ChatPipeline {
      */
     private static String trigger(BotEvent event) {
         return switch (event) {
-            case GroupMsgEvent e -> "The message to respond to is id=" + e.messageId() + " in a group chat.";
-            case PrivateMsgEvent e -> "The message to respond to is id=" + e.messageId() + " in a private chat.";
+            case GroupMsgEvent e -> "The message to respond to is id=" + e.messageId()
+                    + " from " + sender(e) + " in a group chat.";
+            case PrivateMsgEvent e -> "The message to respond to is id=" + e.messageId()
+                    + " from " + sender(e) + " in a private chat.";
             case GroupPokeEvent e -> "User " + e.userId() + " just rubbed you in a group chat; respond to it.";
             case PrivatePokeEvent e -> "User " + e.userId() + " just rubbed you in a private chat; respond to it.";
             default -> null;
         };
+    }
+
+    /**
+     * 拼接发送者显示名与平台 ID。
+     * <p>Joins the sender display name and platform id.</p>
+     *
+     * @param event the message event
+     * @return the sender label
+     */
+    private static String sender(MsgEvent event) {
+        String name = event.nickname();
+        if (name == null || name.isBlank()) name = event.userId();
+        return name + "(" + event.userId() + ")";
     }
 
     /**

@@ -58,7 +58,9 @@ public class MessageWindowMemory implements Memory {
                 : message.getContent();
         if (message.getRole() == MessageRole.ASSISTANT)
             return AiMessage.assistant(content).withReasoning(message.getReasoning());
-        String name = message.getNickname() == null ? message.getUserId() : message.getNickname();
-        return AiMessage.user(name, "[id=" + message.getId() + "] " + content, List.of());
+        String name = message.getNickname();
+        if (name == null || name.isBlank()) name = message.getUserId();
+        return AiMessage.user("[id=" + message.getId() + "] "
+                + name + "(" + message.getUserId() + "): " + content);
     }
 }
