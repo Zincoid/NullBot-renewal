@@ -3,7 +3,9 @@ package com.zincoid.nullbot.module.message;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
+import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,8 +78,8 @@ public class MessageWindowStore {
     // ════ Clear ═══════════════════
 
     /**
-     * 清空会话的全部消息及其附件。
-     * <p>Clears all messages and their attachments of the chat.</p>
+     * 清空会话的全部消息，并删除其独占的聊天附件。
+     * <p>Clears all messages of the chat and deletes the chat attachments they exclusively own.</p>
      *
      * @param chatId chat identifier
      * @return the number of deleted messages
@@ -129,19 +131,44 @@ public class MessageWindowStore {
     }
 
     /**
-     * 删除被修剪消息所引用的附件。
-     * <p>Deletes the attachments referenced by a trimmed message.</p>
+     * 删除被修剪消息所引用的附件：仅删除会话消息自己保存的聊天文件，且不再被其他消息引用时才删除。
+     * <p>Deletes the attachments of a trimmed message: only chat files saved for message records, and only when no other message still references them.</p>
      *
      * @param message the trimmed message
      */
     private void deleteAttachments(Message message) {
-        if (message.getFiles() == null) return;
+        if (message.getFiles() == null || message.getFiles().isEmpty()) return;
         for (String fileId : message.getFiles()) {
             try {
-                fileService.delete(Long.valueOf(fileId));
+                File file = fileService.getById(Long.valueOf(fileId));
+                if (file == null || file.getType() != BizType.CHAT) continue;
+                if (isReferenced(message, fileId)) continue;
+                fileService.delete(file.getId());
             } catch (RuntimeException e) {
                 log.warn("Failed to delete attachment: {}", fileId, e);
             }
         }
+    }
+
+    /**
+     * 判断同一会话中是否还有其他消息引用该附件。
+     * <p>Checks whether another message in the same chat still references the attachment.</p>
+     *
+     * @param message the trimmed message
+     * @param fileId  the attachment file record id
+     * @return true when another message references the attachment
+     */
+    private boolean isReferenced(Message message, String fileId) {
+        List<Message> messages = messageService.lambdaQuery()
+                .select(Message::getFiles)
+                .eq(Message::getChatId, message.getChatId())
+                .ne(Message::getId, message.getId())
+                .isNotNull(Message::getFiles)
+                .list();
+        for (Message other : messages) {
+            if (other.getFiles() != null && other.getFiles().contains(fileId))
+                return true;
+        }
+        return false;
     }
 }

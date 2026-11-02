@@ -33,7 +33,8 @@ public class MessageWindowMemory implements Memory {
     // ════ Add ═════════════════════
 
     @Override
-    public void add(String chatId, String messageId, String userId, String nickname, AiMessage message) {
+    public void add(String chatId, String messageId, String userId, String nickname,
+                    AiMessage message, List<String> files) {
         if (chatId == null || chatId.isBlank()) throw new AiException("Missing key: chatId");
         if (messageId == null || messageId.isBlank()) throw new AiException("Missing key: messageId");
         if (userId == null || userId.isBlank()) throw new AiException("Missing key: userId");
@@ -47,7 +48,7 @@ public class MessageWindowMemory implements Memory {
             default -> throw new AiException("Unsupported role: " + message.getRole());
         };
         messageWindowStore.add(chatId, messageId, userId, role, nickname,
-                content, message.getReasoning(), List.of());
+                content, message.getReasoning(), files == null ? List.of() : files);
     }
 
     // ════ Helpers ═════════════════

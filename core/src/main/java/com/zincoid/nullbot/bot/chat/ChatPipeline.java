@@ -133,7 +133,7 @@ public class ChatPipeline {
         String trigger = trigger(event);
         String selfName = BotClients.selfName(client, selfId);
         ChatContext ctx = new ChatContext(client, targetId, group, event,
-                cmdDispatcher, fileService, configService);
+                cmdDispatcher, fileService, configService, memory, chatId, selfName);
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
@@ -142,14 +142,14 @@ public class ChatPipeline {
                 AiMessage incoming = AiMessage.user(e.userId(), "[Rubbed you]", List.of());
                 history.add(incoming);
                 memory.add(chatId, "poke-" + UUID.randomUUID(),
-                        e.userId(), e.userId(), incoming);
+                        e.userId(), e.userId(), incoming, List.of());
             }
             ModelRes reply = agentClient.invoke(history, compose(base, trigger), effort, ctx, options);
             record(group, targetId, event, aiSource, reply.getUsage());
             String content = ChatText.compact(reply.getContent());
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,
-                    AiMessage.assistant(content).withReasoning(reply.getReasoning()));
+                    AiMessage.assistant(content).withReasoning(reply.getReasoning()), List.of());
         } finally {
             lock.unlock();
         }

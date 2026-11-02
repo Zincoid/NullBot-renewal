@@ -12,6 +12,8 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
+import com.zincoid.nullbot.module.ai.memory.Memory;
+import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.config.Conf;
@@ -20,6 +22,7 @@ import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.MimeUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +37,9 @@ import java.util.UUID;
  * @param cmdDispatcher the command dispatcher
  * @param fileService   the file service
  * @param configService the config service
+ * @param memory        the chat memory
+ * @param chatId        chat identifier
+ * @param selfName      the bot nickname
  */
 public record ChatContext(
         BotClient client,
@@ -42,7 +48,10 @@ public record ChatContext(
         BotEvent event,
         CmdDispatcher cmdDispatcher,
         FileService fileService,
-        ConfigService configService
+        ConfigService configService,
+        Memory memory,
+        String chatId,
+        String selfName
 ) implements ToolContext {
 
     private static final int MAX_MUTE_MINUTES = 30 * 24 * 60;
@@ -53,13 +62,20 @@ public record ChatContext(
     public ToolRes send(String text, List<Long> fileIds, String replyId) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
+        StringBuilder recorded = new StringBuilder(compact);
+        List<String> recordedFiles = new ArrayList<>();
         if (!compact.isBlank())
             builder.text(compact);
         int attached = 0;
         for (Long id : fileIds) {
             File file = fileService.getById(id);
             if (file == null) continue;
-            if (attach(builder, file)) attached++;
+            String label = attach(builder, file);
+            if (label != null) {
+                attached++;
+                recorded.append(label);
+                recordedFiles.add(String.valueOf(id));
+            }
         }
         if (compact.isBlank() && attached == 0)
             return ToolRes.error("No valid media: " + fileIds);
@@ -69,24 +85,27 @@ public record ChatContext(
         String messageId = group
                 ? client.sendGroupMsg(targetId, content)
                 : client.sendPrivateMsg(targetId, content);
+        if (messageId != null && !messageId.isBlank())
+            memory.add(chatId, messageId, event.selfId(), selfName,
+                    AiMessage.assistant(recorded.toString()), recordedFiles);
         return ToolRes.of(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
     }
 
-    private boolean attach(MsgContent.Builder builder, File file) {
+    private String attach(MsgContent.Builder builder, File file) {
         String mime = mime(file);
-        if (mime == null) return false;
+        if (mime == null) return null;
         if (mime.startsWith("image/")) {
             builder.image(fileService.uri(file));
+            return "[Image]";
         } else if (mime.startsWith("video/")) {
             builder.video(fileService.uri(file));
+            return "[Video]";
         } else if (mime.startsWith("audio/")) {
             builder.voice(fileService.uri(file));
-        } else {
-            return false;
-        }
-        return true;
+            return "[Voice]";
+        } else return null;
     }
 
     private static String mime(File file) {
@@ -96,14 +115,6 @@ public record ChatContext(
 
     // ════ Mute ════════════════════
 
-    /**
-     * 禁言或解除禁言当前群成员。
-     * <p>Mutes or unmutes a member of the current group.</p>
-     *
-     * @param userId  target platform user id
-     * @param minutes duration in minutes, 0 to unmute
-     * @return the tool result
-     */
     @Override
     public ToolRes mute(String userId, int minutes) {
         if (!group) return ToolRes.error("Mute is only available in group chats");
@@ -119,13 +130,6 @@ public record ChatContext(
 
     // ════ Recall ══════════════════
 
-    /**
-     * 撤回一条消息。
-     * <p>Recalls a message.</p>
-     *
-     * @param messageId platform message id
-     * @return the tool result
-     */
     @Override
     public ToolRes recall(String messageId) {
         if (messageId == null || messageId.isBlank())
