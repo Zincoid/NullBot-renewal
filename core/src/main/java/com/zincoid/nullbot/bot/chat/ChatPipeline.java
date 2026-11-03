@@ -54,14 +54,20 @@ import java.util.stream.Stream;
 public class ChatPipeline {
 
     private static final String FORMAT_PROMPT = """
-            User messages are prefixed with [id=<message id>] nickname(userId): followed by the text.
-            A [Reply id=<message id>] marker quotes another message; use the read tool when you need its content or attachments.
-            @你 means the user mentioned you.
-            Image data is not included in history; use read to list attachment file ids and view to view an image.
-            You can call send to send a short intermediate message while working; still send a final reply.
-            The trigger note tells you which message to reply to.
-            Do not include the id, reply, or mention markers in your reply.
-            
+            The following describes the chat history format and how to reply.
+
+            History:
+            - User messages are formatted as [id=<message id>] nickname(userId): text.
+            - A [Reply id=<message id>] marker quotes another message; use the "read" tool to fetch its content or attachments.
+            - @you means the user mentioned you.
+            - Media data is not included in history; use the "read" tool to list attachment file ids and the "view" tool to view an image.
+            - Notes in your own messages that record sent attachments are metadata, not text you said to the user.
+
+            Rules:
+            - You can call the "send" tool multiple times in one turn to send separate messages or media; still produce a final reply, and don't repeat what you already sent.
+            - The trigger note identifies which message to respond to and how the conversation was triggered.
+            - Use ids only as tool arguments; never write ids, history markers, or attachment notes in your reply.
+
             Reply like a person texting in a chat app:
             - Keep it short and conversational, and match the user's language.
             - Never write documents, reports, headings, bullet lists, or tables.
@@ -69,6 +75,8 @@ public class ChatPipeline {
             - Use a line break only when it is truly needed, and never output blank lines.""";
 
     private static final int LOCK_STRIPES = 64;
+
+    private final ReentrantLock[] locks = stripes();
 
     private final AgentClient agentClient;
     private final Memory memory;
@@ -79,7 +87,6 @@ public class ChatPipeline {
     private final ChatGuard chatGuard;
     private final FileService fileService;
     private final AiUsageService aiUsageService;
-    private final ReentrantLock[] locks = stripes();
 
     // ════ Chat ════════════════════
 
@@ -130,7 +137,7 @@ public class ChatPipeline {
         String base = prompt(group ? groupSetting.getAiPrompt() : userSetting.getPrivateAiPrompt());
         Effort effort = group ? groupSetting.getAiEffort() : userSetting.getPrivateAiEffort();
         AgentOptions options = options();
-        String trigger = trigger(event);
+        String trigger = trigger(event, aiSource);
         String selfName = BotClients.selfName(client, selfId);
         ChatContext ctx = new ChatContext(client, targetId, group, event,
                 cmdDispatcher, fileService, configService, memory, chatId, selfName);
@@ -175,13 +182,17 @@ public class ChatPipeline {
      * 构建触发说明。
      * <p>Builds the trigger note.</p>
      *
-     * @param event the triggering event
+     * @param event  the triggering event
+     * @param source the trigger source
      * @return the trigger note, or null for unsupported events
      */
-    private static String trigger(BotEvent event) {
+    private static String trigger(BotEvent event, AiSource source) {
         return switch (event) {
             case GroupMsgEvent e -> "The message to respond to is id=" + e.messageId()
-                    + " from " + sender(e) + " in a group chat.";
+                    + " from " + sender(e) + " in a group chat."
+                    + (source == AiSource.GROUP_AUTO_CHAT
+                    ? " This is an automatic chat trigger; you were not mentioned."
+                    : " The user mentioned you.");
             case PrivateMsgEvent e -> "The message to respond to is id=" + e.messageId()
                     + " from " + sender(e) + " in a private chat.";
             case GroupPokeEvent e -> "User " + e.userId() + " just rubbed you in a group chat; respond to it.";

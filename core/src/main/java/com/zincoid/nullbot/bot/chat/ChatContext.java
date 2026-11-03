@@ -62,22 +62,19 @@ public record ChatContext(
     public ToolRes send(String text, List<Long> fileIds, String replyId) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
-        StringBuilder recorded = new StringBuilder(compact);
         List<String> recordedFiles = new ArrayList<>();
+        List<String> recordedMedia = new ArrayList<>();
         if (!compact.isBlank())
             builder.text(compact);
-        int attached = 0;
         for (Long id : fileIds) {
             File file = fileService.getById(id);
             if (file == null) continue;
-            String label = attach(builder, file);
-            if (label != null) {
-                attached++;
-                recorded.append(label);
-                recordedFiles.add(String.valueOf(id));
-            }
+            String kind = attach(builder, file);
+            if (kind == null) continue;
+            recordedFiles.add(String.valueOf(id));
+            recordedMedia.add(kind + ", file id=" + id);
         }
-        if (compact.isBlank() && attached == 0)
+        if (compact.isBlank() && recordedFiles.isEmpty())
             return ToolRes.error("No valid media: " + fileIds);
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);
@@ -87,7 +84,7 @@ public record ChatContext(
                 : client.sendPrivateMsg(targetId, content);
         if (messageId != null && !messageId.isBlank())
             memory.add(chatId, messageId, event.selfId(), selfName,
-                    AiMessage.assistant(recorded.toString()), recordedFiles);
+                    AiMessage.assistant(recordedContent(compact, recordedMedia)), recordedFiles);
         return ToolRes.of(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
@@ -98,19 +95,25 @@ public record ChatContext(
         if (mime == null) return null;
         if (mime.startsWith("image/")) {
             builder.image(fileService.uri(file));
-            return "[Image]";
+            return "image";
         } else if (mime.startsWith("video/")) {
             builder.video(fileService.uri(file));
-            return "[Video]";
+            return "video";
         } else if (mime.startsWith("audio/")) {
             builder.voice(fileService.uri(file));
-            return "[Voice]";
+            return "voice";
         } else return null;
     }
 
     private static String mime(File file) {
         String mime = MimeUtils.mime(file.getStored());
         return mime != null ? mime : MimeUtils.mime(file.getOriginal());
+    }
+
+    private static String recordedContent(String text, List<String> media) {
+        if (media.isEmpty()) return text;
+        String note = "(sent " + String.join("; ", media) + ")";
+        return text.isBlank() ? note : text + " " + note;
     }
 
     // ════ Mute ════════════════════

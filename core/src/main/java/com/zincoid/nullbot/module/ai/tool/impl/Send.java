@@ -19,7 +19,7 @@ public class Send implements Tool {
     @Override
     public ToolDefinition definition() {
         return ToolDefinition.builder("send", """
-                        Sends an intermediate message to the current chat before the final reply.
+                        Sends an additional message to the current chat before the final reply; you may call it multiple times.
                         Set file to attach an image, video, or audio by file id.""")
                 .addString("content", "message text, optional when file is set")
                 .addInteger("file", "file id of an image, video, or audio to send, optional")
