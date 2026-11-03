@@ -79,6 +79,10 @@ public class AgentClient {
                         tr.images()
                 ));
             }
+            if (ctx.hasFinalSent()) {
+                log.info("Tool loop ended early: final message sent");
+                return ModelRes.stopped(usage);
+            }
             work.addAll(images);
         }
         log.warn("Tool call limit reached: {}", maxTcs);

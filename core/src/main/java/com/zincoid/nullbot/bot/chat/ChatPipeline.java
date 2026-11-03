@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,7 +65,8 @@ public class ChatPipeline {
             - Notes in your own messages that record sent attachments are metadata, not text you said to the user.
 
             Rules:
-            - You can call the "send" tool multiple times in one turn to send separate messages or media; still produce a final reply, and don't repeat what you already sent.
+            - You can call the "send" tool multiple times in one turn to send separate messages or media.
+            - Set last=true on the send that completes your answer; no separate final reply will be sent. Otherwise, still produce a final reply, and never repeat what you already sent.
             - The trigger note identifies which message to respond to and how the conversation was triggered.
             - Use ids only as tool arguments; never write ids, history markers, or attachment notes in your reply.
 
@@ -140,7 +142,8 @@ public class ChatPipeline {
         String trigger = trigger(event, aiSource);
         String selfName = BotClients.selfName(client, selfId);
         ChatContext ctx = new ChatContext(client, targetId, group, event,
-                cmdDispatcher, fileService, configService, memory, chatId, selfName);
+                cmdDispatcher, fileService, configService, memory, chatId, selfName,
+                new AtomicBoolean());
         ReentrantLock lock = lockOf(chatId);
         lock.lock();
         try {
@@ -153,6 +156,7 @@ public class ChatPipeline {
             }
             ModelRes reply = agentClient.invoke(history, compose(base, trigger), effort, ctx, options);
             record(group, targetId, event, aiSource, reply.getUsage());
+            if (ctx.hasFinalSent()) return;
             String content = ChatText.compact(reply.getContent());
             String replyId = send(client, targetId, group, MsgContent.of(content));
             memory.add(chatId, replyId, selfId, selfName,

@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- AI `send` 工具新增 `last` 参数：标记为最终消息后不再额外发送 final 回复，一次触发内仍可多次调用 `send` 发送多条消息或媒体。
+
 ### Fixed
 
 - AI `send` 工具发送的中间消息现在写入会话记录并带上所发文件 ID，可在 `#History` 与后续 AI 上下文中看到；附件以 `(sent image, file id=...)` 形式记录，不再使用 `[Image]` 等占位标记，避免诱导模型输出这些标记。

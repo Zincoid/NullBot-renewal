@@ -62,6 +62,16 @@ public class ToolDefinition {
             return this;
         }
 
+        public Builder addBoolean(String name, String desc) {
+            return addBoolean(name, desc, false);
+        }
+
+        public Builder addBoolean(String name, String desc, boolean required) {
+            params.add(new ParamSpec(name, "boolean", desc, null));
+            if (required) this.required.add(name);
+            return this;
+        }
+
         public Builder addEnum(String name, String desc, Set<String> values) {
             return addEnum(name, desc, values, false);
         }

@@ -25,6 +25,7 @@ import com.zincoid.nullbot.platform.util.MimeUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 聊天工具上下文：向当前会话发送文本与媒体（图片、视频、音频）并执行机器人指令。
@@ -40,6 +41,7 @@ import java.util.UUID;
  * @param memory        the chat memory
  * @param chatId        chat identifier
  * @param selfName      the bot nickname
+ * @param finalSent     whether a final message has been sent through the send tool
  */
 public record ChatContext(
         BotClient client,
@@ -51,7 +53,8 @@ public record ChatContext(
         ConfigService configService,
         Memory memory,
         String chatId,
-        String selfName
+        String selfName,
+        AtomicBoolean finalSent
 ) implements ToolContext {
 
     private static final int MAX_MUTE_MINUTES = 30 * 24 * 60;
@@ -59,7 +62,12 @@ public record ChatContext(
     // ════ Send ════════════════════
 
     @Override
-    public ToolRes send(String text, List<Long> fileIds, String replyId) {
+    public boolean hasFinalSent() {
+        return finalSent.get();
+    }
+
+    @Override
+    public ToolRes send(String text, List<Long> fileIds, String replyId, boolean last) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
         List<String> recordedFiles = new ArrayList<>();
@@ -82,9 +90,11 @@ public record ChatContext(
         String messageId = group
                 ? client.sendGroupMsg(targetId, content)
                 : client.sendPrivateMsg(targetId, content);
-        if (messageId != null && !messageId.isBlank())
+        if (messageId != null && !messageId.isBlank()) {
+            if (last) finalSent.set(true);
             memory.add(chatId, messageId, event.selfId(), selfName,
-                    AiMessage.assistant(recordedContent(compact, recordedMedia)), recordedFiles);
+                    AiMessage.assistant(annotate(compact, recordedMedia)), recordedFiles);
+        }
         return ToolRes.of(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
@@ -110,7 +120,7 @@ public record ChatContext(
         return mime != null ? mime : MimeUtils.mime(file.getOriginal());
     }
 
-    private static String recordedContent(String text, List<String> media) {
+    private static String annotate(String text, List<String> media) {
         if (media.isEmpty()) return text;
         String note = "(sent " + String.join("; ", media) + ")";
         return text.isBlank() ? note : text + " " + note;
@@ -152,14 +162,6 @@ public record ChatContext(
         return ToolRes.of("Command executed: " + name);
     }
 
-    // ════ Helpers ═════════════════
-
-    /**
-     * 指令只接受消息事件；戳一戳触发 AI 时合成为对应的消息事件。
-     * <p>Commands accept message events only; a poke-triggered AI call is converted to the matching message event.</p>
-     *
-     * @return the command message event, or null when unsupported
-     */
     private MsgEvent cmdEvent() {
         if (event instanceof MsgEvent e) return e;
         if (!(event instanceof PokeEvent)) return null;

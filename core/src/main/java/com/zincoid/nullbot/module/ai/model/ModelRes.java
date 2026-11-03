@@ -31,6 +31,10 @@ public class ModelRes {
         return ModelRes.of(tcs, null, reasoning, usage);
     }
 
+    public static ModelRes stopped(TokenUsage usage) {
+        return ModelRes.of(List.of(), null, usage);
+    }
+
     public ModelRes withUsage(TokenUsage usage) {
         this.usage = usage;
         return this;
