@@ -19,13 +19,13 @@ public interface AiUsageService extends IService<AiUsage> {
      * <p>Adds one AI conversation turn to the current day's statistics.</p>
      *
      * @param chatType     chat type
-     * @param chatId       raw group or user platform id
+     * @param targetId     raw group or user platform id
      * @param userId       triggering platform user id
      * @param source       trigger source
      * @param inputTokens  input token count, nullable
      * @param outputTokens output token count, nullable
      */
-    void increase(ChatType chatType, String chatId, String userId, AiSource source,
+    void increase(ChatType chatType, String targetId, String userId, AiSource source,
                   Integer inputTokens, Integer outputTokens);
 
     /**

@@ -15,14 +15,12 @@ import com.zincoid.nullbot.module.ai.model.TokenUsage;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
-import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.module.system.AiUsageService;
 import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
-import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import com.zincoid.nullbot.platform.persistence.po.UserSetting;
 import com.zincoid.nullbot.platform.util.ChatIds;
@@ -61,20 +59,20 @@ public class ChatPipeline {
     // ════ Chat ════════════════════
 
     /**
-     * 按触发事件执行一次 AI 回复。
-     * <p>Runs one AI reply for the triggering event.</p>
+     * 按触发事件执行一次 AI 回复，被注入防护拦截时返回 false。
+     * <p>Runs one AI reply for the triggering event; returns false when the injection guard blocks it.</p>
      *
-     * @param client   the outbound port
-     * @param event    the triggering event
-     * @param language the reply language
-     * @param source   the trigger source
+     * @param client the outbound port
+     * @param event  the triggering event
+     * @param source the trigger source
+     * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
-    public void chat(BotClient client, BotEvent event, Language language, AiSource source) {
-        if (event instanceof GroupEvent e) {
-            run(client, ChatIds.ofGroup(e.groupId()), e.groupId(), ChatType.GROUP, language, event, source);
-        } else if (event instanceof PrivateEvent e) {
-            run(client, ChatIds.ofPrivate(e.userId()), e.userId(), ChatType.PRIVATE, language, event, source);
-        }
+    public boolean chat(BotClient client, BotEvent event, AiSource source) {
+        return switch (event) {
+            case GroupEvent e -> run(client, event, source, ChatType.GROUP, e.groupId());
+            case PrivateEvent e -> run(client, event, source, ChatType.PRIVATE, e.userId());
+            default -> throw new ChatException("Unsupported event: " + event.getClass().getSimpleName());
+        };
     }
 
     // ════ Core ════════════════════
@@ -83,23 +81,23 @@ public class ChatPipeline {
      * 执行一次会话：校验注入、组装上下文，锁定会话后调用模型并写回回复。
      * <p>Runs one conversation: checks injection, builds the context, then locks the chat to invoke the model and store the reply.</p>
      *
-     * @param client    the outbound port
-     * @param chatId    chat identifier
-     * @param targetId  group or user platform id
-     * @param chatType  the chat type
-     * @param language  the reply language
-     * @param event     the triggering event
-     * @param aiSource  the trigger source
+     * @param client   the outbound port
+     * @param event    the triggering event
+     * @param aiSource the trigger source
+     * @param chatType the chat type
+     * @param targetId group or user platform id
+     * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
-    private void run(BotClient client, String chatId, String targetId,
-                     ChatType chatType, Language language, BotEvent event, AiSource aiSource) {
+    private boolean run(BotClient client, BotEvent event, AiSource aiSource,
+                        ChatType chatType, String targetId) {
+        String chatId = switch (chatType) {
+            case GROUP -> ChatIds.ofGroup(targetId);
+            case PRIVATE -> ChatIds.ofPrivate(targetId);
+        };
         Profile profile = profile(chatType, targetId);
         if (event instanceof MsgEvent e && profile.guard() && chatGuard.check(e.content().text())) {
-            MsgContent refusal = MsgContent.of(Text.AI_GUARD_REFUSED.of(language));
-            if (chatType == ChatType.GROUP) client.sendGroupMsg(targetId, refusal);
-            else client.sendPrivateMsg(targetId, refusal);
             log.info("Injection blocked: chat={}", chatId);
-            return;
+            return false;
         }
         String prompt = chatPrompt.system(event, aiSource, profile.prompt());
         AgentOptions options = options(profile.effort());
@@ -108,14 +106,15 @@ public class ChatPipeline {
         ReentrantLock lock = getLock(chatId);
         lock.lock();
         try {
-            ModelRes reply = agentClient.invoke(ctx, memory.get(chatId), prompt, options);
-            record(chatType, targetId, event.userId(), aiSource, reply.getUsage());
-            if (ctx.hasFinalSent()) return;
-            String content = ChatText.compact(reply.getContent());
-            ctx.deliver(MsgContent.of(content), content, List.of(), reply.getReasoning(), true);
+            ModelRes res = agentClient.invoke(ctx, memory.get(chatId), prompt, options);
+            record(chatType, targetId, event.userId(), aiSource, res.getUsage());
+            if (ctx.hasFinalSent()) return true;
+            String content = ChatText.compact(res.getContent());
+            ctx.deliver(MsgContent.of(content), content, List.of(), res.getReasoning(), true);
         } finally {
             lock.unlock();
         }
+        return true;
     }
 
     // ════ Helpers ═════════════════
@@ -168,11 +167,11 @@ public class ChatPipeline {
      * 记录一次 AI 回合的用量，失败时不影响对话。
      * <p>Records one AI turn usage; failures do not affect the conversation.</p>
      *
-     * @param chatType  the chat type
-     * @param targetId  group or user platform id
-     * @param userId    the triggering user platform id
-     * @param source    the trigger source
-     * @param usage     the token usage, nullable
+     * @param chatType the chat type
+     * @param targetId group or user platform id
+     * @param userId   the triggering user platform id
+     * @param source   the trigger source
+     * @param usage    the token usage, nullable
      */
     private void record(ChatType chatType, String targetId, String userId,
                         AiSource source, TokenUsage usage) {

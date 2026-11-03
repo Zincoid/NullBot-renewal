@@ -22,13 +22,13 @@ public interface CmdUsageMapper extends BaseMapper<CmdUsage> {
      *
      * @param time     the statistics date
      * @param chatType the chat type
-     * @param chatId   raw group or user platform id
+     * @param targetId raw group or user platform id
      * @param userId   the operator platform user id
      * @param cmd      the command name
      */
     void increase(@Param("time") LocalDate time,
                   @Param("chatType") ChatType chatType,
-                  @Param("chatId") String chatId,
+                  @Param("targetId") String targetId,
                   @Param("userId") String userId,
                   @Param("cmd") String cmd);
 
@@ -69,7 +69,7 @@ public interface CmdUsageMapper extends BaseMapper<CmdUsage> {
     @Select("""
             SELECT COALESCE(SUM(`count`), 0) AS `total`,
                    COUNT(DISTINCT `user_id`) AS `users`,
-                   COUNT(DISTINCT CASE WHEN `chat_type` = 0 THEN `chat_id` END) AS `groups`
+                   COUNT(DISTINCT CASE WHEN `chat_type` = 0 THEN `target_id` END) AS `groups`
             FROM `cmd_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             """)
@@ -123,11 +123,11 @@ public interface CmdUsageMapper extends BaseMapper<CmdUsage> {
      * @return the group ranking rows
      */
     @Select("""
-            SELECT `chat_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
+            SELECT `target_id` AS `name`, COALESCE(SUM(`count`), 0) AS `count`
             FROM `cmd_usage`
             WHERE `chat_type` = 0
               AND `time` BETWEEN #{start} AND #{end}
-            GROUP BY `chat_id`
+            GROUP BY `target_id`
             ORDER BY `count` DESC, `name`
             LIMIT #{limit}
             """)

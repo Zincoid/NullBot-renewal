@@ -28,7 +28,7 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
      *
      * @param time         the statistics date
      * @param chatType     the chat type
-     * @param chatId       raw group or user platform id
+     * @param targetId     raw group or user platform id
      * @param userId       triggering platform user id
      * @param source       the trigger source
      * @param inputTokens  the input token count, nullable
@@ -36,7 +36,7 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
      */
     void increase(@Param("time") LocalDate time,
                   @Param("chatType") ChatType chatType,
-                  @Param("chatId") String chatId,
+                  @Param("targetId") String targetId,
                   @Param("userId") String userId,
                   @Param("source") AiSource source,
                   @Param("inputTokens") Integer inputTokens,
@@ -55,7 +55,7 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
                    COALESCE(SUM(`input_tokens`), 0) AS `inputTokens`,
                    COALESCE(SUM(`output_tokens`), 0) AS `outputTokens`,
                    COUNT(DISTINCT `user_id`) AS `users`,
-                   COUNT(DISTINCT CASE WHEN `chat_type` = 0 THEN `chat_id` END) AS `groups`
+                   COUNT(DISTINCT CASE WHEN `chat_type` = 0 THEN `target_id` END) AS `groups`
             FROM `ai_usage`
             WHERE `time` BETWEEN #{start} AND #{end}
             """)
@@ -125,14 +125,14 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
      * @return the group ranking rows
      */
     @Select("""
-            SELECT `chat_id` AS `key`,
+            SELECT `target_id` AS `key`,
                    COALESCE(SUM(`count`), 0) AS `count`,
                    COALESCE(SUM(`input_tokens`), 0) AS `inputTokens`,
                    COALESCE(SUM(`output_tokens`), 0) AS `outputTokens`
             FROM `ai_usage`
             WHERE `chat_type` = 0
               AND `time` BETWEEN #{start} AND #{end}
-            GROUP BY `chat_id`
+            GROUP BY `target_id`
             ORDER BY `count` DESC, `key`
             LIMIT #{limit}
             """)

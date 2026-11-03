@@ -131,20 +131,20 @@ CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATE            NOT NULL,              -- statistics date
     `chat_type`     TINYINT         NOT NULL,              -- 0 = group, 1 = private
-    `chat_id`       VARCHAR(64)     NOT NULL,              -- raw group id or user id
+    `target_id`     VARCHAR(64)     NOT NULL,              -- raw group id or user id
     `user_id`       VARCHAR(64)     NOT NULL,              -- operator user id
     `cmd`           VARCHAR(100)    NOT NULL,              -- command name
     `count`         BIGINT          NOT NULL DEFAULT 0     -- usage count
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_usage_key`
-    ON `cmd_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`);
+    ON `cmd_usage` (`time`, `chat_type`, `target_id`, `user_id`, `cmd`);
 
 -- 12. AI Usage
 CREATE TABLE IF NOT EXISTS `ai_usage` (
     `id`             INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`           DATE            NOT NULL,              -- statistics date
     `chat_type`      TINYINT         NOT NULL,              -- 0 = group, 1 = private
-    `chat_id`        VARCHAR(64)     NOT NULL,              -- raw group id or user id
+    `target_id`      VARCHAR(64)     NOT NULL,              -- raw group id or user id
     `user_id`        VARCHAR(64)     NOT NULL,              -- triggering user id
     `source`         TINYINT         NOT NULL,              -- 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke
     `count`          BIGINT          NOT NULL DEFAULT 0,    -- AI turn count
@@ -152,4 +152,4 @@ CREATE TABLE IF NOT EXISTS `ai_usage` (
     `output_tokens`  BIGINT          NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_ai_usage_key`
-    ON `ai_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `source`);
+    ON `ai_usage` (`time`, `chat_type`, `target_id`, `user_id`, `source`);

@@ -20,11 +20,11 @@ public interface CmdUsageService extends IService<CmdUsage> {
      * <p>Increases the command usage count by one.</p>
      *
      * @param chatType chat type
-     * @param chatId   raw group or user platform id
+     * @param targetId raw group or user platform id
      * @param userId   operator platform user id
      * @param cmd      command name
      */
-    void increase(ChatType chatType, String chatId, String userId, String cmd);
+    void increase(ChatType chatType, String targetId, String userId, String cmd);
 
     // ════ Stats ═══════════════════
 

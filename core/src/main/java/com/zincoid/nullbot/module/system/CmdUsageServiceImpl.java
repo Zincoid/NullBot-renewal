@@ -21,12 +21,12 @@ public class CmdUsageServiceImpl extends ServiceImpl<CmdUsageMapper, CmdUsage> i
     // ════ Increase ════════════════
 
     @Override
-    public void increase(ChatType chatType, String chatId, String userId, String cmd) {
+    public void increase(ChatType chatType, String targetId, String userId, String cmd) {
         if (chatType == null) throw new SystemException("Missing key: chatType");
-        if (chatId == null || chatId.isBlank()) throw new SystemException("Missing key: chatId");
+        if (targetId == null || targetId.isBlank()) throw new SystemException("Missing key: targetId");
         if (userId == null || userId.isBlank()) throw new SystemException("Missing key: userId");
         if (cmd == null || cmd.isBlank()) throw new SystemException("Missing key: cmd");
-        baseMapper.increase(LocalDate.now(), chatType, chatId, userId, cmd);
+        baseMapper.increase(LocalDate.now(), chatType, targetId, userId, cmd);
     }
 
     // ════ Stats ═══════════════════

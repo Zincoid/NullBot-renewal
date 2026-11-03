@@ -12,6 +12,14 @@
 
 - 指向机器人的戳一戳改由消息入库中间件记录，与普通消息一致：即使 AI 关闭或触发被限速也会写入会话历史，可在 `#History` 与后续 AI 上下文中看到；群内用户之间的戳一戳和机器人自身的戳一戳不记录。
 - AI 聊天内部整理：戳一戳记录移出 `ChatPipeline`，发送与历史写入统一走 `ChatContext.deliver`，系统提示词组装移至 `ChatPrompt`。
+- `ai_usage` / `cmd_usage` 的 `chat_id` 列重命名为 `target_id`（存的是原始群 / 用户 ID，与聊天层的 `g:` / `p:` 会话键区分）。升级旧库需执行：
+
+  ```sql
+  ALTER TABLE `ai_usage` RENAME COLUMN `chat_id` TO `target_id`;
+  ALTER TABLE `cmd_usage` RENAME COLUMN `chat_id` TO `target_id`;
+  ```
+
+  MySQL 8+ 与 SQLite 3.25+ 支持该语法。
 
 ### Fixed
 

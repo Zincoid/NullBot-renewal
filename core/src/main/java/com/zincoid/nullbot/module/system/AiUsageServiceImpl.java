@@ -21,13 +21,13 @@ public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> impl
     // ════ Increase ════════════════
 
     @Override
-    public void increase(ChatType chatType, String chatId, String userId, AiSource source,
+    public void increase(ChatType chatType, String targetId, String userId, AiSource source,
                          Integer inputTokens, Integer outputTokens) {
         if (chatType == null) throw new SystemException("Missing key: chatType");
-        if (chatId == null || chatId.isBlank()) throw new SystemException("Missing key: chatId");
+        if (targetId == null || targetId.isBlank()) throw new SystemException("Missing key: targetId");
         if (userId == null || userId.isBlank()) throw new SystemException("Missing key: userId");
         if (source == null) throw new SystemException("Missing key: source");
-        baseMapper.increase(LocalDate.now(), chatType, chatId, userId,
+        baseMapper.increase(LocalDate.now(), chatType, targetId, userId,
                 source, inputTokens, outputTokens);
     }
 

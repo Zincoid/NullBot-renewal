@@ -69,10 +69,11 @@ public class ChatMiddleware implements Middleware {
         Language language = language(event);
         try {
             if (!isAllowed(event) || isLimited(client, event, language)) return;
-            chatPipeline.chat(client, event, language, source);
+            if (!chatPipeline.chat(client, event, source))
+                send(client, event, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
         } catch (RuntimeException e) {
             log.error("AI handling failed: {}", e.getMessage(), e);
-            sendError(client, event, language, e);
+            send(client, event, MsgContent.of(Text.CMD_ERROR.of(language, e.getMessage())));
         } finally {
             chain.consume();
         }
@@ -166,16 +167,14 @@ public class ChatMiddleware implements Middleware {
     }
 
     /**
-     * 向触发会话发送 AI 错误提示。
-     * <p>Sends an AI error notice to the triggering chat.</p>
+     * 按事件类型发送消息。
+     * <p>Sends a message according to the event type.</p>
      *
-     * @param client   the outbound port
-     * @param event    the triggering event
-     * @param language the reply language
-     * @param error    the failure
+     * @param client  the outbound port
+     * @param event   the triggering event
+     * @param content the message content
      */
-    private static void sendError(BotClient client, BotEvent event, Language language, RuntimeException error) {
-        MsgContent content = MsgContent.of(Text.CMD_ERROR.of(language, error.getMessage()));
+    private static void send(BotClient client, BotEvent event, MsgContent content) {
         if (event instanceof GroupEvent e) client.sendGroupMsg(e.groupId(), content);
         else client.sendPrivateMsg(event.userId(), content);
     }

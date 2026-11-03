@@ -25,15 +25,15 @@ public class UsageHandler implements CmdHandler {
         String cmd = ctx.cmd().name();
         MsgEvent event = ctx.event();
         ChatType chatType;
-        String chatId;
+        String targetId;
         if (event instanceof GroupEvent e) {
             chatType = ChatType.GROUP;
-            chatId = e.groupId();
+            targetId = e.groupId();
         } else {
             chatType = ChatType.PRIVATE;
-            chatId = event.userId();
+            targetId = event.userId();
         }
-        cmdUsageService.increase(chatType, chatId, event.userId(), cmd);
+        cmdUsageService.increase(chatType, targetId, event.userId(), cmd);
         chain.doHandle(ctx);
     }
 }

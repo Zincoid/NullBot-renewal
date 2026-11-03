@@ -4,14 +4,14 @@
 
     <!-- databaseId 由 DatabaseIdProvider 选择。 -->
     <insert id="increase" databaseId="mysql">
-        INSERT INTO `cmd_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`, `count`)
-        VALUES (#{time}, #{chatType}, #{chatId}, #{userId}, #{cmd}, 1)
+        INSERT INTO `cmd_usage` (`time`, `chat_type`, `target_id`, `user_id`, `cmd`, `count`)
+        VALUES (#{time}, #{chatType}, #{targetId}, #{userId}, #{cmd}, 1)
         ON DUPLICATE KEY UPDATE `count` = `count` + 1
     </insert>
 
     <insert id="increase" databaseId="sqlite">
-        INSERT INTO `cmd_usage` (`time`, `chat_type`, `chat_id`, `user_id`, `cmd`, `count`)
-        VALUES (#{time}, #{chatType}, #{chatId}, #{userId}, #{cmd}, 1)
-        ON CONFLICT(`time`, `chat_type`, `chat_id`, `user_id`, `cmd`) DO UPDATE SET `count` = `count` + 1
+        INSERT INTO `cmd_usage` (`time`, `chat_type`, `target_id`, `user_id`, `cmd`, `count`)
+        VALUES (#{time}, #{chatType}, #{targetId}, #{userId}, #{cmd}, 1)
+        ON CONFLICT(`time`, `chat_type`, `target_id`, `user_id`, `cmd`) DO UPDATE SET `count` = `count` + 1
     </insert>
 </mapper>

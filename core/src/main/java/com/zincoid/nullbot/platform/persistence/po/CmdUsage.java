@@ -26,7 +26,7 @@ public class CmdUsage {
     private Long id;
     private LocalDate time;
     private ChatType chatType;
-    private String chatId;
+    private String targetId;
     private String userId;
     private String cmd;
     private Long count;
