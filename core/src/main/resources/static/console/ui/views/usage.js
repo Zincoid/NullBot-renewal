@@ -141,11 +141,16 @@ function aiTriggerLabel(key) {
 }
 
 function aiRankLabel(rank) {
-    return t('usage.aiRank', {
-        count: formatNumber(rank.count),
-        input: compactNumber(rank.inputTokens),
-        output: compactNumber(rank.outputTokens)
-    });
+    return `<span>${escapeHtml(t('usage.aiRank', {count: formatNumber(rank.count)}))}</span>`
+        + aiRankTokens('input', rank.inputTokens)
+        + aiRankTokens('output', rank.outputTokens);
+}
+
+function aiRankTokens(kind, value) {
+    const label = t(kind === 'input' ? 'usage.aiInputShort' : 'usage.aiOutputShort');
+    const text = compactNumber(value);
+    return `<span class="rank-token ico-${kind}" title="${escapeHtml(`${label} ${text}`)}">`
+        + `${escapeHtml(text)}</span>`;
 }
 
 function aiCallsSvg(days) {
@@ -333,11 +338,11 @@ function renderRanks(element, ranks, empty, label, value) {
         return;
     }
     const max = Math.max(1, ...ranks.map(rank => Number(rank.count) || 0));
-    const count = value || (rank => String(Number(rank.count) || 0));
+    const count = value || (rank => escapeHtml(String(Number(rank.count) || 0)));
     element.innerHTML = ranks.map((rank, index) => `
         <div class="rank-row">
             <span><span class="rank-index">${index + 1}</span>${escapeHtml(label(rank))}</span>
-            <span class="rank-count">${escapeHtml(count(rank))}</span>
+            <span class="rank-count">${count(rank)}</span>
             <div class="rank-bar"><span style="width:${(Number(rank.count) || 0) / max * 100}%"></span></div>
         </div>`).join('');
 }

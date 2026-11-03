@@ -212,11 +212,40 @@
 }
 
 .rank-count {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
     color: var(--color-text-heading);
     font-family: var(--font-mono);
     font-size: 11px;
-    text-align: right;
     white-space: nowrap;
+}
+
+.rank-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.rank-token::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}
+
+.rank-token.ico-input::before {
+    background-color: var(--color-warning);
+}
+
+.rank-token.ico-output::before {
+    background-color: var(--color-success);
 }
 
 .rank-bar {
