@@ -22,14 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 把消息事件记录进会话窗口，并落盘其中媒体附件的中间件。
- * <p>Middleware that records message events into the chat window, storing their media attachments.</p>
+ * 历史中间件：把消息事件记录进会话窗口，并落盘其中媒体附件。
+ * <p>History middleware: records message events into the chat window, storing their media attachments.</p>
  */
 @Slf4j
 @Order(0)
 @Component
 @RequiredArgsConstructor
-public class MessageStoreMiddleware implements Middleware {
+public class HistoryMiddleware implements Middleware {
 
     private final MessageWindowStore messageWindowStore;
     private final FileService fileService;

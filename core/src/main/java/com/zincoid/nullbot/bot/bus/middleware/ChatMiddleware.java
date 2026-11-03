@@ -28,14 +28,14 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * AI 对话中间件：把群 @、私聊、戳一戳和自动聊天转为 AI 对话。
- * <p>AI chat middleware: turns group mentions, private messages, pokes, and auto chat into AI conversations.</p>
+ * 对话中间件：把群 @、私聊、戳一戳和自动聊天转为 AI 对话。
+ * <p>Chat middleware: turns group mentions, private messages, pokes, and auto chat into AI conversations.</p>
  */
 @Slf4j
 @Order(3)
 @Component
 @RequiredArgsConstructor
-public class AiChatMiddleware implements Middleware {
+public class ChatMiddleware implements Middleware {
 
     private static final String LIMIT_KEY = "AI";
 

@@ -20,14 +20,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * 防撤回中间件：按群设置重发被撤回的消息及其图片。
- * <p>Anti-recall middleware: resends recalled group messages and their images according to the group settings.</p>
+ * 撤回中间件：按群设置重发被撤回的消息及其图片。
+ * <p>Recall middleware: resends recalled group messages and their images according to the group settings.</p>
  */
 @Slf4j
 @Order(5)
 @Component
 @RequiredArgsConstructor
-public class AntiRecallMiddleware implements Middleware {
+public class RecallMiddleware implements Middleware {
 
     private final GroupSettingService groupSettingService;
     private final LanguageService languageService;

@@ -15,14 +15,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * 成员通知中间件：按群设置发送入群欢迎与退群提示。
- * <p>Member notice middleware: sends join welcomes and leave notices according to the group settings.</p>
+ * 通知中间件：按群设置发送入群欢迎与退群提示。
+ * <p>Notice middleware: sends join welcomes and leave notices according to the group settings.</p>
  */
 @Slf4j
 @Order(4)
 @Component
 @RequiredArgsConstructor
-public class MemberNoticeMiddleware implements Middleware {
+public class NoticeMiddleware implements Middleware {
 
     private final GroupSettingService groupSettingService;
     private final LanguageService languageService;

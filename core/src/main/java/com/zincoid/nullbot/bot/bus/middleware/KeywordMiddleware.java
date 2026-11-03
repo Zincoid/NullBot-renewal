@@ -17,14 +17,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 关键词触发中间件：按群规则把包含关键词的消息合成指令派发，事件不消费。
- * <p>Keyword trigger middleware: dispatches commands synthesized from keyword rules, without consuming the event.</p>
+ * 关键词中间件：按群规则把包含关键词的消息合成指令派发，事件不消费。
+ * <p>Keyword middleware: dispatches commands synthesized from keyword rules, without consuming the event.</p>
  */
 @Slf4j
 @Order(2)
 @Component
 @RequiredArgsConstructor
-public class KeywordTriggerMiddleware implements Middleware {
+public class KeywordMiddleware implements Middleware {
 
     private final GroupKeywordService groupKeywordService;
     private final CmdDispatcher cmdDispatcher;
