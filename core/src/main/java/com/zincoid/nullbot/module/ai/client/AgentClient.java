@@ -6,7 +6,6 @@ import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.TokenUsage;
-import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
@@ -37,30 +36,28 @@ public class AgentClient {
      * 发起一次对话。
      * <p>Runs one conversation.</p>
      *
+     * @param ctx     the tool context
      * @param history the conversation history
      * @param prompt  the system prompt, may be blank
-     * @param effort  the reasoning effort
-     * @param ctx     the tool context
      * @param options the agent options
      * @return the final model response
      */
-    public ModelRes invoke(List<AiMessage> history, String prompt, Effort effort, ToolContext ctx,
+    public ModelRes invoke(ToolContext ctx, List<AiMessage> history, String prompt,
                            AgentOptions options) {
         int maxTcs = options.maxToolRounds();
-        int maxTokens = options.maxTokens();
         List<AiMessage> work = new ArrayList<>();
         if (prompt != null && !prompt.isBlank())
             work.add(AiMessage.system(prompt));
         work.addAll(history);
-        TokenUsage usage = null;
         if (maxTcs <= 0)
-            return replyFinal(work, effort, maxTokens, usage);
+            return conclude(work, options, null);
+        TokenUsage usage = null;
         for (int i = 0; i < maxTcs; i++) {
             ModelRes res = model.invoke(ModelReq.of(
                     work,
                     toolRegistry.getAll(),
-                    effort,
-                    maxTokens
+                    options.effort(),
+                    options.maxTokens()
             ));
             usage = TokenUsage.plus(usage, res.getUsage());
             if (!res.hasTcs()) return requireContent(res).withUsage(usage);
@@ -70,7 +67,8 @@ public class AgentClient {
             List<AiMessage> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
                 ToolRes tr = runTool(tc, ctx);
-                String content = tr.error() ? "Error: " + tr.text() : tr.text();
+                String content = tr.error()
+                        ? "Error: " + tr.text() : tr.text();
                 work.add(AiMessage.tool(tc.getId(), content));
                 if (tr.images().isEmpty()) continue;
                 images.add(AiMessage.user(
@@ -91,13 +89,15 @@ public class AgentClient {
                 Please provide the final answer based on the available information.
                 Do not call any more tools!!!"""
         ));
-        return replyFinal(work, effort, maxTokens, usage);
+        return conclude(work, options, usage);
     }
 
     // ════ Helpers ═════════════════
 
-    private ModelRes replyFinal(List<AiMessage> work, Effort effort, int maxTokens, TokenUsage usage) {
-        ModelRes res = requireContent(model.invoke(ModelReq.of(work, effort, maxTokens)));
+    private ModelRes conclude(List<AiMessage> work, AgentOptions options,
+                              TokenUsage usage) {
+        ModelRes res = requireContent(model.invoke(ModelReq.of(
+                work, options.effort(), options.maxTokens())));
         return res.withUsage(TokenUsage.plus(usage, res.getUsage()));
     }
 
@@ -123,7 +123,8 @@ public class AgentClient {
 
     private static String summary(ToolRes res) {
         String text = res.text() == null ? "" : res.text();
-        if (text.length() > 200) text = text.substring(0, 200) + "...";
-        return res.images().isEmpty() ? text : text + " (+" + res.images().size() + " image(s))";
+        if (text.length() > 200) text = "%s...".formatted(text.substring(0, 200));
+        return res.images().isEmpty()
+                ? text : "%s (+%d image(s))".formatted(text, res.images().size());
     }
 }

@@ -19,8 +19,10 @@ import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.util.MimeUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,32 +34,32 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>Chat tool context: sends text and media (images, videos, audio) to the current chat and runs bot commands.</p>
  *
  * @param client        the outbound port
+ * @param chatType      the chat type
  * @param targetId      group or user platform id
- * @param group         whether the target is a group
+ * @param chatId        chat identifier
  * @param event         the triggering event
+ * @param finalSent     whether a final message has been sent through the send tool
  * @param cmdDispatcher the command dispatcher
  * @param fileService   the file service
  * @param configService the config service
  * @param memory        the chat memory
- * @param chatId        chat identifier
- * @param selfName      the bot nickname
- * @param finalSent     whether a final message has been sent through the send tool
  */
+@Slf4j
 public record ChatContext(
         BotClient client,
+        ChatType chatType,
         String targetId,
-        boolean group,
+        String chatId,
         BotEvent event,
+        AtomicBoolean finalSent,
         CmdDispatcher cmdDispatcher,
         FileService fileService,
         ConfigService configService,
-        Memory memory,
-        String chatId,
-        String selfName,
-        AtomicBoolean finalSent
+        Memory memory
 ) implements ToolContext {
 
     private static final int MAX_MUTE_MINUTES = 30 * 24 * 60;
+    private static final String SELF_NAME = "NullBot";
 
     // ════ Send ════════════════════
 
@@ -70,8 +72,8 @@ public record ChatContext(
     public ToolRes send(String text, List<Long> fileIds, String replyId, boolean last) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
-        List<String> recordedFiles = new ArrayList<>();
-        List<String> recordedMedia = new ArrayList<>();
+        List<String> files = new ArrayList<>();
+        List<String> media = new ArrayList<>();
         if (!compact.isBlank())
             builder.text(compact);
         for (Long id : fileIds) {
@@ -79,25 +81,34 @@ public record ChatContext(
             if (file == null) continue;
             String kind = attach(builder, file);
             if (kind == null) continue;
-            recordedFiles.add(String.valueOf(id));
-            recordedMedia.add(kind + ", file id=" + id);
+            files.add(String.valueOf(id));
+            media.add(kind + ", file id=" + id);
         }
-        if (compact.isBlank() && recordedFiles.isEmpty())
+        if (compact.isBlank() && files.isEmpty())
             return ToolRes.error("No valid media: " + fileIds);
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);
-        MsgContent content = builder.build();
-        String messageId = group
-                ? client.sendGroupMsg(targetId, content)
-                : client.sendPrivateMsg(targetId, content);
-        if (messageId != null && !messageId.isBlank()) {
-            if (last) finalSent.set(true);
-            memory.add(chatId, messageId, event.selfId(), selfName,
-                    AiMessage.assistant(annotate(compact, recordedMedia)), recordedFiles);
-        }
+        MsgContent message = builder.build();
+        String content = annotate(compact, media);
+        String messageId = deliver(message, content, files, null, last);
         return ToolRes.of(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
+    }
+
+    public String deliver(MsgContent message, String content, List<String> files,
+                          String reasoning, boolean last) {
+        String messageId = chatType == ChatType.GROUP
+                ? client.sendGroupMsg(targetId, message)
+                : client.sendPrivateMsg(targetId, message);
+        if (last) finalSent.set(true);
+        if (messageId == null || messageId.isBlank()) {
+            log.warn("Missing message id after send: chat={}", chatId);
+            return messageId;
+        }
+        memory.add(chatId, messageId, event.selfId(), SELF_NAME,
+                AiMessage.assistant(content).withReasoning(reasoning), files);
+        return messageId;
     }
 
     private String attach(MsgContent.Builder builder, File file) {
@@ -130,9 +141,12 @@ public record ChatContext(
 
     @Override
     public ToolRes mute(String userId, int minutes) {
-        if (!group) return ToolRes.error("Mute is only available in group chats");
-        if (userId == null || userId.isBlank()) return ToolRes.error("Missing user");
-        if (userId.equals(event.selfId())) return ToolRes.error("Cannot mute the bot");
+        if (chatType != ChatType.GROUP)
+            return ToolRes.error("Mute is only available in group chats");
+        if (userId == null || userId.isBlank())
+            return ToolRes.error("Missing user");
+        if (userId.equals(event.selfId()))
+            return ToolRes.error("Cannot mute the bot");
         if (minutes < 0 || minutes > MAX_MUTE_MINUTES)
             return ToolRes.error("Invalid minutes: " + minutes);
         client.mute(targetId, userId, minutes * 60);
@@ -156,7 +170,8 @@ public record ChatContext(
     @Override
     public ToolRes cmd(String name, List<String> params) {
         MsgEvent cmdEvent = cmdEvent();
-        if (cmdEvent == null) return ToolRes.error("Command not available for this event");
+        if (cmdEvent == null)
+            return ToolRes.error("Command not available for this event");
         boolean checkAccess = configService.getBool(Conf.AI_CMD_ACCESS_CHECK);
         cmdDispatcher.dispatch(client, cmdEvent, new CmdRequest(name, params), checkAccess);
         return ToolRes.of("Command executed: " + name);
@@ -165,7 +180,7 @@ public record ChatContext(
     private MsgEvent cmdEvent() {
         if (event instanceof MsgEvent e) return e;
         if (!(event instanceof PokeEvent)) return null;
-        String messageId = "poke-" + UUID.randomUUID();
+        String messageId = UUID.randomUUID().toString();
         String nickname = BotClients.userName(client, event.userId());
         MsgContent content = MsgContent.of("");
         if (event instanceof GroupPokeEvent e)

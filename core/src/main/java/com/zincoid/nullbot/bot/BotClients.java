@@ -25,10 +25,6 @@ public final class BotClients {
         return name(groupId, () -> client.getGroupInfo(groupId).name());
     }
 
-    public static String selfName(BotClient client, String selfId) {
-        return name(selfId, () -> client.getLoginInfo().nickname());
-    }
-
     // ════ Helpers ═════════════════
 
     private static String name(String id, Supplier<String> query) {

@@ -3,8 +3,11 @@ package com.zincoid.nullbot.bot.bus.middleware;
 import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
+import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.file.FileService;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 历史中间件：把消息事件记录进会话窗口，并落盘其中媒体附件。
@@ -37,8 +41,8 @@ public class HistoryMiddleware implements Middleware {
     // ════ Handle ══════════════════
 
     /**
-     * 记录消息事件并保存其中的媒体附件，事件继续传递。
-     * <p>Records message events and stores their media attachments, then passes the event on.</p>
+     * 记录消息与戳一戳事件并保存消息中的媒体附件，事件继续传递。
+     * <p>Records message and poke events, stores message media attachments, then passes the event on.</p>
      *
      * @param client the outbound port
      * @param event  the inbound event
@@ -46,10 +50,13 @@ public class HistoryMiddleware implements Middleware {
      */
     @Override
     public void handle(BotClient client, BotEvent event, MiddlewareChain chain) {
-        if (event instanceof GroupMsgEvent e) {
-            record(client, ChatIds.ofGroup(e.groupId()), e);
-        } else if (event instanceof PrivateMsgEvent e) {
-            record(client, ChatIds.ofPrivate(e.userId()), e);
+        switch (event) {
+            case GroupMsgEvent e -> recordMsg(client, ChatIds.ofGroup(e.groupId()), e);
+            case PrivateMsgEvent e -> recordMsg(client, ChatIds.ofPrivate(e.userId()), e);
+            case GroupPokeEvent e -> recordPoke(client, ChatIds.ofGroup(e.groupId()), e);
+            case PrivatePokeEvent e -> recordPoke(client, ChatIds.ofPrivate(e.userId()), e);
+            default -> {
+            }
         }
         chain.doHandle(client, event);
     }
@@ -57,14 +64,15 @@ public class HistoryMiddleware implements Middleware {
     // ════ Helpers ═════════════════
 
     /**
-     * 记录事件消息并落盘其中的媒体附件。
-     * <p>Records the event message and stores its media attachments.</p>
+     * 记录事件消息并落盘其中的媒体附件；跳过机器人自身的消息回显。
+     * <p>Records the event message and stores its media attachments, skipping echoes of the bot's own messages.</p>
      *
      * @param client the outbound port
      * @param chatId chat identifier
      * @param event  the message event
      */
-    private void record(BotClient client, String chatId, MsgEvent event) {
+    private void recordMsg(BotClient client, String chatId, MsgEvent event) {
+        if (event.selfId().equals(event.userId())) return;
         StringBuilder content = new StringBuilder();
         List<String> files = new ArrayList<>();
         for (MsgSegment segment : event.content().segments()) {
@@ -77,7 +85,7 @@ public class HistoryMiddleware implements Middleware {
                 }  // Only save image files to local
                 case MsgSegment.Video _ -> content.append("[Video]");
                 case MsgSegment.Voice _ -> content.append("[Voice]");
-                case MsgSegment.At s -> content.append(at(client, event.selfId(), s.userId()));
+                case MsgSegment.At s -> content.append(atText(client, event.selfId(), s.userId()));
                 case MsgSegment.Reply s -> content.append("[Reply id=").append(s.messageId()).append("]");
                 case MsgSegment.Face s -> content.append("[Face id=").append(s.id()).append("]");
                 case MsgSegment.Raw s -> content.append("[Unsupported type=").append(s.type()).append("]");
@@ -92,6 +100,26 @@ public class HistoryMiddleware implements Middleware {
     }
 
     /**
+     * 记录发向机器人的戳一戳。
+     * <p>Records a poke aimed at the bot.</p>
+     *
+     * @param client the outbound port
+     * @param chatId chat identifier
+     * @param event  the poke event
+     */
+    private void recordPoke(BotClient client, String chatId, PokeEvent event) {
+        if (!event.selfId().equals(event.targetId())) return;
+        if (event.selfId().equals(event.userId())) return;
+        String nickname = BotClients.userName(client, event.userId());
+        if (nickname == null || nickname.isBlank()) nickname = event.userId();
+        messageWindowStore.add(
+                chatId, UUID.randomUUID().toString(),
+                event.userId(), MessageRole.USER, nickname,
+                "[Rubbed you]", null, List.of()
+        );
+    }
+
+    /**
      * 渲染提及段，昵称查询失败时回退为 ID。
      * <p>Renders a mention segment, falling back to the id when the nickname lookup fails.</p>
      *
@@ -100,7 +128,7 @@ public class HistoryMiddleware implements Middleware {
      * @param userId the mentioned platform user id
      * @return the rendered mention
      */
-    private static String at(BotClient client, String selfId, String userId) {
+    private static String atText(BotClient client, String selfId, String userId) {
         if (userId.equals(selfId)) return "@you";
         return "@" + BotClients.userName(client, userId) + "(" + userId + ")";
     }
