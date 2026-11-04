@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `file` (
     `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
     `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'File description',
     `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
-    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMAGE_COLLECTION, 1=VIDEO_COLLECTION, 2=AUDIO_COLLECTION, 3=CHAT, 4=MEME',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=CHAT, 4=MEME',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),

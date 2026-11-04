@@ -1,10 +1,9 @@
-package com.zincoid.nullbot.bot.cmd.impl.quote;
+package com.zincoid.nullbot.bot.cmd.impl.content;
 
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -18,14 +17,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * 随机语录指令。
- * <p>Random quote command.</p>
+ * 随机语录指令：随机发送一条语录。
+ * <p>Random quote command: sends a random quote.</p>
  */
 @Slf4j
-@CmdMapping({"QuoteRand", "quote", "quot", "随机语录", "语录"})
+@CmdMapping({"Quote", "quot", "语录"})
 @Component
 @RequiredArgsConstructor
-public class QuoteRandCmd implements Cmd {
+public class QuoteCmd implements Cmd {
 
     private final QuoteService quoteService;
 
@@ -50,8 +49,8 @@ public class QuoteRandCmd implements Cmd {
                 ? quoteService.random()
                 : quoteService.random(userId);
         if (quote == null)
-            throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
-        ctx.send(QuoteText.format(quote));
+            throw ctx.info(Text.NO_QUOTES);
+        ctx.send(quoteService.format(quote));
         log.info("Quote sent: {}", quote.getId());
     }
 
@@ -65,28 +64,15 @@ public class QuoteRandCmd implements Cmd {
     @Override
     public String getHelp(Language language) {
         return language == Language.EN ? """
-                QuoteRand
+                Quote
                 Sends a random quote.
-                Usage: QuoteRand [user id | @user]
-                Aliases: quote/quot/随机语录/语录
+                Usage: Quote [user id | @user]
+                Aliases: quot/语录
                 Access: >=-1(restricted)""" : """
-                QuoteRand
+                Quote
                 随机发送一条语录。
-                用法：QuoteRand [user id | @user]
-                别名：quote/quot/随机语录/语录
+                用法：Quote [user id | @user]
+                别名：quot/语录
                 权限：>=-1(restricted)""";
-    }
-
-    @Override
-    public String getAiHelp() {
-        return """
-                QuoteRand
-                Sends a random quote.
-                Usage: QuoteRand [user id]""";
-    }
-
-    @Override
-    public boolean isAiCallable() {
-        return true;
     }
 }

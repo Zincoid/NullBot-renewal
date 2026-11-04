@@ -6,12 +6,19 @@
 
 ### Added
 
+- 新增 `#Get` / `#Delete`：使用 `Get <img|aud|vid|quot> <id>` / `Delete <img|aud|vid|quot> <id>` 按类型与 ID 获取或删除收藏。
+- 新增 `#Image` / `#Audio` / `#Video` / `#Quote` 随机发送命令，替代原 `ImageRand`、`AudioRand`、`VideoRand`、`QuoteRand`。
 - AI `send` 工具新增 `last` 参数：标记为最终消息后不再额外发送 final 回复，一次触发内仍可多次调用 `send` 发送多条消息或媒体。
 
 ### Changed
 
+- `#Save` 改为只保存被引用的消息，移除 `-i` / `--id` 选项。
+- 媒体与语录指令改为按操作统一：保存使用 `#Save`，获取 / 删除使用 `#Get` / `#Delete`，随机使用 `#Image` / `#Audio` / `#Video` / `#Quote`。原 `ImageSave` / `ImageGet` / `ImageDel`、`AudioSave` / …、`VideoSave` / …、`QuoteSave` / `QuoteGet` / `QuoteDel` 命令移除，引用这些命令的关键词规则需要更新；用量与禁用记录也改用新命令名。
+- `#GroupSet` 更名为 `#Setting`（别名改为 `设置`）；引用旧命令名的关键词与禁用规则需要更新。
 - 指向机器人的戳一戳改由消息入库中间件记录，与普通消息一致：即使 AI 关闭或触发被限速也会写入会话历史，可在 `#History` 与后续 AI 上下文中看到；群内用户之间的戳一戳和机器人自身的戳一戳不记录。
 - AI 聊天内部整理：戳一戳记录移出 `ChatPipeline`，发送与历史写入统一走 `ChatContext.deliver`，系统提示词组装移至 `ChatPrompt`。
+- 内置指令不再通过 `call` 工具暴露给 AI，仅保留 `Help`；图片、音频、视频的发送改由现有 `search` + `send` 工具完成，AI 不再能保存收藏或发送语录。
+- `BizType` 的媒体类型常量简化为 `IMAGE` / `VIDEO` / `AUDIO`，控制台文件类型文案同步改为“图片 / 视频 / 音频”；AI `search` 工具的 `type` 枚举相应变为 `image` / `video` / `audio`，旧值 `image_collection` 等不再接受。
 - 控制台 AI 排行右侧的输入 / 输出词元改用与统计卡片一致的图标显示，缩短行宽，窄窗口下名称不再被挤换行。
 - `ai_usage` / `cmd_usage` 的 `chat_id` 列重命名为 `target_id`（存的是原始群 / 用户 ID，与聊天层的 `g:` / `p:` 会话键区分）。升级旧库需执行：
 
@@ -22,8 +29,13 @@
 
   MySQL 8+ 与 SQLite 3.25+ 支持该语法。
 
+### Removed
+
+- 移除 `#Ping` 与 `#Mute` 指令；AI 的 `mute` 工具不受影响。
+
 ### Fixed
 
+- `adapter-qq` 解析 QQ 引用消息（`message_type=103`、`message_scene.ext`、`msg_elements`），为入站消息补上引用段并缓存被引用消息；`#Save`、AI `read` 等可在 QQ 上使用引用内容。
 - 机器人自身的消息回显不再作为用户消息写入会话历史。
 - AI `send` 工具发送的中间消息现在写入会话记录并带上所发文件 ID，可在 `#History` 与后续 AI 上下文中看到；附件以 `(sent image, file id=...)` 形式记录，不再使用 `[Image]` 等占位标记，避免诱导模型输出这些标记。
 - 消息窗口裁剪只删除会话自己保存的聊天附件，且不再被其他消息引用时才删除；机器人发送的图库等文件不会被连带删除。

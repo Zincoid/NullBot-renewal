@@ -65,6 +65,19 @@ public class QqMessageIndex {
     }
 
     /**
+     * 记录一条被引用消息的详情，覆盖可能已有的同索引条目。
+     * <p>Records the detail of a quoted message, replacing any existing entry with the same index.</p>
+     *
+     * @param actualId the quote index or platform message id
+     * @param target   the target conversation
+     * @param detail   the quoted message detail
+     */
+    public void rememberQuoted(String actualId, QqTarget target, MsgDetail detail) {
+        String shortId = QqIds.shortId(actualId);
+        entries.put(shortId, new MessageEntry(shortId, actualId, target, detail));
+    }
+
+    /**
      * 记录一条出站消息并返回短 ID。
      * <p>Records an outbound message and returns its short id.</p>
      *

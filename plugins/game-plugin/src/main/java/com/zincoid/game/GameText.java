@@ -12,21 +12,6 @@ public enum GameText {
 
     // ════ Guess ═══════════════════
 
-    GUESS_HELP("""
-            Guess
-            多人猜图。
-            用法：Guess [关键词]
-            选项：-f/--forfeit  放弃游戏
-            说明：按分类或角色名精确随机抽取图片并发送裁剪图；回答格式为 %s答案，发送 %s%s 放弃。
-            别名：猜
-            权限：>=0(normal)""", """
-            Guess
-            Plays a multiplayer image-guessing game.
-            Usage: Guess [keyword]
-            Options: -f/--forfeit  forfeit the game
-            Notes: picks a random image by exact category or character name and sends a cropped part; answer with "%sanswer" or give up with "%s%s".
-            Aliases: 猜
-            Access: >=0(normal)"""),
     GUESS_START("✨猜图题目如下！", "✨Guess the image!"),
     GUESS_HINT("注: 请发送\"%s答案\"，发送\"%s%s\"放弃",
             "Note: send \"%sanswer\"; send \"%s%s\" to give up."),
@@ -42,17 +27,6 @@ public enum GameText {
 
     // ════ Quiz ════════════════════
 
-    QUIZ_HELP("""
-            Quiz
-            开始一轮单人问答。
-            用法：Quiz [topic]
-            别名：问答
-            权限：>=0(normal)""", """
-            Quiz
-            Starts a single-player quiz.
-            Usage: Quiz [topic]
-            Aliases: 问答
-            Access: >=0(normal)"""),
     QUIZ_ALREADY_IN_GAME("你已经在问答中了", "You are already in a quiz"),
     QUIZ_GENERATING("⏳ 正在生成问题...", "⏳ Generating question..."),
     QUIZ_QUESTION("""
@@ -77,23 +51,6 @@ public enum GameText {
 
     // ════ Wife ════════════════════
 
-    WIFE_HELP("""
-            Wife
-            今日老婆。
-            用法：Wife [关键词]
-            选项：-m/--member=<用户ID>  指定群友老婆（需 manager）
-                  -a/--anime=<关键词>  指定二次元老婆（需 manager）
-            说明：无参数随机群友；带关键词按分类或角色名精确匹配。
-            别名：今日老婆
-            权限：>=0(normal)""", """
-            Wife
-            Picks today's wife.
-            Usage: Wife [keyword]
-            Options: -m/--member=<user id> picks a group member (manager)
-                     -a/--anime=<keyword> picks an anime wife (manager)
-            Notes: no argument picks a random group member; a keyword exactly matches a category or character name.
-            Aliases: 今日老婆
-            Access: >=0(normal)"""),
     WIFE_MEMBER_ALREADY("\n今天已经选过了哦💦...\n你的群友老婆是\n%s(%s)",
             "\nAlready picked today💦...\nYour group wife is\n%s(%s)"),
     WIFE_MEMBER_PICKED("\n你的今日群友老婆是✨\n%s(%s)",

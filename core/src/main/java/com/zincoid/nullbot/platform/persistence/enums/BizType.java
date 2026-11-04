@@ -12,9 +12,9 @@ import lombok.Getter;
 @Getter
 public enum BizType {
 
-    IMAGE_COLLECTION(0, "image_collection"),
-    VIDEO_COLLECTION(1, "video_collection"),
-    AUDIO_COLLECTION(2, "audio_collection"),
+    IMAGE(0, "image"),
+    VIDEO(1, "video"),
+    AUDIO(2, "audio"),
     CHAT(3, "chat"),
     MEME(4, "meme");
 

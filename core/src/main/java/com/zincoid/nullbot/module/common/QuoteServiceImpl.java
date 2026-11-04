@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 /**
  * {@link QuoteService} 的默认实现。
@@ -18,6 +20,10 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 @Service
 public class QuoteServiceImpl extends ServiceImpl<QuoteMapper, Quote> implements QuoteService {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final Pattern PATTERN = Pattern.compile(
+            "^\\[\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}]\\[No\\.\\d+][\\s\\S]*");
 
     // ════ Add ═════════════════════
 
@@ -66,6 +72,25 @@ public class QuoteServiceImpl extends ServiceImpl<QuoteMapper, Quote> implements
                 .eq(Quote::getUserId, userId)
                 .last("LIMIT 1 OFFSET " + offset)
                 .one();
+    }
+
+    // ════ Page ════════════════════
+
+    // ════ Format ══════════════════
+
+    @Override
+    public String format(Quote quote) {
+        String time = quote.getTime() == null ? "" : quote.getTime().format(FORMATTER);
+        return """
+                [%s][No.%d]
+                %s
+                \t—— %s(%s)""".formatted(
+                time, quote.getId(), quote.getText(), quote.getNickname(), quote.getUserId());
+    }
+
+    @Override
+    public boolean isFormatted(String text) {
+        return PATTERN.matcher(text).matches();
     }
 
     // ════ Page ════════════════════

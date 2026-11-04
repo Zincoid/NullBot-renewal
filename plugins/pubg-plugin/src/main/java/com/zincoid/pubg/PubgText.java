@@ -10,22 +10,6 @@ import java.util.Locale;
  */
 public enum PubgText {
 
-    HELP("""
-            PUBG
-            发送 PUBG 资源地图。
-            用法：PUBG <地图>
-            地图：艾伦格/米拉玛/维寒迪/帝斯顿/荣都/泰戈
-            首字母：alg/mlm/whd/dsd/rd/tg
-            别名：吃鸡地图
-            权限：>=0(normal)""", """
-            PUBG
-            Sends a PUBG resource map.
-            Usage: PUBG <map>
-            Maps: 艾伦格/米拉玛/维寒迪/帝斯顿/荣都/泰戈
-            Initials: alg/mlm/whd/dsd/rd/tg
-            Aliases: 吃鸡地图
-            Access: >=0(normal)"""),
-
     AVAILABLE_MAPS("可用地图：%s", "Available maps: %s"),
     UNSUPPORTED_MAP("暂不支持该地图：%s", "Unsupported map: %s");
 

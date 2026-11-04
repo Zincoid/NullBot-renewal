@@ -52,6 +52,26 @@ public interface QuoteService extends IService<Quote> {
      */
     Quote random(String userId);
 
+    // ════ Format ══════════════════
+
+    /**
+     * 格式化一条语录。
+     * <p>Formats one quote.</p>
+     *
+     * @param quote the quote
+     * @return the formatted text
+     */
+    String format(Quote quote);
+
+    /**
+     * 判断文本是否已是语录格式。
+     * <p>Whether the text already has the quote format.</p>
+     *
+     * @param text the text
+     * @return true when already formatted as a quote
+     */
+    boolean isFormatted(String text);
+
     // ════ Page ════════════════════
 
     /**

@@ -1,11 +1,9 @@
 package com.zincoid.hello.cmd;
 
-import com.zincoid.hello.HelloText;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -47,16 +45,10 @@ public class HelloCmd implements Cmd {
     // ════ Image ═══════════════════
 
     private void send(CmdContext ctx) {
-        byte[] png;
-        try {
-            png = context.renderer().template("hello.jte", Map.of(
-                    "title", "Hello from plugin!",
-                    "subtitle", pluginId + " " + version
-            ));
-        } catch (RuntimeException e) {
-            log.warn("Hello image render failed", e);
-            throw new CmdWarnException(HelloText.IMAGE_FAILED.of(ctx.language()), e);
-        }
+        byte[] png = context.renderer().template("hello.jte", Map.of(
+                "title", "Hello from plugin!",
+                "subtitle", pluginId + " " + version
+        ));
         ctx.send(MsgContent.builder()
                 .imageBase64(png)
                 .build());
@@ -67,6 +59,16 @@ public class HelloCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return HelloText.HELP.of(language);
+        return language == Language.EN ? """
+                Hello
+                Sends a hello message, or an image card with --image.
+                Usage: Hello [--image|-i]
+                Aliases: 你好
+                Access: >=0(normal)""" : """
+                Hello
+                发送示例消息；使用 --image 输出图片卡片。
+                用法：Hello [--image|-i]
+                别名：你好
+                权限：>=0(normal)""";
     }
 }

@@ -188,6 +188,41 @@ public class GddlCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return GdText.GDDL_HELP.of(language);
+        return language == Language.EN ? """
+                GDDL
+                GDDL user B20 rating lookup and account binding.
+
+                Usage:
+                  GDDL bind <GDDL username|id>
+                  GDDL unbind
+                  GDDL b20 [GDDL username|id] [--all]
+
+                Options:
+                  --all, -a       show the full B20 list
+
+                Access: >=0(normal)
+                Notes: b20 without a username shows the bound account's B20.
+                       GDDL bindings are stored in the plugin data directory; each chat user can bind one account and must unbind before changing it.
+                       B20 = average of the best 20 rt values, where
+                       rt = rating^E × (progress/100)^1.5 and E defaults to 1.5.
+                       rating is the raw decimal GDDL rating. Set score.tier-exponent=2 in the plugin config to use squared ratings.
+                       User scores only count GDDL submissions (beaten/beating).""" : """
+                GDDL
+                GDDL 用户 B20 评分查询与账号绑定。
+
+                用法：
+                  GDDL bind <GDDL用户名|ID>
+                  GDDL unbind
+                  GDDL b20 [GDDL用户名|ID] [--all]
+
+                选项：
+                  --all, -a       显示完整 B20 列表
+
+                权限：>=0(normal)
+                说明：b20 不带用户名时查看当前绑定账号的 B20。
+                      GDDL 绑定保存在插件数据目录；每个聊天用户只能绑定一个账号，更换需先解绑。
+                      B20 = 取 rt = rating^E × (进度/100)^1.5 最高的 20 条求平均；
+                      rating 使用 GDDL 原始小数评分；E 默认 1.5，可在插件配置中将 score.tier-exponent 设为 2 使用平方。
+                      用户评分仅统计 GDDL 提交记录（beaten/beating），未提交的关卡不计入。""";
     }
 }

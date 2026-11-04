@@ -20,7 +20,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_GROUP_MSG));
+        throw ctx.warn(Text.CMD_UNSUPPORTED_GROUP_MSG);
     }
 
     /**
@@ -32,7 +32,7 @@ public interface Cmd {
      * @param args  the parsed arguments
      */
     default void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.CMD_UNSUPPORTED_PRIVATE_MSG));
+        throw ctx.warn(Text.CMD_UNSUPPORTED_PRIVATE_MSG);
     }
 
     /**

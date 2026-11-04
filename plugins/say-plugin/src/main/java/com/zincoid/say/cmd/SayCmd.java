@@ -3,9 +3,7 @@ package com.zincoid.say.cmd;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
@@ -16,7 +14,6 @@ import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.render.image.ImageData;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
-import com.zincoid.say.SayText;
 import com.zincoid.say.render.QuoteCard;
 import com.zincoid.say.service.SayHttp;
 import lombok.RequiredArgsConstructor;
@@ -49,13 +46,7 @@ public class SayCmd implements Cmd {
     private void handle(CmdContext ctx, MsgContent content, CmdArgs args) {
         Quote quote = quote(ctx, content, args);
         String avatar = avatar(ctx, quote.getUserId());
-        byte[] png;
-        try {
-            png = QuoteCard.render(context.renderer(), quote, avatar);
-        } catch (RuntimeException e) {
-            log.warn("Say image render failed: quote={}", quote.getId(), e);
-            throw new CmdWarnException(SayText.RENDER_FAILED.of(ctx.language()), e);
-        }
+        byte[] png = QuoteCard.render(context.renderer(), quote, avatar);
         ctx.send(MsgContent.builder().imageBase64(png).build());
         log.info("Say sent: quote={}", quote.getId());
     }
@@ -66,7 +57,7 @@ public class SayCmd implements Cmd {
         if (args.hasOpt("id", "i")) {
             long id = quoteId(ctx, args);
             Quote quote = context.quotes().getById(id);
-            if (quote == null) throw new CmdInfoException(ctx.render(Text.QUOTE_NOT_FOUND, id));
+            if (quote == null) throw ctx.info(Text.QUOTE_NOT_FOUND, id);
             return quote;
         }
         String userId = content.atIds().stream().findFirst().orElse(null);
@@ -74,18 +65,18 @@ public class SayCmd implements Cmd {
         Quote quote = userId == null
                 ? context.quotes().random()
                 : context.quotes().random(userId);
-        if (quote == null) throw new CmdInfoException(ctx.render(Text.NO_QUOTES));
+        if (quote == null) throw ctx.info(Text.NO_QUOTES);
         return quote;
     }
 
     private static long quoteId(CmdContext ctx, CmdArgs args) {
         String value = args.getOpt("id", "i", "");
         if ("true".equals(value)) value = args.next("");
-        if (value.isBlank()) throw new CmdWarnException(ctx.render(Text.ARG_MISSING));
+        if (value.isBlank()) throw ctx.warn(Text.ARG_MISSING);
         try {
             return Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED), e);
+        } catch (NumberFormatException ignored) {
+            throw ctx.warn(Text.ARG_MALFORMED);
         }
     }
 
@@ -107,6 +98,18 @@ public class SayCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return SayText.HELP.of(language);
+        return language == Language.EN ? """
+                Say
+                Renders a random quote card.
+                Usage: Say [user id | @user]
+                       Say [--id=<quote id> | -i=<quote id>]
+                Aliases: 说
+                Access: >=0(normal)""" : """
+                Say
+                随机渲染一条语录卡片。
+                用法：Say [用户ID | @用户]
+                      Say [--id=语录ID | -i=语录ID]
+                别名：说
+                权限：>=0(normal)""";
     }
 }

@@ -22,13 +22,13 @@ import org.springframework.stereotype.Component;
 import java.util.Locale;
 
 /**
- * 群设置指令：查看或修改当前群的通知、限速与 AI 设置。
- * <p>Group setting command: views or updates the current group's notice, rate-limit, and AI settings.</p>
+ * 设置指令：查看或修改当前会话的通知、限速与 AI 设置。
+ * <p>Setting command: views or updates the current chat's notice, rate-limit, and AI settings.</p>
  */
-@CmdMapping({"GroupSet", "群设置"})
+@CmdMapping({"Setting", "设置"})
 @Component
 @RequiredArgsConstructor
-public class GroupSetCmd implements Cmd {
+public class SettingCmd implements Cmd {
 
     private final GroupSettingService groupSettingService;
     private final GroupRateLimiter groupRateLimiter;
@@ -63,7 +63,7 @@ public class GroupSetCmd implements Cmd {
             ctx.send(view(ctx, groupId));
             return;
         }
-        throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_OPTION));
+        throw ctx.warn(Text.SETTING_UNKNOWN_OPTION);
     }
 
     // ════ Update ══════════════════
@@ -76,33 +76,33 @@ public class GroupSetCmd implements Cmd {
             case "enabled" -> {
                 boolean enabled = bool(ctx, args.next());
                 update.setLimitEnabled(enabled);
-                message = ctx.render(Text.GROUPSET_LIMIT_ENABLED, enabled);
+                message = ctx.render(Text.SETTING_LIMIT_ENABLED, enabled);
             }
             case "scope" -> {
                 LimitScope scope = scope(ctx, args.next());
                 update.setLimitScope(scope);
-                message = ctx.render(Text.GROUPSET_LIMIT_SCOPE, scope.getLabel());
+                message = ctx.render(Text.SETTING_LIMIT_SCOPE, scope.getLabel());
             }
             case "capacity" -> {
                 int value = positive(ctx, args.nextInt());
                 update.setLimitCapacity(value);
-                message = ctx.render(Text.GROUPSET_LIMIT_CAPACITY, value);
+                message = ctx.render(Text.SETTING_LIMIT_CAPACITY, value);
             }
             case "refill" -> {
                 int value = positive(ctx, args.nextInt());
                 update.setLimitRefill(value);
-                message = ctx.render(Text.GROUPSET_LIMIT_REFILL, value);
+                message = ctx.render(Text.SETTING_LIMIT_REFILL, value);
             }
             case "interval" -> {
                 int value = positive(ctx, args.nextInt());
                 update.setLimitInterval(value);
-                message = ctx.render(Text.GROUPSET_LIMIT_INTERVAL, value);
+                message = ctx.render(Text.SETTING_LIMIT_INTERVAL, value);
             }
-            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_LIMIT, name));
+            default -> throw ctx.warn(Text.SETTING_UNKNOWN_LIMIT, name);
         }
         save(update);
         groupRateLimiter.reset(groupId);
-        ctx.send(Text.GROUPSET_UPDATED, message);
+        ctx.send(Text.SETTING_UPDATED, message);
     }
 
     private void updateAi(CmdContext ctx, String groupId, CmdArgs args) {
@@ -113,34 +113,34 @@ public class GroupSetCmd implements Cmd {
             case "effort" -> {
                 Effort effort = effort(ctx, args.next());
                 update.setAiEffort(effort);
-                message = ctx.render(Text.GROUPSET_AI_EFFORT, effort.getLabel());
+                message = ctx.render(Text.SETTING_AI_EFFORT, effort.getLabel());
             }
             case "prompt" -> {
                 String text = args.rest("").trim();
-                if (text.isEmpty()) throw new CmdWarnException(ctx.render(Text.GROUPSET_MISSING_PROMPT));
+                if (text.isEmpty()) throw ctx.warn(Text.SETTING_AI_PROMPT_MISSING);
                 boolean reset = "reset".equalsIgnoreCase(text);
                 update.setAiPrompt(reset ? "" : text);
-                message = ctx.render(reset ? Text.GROUPSET_AI_PROMPT_RESET : Text.GROUPSET_AI_PROMPT_UPDATED);
+                message = ctx.render(reset ? Text.SETTING_AI_PROMPT_RESET : Text.SETTING_AI_PROMPT_UPDATED);
             }
             case "guard" -> {
                 boolean enabled = bool(ctx, args.next());
                 update.setAiInjectionGuard(enabled);
-                message = ctx.render(Text.GROUPSET_AI_GUARD, enabled);
+                message = ctx.render(Text.SETTING_AI_GUARD, enabled);
             }
             case "auto" -> {
                 boolean enabled = bool(ctx, args.next());
                 update.setAiAutoChatEnabled(enabled);
-                message = ctx.render(Text.GROUPSET_AI_AUTO_CHAT, enabled);
+                message = ctx.render(Text.SETTING_AI_AUTO_CHAT, enabled);
             }
             case "frequency" -> {
                 double value = frequency(ctx, args.nextDouble());
                 update.setAiChatFrequency(value);
-                message = ctx.render(Text.GROUPSET_AI_CHAT_FREQUENCY, value);
+                message = ctx.render(Text.SETTING_AI_CHAT_FREQUENCY, value);
             }
-            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_AI, name));
+            default -> throw ctx.warn(Text.SETTING_UNKNOWN_AI, name);
         }
         save(update);
-        ctx.send(Text.GROUPSET_UPDATED, message);
+        ctx.send(Text.SETTING_UPDATED, message);
     }
 
     private void updateLanguage(CmdContext ctx, String groupId, CmdArgs args) {
@@ -148,9 +148,9 @@ public class GroupSetCmd implements Cmd {
         if (raw.isEmpty() || "true".equals(raw)) raw = args.next();
         Language language = Language.fromLabel(raw);
         if (language == null)
-            throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_LANGUAGE, raw));
+            throw ctx.warn(Text.SETTING_UNKNOWN_LANGUAGE, raw);
         save(GroupSetting.builder().groupId(groupId).language(language).build());
-        ctx.send(Text.GROUPSET_UPDATED, ctx.render(Text.GROUPSET_LANGUAGE, language.getLabel()));
+        ctx.send(Text.SETTING_UPDATED, ctx.render(Text.SETTING_LANGUAGE, language.getLabel()));
     }
 
     private void updateNotice(CmdContext ctx, String groupId, CmdArgs args) {
@@ -161,22 +161,22 @@ public class GroupSetCmd implements Cmd {
         switch (name) {
             case "join" -> {
                 update.setJoinNoticeEnabled(enabled);
-                message = Text.GROUPSET_NOTICE_JOIN;
+                message = Text.SETTING_NOTICE_JOIN;
             }
             case "leave" -> {
                 update.setLeaveNoticeEnabled(enabled);
-                message = Text.GROUPSET_NOTICE_LEAVE;
+                message = Text.SETTING_NOTICE_LEAVE;
             }
-            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_NOTICE, name));
+            default -> throw ctx.warn(Text.SETTING_UNKNOWN_NOTICE, name);
         }
         save(update);
-        ctx.send(Text.GROUPSET_UPDATED, ctx.render(message, enabled));
+        ctx.send(Text.SETTING_UPDATED, ctx.render(message, enabled));
     }
 
     private void updateAntiRecall(CmdContext ctx, String groupId, CmdArgs args) {
         boolean enabled = bool(ctx, args.next());
         save(GroupSetting.builder().groupId(groupId).antiRecallEnabled(enabled).build());
-        ctx.send(Text.GROUPSET_UPDATED, ctx.render(Text.GROUPSET_ANTI_RECALL, enabled));
+        ctx.send(Text.SETTING_UPDATED, ctx.render(Text.SETTING_ANTI_RECALL, enabled));
     }
 
     // ════ View ════════════════════
@@ -185,12 +185,12 @@ public class GroupSetCmd implements Cmd {
         GroupSetting setting = groupSettingService.get(groupId);
         Language language = setting.getLanguage();
         String languageText = language == Language.AUTO
-                ? ctx.render(Text.GROUPSET_LANG_AUTO, languageService.defaultLanguage().getLabel())
+                ? ctx.render(Text.SETTING_LANG_AUTO, languageService.defaultLanguage().getLabel())
                 : language.getLabel();
         String prompt = setting.getAiPrompt() == null || setting.getAiPrompt().isBlank()
-                ? ctx.render(Text.GROUPSET_DEFAULT)
+                ? ctx.render(Text.SETTING_DEFAULT)
                 : setting.getAiPrompt();
-        return ctx.render(Text.GROUPSET_VIEW,
+        return ctx.render(Text.SETTING_VIEW,
                 groupId, languageText,
                 setting.getJoinNoticeEnabled(), setting.getLeaveNoticeEnabled(),
                 setting.getAntiRecallEnabled(),
@@ -214,32 +214,32 @@ public class GroupSetCmd implements Cmd {
         return switch (raw.toLowerCase(Locale.ROOT)) {
             case "on", "true", "1" -> true;
             case "off", "false", "0" -> false;
-            default -> throw new CmdWarnException(ctx.render(Text.GROUPSET_MALFORMED_BOOLEAN, raw));
+            default -> throw ctx.warn(Text.SETTING_MALFORMED_BOOLEAN, raw);
         };
     }
 
     private static int positive(CmdContext ctx, int value) {
-        if (value <= 0) throw new CmdWarnException(ctx.render(Text.GROUPSET_VALUE_POSITIVE, value));
+        if (value <= 0) throw ctx.warn(Text.SETTING_POSITIVE_VALUE, value);
         return value;
     }
 
     private static double frequency(CmdContext ctx, double value) {
         if (!Double.isFinite(value) || value < 0 || value > 1)
-            throw new CmdWarnException(ctx.render(Text.GROUPSET_VALUE_FREQUENCY, value));
+            throw ctx.warn(Text.SETTING_FREQUENCY_RANGE, value);
         return value;
     }
 
     private static LimitScope scope(CmdContext ctx, String raw) {
         LimitScope scope = LimitScope.fromLabel(raw);
         if (scope == null)
-            throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_SCOPE, raw));
+            throw ctx.warn(Text.SETTING_UNKNOWN_SCOPE, raw);
         return scope;
     }
 
     private static Effort effort(CmdContext ctx, String raw) {
         Effort effort = Effort.fromLabel(raw);
         if (effort == null)
-            throw new CmdWarnException(ctx.render(Text.GROUPSET_UNKNOWN_EFFORT, raw));
+            throw ctx.warn(Text.SETTING_UNKNOWN_EFFORT, raw);
         return effort;
     }
 
@@ -253,29 +253,29 @@ public class GroupSetCmd implements Cmd {
     @Override
     public String getHelp(Language language) {
         return language == Language.EN ? """
-                GroupSet
-                Views or updates the current group's settings.
-                Usage: GroupSet [-v|--view]
-                       GroupSet -l|--limit <enabled|scope|capacity|refill|interval> [value]
-                       GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
-                       GroupSet -g|--lang <auto|zh|en>
-                       GroupSet -n|--notice <join|leave> <on|off>
-                       GroupSet -r|--anti-recall <on|off>
+                Setting
+                Views or updates the current chat's settings.
+                Usage: Setting [-v|--view]
+                       Setting -l|--limit <enabled|scope|capacity|refill|interval> [value]
+                       Setting -a|--ai <effort|prompt|guard|auto|frequency> [value]
+                       Setting -g|--lang <auto|zh|en>
+                       Setting -n|--notice <join|leave> <on|off>
+                       Setting -r|--anti-recall <on|off>
                 Values: scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
-                Note: "GroupSet ai prompt reset" clears the group prompt; "auto" follows the global default_language.
-                Aliases: 群设置
+                Note: "Setting ai prompt reset" clears the current chat prompt; "auto" follows the global default_language.
+                Aliases: 设置
                 Access: >=1(manager)""" : """
-                GroupSet
-                查看或修改当前群的设置。
-                用法：GroupSet [-v|--view]
-                      GroupSet -l|--limit <enabled|scope|capacity|refill|interval> [value]
-                      GroupSet -a|--ai <effort|prompt|guard|auto|frequency> [value]
-                      GroupSet -g|--lang <auto|zh|en>
-                      GroupSet -n|--notice <join|leave> <on|off>
-                      GroupSet -r|--anti-recall <on|off>
+                Setting
+                查看或修改当前会话的设置。
+                用法：Setting [-v|--view]
+                      Setting -l|--limit <enabled|scope|capacity|refill|interval> [value]
+                      Setting -a|--ai <effort|prompt|guard|auto|frequency> [value]
+                      Setting -g|--lang <auto|zh|en>
+                      Setting -n|--notice <join|leave> <on|off>
+                      Setting -r|--anti-recall <on|off>
                 取值：scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
-                说明："GroupSet ai prompt reset" 清空群提示词；"auto" 跟随全局 default_language。
-                别名：群设置
+                说明："Setting ai prompt reset" 清空当前会话提示词；"auto" 跟随全局 default_language。
+                别名：设置
                 权限：>=1(manager)""";
     }
 }

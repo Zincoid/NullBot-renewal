@@ -134,6 +134,16 @@ public class QuizCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return GameText.QUIZ_HELP.of(language);
+        return language == Language.EN ? """
+                Quiz
+                Starts a single-player quiz.
+                Usage: Quiz [topic]
+                Aliases: 问答
+                Access: >=0(normal)""" : """
+                Quiz
+                开始一轮单人问答。
+                用法：Quiz [topic]
+                别名：问答
+                权限：>=0(normal)""";
     }
 }

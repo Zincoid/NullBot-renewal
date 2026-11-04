@@ -229,6 +229,20 @@ public class GuessCmd implements Cmd {
     @Override
     public String getHelp(Language language) {
         String prefix = context.config().getString(Conf.CMD_PREFIX);
-        return GameText.GUESS_HELP.of(language, prefix, prefix, prefix);
+        return (language == Language.EN ? """
+                Guess
+                Plays a multiplayer image-guessing game.
+                Usage: Guess [keyword]
+                Options: -f/--forfeit  forfeit the game
+                Notes: picks a random image by exact category or character name and sends a cropped part; answer with "%sanswer" or give up with "%s%s".
+                Aliases: 猜
+                Access: >=0(normal)""" : """
+                Guess
+                多人猜图。
+                用法：Guess [关键词]
+                选项：-f/--forfeit  放弃游戏
+                说明：按分类或角色名精确随机抽取图片并发送裁剪图；回答格式为 %s答案，发送 %s%s 放弃。
+                别名：猜
+                权限：>=0(normal)""").formatted(prefix, prefix, prefix);
     }
 }

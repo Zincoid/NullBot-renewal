@@ -13,19 +13,15 @@ public enum Text {
     // ════ Common ═════════════════
 
     MISSING_REPLY("缺少回复", "Missing reply"),
-    MALFORMED_OPTION_ID("选项格式错误：id", "Malformed option: id"),
     UNSUPPORTED_CONTENT("不支持的内容", "Unsupported content"),
     NO_TEXT_CONTENT("没有文本内容", "No text content"),
     FILE_NOT_FOUND("文件不存在：%d", "File not found: %d"),
-    NOT_IMAGE("不是图片：%d", "Not an image: %d"),
-    NOT_VIDEO("不是视频：%d", "Not a video: %d"),
-    NOT_AUDIO("不是音频：%d", "Not audio: %d"),
+    UNKNOWN_TYPE("未知类型：%s（可选 img|aud|vid|quot）",
+            "Unknown type: %s (expected img|aud|vid|quot)"),
+    TYPE_MISMATCH("类型不匹配：%d", "Type mismatch: %d"),
     NO_IMAGES("没有图片", "No images"),
     NO_VIDEOS("没有视频", "No videos"),
     NO_AUDIOS("没有音频", "No audio"),
-    NO_IMAGES_IN_REPLY("回复中没有图片", "No images in reply"),
-    NO_VIDEOS_IN_REPLY("回复中没有视频", "No videos in reply"),
-    NO_AUDIOS_IN_REPLY("回复中没有音频", "No audio in reply"),
     QUOTE_NOT_FOUND("语录不存在：%d", "Quote not found: %d"),
     NO_QUOTES("没有语录", "No quotes"),
     QUOTE_ALREADY_SAVED("语录已保存", "Quote already saved"),
@@ -53,38 +49,6 @@ public enum Text {
     HELP_DETAIL("指令名 -H 查看详情", "Cmd -H for details"),
     CMD_WARN("⚠️ 警告：%s", "⚠️ Warn: %s"),
     CMD_ERROR("❌ 错误：%s", "❌ Error: %s"),
-
-    // ════ Info ═══════════════════
-
-    INFO("""
-            系统信息
-            应用：%s
-            作者：@Zincoid
-            版本：%s
-            构建时间：%s
-            Java：%s
-            Spring Boot：%s
-            运行时间：%s
-            系统：%s
-            当前时间：%s""", """
-            System info
-            Application: %s
-            Author: @Zincoid
-            Version: %s
-            Build time: %s
-            Java: %s
-            Spring Boot: %s
-            Uptime: %s
-            OS: %s
-            Current time: %s"""),
-
-    // ════ Usage ═════════════════
-
-    USAGE_AVATAR_FAILED("无法获取用户头像", "Failed to fetch the user avatar"),
-    USAGE_COUNT_FAILED("用量统计读取失败", "Failed to read usage statistics"),
-    USAGE_RENDER_FAILED("用量图片生成失败", "Failed to render the usage image"),
-    INFO_RENDER_FAILED("信息图片生成失败", "Failed to render the info image"),
-    HELP_RENDER_FAILED("帮助图片生成失败", "Failed to render the help image"),
 
     // ════ Unsupported events ═════
 
@@ -195,52 +159,52 @@ public enum Text {
     DISABLE_NOTICE_USER("🚫 你已被禁止使用该指令（%s）",
             "🚫 You are blocked from using this command (%s)"),
 
-    // ════ GroupSet ═══════════════
+    // ════ Setting ════════════════
 
-    GROUPSET_UNKNOWN_OPTION("未知选项", "Unknown option"),
-    GROUPSET_UNKNOWN_LIMIT("未知限速项：%s", "Unknown limit setting: %s"),
-    GROUPSET_UNKNOWN_AI("未知 AI 项：%s", "Unknown AI setting: %s"),
-    GROUPSET_MISSING_PROMPT("缺少提示词", "Missing prompt"),
-    GROUPSET_MALFORMED_BOOLEAN("布尔值格式错误：%s", "Malformed boolean: %s"),
-    GROUPSET_VALUE_POSITIVE("值必须为正数：%d", "Value must be positive: %d"),
-    GROUPSET_VALUE_FREQUENCY("频率必须在 0~1 之间：%s", "Frequency must be between 0 and 1: %s"),
-    GROUPSET_UNKNOWN_SCOPE("未知范围：%s", "Unknown scope: %s"),
-    GROUPSET_UNKNOWN_EFFORT("未知强度：%s", "Unknown effort: %s"),
-    GROUPSET_UNKNOWN_LANGUAGE("未知语言：%s（可选 auto|zh|en）", "Unknown language: %s (expected auto|zh|en)"),
-    GROUPSET_UPDATED("✅ 群设置已更新：%s", "✅ Group setting updated: %s"),
-    GROUPSET_LANGUAGE("language = %s", "language = %s"),
-    GROUPSET_NOTICE_JOIN("入群通知 = %s", "Join notice = %s"),
-    GROUPSET_NOTICE_LEAVE("退群通知 = %s", "Leave notice = %s"),
-    GROUPSET_UNKNOWN_NOTICE("未知通知项：%s", "Unknown notice setting: %s"),
-    GROUPSET_ANTI_RECALL("防撤回 = %s", "Anti-recall = %s"),
-    GROUPSET_LIMIT_ENABLED("限速启用 = %s", "limit enabled = %s"),
-    GROUPSET_LIMIT_SCOPE("限速范围 = %s", "limit scope = %s"),
-    GROUPSET_LIMIT_CAPACITY("限速容量 = %s", "limit capacity = %s"),
-    GROUPSET_LIMIT_REFILL("限速补充 = %s", "limit refill = %s"),
-    GROUPSET_LIMIT_INTERVAL("限速间隔 = %s", "limit interval = %s"),
-    GROUPSET_AI_EFFORT("AI 强度 = %s", "AI effort = %s"),
-    GROUPSET_AI_PROMPT_RESET("AI 提示词已重置为默认", "AI prompt reset to default"),
-    GROUPSET_AI_PROMPT_UPDATED("AI 提示词已更新", "AI prompt updated"),
-    GROUPSET_AI_GUARD("AI 防注入 = %s", "AI injection guard = %s"),
-    GROUPSET_AI_AUTO_CHAT("AI 自动回复 = %s", "AI auto reply = %s"),
-    GROUPSET_AI_CHAT_FREQUENCY("AI 自动回复频率 = %s", "AI auto reply frequency = %s"),
-    GROUPSET_VIEW("""
-            群设置：%s
+    SETTING_UNKNOWN_OPTION("未知选项", "Unknown option"),
+    SETTING_UNKNOWN_LIMIT("未知限速项：%s", "Unknown limit setting: %s"),
+    SETTING_UNKNOWN_AI("未知 AI 项：%s", "Unknown AI setting: %s"),
+    SETTING_MALFORMED_BOOLEAN("布尔值格式错误：%s", "Malformed boolean: %s"),
+    SETTING_POSITIVE_VALUE("值必须为正数：%d", "Value must be positive: %d"),
+    SETTING_FREQUENCY_RANGE("频率必须在 0~1 之间：%s", "Frequency must be between 0 and 1: %s"),
+    SETTING_UNKNOWN_SCOPE("未知范围：%s", "Unknown scope: %s"),
+    SETTING_UNKNOWN_EFFORT("未知强度：%s", "Unknown effort: %s"),
+    SETTING_UNKNOWN_LANGUAGE("未知语言：%s（可选 auto|zh|en）", "Unknown language: %s (expected auto|zh|en)"),
+    SETTING_UPDATED("✅ 设置已更新：%s", "✅ Setting updated: %s"),
+    SETTING_LANGUAGE("language = %s", "language = %s"),
+    SETTING_NOTICE_JOIN("入群通知 = %s", "Join notice = %s"),
+    SETTING_NOTICE_LEAVE("退群通知 = %s", "Leave notice = %s"),
+    SETTING_UNKNOWN_NOTICE("未知通知项：%s", "Unknown notice setting: %s"),
+    SETTING_ANTI_RECALL("防撤回 = %s", "Anti-recall = %s"),
+    SETTING_LIMIT_ENABLED("限速启用 = %s", "limit enabled = %s"),
+    SETTING_LIMIT_SCOPE("限速范围 = %s", "limit scope = %s"),
+    SETTING_LIMIT_CAPACITY("限速容量 = %s", "limit capacity = %s"),
+    SETTING_LIMIT_REFILL("限速补充 = %s", "limit refill = %s"),
+    SETTING_LIMIT_INTERVAL("限速间隔 = %s", "limit interval = %s"),
+    SETTING_AI_EFFORT("AI 强度 = %s", "AI effort = %s"),
+    SETTING_AI_PROMPT_MISSING("缺少提示词", "Missing prompt"),
+    SETTING_AI_PROMPT_RESET("AI 提示词已重置为默认", "AI prompt reset to default"),
+    SETTING_AI_PROMPT_UPDATED("AI 提示词已更新", "AI prompt updated"),
+    SETTING_AI_GUARD("AI 防注入 = %s", "AI injection guard = %s"),
+    SETTING_AI_AUTO_CHAT("AI 自动回复 = %s", "AI auto reply = %s"),
+    SETTING_AI_CHAT_FREQUENCY("AI 自动回复频率 = %s", "AI auto reply frequency = %s"),
+    SETTING_VIEW("""
+            【设置：%s】
             语言：%s
             通知：入群=%s, 退群=%s
             防撤回：%s
             限速：enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
             AI：effort=%s, guard=%s, auto=%s, frequency=%s
             提示词：%s""", """
-            Group settings: %s
+            [Settings: %s]
             Language: %s
             Notices: join=%s, leave=%s
             Anti-recall: %s
             Limit: enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
             AI: effort=%s, guard=%s, auto=%s, frequency=%s
             Prompt: %s"""),
-    GROUPSET_LANG_AUTO("auto（全局：%s）", "auto (global: %s)"),
-    GROUPSET_DEFAULT("（默认）", "(default)");
+    SETTING_LANG_AUTO("auto（全局：%s）", "auto (global: %s)"),
+    SETTING_DEFAULT("（默认）", "(default)");
 
     private final String zh;
     private final String en;

@@ -47,6 +47,30 @@ public record CmdContext(
     }
 
     /**
+     * 构造使用当前语言文案的告警异常。
+     * <p>Builds a warning exception with text in the current language.</p>
+     *
+     * @param text the text template
+     * @param args the format arguments
+     * @return the warning exception
+     */
+    public CmdWarnException warn(Text text, Object... args) {
+        return new CmdWarnException(render(text, args));
+    }
+
+    /**
+     * 构造使用当前语言文案的提示异常。
+     * <p>Builds an info exception with text in the current language.</p>
+     *
+     * @param text the text template
+     * @param args the format arguments
+     * @return the info exception
+     */
+    public CmdInfoException info(Text text, Object... args) {
+        return new CmdInfoException(render(text, args));
+    }
+
+    /**
      * 以纯文本发送到指令来源会话。
      * <p>Sends plain text to the chat the command came from.</p>
      *

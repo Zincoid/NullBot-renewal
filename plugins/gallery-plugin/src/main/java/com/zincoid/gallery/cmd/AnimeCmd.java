@@ -1,6 +1,5 @@
 package com.zincoid.gallery.cmd;
 
-import com.zincoid.gallery.GalleryText;
 import com.zincoid.gallery.service.GalleryResources;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -20,6 +19,16 @@ public class AnimeCmd extends GalleryCmd {
 
     @Override
     public String getHelp(Language language) {
-        return GalleryText.ANIME_HELP.of(language);
+        return language == Language.EN ? """
+                Anime
+                Sends a random anime image.
+                Usage: Anime
+                Aliases: 二次元
+                Access: >=0(normal)""" : """
+                Anime
+                随机发送一张二次元图片。
+                用法：Anime
+                别名：二次元
+                权限：>=0(normal)""";
     }
 }

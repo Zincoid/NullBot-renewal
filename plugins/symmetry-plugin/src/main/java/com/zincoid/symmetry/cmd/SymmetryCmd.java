@@ -262,6 +262,24 @@ public class SymmetryCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return SymmetryText.HELP.of(language);
+        return language == Language.EN ? """
+                Symmetry
+                Mirrors one half of an image onto the other side.
+                Usage:
+                1. [reply image] Symmetry [mode]
+                2. Symmetry [mode] [attached image]
+                3. Symmetry [mode] <QQ id | @user>
+                Mode: left/right/top/bottom (default left)
+                Aliases: 图像对称/对称
+                Access: >=0(normal)""" : """
+                Symmetry
+                将图片的一半镜像到另一侧。
+                用法：
+                1. [引用图片] Symmetry [方式]
+                2. Symmetry [方式] [附加图片]
+                3. Symmetry [方式] <QQ号 | @用户>
+                方式：左/右/上/下（默认左）
+                别名：图像对称/对称
+                权限：>=0(normal)""";
     }
 }

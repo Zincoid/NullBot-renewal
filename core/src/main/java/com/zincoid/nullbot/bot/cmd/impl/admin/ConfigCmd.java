@@ -91,14 +91,14 @@ public class ConfigCmd implements Cmd {
         for (Conf conf : Conf.values())
             if (conf.getKey().equalsIgnoreCase(raw) || conf.name().equalsIgnoreCase(raw))
                 return conf;
-        throw new CmdWarnException(ctx.render(Text.CONFIG_UNKNOWN_KEY, raw));
+        throw ctx.warn(Text.CONFIG_UNKNOWN_KEY, raw);
     }
 
     private static String validate(CmdContext ctx, Conf conf, String value) {
         if (conf != Conf.DEFAULT_LANGUAGE) return value;
         Language language = Language.fromLabel(value);
         if (language != Language.ZH && language != Language.EN)
-            throw new CmdWarnException(ctx.render(Text.CONFIG_INVALID_LANGUAGE, value));
+            throw ctx.warn(Text.CONFIG_INVALID_LANGUAGE, value);
         return language.getLabel();
     }
 

@@ -1,6 +1,5 @@
 package com.zincoid.gallery.cmd;
 
-import com.zincoid.gallery.GalleryText;
 import com.zincoid.gallery.service.GalleryResources;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
@@ -31,7 +30,15 @@ public class ZincoidCmd extends GalleryCmd {
 
     @Override
     public String getHelp(Language language) {
-        return GalleryText.ZINCOID_HELP.of(language);
+        return language == Language.EN ? """
+                Zincoid
+                Sends a random Zincoid's photo.
+                Usage: Zincoid/zn/锌
+                Access: >=2(admin)""" : """
+                Zincoid
+                随机发送一张 Zincoid 女装照片。
+                用法：Zincoid/zn/锌
+                权限：>=2(admin)""";
     }
 
     @Override

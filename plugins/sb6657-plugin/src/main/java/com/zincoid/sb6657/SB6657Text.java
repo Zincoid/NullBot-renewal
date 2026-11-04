@@ -10,18 +10,6 @@ import java.util.Locale;
  */
 public enum SB6657Text {
 
-    HELP("""
-            SB6657
-            随机发送一条玩机器烂梗。
-            用法：SB6657
-            别名：6657/玩机器/玩机器烂梗
-            权限：>=0(normal)""", """
-            SB6657
-            Sends a random 玩机器 meme.
-            Usage: SB6657
-            Aliases: 6657/玩机器/玩机器烂梗
-            Access: >=0(normal)"""),
-
     INTERRUPTED("请求被中断", "Request interrupted"),
     REQUEST_FAILED("接口请求失败", "API request failed");
 

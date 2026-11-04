@@ -4,13 +4,11 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.UserInfo;
 import com.zincoid.nullbot.module.http.HttpService;
-import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.render.RenderService;
 import com.zincoid.nullbot.module.system.CmdUsageService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
@@ -48,10 +46,11 @@ public class UsageCmd implements Cmd {
     }
 
     private void handle(CmdContext ctx, String userId) {
-        long total = total(ctx, userId);
+        long total = cmdUsageService.total(userId);
         UserInfo info = userInfo(ctx, userId);
-        byte[] avatar = avatar(info);
-        byte[] png = render(ctx, avatar, info.nickname(), userId, total);
+        byte[] avatar = info == null ? null : avatar(info);
+        String nickname = info == null ? null : info.nickname();
+        byte[] png = renderService.usage(avatar, nickname, userId, total);
         ctx.send(MsgContent.builder()
                 .imageBase64(png)
                 .build());
@@ -60,26 +59,12 @@ public class UsageCmd implements Cmd {
 
     // ════ Helpers ═════════════════
 
-    private long total(CmdContext ctx, String userId) {
-        try {
-            return cmdUsageService.total(userId);
-        } catch (RuntimeException e) {
-            log.warn("Usage count failed: user={}", userId, e);
-            throw new CmdWarnException(ctx.render(Text.USAGE_COUNT_FAILED), e);
-        }
-    }
-
     private UserInfo userInfo(CmdContext ctx, String userId) {
         try {
-            UserInfo info = ctx.client().getUserInfo(userId);
-            if (info == null)
-                throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED));
-            return info;
-        } catch (CmdWarnException e) {
-            throw e;
+            return ctx.client().getUserInfo(userId);
         } catch (RuntimeException e) {
             log.warn("Usage user info failed: user={}", userId, e);
-            throw new CmdWarnException(ctx.render(Text.USAGE_AVATAR_FAILED), e);
+            return null;
         }
     }
 
@@ -96,15 +81,6 @@ public class UsageCmd implements Cmd {
         } catch (RuntimeException e) {
             log.warn("Usage avatar failed: user={}", info.userId(), e);
             return null;
-        }
-    }
-
-    private byte[] render(CmdContext ctx, byte[] avatar, String nickname, String userId, long total) {
-        try {
-            return renderService.usage(avatar, nickname, userId, total);
-        } catch (RuntimeException e) {
-            log.warn("Usage render failed: count={}", total, e);
-            throw new CmdWarnException(ctx.render(Text.USAGE_RENDER_FAILED), e);
         }
     }
 

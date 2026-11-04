@@ -4,7 +4,6 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import com.zincoid.nullbot.bot.cmd.input.PageSelector;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
@@ -58,13 +57,10 @@ public class HistoryCmd implements Cmd {
             reset(ctx, chatId);
             return;
         }
-        if (!args.getOpt().isEmpty()) {
-            throw new CmdWarnException(ctx.render(Text.HISTORY_UNKNOWN_OP,
-                    args.getOpt().keySet().iterator().next()));
-        }
-        if (!args.isEmpty()) {
-            throw new CmdWarnException(ctx.render(Text.HISTORY_UNKNOWN_OP, args.peek()));
-        }
+        if (!args.getOpt().isEmpty())
+            throw ctx.warn(Text.HISTORY_UNKNOWN_OP, args.getOpt().keySet().iterator().next());
+        if (!args.isEmpty())
+            throw ctx.warn(Text.HISTORY_UNKNOWN_OP, args.peek());
         list(ctx, chatId, userId);
     }
 

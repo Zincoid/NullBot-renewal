@@ -4,7 +4,6 @@ import com.zincoid.gallery.service.GalleryResources;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.cmd.CmdInfoException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -45,7 +44,7 @@ abstract class GalleryCmd implements Cmd {
     private void send(CmdContext ctx) {
         Path resource = resources.random(category);
         if (resource == null)
-            throw new CmdInfoException(ctx.render(Text.NO_IMAGES));
+            throw ctx.info(Text.NO_IMAGES);
         ctx.send(MsgContent.builder().image(resource.toUri().toString()).build());
         log.info("{} image sent: {}", name(), resource);
     }

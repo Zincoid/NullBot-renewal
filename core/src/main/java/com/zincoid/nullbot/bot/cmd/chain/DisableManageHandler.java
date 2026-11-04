@@ -2,7 +2,6 @@ package com.zincoid.nullbot.bot.cmd.chain;
 
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.module.common.UserService;
 import com.zincoid.nullbot.module.i18n.DurationText;
@@ -44,9 +43,9 @@ public class DisableManageHandler implements CmdHandler {
             return;
         }
         if (ban && unban)
-            throw new CmdWarnException(ctx.render(Text.DISABLE_CONFLICT));
+            throw ctx.warn(Text.DISABLE_CONFLICT);
         if (!args.isEmpty())
-            throw new CmdWarnException(ctx.render(Text.DISABLE_UNEXPECTED_ARG, args.peek()));
+            throw ctx.warn(Text.DISABLE_UNEXPECTED_ARG, args.peek());
         Target target = target(ctx, args);
         if (!checkPermission(ctx, target)) return;
         String cmd = ctx.cmd().name();
@@ -76,12 +75,12 @@ public class DisableManageHandler implements CmdHandler {
 
     private void removeRule(CmdContext ctx, CmdArgs args, Target target, String cmd) {
         if (args.hasOpt("temp", null))
-            throw new CmdWarnException(ctx.render(Text.DISABLE_TEMP_WITH_UNBAN));
+            throw ctx.warn(Text.DISABLE_TEMP_WITH_UNBAN);
         boolean removed = target.groupRule()
                 ? cmdDisableService.removeGroup(target.groupId(), target.userId(), cmd)
                 : cmdDisableService.removePrivate(target.userId(), cmd);
         if (!removed)
-            throw new CmdWarnException(ctx.render(Text.DISABLE_NOT_FOUND));
+            throw ctx.warn(Text.DISABLE_NOT_FOUND);
         ctx.send(Text.DISABLE_REMOVED, cmd, targetLabel(ctx, target));
     }
 
@@ -92,14 +91,14 @@ public class DisableManageHandler implements CmdHandler {
         if (ctx.event() instanceof GroupEvent e) {
             List<String> mentions = mentions(ctx);
             if (mentions.size() > 1 || (user != null && !mentions.isEmpty()))
-                throw new CmdWarnException(ctx.render(Text.DISABLE_MULTIPLE_TARGETS));
+                throw ctx.warn(Text.DISABLE_MULTIPLE_TARGETS);
             String userId = user;
             if (userId == null)
                 userId = mentions.isEmpty() ? CmdDisableService.WHOLE_GROUP : mentions.getFirst();
             return new Target(true, e.groupId(), userId);
         }
         if (user == null)
-            throw new CmdWarnException(ctx.render(Text.DISABLE_MISSING_USER));
+            throw ctx.warn(Text.DISABLE_MISSING_USER);
         return new Target(false, "", user);
     }
 
@@ -107,7 +106,7 @@ public class DisableManageHandler implements CmdHandler {
         String value = args.getOpt("user", null, null);
         if (value == null) return null;
         if ("true".equals(value) || value.isBlank())
-            throw new CmdWarnException(ctx.render(Text.DISABLE_EMPTY_USER));
+            throw ctx.warn(Text.DISABLE_EMPTY_USER);
         return value.trim();
     }
 
@@ -138,7 +137,7 @@ public class DisableManageHandler implements CmdHandler {
         if (raw == null) return null;
         Duration duration = DurationUtils.parse(raw);
         if (duration == null)
-            throw new CmdWarnException(ctx.render(Text.DISABLE_MALFORMED_TEMP, raw));
+            throw ctx.warn(Text.DISABLE_MALFORMED_TEMP, raw);
         return duration;
     }
 

@@ -26,11 +26,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BotDispatcher implements BotServer {
 
-    private final List<Middleware> middlewares;
-    private final CmdDispatcher cmdDispatcher;
     private final BotLifecycleTracker lifecycleTracker;
     private final GroupService groupService;
     private final UserService userService;
+    private final List<Middleware> middlewares;
+    private final CmdDispatcher cmdDispatcher;
 
     /**
      * 异步处理入站事件。
@@ -45,19 +45,19 @@ public class BotDispatcher implements BotServer {
         try {
             String online = lifecycleTracker.onlineId();
             if (online == null || !online.equals(event.selfId())) {
-                log.info("Event ignored: self={}", event.selfId());
+                log.debug("Event ignored: self={}", event.selfId());
                 return;
             }
             if (event instanceof GroupEvent e
                     && groupService.isBanned(e.groupId())) {
-                log.info("Group banned: {}", e.groupId());
+                log.debug("Event banned: group={}", e.groupId());
                 return;
             }
             if (userService.isBanned(event.userId())) {
-                log.info("User banned: {}", event.userId());
+                log.debug("Event banned: user={}", event.userId());
                 return;
             }
-            log.info("Event dispatched: {}", event.getClass().getSimpleName());
+            log.debug("Event dispatched: {}", event);
             if (new MiddlewareChain(middlewares).process(client, event)) return;
             if (event instanceof MsgEvent e) cmdDispatcher.dispatch(client, e);
         } catch (Exception e) {

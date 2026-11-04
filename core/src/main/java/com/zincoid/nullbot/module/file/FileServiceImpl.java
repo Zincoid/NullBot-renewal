@@ -154,13 +154,12 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     // ════ Delete ══════════════════
 
     @Override
-    public boolean delete(Long id) {
+    public void delete(Long id) {
         File file = getById(id);
-        if (file == null) return false;
-        if (!removeById(id)) return false;
+        if (file == null) throw new FileException("File not found: " + id);
+        if (!removeById(id)) throw new FileException("File not found: " + id);
         deleteQuietly(file.getStored());
         log.info("File deleted: {}", id);
-        return true;
     }
 
     // ════ Core ════════════════════

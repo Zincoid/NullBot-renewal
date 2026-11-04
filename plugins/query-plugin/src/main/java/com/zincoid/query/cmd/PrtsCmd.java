@@ -213,6 +213,24 @@ public class PrtsCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return QueryText.PRTS_HELP.of(language);
+        return language == Language.EN ? """
+                PRTS
+                Queries a PRTS operator page.
+                Usage: PRTS [section] <keyword>
+                Sections: 语音/档案/密录/悖论, default summary
+                Example: PRTS 能天使
+                         PRTS 档案 能天使
+                Aliases: PRTS查询
+                Access: >=0(normal)
+                Note: output is plain text and may be truncated.""" : """
+                PRTS
+                查询 PRTS 干员页面。
+                用法：PRTS [栏目] <关键词>
+                栏目：语音/档案/密录/悖论，默认概要
+                示例：PRTS 能天使
+                      PRTS 档案 能天使
+                别名：PRTS查询
+                权限：>=0(normal)
+                说明：输出为纯文本，过长会截断。""";
     }
 }

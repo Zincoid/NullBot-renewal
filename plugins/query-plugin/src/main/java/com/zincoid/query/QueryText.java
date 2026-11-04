@@ -12,23 +12,6 @@ public enum QueryText {
 
     // ════ AA ══════════════════════
 
-    AA_HELP("""
-            AA
-            查看 Artificial Analysis 模型排行。
-            用法：AA [查询项] [数量]
-            查询项：智能/历史/性价比/速度/编程/成本/定价
-            数量：1~25，默认 10
-            别名：模型查询
-            权限：>=0(normal)
-            说明：需要在 query 插件配置 aa.api-key。""", """
-            AA
-            Shows Artificial Analysis model rankings.
-            Usage: AA [metric] [count]
-            Metrics: 智能/历史/性价比/速度/编程/成本/定价
-            Count: 1..25, default 10
-            Aliases: 模型查询
-            Access: >=0(normal)
-            Note: requires aa.api-key in the query plugin config."""),
     AA_UNKNOWN_METRIC("未知查询项：%s（可选：智能/历史/性价比/速度/编程/成本/定价）",
             "Unknown metric: %s (expected Intelligence/History/Value/Speed/Coding/Cost/Pricing)"),
     AA_NO_API_KEY("未配置 AA API Key", "AA API key is not configured"),
@@ -45,25 +28,6 @@ public enum QueryText {
 
     // ════ PRTS ════════════════════
 
-    PRTS_HELP("""
-            PRTS
-            查询 PRTS 干员页面。
-            用法：PRTS [栏目] <关键词>
-            栏目：语音/档案/密录/悖论，默认概要
-            示例：PRTS 能天使
-                  PRTS 档案 能天使
-            别名：PRTS查询
-            权限：>=0(normal)
-            说明：输出为纯文本，过长会截断。""", """
-            PRTS
-            Queries a PRTS operator page.
-            Usage: PRTS [section] <keyword>
-            Sections: 语音/档案/密录/悖论, default summary
-            Example: PRTS 能天使
-                     PRTS 档案 能天使
-            Aliases: PRTS查询
-            Access: >=0(normal)
-            Note: output is plain text and may be truncated."""),
     PRTS_MISSING_KEYWORD("缺少查询关键词", "Missing query keyword"),
     PRTS_QUERY_FAILED("PRTS 查询失败，请检查关键词或网络",
             "PRTS query failed; check the keyword or network"),
@@ -75,21 +39,6 @@ public enum QueryText {
 
     // ════ Trace ═══════════════════
 
-    TRACE_HELP("""
-            Trace
-            通过 SauceNAO 查询引用图片的出处。
-            用法：[引用图片] Trace [数量]
-            数量：1~5，默认 1
-            别名：图溯源/溯源
-            权限：>=0(normal)
-            说明：配置 saucenao.api-key 可提高额度。""", """
-            Trace
-            Finds the source of a replied image through SauceNAO.
-            Usage: [reply image] Trace [count]
-            Count: 1..5, default 1
-            Aliases: 图溯源/溯源
-            Access: >=0(normal)
-            Note: set saucenao.api-key for higher quota."""),
     TRACE_MISSING_IMAGE("缺少图片引用", "Missing image reply"),
     TRACE_NO_API_KEY("未配置 SauceNAO API Key", "SauceNAO API key is not configured"),
     TRACE_READ_FAILED("无法读取引用消息", "Cannot read the replied message"),

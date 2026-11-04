@@ -507,6 +507,58 @@ public class GdCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return GdText.HELP.of(language);
+        return language == Language.EN ? """
+                GD
+                Geometry Dash level search, details, and local progress.
+
+                Usage:
+                  GD search <keyword> [options]
+                  GD level <level id>
+                  GD register
+                  GD update <level id> <progress>
+                  GD remove <level id>
+                  GD b20 [--all]
+                  GD unregister
+
+                Options:
+                  --diff, -d      difficulties: easy,normal,hard,harder,insane,demon (comma separated)
+                  --demon         demon difficulty: easy,medium,hard,insane,extreme (implies --diff=demon)
+                  --length, -l    lengths: tiny,short,medium,long,xl,platformer (comma separated)
+                  --filter        tags: star,no-star,featured,original,two-player,coins,epic,custom-song
+                  --page, -p      page number, starting at 1
+                  --all, -a       show the full B20 list
+
+                Aliases: 几何冲刺
+                Access: >=0(normal)
+                Notes: Reply with a number to view details, next for the next page, or end to cancel.
+                       update/remove/unregister/b20 require register; progress is 1-100.
+                       Local B20 uses your recorded progress and GDDL level ratings; it is not an official GDDL record.
+                       Use the GDDL command for GDDL B20 ratings.""" : """
+                GD
+                几何冲刺关卡搜索、详情与本地进度。
+
+                用法：
+                  GD search <关键词> [选项]
+                  GD level <关卡ID>
+                  GD register
+                  GD update <关卡ID> <进度>
+                  GD remove <关卡ID>
+                  GD b20 [--all]
+                  GD unregister
+
+                选项：
+                  --diff, -d      难度：easy,normal,hard,harder,insane,demon（逗号分隔）
+                  --demon         恶魔难度：easy,medium,hard,insane,extreme（自动按 demon 难度搜索）
+                  --length, -l    长度：tiny,short,medium,long,xl,platformer（逗号分隔）
+                  --filter        标签：star,no-star,featured,original,two-player,coins,epic,custom-song
+                  --page, -p      页码，从 1 开始
+                  --all, -a       B20 显示完整列表
+
+                别名：几何冲刺
+                权限：>=0(normal)
+                说明：回复序号查看详情，next 下一页，end 取消。
+                      update/remove/unregister/b20 需要先 register；进度为 1–100。
+                      本地 B20 使用自己记录的进度和 GDDL 关卡评级，非 GDDL 官方记录。
+                      GDDL B20 请使用 GDDL 指令。""";
     }
 }

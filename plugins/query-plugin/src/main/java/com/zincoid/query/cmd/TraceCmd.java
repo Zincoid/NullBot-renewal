@@ -119,6 +119,20 @@ public class TraceCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return QueryText.TRACE_HELP.of(language);
+        return language == Language.EN ? """
+                Trace
+                Finds the source of a replied image through SauceNAO.
+                Usage: [reply image] Trace [count]
+                Count: 1..5, default 1
+                Aliases: 图溯源/溯源
+                Access: >=0(normal)
+                Note: set saucenao.api-key for higher quota.""" : """
+                Trace
+                通过 SauceNAO 查询引用图片的出处。
+                用法：[引用图片] Trace [数量]
+                数量：1~5，默认 1
+                别名：图溯源/溯源
+                权限：>=0(normal)
+                说明：配置 saucenao.api-key 可提高额度。""";
     }
 }

@@ -108,7 +108,7 @@ public class WifeCmd implements Cmd {
 
     private void setAnime(CmdContext ctx, GroupMsgEvent event, String keyword) {
         if (keyword.isBlank())
-            throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED));
+            throw ctx.warn(Text.ARG_MALFORMED);
         GameResources.Resource wife = resources.random(keyword);
         if (wife == null)
             throw new CmdInfoException(GameText.WIFE_NO_RESULT.of(ctx.language()));
@@ -140,7 +140,7 @@ public class WifeCmd implements Cmd {
     private static String optValue(CmdContext ctx, CmdArgs args, String name, String alias) {
         String value = args.getOpt(name, alias).trim();
         if (value.isEmpty() || "true".equals(value))
-            throw new CmdWarnException(ctx.render(Text.ARG_MALFORMED));
+            throw ctx.warn(Text.ARG_MALFORMED);
         return value;
     }
 
@@ -155,6 +155,22 @@ public class WifeCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return GameText.WIFE_HELP.of(language);
+        return language == Language.EN ? """
+                Wife
+                Picks today's wife.
+                Usage: Wife [keyword]
+                Options: -m/--member=<user id> picks a group member (manager)
+                         -a/--anime=<keyword> picks an anime wife (manager)
+                Notes: no argument picks a random group member; a keyword exactly matches a category or character name.
+                Aliases: 今日老婆
+                Access: >=0(normal)""" : """
+                Wife
+                今日老婆。
+                用法：Wife [关键词]
+                选项：-m/--member=<用户ID>  指定群友老婆（需 manager）
+                      -a/--anime=<关键词>  指定二次元老婆（需 manager）
+                说明：无参数随机群友；带关键词按分类或角色名精确匹配。
+                别名：今日老婆
+                权限：>=0(normal)""";
     }
 }

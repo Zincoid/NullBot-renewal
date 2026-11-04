@@ -7,8 +7,8 @@ import com.zincoid.nullbot.platform.persistence.po.Message;
 import java.util.List;
 
 /**
- * 聊天消息记录服务：记录与删除。
- * <p>Chat message record service: record and delete.</p>
+ * 聊天消息记录服务。
+ * <p>Chat message record service.</p>
  */
 public interface MessageService extends IService<Message> {
 
@@ -30,14 +30,4 @@ public interface MessageService extends IService<Message> {
      */
     Message save(String id, String chatId, String userId, MessageRole role, String nickname,
                  String content, String reasoning, List<String> files);
-
-    // ════ Delete ══════════════════
-
-    /**
-     * 删除消息记录。
-     * <p>Deletes the message record.</p>
-     *
-     * @param id platform message id
-     */
-    void delete(String id);
 }

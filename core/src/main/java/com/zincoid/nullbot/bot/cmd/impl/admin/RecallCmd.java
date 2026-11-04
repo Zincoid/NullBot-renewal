@@ -4,7 +4,6 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.module.i18n.Text;
@@ -45,7 +44,7 @@ public class RecallCmd implements Cmd {
      */
     private void recall(CmdContext ctx, String replyId) {
         if (replyId == null)
-            throw new CmdWarnException(ctx.render(Text.MISSING_REPLY));
+            throw ctx.warn(Text.MISSING_REPLY);
         ctx.client().recall(replyId);
         log.info("Message recalled: {}", replyId);
     }

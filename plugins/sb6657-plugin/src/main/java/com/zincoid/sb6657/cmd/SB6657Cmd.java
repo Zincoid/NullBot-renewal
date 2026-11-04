@@ -77,7 +77,17 @@ public class SB6657Cmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return SB6657Text.HELP.of(language);
+        return language == Language.EN ? """
+                SB6657
+                Sends a random 玩机器 meme.
+                Usage: SB6657
+                Aliases: 6657/玩机器/玩机器烂梗
+                Access: >=0(normal)""" : """
+                SB6657
+                随机发送一条玩机器烂梗。
+                用法：SB6657
+                别名：6657/玩机器/玩机器烂梗
+                权限：>=0(normal)""";
     }
 
     private record MachineResp(Integer code, String msg, MachineData data) {

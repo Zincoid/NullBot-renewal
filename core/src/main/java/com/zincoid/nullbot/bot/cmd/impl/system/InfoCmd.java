@@ -4,11 +4,9 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.render.RenderService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.util.SystemInfo;
@@ -66,22 +64,16 @@ public class InfoCmd implements Cmd {
         String buildTime = build == null || build.getTime() == null
                 ? "-"
                 : TIME.format(build.getTime().atZone(ZoneId.systemDefault()));
-        byte[] png;
-        try {
-            png = renderService.template("info.jte", Map.of(
-                    "app", name,
-                    "version", version,
-                    "build", buildTime,
-                    "javaVersion", SystemInfo.java(),
-                    "spring", springBootVersion(),
-                    "uptime", uptime(),
-                    "os", SystemInfo.os(),
-                    "time", LocalDateTime.now().format(TIME)
-            ));
-        } catch (RuntimeException e) {
-            log.warn("Info image render failed: version={}", version, e);
-            throw new CmdWarnException(ctx.render(Text.INFO_RENDER_FAILED), e);
-        }
+        byte[] png = renderService.template("info.jte", Map.of(
+                "app", name,
+                "version", version,
+                "build", buildTime,
+                "javaVersion", SystemInfo.java(),
+                "spring", springBootVersion(),
+                "uptime", uptime(),
+                "os", SystemInfo.os(),
+                "time", LocalDateTime.now().format(TIME)
+        ));
         ctx.send(MsgContent.builder().imageBase64(png).build());
         log.info("Info sent: version={}", version);
     }

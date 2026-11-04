@@ -5,7 +5,6 @@ import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.plugin.loader.PluginLoader;
 import com.zincoid.nullbot.bot.plugin.loader.PluginStatus;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
@@ -59,12 +58,11 @@ public class HelpCmd implements Cmd {
             String opt = args.getOpt("plugin", "p", "");
             String name = "true".equals(opt) ? args.next("") : opt;
             if (name.isBlank())
-                throw new CmdWarnException(ctx.render(Text.HELP_PLUGIN_MISSING));
+                throw ctx.warn(Text.HELP_PLUGIN_MISSING);
             PluginStatus plugin = plugins.stream()
                     .filter(item -> item.id().equals(name))
                     .findFirst()
-                    .orElseThrow(() -> new CmdWarnException(
-                            ctx.render(Text.HELP_PLUGIN_NOT_FOUND, name)));
+                    .orElseThrow(() -> ctx.warn(Text.HELP_PLUGIN_NOT_FOUND, name));
             List<String> names = plugin.cmds().stream()
                     .map(registry::get)
                     .filter(Objects::nonNull)
@@ -94,24 +92,18 @@ public class HelpCmd implements Cmd {
                            List<String> names, String footerLabel, String footer, String hint) {
         int rows = Math.max(1, (names.size() + 3) / 4);
         int height = 170 + rows * 26 + (footer.isBlank() ? 20 : 70);
-        byte[] png;
-        try {
-            png = renderService.template("help.jte", Map.of(
-                    "heading", heading,
-                    "title", title,
-                    "count", names.size() + (names.size() == 1 ? " COMMAND" : " COMMANDS"),
-                    "tip", Text.HELP_DETAIL.of(ctx.language()),
-                    "names", names,
-                    "rows", rows,
-                    "height", height,
-                    "footerLabel", footerLabel,
-                    "footer", footer,
-                    "hint", hint
-            ));
-        } catch (RuntimeException e) {
-            log.warn("Help image render failed: title={}", title, e);
-            throw new CmdWarnException(ctx.render(Text.HELP_RENDER_FAILED), e);
-        }
+        byte[] png = renderService.template("help.jte", Map.of(
+                "heading", heading,
+                "title", title,
+                "count", names.size() + (names.size() == 1 ? " COMMAND" : " COMMANDS"),
+                "tip", Text.HELP_DETAIL.of(ctx.language()),
+                "names", names,
+                "rows", rows,
+                "height", height,
+                "footerLabel", footerLabel,
+                "footer", footer,
+                "hint", hint
+        ));
         ctx.send(MsgContent.builder().imageBase64(png).build());
     }
 

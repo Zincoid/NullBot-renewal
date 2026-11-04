@@ -4,7 +4,6 @@ import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
 import com.zincoid.nullbot.bot.cmd.CmdMapping;
-import com.zincoid.nullbot.bot.cmd.CmdWarnException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.module.config.Conf;
@@ -37,7 +36,7 @@ public class PromptCmd implements Cmd {
 
     @Override
     public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        throw new CmdWarnException(ctx.render(Text.PROMPT_GROUP_HINT));
+        throw ctx.warn(Text.PROMPT_GROUP_HINT);
     }
 
     @Override
@@ -55,7 +54,7 @@ public class PromptCmd implements Cmd {
             update(ctx, userId, prompt(ctx, args));
             return;
         }
-        throw new CmdWarnException(ctx.render(Text.PROMPT_UNKNOWN_OP));
+        throw ctx.warn(Text.PROMPT_UNKNOWN_OP);
     }
 
     // ════ Operations ══════════════
@@ -82,7 +81,7 @@ public class PromptCmd implements Cmd {
         String prompt = args.getOpt("set", "s");
         if ("true".equals(prompt)) prompt = args.rest("");
         prompt = prompt.trim();
-        if (prompt.isEmpty()) throw new CmdWarnException(ctx.render(Text.PROMPT_MISSING));
+        if (prompt.isEmpty()) throw ctx.warn(Text.PROMPT_MISSING);
         return prompt;
     }
 
@@ -98,7 +97,7 @@ public class PromptCmd implements Cmd {
                        Prompt -r|--reset
                 Aliases: 提示词
                 Access: >=0(normal)
-                Note: manages private-chat prompts only; change group prompts with GroupSet -a prompt.
+                Note: manages private-chat prompts only; change group prompts with Setting -a prompt.
                       Set and reset clear the current chat history.""" : """
                 Prompt
                 查看、设置或重置私聊 AI 提示词。
@@ -107,7 +106,7 @@ public class PromptCmd implements Cmd {
                       Prompt -r|--reset
                 别名：提示词
                 权限：>=0(normal)
-                说明：仅管理私聊提示词，群提示词请通过 GroupSet -a prompt 修改。
+                说明：仅管理私聊提示词，群提示词请通过 Setting -a prompt 修改。
                       设置和重置会清空当前私聊历史。""";
     }
 }

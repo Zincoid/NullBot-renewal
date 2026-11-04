@@ -135,6 +135,22 @@ public class AaCmd implements Cmd {
 
     @Override
     public String getHelp(Language language) {
-        return QueryText.AA_HELP.of(language);
+        return language == Language.EN ? """
+                AA
+                Shows Artificial Analysis model rankings.
+                Usage: AA [metric] [count]
+                Metrics: 智能/历史/性价比/速度/编程/成本/定价
+                Count: 1..25, default 10
+                Aliases: 模型查询
+                Access: >=0(normal)
+                Note: requires aa.api-key in the query plugin config.""" : """
+                AA
+                查看 Artificial Analysis 模型排行。
+                用法：AA [查询项] [数量]
+                查询项：智能/历史/性价比/速度/编程/成本/定价
+                数量：1~25，默认 10
+                别名：模型查询
+                权限：>=0(normal)
+                说明：需要在 query 插件配置 aa.api-key。""";
     }
 }

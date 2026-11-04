@@ -46,12 +46,4 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         log.info("Message saved: {}", message.getId());
         return message;
     }
-
-    // ════ Delete ══════════════════
-
-    @Override
-    public void delete(String id) {
-        if (!removeById(id)) throw new MessageException("Message not found: " + id);
-        log.info("Message deleted: {}", id);
-    }
 }

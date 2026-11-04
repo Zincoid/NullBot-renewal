@@ -197,6 +197,8 @@ public class QqGateway {
     private void dispatch(QqModels.Payload payload) {
         String type = payload.t();
         if (type == null) return;
+        if (type.startsWith("GROUP_") || type.startsWith("C2C_"))
+            log.debug("QQ event {}: {}", type, payload.d());
         switch (type) {
             case "READY" -> ready(payload.d());
             case "RESUMED" -> {

@@ -32,10 +32,12 @@ public final class QqMapper {
      * @param data    the group message data
      * @param selfId  the bot id
      * @param shortId the internal short message id
+     * @param replyId the quoted message id, nullable
      * @return the group message event, or null when the event is empty
      */
-    public static GroupMsgEvent groupAt(QqModels.GroupMessage data, String selfId, String shortId) {
-        return group(data, selfId, shortId, true, Set.of());
+    public static GroupMsgEvent groupAt(QqModels.GroupMessage data, String selfId, String shortId,
+                                        String replyId) {
+        return group(data, selfId, shortId, true, Set.of(), replyId);
     }
 
     /**
@@ -45,12 +47,14 @@ public final class QqMapper {
      * @param data    the group message data
      * @param selfId  the bot id
      * @param shortId the internal short message id
+     * @param replyId the quoted message id, nullable
      * @return the group message event, or null when the event is empty
      */
-    public static GroupMsgEvent groupFull(QqModels.GroupMessage data, String selfId, String shortId) {
+    public static GroupMsgEvent groupFull(QqModels.GroupMessage data, String selfId, String shortId,
+                                          String replyId) {
         Set<String> botIds = botMentionIds(data, selfId);
         boolean at = !botIds.isEmpty();
-        return group(data, selfId, shortId, at, botIds);
+        return group(data, selfId, shortId, at, botIds, replyId);
     }
 
     /**
@@ -60,16 +64,19 @@ public final class QqMapper {
      * @param data    the C2C message data
      * @param selfId  the bot id
      * @param shortId the internal short message id
+     * @param replyId the quoted message id, nullable
      * @return the private message event, or null when the event is empty
      */
-    public static PrivateMsgEvent c2c(QqModels.C2cMessage data, String selfId, String shortId) {
+    public static PrivateMsgEvent c2c(QqModels.C2cMessage data, String selfId, String shortId,
+                                      String replyId) {
         if (data == null || QqText.isBlank(data.id()) || QqText.isBlank(shortId) || QqText.isBlank(selfId)) return null;
         QqModels.Author author = data.author();
         if (author == null) return null;
         String userId = QqText.firstNonBlank(author.userOpenid(), author.id());
         if (QqText.isBlank(userId)) return null;
         String nickname = QqText.firstNonBlank(author.username(), userId);
-        MsgContent content = content(data.content(), data.attachments(), Set.of(), selfId);
+        MsgContent content = withReply(
+                content(data.content(), data.attachments(), Set.of(), selfId), replyId);
         if (content.segments().isEmpty()) return null;
         return new PrivateMsgEvent(selfId, userId, shortId, nickname, content, false, false);
     }
@@ -77,7 +84,7 @@ public final class QqMapper {
     // ════ Helpers ═════════════════
 
     private static GroupMsgEvent group(QqModels.GroupMessage data, String selfId, String shortId,
-                                       boolean at, Set<String> botIds) {
+                                       boolean at, Set<String> botIds, String replyId) {
         if (data == null || QqText.isBlank(data.id()) || QqText.isBlank(data.groupOpenid())
                 || QqText.isBlank(shortId) || QqText.isBlank(selfId)) return null;
         QqModels.Author author = data.author();
@@ -85,10 +92,32 @@ public final class QqMapper {
         String userId = QqText.firstNonBlank(author.memberOpenid(), author.id());
         if (QqText.isBlank(userId)) return null;
         String nickname = QqText.firstNonBlank(author.username(), userId);
-        MsgContent content = content(data.content(), data.attachments(), botIds, selfId);
+        MsgContent content = withReply(
+                content(data.content(), data.attachments(), botIds, selfId), replyId);
         if (content.segments().isEmpty()) return null;
         return new GroupMsgEvent(
                 selfId, userId, data.groupOpenid(), shortId, nickname, content, at, false);
+    }
+
+    /**
+     * 构造被引用消息的内容。
+     * <p>Builds the content of a quoted message.</p>
+     *
+     * @param text        the text content
+     * @param attachments the attachments
+     * @param selfId      the bot id
+     * @return the quoted message content
+     */
+    static MsgContent quotedContent(String text, List<QqModels.Attachment> attachments, String selfId) {
+        return content(text, attachments, Set.of(), selfId);
+    }
+
+    private static MsgContent withReply(MsgContent content, String replyId) {
+        if (QqText.isBlank(replyId)) return content;
+        List<MsgSegment> segments = new ArrayList<>();
+        segments.add(new MsgSegment.Reply(replyId));
+        segments.addAll(content.segments());
+        return MsgContent.of(segments);
     }
 
     private static MsgContent content(String text, List<QqModels.Attachment> attachments,

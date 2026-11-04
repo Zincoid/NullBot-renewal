@@ -134,7 +134,6 @@ public interface FileService extends IService<File> {
      * <p>Deletes the record and its stored file.</p>
      *
      * @param id record id
-     * @return true when the record was deleted
      */
-    boolean delete(Long id);
+    void delete(Long id);
 }
