@@ -94,7 +94,7 @@ public class SaveCmd implements Cmd {
         for (MediaRule rule : MEDIA_RULES) {
             List<MsgSegment.Media> media = rule.select(segments);
             if (!media.isEmpty()) {
-                media(ctx, media, event.userId(), rule);
+                media(ctx, media, detail.userId(), rule);
                 return;
             }
         }
