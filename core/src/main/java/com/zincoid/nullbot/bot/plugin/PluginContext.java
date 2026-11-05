@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.bot.plugin;
 
-import com.zincoid.nullbot.bot.cmd.input.InputManager;
+import com.zincoid.nullbot.bot.input.InputManager;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.QuoteService;

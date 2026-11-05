@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.middleware;
 
 import com.zincoid.nullbot.bot.BotRegistrar;
-import com.zincoid.nullbot.bot.chat.ChatPipeline;
+import com.zincoid.nullbot.bot.aichat.ChatPipeline;
 import com.zincoid.nullbot.bot.cmd.CmdParser;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
