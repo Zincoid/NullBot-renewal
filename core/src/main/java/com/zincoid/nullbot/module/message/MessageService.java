@@ -1,7 +1,6 @@
 package com.zincoid.nullbot.module.message;
 
 import com.baomidou.mybatisplus.spring.service.IService;
-import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 
 import java.util.List;
@@ -18,18 +17,10 @@ public interface MessageService extends IService<Message> {
      * 追加一条消息，并将会话窗口修剪至配置长度。
      * <p>Appends a message and trims the chat window to the configured size.</p>
      *
-     * @param chatId    chat identifier
-     * @param messageId platform message id
-     * @param userId    sender platform user id
-     * @param role      message role
-     * @param nickname  sender nickname
-     * @param content   text content, may be blank when files present
-     * @param reasoning assistant reasoning content, may be null
-     * @param files     attached file record ids, may be empty
+     * @param message the message to append
      * @return the persisted record
      */
-    Message append(String chatId, String messageId, String userId, MessageRole role,
-                   String nickname, String content, String reasoning, List<String> files);
+    Message append(Message message);
 
     // ════ Window ══════════════════
 

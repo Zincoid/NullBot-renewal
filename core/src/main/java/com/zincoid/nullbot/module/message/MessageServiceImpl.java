@@ -5,7 +5,6 @@ import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
-import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.mapper.MessageMapper;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;
@@ -32,30 +31,24 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ════ Append ══════════════════
 
     @Override
-    public Message append(String chatId, String messageId, String userId, MessageRole role,
-                          String nickname, String content, String reasoning, List<String> files) {
-        if (messageId == null || messageId.isBlank()) throw new MessageException("Missing key: id");
-        if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
-        if (userId == null || userId.isBlank()) throw new MessageException("Missing key: userId");
-        if (role == null) throw new MessageException("Missing key: role");
-        if (nickname == null) throw new MessageException("Missing key: nickname");
-        boolean noContent = content == null || content.isEmpty();
-        boolean noFiles = files == null || files.isEmpty();
+    public Message append(Message message) {
+        if (message == null) throw new MessageException("Missing key: message");
+        if (message.getId() == null || message.getId().isBlank()) throw new MessageException("Missing key: id");
+        if (message.getChatId() == null || message.getChatId().isBlank()) throw new MessageException("Missing key: chatId");
+        if (message.getUserId() == null || message.getUserId().isBlank()) throw new MessageException("Missing key: userId");
+        if (message.getRole() == null) throw new MessageException("Missing key: role");
+        if (message.getNickname() == null) throw new MessageException("Missing key: nickname");
+        boolean noContent = message.getContent() == null || message.getContent().isEmpty();
+        boolean noFiles = message.getFiles() == null || message.getFiles().isEmpty();
         if (noContent && noFiles) throw new MessageException("Missing content and files");
-        Message message = Message.builder()
-                .id(messageId)
-                .chatId(chatId)
-                .userId(userId)
-                .role(role)
-                .nickname(nickname)
-                .content(noContent ? null : content)
-                .reasoning(reasoning == null || reasoning.isEmpty() ? null : reasoning)
-                .files(noFiles ? null : files)
-                .createdAt(LocalDateTime.now())
-                .build();
+        message.setContent(noContent ? null : message.getContent());
+        message.setReasoning(message.getReasoning() == null || message.getReasoning().isEmpty()
+                ? null : message.getReasoning());
+        message.setFiles(noFiles ? null : message.getFiles());
+        message.setCreatedAt(LocalDateTime.now());
         save(message);
         log.info("Message saved: {}", message.getId());
-        trim(chatId);
+        trim(message.getChatId());
         return message;
     }
 

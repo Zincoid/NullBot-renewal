@@ -15,6 +15,7 @@ import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.File;
+import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,11 +93,15 @@ public class HistoryMiddleware implements Middleware {
             }
         }
         if (content.isEmpty() && files.isEmpty()) return;
-        messageService.append(
-                chatId, event.messageId(),
-                event.userId(), MessageRole.USER, event.nickname(),
-                content.toString(), null, files
-        );
+        messageService.append(Message.builder()
+                .id(event.messageId())
+                .chatId(chatId)
+                .userId(event.userId())
+                .role(MessageRole.USER)
+                .nickname(event.nickname())
+                .content(content.toString())
+                .files(files)
+                .build());
     }
 
     /**
@@ -112,11 +117,14 @@ public class HistoryMiddleware implements Middleware {
         if (event.selfId().equals(event.userId())) return;
         String nickname = BotClients.userName(client, event.userId());
         if (nickname == null || nickname.isBlank()) nickname = event.userId();
-        messageService.append(
-                chatId, UUID.randomUUID().toString(),
-                event.userId(), MessageRole.USER, nickname,
-                "[Rubbed you]", null, List.of()
-        );
+        messageService.append(Message.builder()
+                .id(UUID.randomUUID().toString())
+                .chatId(chatId)
+                .userId(event.userId())
+                .role(MessageRole.USER)
+                .nickname(nickname)
+                .content("[Rubbed you]")
+                .build());
     }
 
     /**

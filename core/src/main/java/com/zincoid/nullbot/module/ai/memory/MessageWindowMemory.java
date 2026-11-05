@@ -24,7 +24,6 @@ public class MessageWindowMemory implements Memory {
 
     @Override
     public List<AiMessage> get(String chatId) {
-        if (chatId == null || chatId.isBlank()) throw new AiException("Missing key: chatId");
         return messageService.window(chatId).stream()
                 .map(this::toAiMessage)
                 .toList();
@@ -35,10 +34,6 @@ public class MessageWindowMemory implements Memory {
     @Override
     public void add(String chatId, String messageId, String userId, String nickname,
                     AiMessage message, List<String> files) {
-        if (chatId == null || chatId.isBlank()) throw new AiException("Missing key: chatId");
-        if (messageId == null || messageId.isBlank()) throw new AiException("Missing key: messageId");
-        if (userId == null || userId.isBlank()) throw new AiException("Missing key: userId");
-        if (nickname == null) throw new AiException("Missing key: nickname");
         if (message == null) throw new AiException("Missing key: message");
         String content = message.getContent();
         if (content == null || content.isBlank()) throw new AiException("Missing content");
@@ -47,8 +42,16 @@ public class MessageWindowMemory implements Memory {
             case ASSISTANT -> MessageRole.ASSISTANT;
             default -> throw new AiException("Unsupported role: " + message.getRole());
         };
-        messageService.append(chatId, messageId, userId, role, nickname,
-                content, message.getReasoning(), files == null ? List.of() : files);
+        messageService.append(Message.builder()
+                .id(messageId)
+                .chatId(chatId)
+                .userId(userId)
+                .nickname(nickname)
+                .role(role)
+                .content(content)
+                .reasoning(message.getReasoning())
+                .files(files)
+                .build());
     }
 
     // ════ Helpers ═════════════════
