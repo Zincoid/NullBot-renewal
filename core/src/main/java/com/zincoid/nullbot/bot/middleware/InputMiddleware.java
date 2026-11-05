@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.bus.middleware;
+package com.zincoid.nullbot.bot.middleware;
 
 import com.zincoid.nullbot.bot.cmd.input.InputManager;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;

@@ -1,8 +1,8 @@
-package com.zincoid.nullbot.bot.bus;
+package com.zincoid.nullbot.bot;
 
-import com.zincoid.nullbot.bot.bus.middleware.Middleware;
-import com.zincoid.nullbot.bot.bus.middleware.MiddlewareChain;
 import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
+import com.zincoid.nullbot.bot.middleware.Middleware;
+import com.zincoid.nullbot.bot.middleware.MiddlewareChain;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
@@ -26,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BotDispatcher implements BotServer {
 
-    private final BotLifecycleTracker lifecycleTracker;
+    private final BotHolder botHolder;
     private final GroupService groupService;
     private final UserService userService;
     private final List<Middleware> middlewares;
@@ -43,7 +43,7 @@ public class BotDispatcher implements BotServer {
     @Override
     public void handle(BotClient client, BotEvent event) {
         try {
-            String online = lifecycleTracker.onlineId();
+            String online = botHolder.onlineId();
             if (online == null || !online.equals(event.selfId())) {
                 log.debug("Event ignored: self={}", event.selfId());
                 return;

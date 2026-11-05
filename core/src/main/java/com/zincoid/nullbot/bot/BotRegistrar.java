@@ -1,8 +1,8 @@
-package com.zincoid.nullbot.bot.bus;
+package com.zincoid.nullbot.bot;
 
-import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
+import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.common.GroupService;
 import com.zincoid.nullbot.module.common.UserService;
@@ -33,6 +33,10 @@ public class BotRegistrar {
         if (event == null || client == null) return;
         if (event instanceof GroupEvent e)
             groupService.register(e.groupId(), BotClients.groupName(client, e.groupId()));
-        userService.register(event.userId(), BotClients.userName(client, event.userId()));
+        String name = event instanceof MsgEvent e
+                && e.nickname() != null && !e.nickname().isBlank()
+                ? e.nickname()
+                : BotClients.userName(client, event.userId());
+        userService.register(event.userId(), name);
     }
 }

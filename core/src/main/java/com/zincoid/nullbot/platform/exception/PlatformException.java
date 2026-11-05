@@ -4,7 +4,7 @@ package com.zincoid.nullbot.platform.exception;
  * 平台层无法完成请求时抛出。
  * <p>Thrown when a platform-layer operation cannot complete.</p>
  */
-public class PlatformException extends BotException {
+public class PlatformException extends NullBotException {
 
     public PlatformException(String message) {
         super(message);

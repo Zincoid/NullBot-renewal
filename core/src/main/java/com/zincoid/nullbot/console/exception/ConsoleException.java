@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.console.exception;
 
-import com.zincoid.nullbot.platform.exception.BotException;
+import com.zincoid.nullbot.platform.exception.NullBotException;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
  * <p>Console API exception carrying an HTTP status and a message.</p>
  */
 @Getter
-public class ConsoleException extends BotException {
+public class ConsoleException extends NullBotException {
 
     private final HttpStatus status;
 

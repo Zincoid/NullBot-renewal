@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.bot.bus;
+package com.zincoid.nullbot.bot;
 
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.bot.spi.port.BotLifecycle;
@@ -6,12 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * 机器人账号生命周期跟踪器：只维护一个在线账号。
- * <p>Bot account lifecycle tracker: keeps only one online account.</p>
+ * 机器人账号持有器：持有当前在线的唯一账号及其出站端口。
+ * <p>Bot account holder: holds the single online account and its outbound port.</p>
  */
 @Slf4j
 @Component
-public class BotLifecycleTracker implements BotLifecycle {
+public class BotHolder implements BotLifecycle {
 
     private Entry entry;
 
@@ -21,12 +21,12 @@ public class BotLifecycleTracker implements BotLifecycle {
      *
      * @param selfId the bot account id
      * @param client the outbound port for this account
-     * @throws BusException when another account is already online
+     * @throws BotException when another account is already online
      */
     @Override
     public synchronized void online(String selfId, BotClient client) {
         if (entry != null)
-            throw new BusException("Bot already online: " + entry.selfId());
+            throw new BotException("Bot already online: " + entry.selfId());
         entry = new Entry(selfId, client);
         log.info("Bot online: {}", selfId);
     }
@@ -56,10 +56,10 @@ public class BotLifecycleTracker implements BotLifecycle {
      * <p>Returns the outbound port of the online account.</p>
      *
      * @return the outbound port
-     * @throws BusException when no account is online
+     * @throws BotException when no account is online
      */
     public synchronized BotClient getBotClient() {
-        if (entry == null) throw new BusException("Bot offline");
+        if (entry == null) throw new BotException("Bot offline");
         return entry.client();
     }
 

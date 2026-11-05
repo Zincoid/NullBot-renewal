@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.bot.cmd;
 
-import com.zincoid.nullbot.bot.bus.BotRegistrar;
+import com.zincoid.nullbot.bot.BotRegistrar;
 import com.zincoid.nullbot.bot.cmd.chain.CmdChain;
 import com.zincoid.nullbot.bot.cmd.chain.CmdHandler;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;

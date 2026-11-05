@@ -1,6 +1,5 @@
-package com.zincoid.nullbot.bot.bus.middleware;
+package com.zincoid.nullbot.bot.middleware;
 
-import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -76,9 +75,8 @@ public class RecallMiddleware implements Middleware {
             return;
         }
         Language language = languageService.group(event.groupId());
-        String content = message.getContent() == null ? "" : message.getContent();
         MsgContent.Builder msg = MsgContent.builder().text(Text.ANTI_RECALL_DETECTED.of(
-                language, BotClients.userName(client, event.userId()), event.userId(), content));
+                language, message.getNickname(), message.getUserId(), message.getContent()));
         if (message.getFiles() != null) {
             for (String fileId : message.getFiles()) {
                 String uri = fileService.imageUri(fileId);
