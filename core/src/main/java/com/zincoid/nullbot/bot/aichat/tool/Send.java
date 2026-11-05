@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.ai.tool.builtin;
+package com.zincoid.nullbot.bot.aichat.tool;
 
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;

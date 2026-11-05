@@ -72,7 +72,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     public int clear(String chatId) {
         if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
         List<Message> messages = lambdaQuery()
-                .select(Message::getId, Message::getFiles)
+                .select(Message::getId, Message::getChatId, Message::getFiles)
                 .eq(Message::getChatId, chatId)
                 .list();
         if (messages.isEmpty()) return 0;
@@ -105,7 +105,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private void trim(String chatId) {
         int size = size();
         List<Message> all = lambdaQuery()
-                .select(Message::getId, Message::getFiles)
+                .select(Message::getId, Message::getChatId, Message::getFiles)
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
                 .list();
