@@ -4,10 +4,7 @@ import com.zincoid.nullbot.module.ai.tool.ToolCall;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 模型对话消息：角色、内容、图片、工具调用与推理内容。
@@ -16,12 +13,6 @@ import java.util.Map;
 @Getter
 @ToString
 public class AiMessage {
-
-    /**
-     * 思考模型要求助手消息回传推理内容，缺失时使用的占位文本。
-     * <p>Placeholder used when an assistant message has no reasoning to replay to a thinking model.</p>
-     */
-    private static final String REASONING_FALLBACK = "(reasoning content unavailable)";
 
     private final AiRole role;
     private final String name;
@@ -50,51 +41,6 @@ public class AiMessage {
     public AiMessage withReasoning(String reasoning) {
         this.reasoning = reasoning;
         return this;
-    }
-
-    /**
-     * 转换为 OpenAI 兼容的消息 JSON。
-     * <p>Converts to the OpenAI-compatible message JSON.</p>
-     *
-     * @return the message map
-     */
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("role", role.getValue());
-        if (name != null && !name.isEmpty())
-            map.put("name", name);
-        if (images != null && !images.isEmpty()) {
-            List<Map<String, Object>> parts = new ArrayList<>();
-            if (content != null && !content.isEmpty())
-                parts.add(Map.of("type", "text", "text", content));
-            for (String image : images) {
-                Map<String, Object> url = new HashMap<>();
-                url.put("url", image);
-                parts.add(Map.of("type", "image_url", "image_url", url));
-            }
-            map.put("content", parts);
-        } else if (content != null && !content.isEmpty()) {
-            map.put("content", content);
-        }
-        if (role == AiRole.ASSISTANT)
-            map.put("reasoning_content", reasoning == null || reasoning.isBlank() ? REASONING_FALLBACK : reasoning);
-        if (tcs != null && !tcs.isEmpty()) {
-            List<Map<String, Object>> calls = new ArrayList<>();
-            for (ToolCall tc : tcs) {
-                Map<String, Object> function = new HashMap<>();
-                function.put("name", tc.getName());
-                function.put("arguments", tc.getArgs());
-                Map<String, Object> call = new HashMap<>();
-                call.put("id", tc.getId());
-                call.put("type", "function");
-                call.put("function", function);
-                calls.add(call);
-            }
-            map.put("tool_calls", calls);
-        }
-        if (tcId != null)
-            map.put("tool_call_id", tcId);
-        return map;
     }
 
     public static AiMessage user(String content) {

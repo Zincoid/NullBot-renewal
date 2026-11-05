@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.ai.client;
+package com.zincoid.nullbot.module.ai.agent;
 
 import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;

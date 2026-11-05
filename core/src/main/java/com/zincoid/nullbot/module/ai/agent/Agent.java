@@ -1,4 +1,4 @@
-package com.zincoid.nullbot.module.ai.client;
+package com.zincoid.nullbot.module.ai.agent;
 
 import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
@@ -19,13 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * AI 代理客户端：带系统提示词与多轮工具调用的模型对话。
- * <p>AI agent client: model conversation with a system prompt and multi-round tool calls.</p>
+ * AI 代理：带系统提示词与多轮工具调用的模型对话。
+ * <p>AI agent: model conversation with a system prompt and multi-round tool calls.</p>
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AgentClient {
+public class Agent {
 
     private final Model model;
     private final ToolRegistry toolRegistry;

@@ -7,8 +7,8 @@ import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.ai.client.AgentClient;
-import com.zincoid.nullbot.module.ai.client.AgentOptions;
+import com.zincoid.nullbot.module.ai.agent.Agent;
+import com.zincoid.nullbot.module.ai.agent.AgentOptions;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.TokenUsage;
@@ -45,7 +45,7 @@ public class ChatPipeline {
 
     private final ReentrantLock[] locks = initLocks();
 
-    private final AgentClient agentClient;
+    private final Agent agent;
     private final Memory memory;
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
@@ -106,7 +106,7 @@ public class ChatPipeline {
         ReentrantLock lock = getLock(chatId);
         lock.lock();
         try {
-            ModelRes res = agentClient.invoke(ctx, memory.get(chatId), prompt, options);
+            ModelRes res = agent.invoke(ctx, memory.get(chatId), prompt, options);
             record(chatType, targetId, event.userId(), aiSource, res.getUsage());
             if (ctx.hasFinalSent()) return true;
             String content = ChatText.compact(res.getContent());
