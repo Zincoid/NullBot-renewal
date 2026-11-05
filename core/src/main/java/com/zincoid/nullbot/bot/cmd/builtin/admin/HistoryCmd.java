@@ -11,7 +11,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.module.message.MessageWindowStore;
+import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
@@ -36,7 +36,7 @@ public class HistoryCmd implements Cmd {
     private static final int CONTENT_LIMIT = 80;
     private static final long INPUT_TIMEOUT = 60;
 
-    private final MessageWindowStore messageWindowStore;
+    private final MessageService messageService;
     private final FileService fileService;
     private final InputManager inputManager;
 
@@ -67,7 +67,7 @@ public class HistoryCmd implements Cmd {
     // ════ Operations ══════════════
 
     private void list(CmdContext ctx, String chatId, String userId) {
-        List<Message> messages = messageWindowStore.get(chatId);
+        List<Message> messages = messageService.window(chatId);
         if (messages.isEmpty()) {
             ctx.send(Text.HISTORY_EMPTY);
             return;
@@ -87,7 +87,7 @@ public class HistoryCmd implements Cmd {
     }
 
     private void reset(CmdContext ctx, String chatId) {
-        ctx.send(Text.HISTORY_CLEARED, messageWindowStore.clear(chatId));
+        ctx.send(Text.HISTORY_CLEARED, messageService.clear(chatId));
     }
 
     // ════ Helpers ═════════════════

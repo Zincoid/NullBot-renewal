@@ -9,7 +9,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.module.message.MessageWindowStore;
+import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.UserSetting;
@@ -30,7 +30,7 @@ public class PromptCmd implements Cmd {
 
     private final UserSettingService userSettingService;
     private final ConfigService configService;
-    private final MessageWindowStore messageWindowStore;
+    private final MessageService messageService;
 
     // ════ Run ═════════════════════
 
@@ -70,7 +70,7 @@ public class PromptCmd implements Cmd {
         UserSetting setting = userSettingService.get(userId);
         setting.setPrivateAiPrompt(prompt);
         userSettingService.update(setting);
-        int cleared = messageWindowStore.clear(ChatIds.ofPrivate(userId));
+        int cleared = messageService.clear(ChatIds.ofPrivate(userId));
         ctx.send(prompt.isBlank() ? Text.PROMPT_RESET : Text.PROMPT_UPDATED);
         log.info("Prompt updated: user={}, cleared={}", userId, cleared);
     }

@@ -2,7 +2,7 @@ package com.zincoid.nullbot.module.ai.memory;
 
 import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
-import com.zincoid.nullbot.module.message.MessageWindowStore;
+import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +18,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageWindowMemory implements Memory {
 
-    private final MessageWindowStore messageWindowStore;
+    private final MessageService messageService;
 
     // ════ Get ═════════════════════
 
     @Override
     public List<AiMessage> get(String chatId) {
         if (chatId == null || chatId.isBlank()) throw new AiException("Missing key: chatId");
-        return messageWindowStore.get(chatId).stream()
+        return messageService.window(chatId).stream()
                 .map(this::toAiMessage)
                 .toList();
     }
@@ -47,7 +47,7 @@ public class MessageWindowMemory implements Memory {
             case ASSISTANT -> MessageRole.ASSISTANT;
             default -> throw new AiException("Unsupported role: " + message.getRole());
         };
-        messageWindowStore.add(chatId, messageId, userId, role, nickname,
+        messageService.append(chatId, messageId, userId, role, nickname,
                 content, message.getReasoning(), files == null ? List.of() : files);
     }
 

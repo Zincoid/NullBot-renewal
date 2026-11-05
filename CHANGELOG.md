@@ -17,6 +17,7 @@
 - `#GroupSet` 更名为 `#Setting`（别名改为 `设置`）；引用旧命令名的关键词与禁用规则需要更新。
 - 指向机器人的戳一戳改由消息入库中间件记录，与普通消息一致：即使 AI 关闭或触发被限速也会写入会话历史，可在 `#History` 与后续 AI 上下文中看到；群内用户之间的戳一戳和机器人自身的戳一戳不记录。
 - AI 聊天内部整理：戳一戳记录移出 `ChatPipeline`，发送与历史写入统一走 `ChatContext.deliver`，系统提示词组装移至 `ChatPrompt`。
+- 消息历史窗口逻辑从 `MessageWindowStore` 合并进 `MessageService`：追加消息时裁剪窗口、读取会话窗口、清空历史与附件清理均由 `MessageService` 承担，`MessageWindowMemory` 继续作为 AI 记忆适配器；无行为变化。
 - 输入等待相关类从 `bot.cmd.input` 移至 `bot.input`（`InputManager`、`InputMode`、`InputResult`、`PageSelector`、`InputException`），插件需更新 import；`InputException` 改为直接继承 `NullBotException`，不再依赖 `CmdException`。
 - 内置指令不再通过 `call` 工具暴露给 AI，仅保留 `Help`；图片、音频、视频的发送改由现有 `search` + `send` 工具完成，AI 不再能保存收藏或发送语录。
 - `BizType` 的媒体类型常量简化为 `IMAGE` / `VIDEO` / `AUDIO`，控制台文件类型文案同步改为“图片 / 视频 / 音频”；AI `search` 工具的 `type` 枚举相应变为 `image` / `video` / `audio`，旧值 `image_collection` 等不再接受。

@@ -7,7 +7,7 @@ import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
-import com.zincoid.nullbot.module.message.MessageWindowStore;
+import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
@@ -30,7 +30,7 @@ public class RecallMiddleware implements Middleware {
 
     private final GroupSettingService groupSettingService;
     private final LanguageService languageService;
-    private final MessageWindowStore messageWindowStore;
+    private final MessageService messageService;
     private final FileService fileService;
 
     // ════ Handle ══════════════════
@@ -65,7 +65,7 @@ public class RecallMiddleware implements Middleware {
      * @param event  the group recall event
      */
     private void resend(BotClient client, GroupRecallEvent event) {
-        Message message = messageWindowStore.get(ChatIds.ofGroup(event.groupId())).stream()
+        Message message = messageService.window(ChatIds.ofGroup(event.groupId())).stream()
                 .filter(m -> event.messageId().equals(m.getId()))
                 .filter(m -> m.getRole() == MessageRole.USER)
                 .findFirst()

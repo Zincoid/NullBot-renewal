@@ -11,7 +11,7 @@ import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.file.FileService;
-import com.zincoid.nullbot.module.message.MessageWindowStore;
+import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.File;
@@ -35,7 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HistoryMiddleware implements Middleware {
 
-    private final MessageWindowStore messageWindowStore;
+    private final MessageService messageService;
     private final FileService fileService;
 
     // ════ Handle ══════════════════
@@ -92,7 +92,7 @@ public class HistoryMiddleware implements Middleware {
             }
         }
         if (content.isEmpty() && files.isEmpty()) return;
-        messageWindowStore.add(
+        messageService.append(
                 chatId, event.messageId(),
                 event.userId(), MessageRole.USER, event.nickname(),
                 content.toString(), null, files
@@ -112,7 +112,7 @@ public class HistoryMiddleware implements Middleware {
         if (event.selfId().equals(event.userId())) return;
         String nickname = BotClients.userName(client, event.userId());
         if (nickname == null || nickname.isBlank()) nickname = event.userId();
-        messageWindowStore.add(
+        messageService.append(
                 chatId, UUID.randomUUID().toString(),
                 event.userId(), MessageRole.USER, nickname,
                 "[Rubbed you]", null, List.of()
