@@ -11,12 +11,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 基于消息窗口的 AI 记忆实现：历史复用 message 表，按 role 区分用户与助手。
- * <p>AI memory over the message window: history reuses the message table, with role distinguishing user and assistant.</p>
+ * 基于消息记录的 AI 聊天记忆实现：历史复用 message 表，按 role 区分用户与助手。
+ * <p>AI chat memory over message records: history reuses the message table, with role distinguishing user and assistant.</p>
  */
 @Component
 @RequiredArgsConstructor
-public class MessageWindowMemory implements Memory {
+public class ChatMemory implements Memory {
 
     private final MessageService messageService;
 
