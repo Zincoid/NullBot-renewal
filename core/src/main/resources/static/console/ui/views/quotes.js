@@ -37,15 +37,17 @@ function renderQuotes(data) {
                 <td title="${escapeHtml(quote.nickname || '-')}">${escapeHtml(quote.nickname || '-')}</td>
                 <td class="nowrap" title="${escapeHtml(quote.userId || '-')}"><code>${escapeHtml(quote.userId || '-')}</code></td>
                 <td class="quote-cell">
-                    <span class="quote-text" title="${escapeHtml(quote.text || '')}">${escapeHtml(quote.text || '')}</span>
-                    <button class="quote-copy" data-copy-quote data-id="${quote.id}"
-                            title="${escapeHtml(t('common.copy'))}" aria-label="${escapeHtml(t('common.copy'))}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="9" y="9" width="13" height="13" rx="2"/>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                        </svg>
-                    </button>
+                    <div class="quote-cell-inner">
+                        <span class="quote-text" title="${escapeHtml(quote.text || '')}">${escapeHtml(quote.text || '')}</span>
+                        <button class="quote-copy" data-copy-quote data-id="${quote.id}"
+                                title="${escapeHtml(t('common.copy'))}" aria-label="${escapeHtml(t('common.copy'))}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                    </div>
                 </td>
                 <td class="nowrap">${formatTime(quote.time)}</td>
                 <td class="actions"><button class="small danger btn-delete" data-delete-quote data-id="${quote.id}">${escapeHtml(t('common.delete'))}</button></td>
