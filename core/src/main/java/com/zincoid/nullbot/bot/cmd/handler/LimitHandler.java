@@ -6,8 +6,6 @@ import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.module.i18n.Text;
 import com.zincoid.nullbot.module.setting.GroupRateLimiter;
-import com.zincoid.nullbot.module.setting.GroupSettingService;
-import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LimitHandler implements CmdHandler {
 
-    private final GroupSettingService groupSettingService;
     private final GroupRateLimiter groupRateLimiter;
 
     // ════ Handle ══════════════════
@@ -38,8 +35,6 @@ public class LimitHandler implements CmdHandler {
     // ════ Helpers ═════════════════
 
     private boolean check(CmdContext ctx, String groupId, String userId) {
-        GroupSetting setting = groupSettingService.get(groupId);
-        if (!setting.getLimitEnabled()) return true;
         String cmd = ctx.cmd().name();
         if (groupRateLimiter.tryConsume(groupId, userId, cmd)) return true;
         log.info("Rate limit exceeded: group={}, user={}, cmd={}", groupId, userId, cmd);

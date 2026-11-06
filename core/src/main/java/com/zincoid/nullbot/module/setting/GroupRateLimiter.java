@@ -37,11 +37,12 @@ public class GroupRateLimiter {
      * @param groupId  group platform id
      * @param userId   operator platform user id
      * @param function function name, such as a command name or AI chat
-     * @return true when the call is allowed
+     * @return true when rate limiting is disabled for the group or the call is allowed
      */
     public boolean tryConsume(String groupId, String userId, String function) {
-        if (isSpam(groupId)) return false;
         GroupSetting setting = groupSettingService.get(groupId);
+        if (!Boolean.TRUE.equals(setting.getLimitEnabled())) return true;
+        if (isSpam(groupId)) return false;
         String key = switch (setting.getLimitScope()) {
             case GROUP -> "[%s]".formatted(groupId);
             case USER -> "[%s][User:%s]".formatted(groupId, userId);

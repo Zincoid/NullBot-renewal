@@ -42,6 +42,7 @@
 
 ### Fixed
 
+- 关闭群限速后，群 AI 触发仍会按令牌桶限速并回复“请求过于频繁”；限速开关现由 `GroupRateLimiter` 统一判断，指令与 AI 在关闭后均不再限速。
 - `adapter-qq` 解析 QQ 引用消息（`message_type=103`、`message_scene.ext`、`msg_elements`），为入站消息补上引用段并缓存被引用消息；`#Save`、AI `read` 等可在 QQ 上使用引用内容。
 - 机器人自身的消息回显不再作为用户消息写入会话历史。
 - AI `send` 工具发送的中间消息现在写入会话记录并带上所发文件 ID，可在 `#History` 与后续 AI 上下文中看到；附件以 `(sent image, file id=...)` 形式记录，不再使用 `[Image]` 等占位标记，避免诱导模型输出这些标记。
