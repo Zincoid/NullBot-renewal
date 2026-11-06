@@ -30,6 +30,6 @@ public class Message {
     private String content;
     private String reasoning;
     @TableField(typeHandler = JacksonTypeHandler.class)
-    private List<String> files;
+    private List<Long> files;
     private LocalDateTime createdAt;
 }

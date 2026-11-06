@@ -47,12 +47,12 @@ public class Read implements Tool {
                 .append("[id=").append(msg.getId()).append("] ")
                 .append(name).append("(").append(msg.getUserId()).append("): ")
                 .append(content);
-        List<String> files = msg.getFiles();
+        List<Long> files = msg.getFiles();
         if (files == null || files.isEmpty()) {
             text.append("\nAttachments: none");
         } else {
             text.append("\nAttachments:");
-            for (String fileId : files)
+            for (Long fileId : files)
                 text.append("\n").append(attachment(fileId));
         }
         return ToolRes.of(text.toString());
@@ -60,8 +60,8 @@ public class Read implements Tool {
 
     // ════ Helpers ═════════════════
 
-    private String attachment(String id) {
-        File file = fileService.getById(Long.parseLong(id));
+    private String attachment(Long id) {
+        File file = fileService.getById(id);
         return file == null
                 ? "- file id=" + id + ": not found"
                 : "- file id=" + id + ": " + file.getOriginal();

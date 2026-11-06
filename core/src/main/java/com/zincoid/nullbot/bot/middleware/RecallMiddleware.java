@@ -78,7 +78,7 @@ public class RecallMiddleware implements Middleware {
         MsgContent.Builder msg = MsgContent.builder().text(Text.ANTI_RECALL_DETECTED.of(
                 language, message.getNickname(), message.getUserId(), message.getContent()));
         if (message.getFiles() != null) {
-            for (String fileId : message.getFiles()) {
+            for (Long fileId : message.getFiles()) {
                 String uri = fileService.imageUri(fileId);
                 if (uri != null) msg.image(uri);
             }

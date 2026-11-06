@@ -72,7 +72,7 @@ public record ChatContext(
     public ToolRes send(String text, List<Long> fileIds, String replyId, boolean last) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
-        List<String> files = new ArrayList<>();
+        List<Long> files = new ArrayList<>();
         List<String> media = new ArrayList<>();
         if (!compact.isBlank())
             builder.text(compact);
@@ -81,7 +81,7 @@ public record ChatContext(
             if (file == null) continue;
             String kind = attach(builder, file);
             if (kind == null) continue;
-            files.add(String.valueOf(id));
+            files.add(id);
             media.add(kind + ", file id=" + id);
         }
         if (compact.isBlank() && files.isEmpty())
@@ -96,7 +96,7 @@ public record ChatContext(
                 : "Message sent: id=" + messageId);
     }
 
-    public String deliver(MsgContent message, String content, List<String> files,
+    public String deliver(MsgContent message, String content, List<Long> files,
                           String reasoning, boolean last) {
         String messageId = chatType == ChatType.GROUP
                 ? client.sendGroupMsg(targetId, message)

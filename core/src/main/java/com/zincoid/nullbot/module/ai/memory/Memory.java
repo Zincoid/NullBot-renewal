@@ -30,5 +30,5 @@ public interface Memory {
      * @param message   the message
      * @param files     attached file record ids, may be empty
      */
-    void add(String chatId, String messageId, String userId, String nickname, AiMessage message, List<String> files);
+    void add(String chatId, String messageId, String userId, String nickname, AiMessage message, List<Long> files);
 }

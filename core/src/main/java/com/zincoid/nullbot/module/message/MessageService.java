@@ -36,8 +36,8 @@ public interface MessageService extends IService<Message> {
     // ════ Clear ═══════════════════
 
     /**
-     * 清空会话的全部消息，并删除其独占的聊天附件。
-     * <p>Clears all messages of the chat and deletes the chat attachments they exclusively own.</p>
+     * 清空会话的全部消息，并删除其中的聊天附件。
+     * <p>Clears all messages of the chat and deletes their chat attachments.</p>
      *
      * @param chatId chat identifier
      * @return the number of deleted messages

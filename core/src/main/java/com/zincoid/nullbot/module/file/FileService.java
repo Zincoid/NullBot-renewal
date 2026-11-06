@@ -102,7 +102,7 @@ public interface FileService extends IService<File> {
      * @param fileId the file record id
      * @return the image URI, or null when it cannot be sent as an image
      */
-    String imageUri(String fileId);
+    String imageUri(Long fileId);
 
     // ════ Random ══════════════════
 

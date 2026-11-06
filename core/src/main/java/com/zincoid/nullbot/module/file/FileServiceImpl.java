@@ -110,10 +110,10 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     }
 
     @Override
-    public String imageUri(String fileId) {
-        if (fileId == null || fileId.isBlank()) return null;
+    public String imageUri(Long fileId) {
+        if (fileId == null) return null;
         try {
-            File file = getById(Long.valueOf(fileId));
+            File file = getById(fileId);
             if (file == null) return null;
             String mime = MimeUtils.mime(file.getStored());
             if (mime == null) mime = MimeUtils.mime(file.getOriginal());

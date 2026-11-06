@@ -32,15 +32,22 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
 
     @Override
     public Message append(Message message) {
-        if (message == null) throw new MessageException("Missing key: message");
-        if (message.getId() == null || message.getId().isBlank()) throw new MessageException("Missing key: id");
-        if (message.getChatId() == null || message.getChatId().isBlank()) throw new MessageException("Missing key: chatId");
-        if (message.getUserId() == null || message.getUserId().isBlank()) throw new MessageException("Missing key: userId");
-        if (message.getRole() == null) throw new MessageException("Missing key: role");
-        if (message.getNickname() == null) throw new MessageException("Missing key: nickname");
+        if (message == null)
+            throw new MessageException("Missing key: message");
+        if (message.getId() == null || message.getId().isBlank())
+            throw new MessageException("Missing key: id");
+        if (message.getChatId() == null || message.getChatId().isBlank())
+            throw new MessageException("Missing key: chatId");
+        if (message.getUserId() == null || message.getUserId().isBlank())
+            throw new MessageException("Missing key: userId");
+        if (message.getRole() == null)
+            throw new MessageException("Missing key: role");
+        if (message.getNickname() == null)
+            throw new MessageException("Missing key: nickname");
         boolean noContent = message.getContent() == null || message.getContent().isEmpty();
         boolean noFiles = message.getFiles() == null || message.getFiles().isEmpty();
-        if (noContent && noFiles) throw new MessageException("Missing content and files");
+        if (noContent && noFiles)
+            throw new MessageException("Missing content and files");
         message.setContent(noContent ? null : message.getContent());
         message.setReasoning(message.getReasoning() == null || message.getReasoning().isEmpty()
                 ? null : message.getReasoning());
@@ -72,7 +79,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     public int clear(String chatId) {
         if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
         List<Message> messages = lambdaQuery()
-                .select(Message::getId, Message::getChatId, Message::getFiles)
+                .select(Message::getId, Message::getFiles)
                 .eq(Message::getChatId, chatId)
                 .list();
         if (messages.isEmpty()) return 0;
@@ -105,7 +112,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private void trim(String chatId) {
         int size = size();
         List<Message> all = lambdaQuery()
-                .select(Message::getId, Message::getChatId, Message::getFiles)
+                .select(Message::getId, Message::getFiles)
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
                 .list();
@@ -116,44 +123,21 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     /**
-     * 删除被修剪消息所引用的附件：仅删除会话消息自己保存的聊天文件，且不再被其他消息引用时才删除。
-     * <p>Deletes the attachments of a trimmed message: only chat files saved for message records, and only when no other message still references them.</p>
+     * 删除消息所引用的附件：仅删除消息自己保存的聊天文件。
+     * <p>Deletes the attachments of a message: only chat files saved with the message.</p>
      *
-     * @param message the trimmed message
+     * @param message the removed message
      */
     private void deleteAttachments(Message message) {
         if (message.getFiles() == null || message.getFiles().isEmpty()) return;
-        for (String fileId : message.getFiles()) {
+        for (Long fileId : message.getFiles()) {
             try {
-                File file = fileService.getById(Long.valueOf(fileId));
+                File file = fileService.getById(fileId);
                 if (file == null || file.getType() != BizType.CHAT) continue;
-                if (isReferenced(message, fileId)) continue;
                 fileService.delete(file.getId());
             } catch (RuntimeException e) {
                 log.warn("Failed to delete attachment: {}", fileId, e);
             }
         }
-    }
-
-    /**
-     * 判断同一会话中是否还有其他消息引用该附件。
-     * <p>Checks whether another message in the same chat still references the attachment.</p>
-     *
-     * @param message the trimmed message
-     * @param fileId  the attachment file record id
-     * @return true when another message references the attachment
-     */
-    private boolean isReferenced(Message message, String fileId) {
-        List<Message> messages = lambdaQuery()
-                .select(Message::getFiles)
-                .eq(Message::getChatId, message.getChatId())
-                .ne(Message::getId, message.getId())
-                .isNotNull(Message::getFiles)
-                .list();
-        for (Message other : messages) {
-            if (other.getFiles() != null && other.getFiles().contains(fileId))
-                return true;
-        }
-        return false;
     }
 }

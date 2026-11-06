@@ -18,6 +18,7 @@
 - 指向机器人的戳一戳改由消息入库中间件记录，与普通消息一致：即使 AI 关闭或触发被限速也会写入会话历史，可在 `#History` 与后续 AI 上下文中看到；群内用户之间的戳一戳和机器人自身的戳一戳不记录。
 - AI 聊天内部整理：戳一戳记录移出 `ChatPipeline`，发送与历史写入统一走 `ChatContext.deliver`，系统提示词组装移至 `ChatPrompt`。
 - 消息历史窗口逻辑从 `MessageWindowStore` 合并进 `MessageService`：追加消息时裁剪窗口、读取会话窗口、清空历史与附件清理均由 `MessageService` 承担，`ChatMemory` 继续作为 AI 记忆适配器；无行为变化。
+- `message.files` 的元素类型由 `String` 改为 `Long`：新消息以数字数组写入，旧数据中的字符串 id 仍可正常读取，无需迁移。
 - 内置 AI 工具（`call`、`mute`、`read`、`recall`、`search`、`send`、`view`、`web`）从 `module.ai.tool.builtin` 移至 `bot.aichat.tool`，`module.ai` 只保留工具协议与注册表，不再依赖 `bot`；工具名与行为不变。
 - AI 代理类 `AgentClient` 更名为 `Agent`，并与 `AgentOptions` 一起从 `module.ai.client` 移至 `module.ai.agent`；无行为变化。
 - `AiMessage` 的 OpenAI 消息序列化移至 `model/openai/OpenAiReq`，`AiMessage` 只保留领域字段；无行为变化。
@@ -44,8 +45,8 @@
 - `adapter-qq` 解析 QQ 引用消息（`message_type=103`、`message_scene.ext`、`msg_elements`），为入站消息补上引用段并缓存被引用消息；`#Save`、AI `read` 等可在 QQ 上使用引用内容。
 - 机器人自身的消息回显不再作为用户消息写入会话历史。
 - AI `send` 工具发送的中间消息现在写入会话记录并带上所发文件 ID，可在 `#History` 与后续 AI 上下文中看到；附件以 `(sent image, file id=...)` 形式记录，不再使用 `[Image]` 等占位标记，避免诱导模型输出这些标记。
-- 消息窗口裁剪只删除会话自己保存的聊天附件，且不再被其他消息引用时才删除；机器人发送的图库等文件不会被连带删除。
-- 修复消息窗口裁剪时附件引用检查未带上会话 ID，可能导致仍被同会话其他消息引用的聊天附件被误删；现在查询消息时一并取出 `chatId` 再检查。
+- 消息窗口裁剪只删除消息自己保存的聊天附件；机器人发送的图库等文件不会被连带删除。
+- 消息入库失败时清理本次已保存的聊天附件，避免留下孤儿文件。
 
 ## [1.2.0] - 2026-11-02
 

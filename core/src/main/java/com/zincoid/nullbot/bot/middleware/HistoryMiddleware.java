@@ -75,13 +75,13 @@ public class HistoryMiddleware implements Middleware {
     private void recordMsg(BotClient client, String chatId, MsgEvent event) {
         if (event.selfId().equals(event.userId())) return;
         StringBuilder content = new StringBuilder();
-        List<String> files = new ArrayList<>();
+        List<Long> files = new ArrayList<>();
         for (MsgSegment segment : event.content().segments()) {
             switch (segment) {
                 case MsgSegment.Text s -> content.append(s.text());
                 case MsgSegment.Image s -> {
                     content.append("[Image]");
-                    String fileId = saveAttachment(event.userId(), s.url(), s.file());
+                    Long fileId = saveAttachment(event.userId(), s.url(), s.file());
                     if (fileId != null) files.add(fileId);
                 }  // Only save image files to local
                 case MsgSegment.Video _ -> content.append("[Video]");
@@ -93,7 +93,7 @@ public class HistoryMiddleware implements Middleware {
             }
         }
         if (content.isEmpty() && files.isEmpty()) return;
-        messageService.append(Message.builder()
+        Message message = Message.builder()
                 .id(event.messageId())
                 .chatId(chatId)
                 .userId(event.userId())
@@ -101,7 +101,21 @@ public class HistoryMiddleware implements Middleware {
                 .nickname(event.nickname())
                 .content(content.toString())
                 .files(files)
-                .build());
+                .build();
+        try {
+            messageService.append(message);
+        } catch (RuntimeException e) {
+            if (messageService.getById(message.getId()) == null) {
+                for (Long fileId : files) {
+                    try {
+                        fileService.delete(fileId);
+                    } catch (RuntimeException ex) {
+                        log.warn("Failed to delete attachment: {}", fileId, ex);
+                    }
+                }
+            }
+            throw e;
+        }
     }
 
     /**
@@ -150,10 +164,10 @@ public class HistoryMiddleware implements Middleware {
      * @param file   original filename, nullable
      * @return the file record id, or null when skipped or failed
      */
-    private String saveAttachment(String userId, String url, String file) {
+    private Long saveAttachment(String userId, String url, String file) {
         try {
             File saved = fileService.save(userId, BizType.CHAT, url, file);
-            return String.valueOf(saved.getId());
+            return saved.getId();
         } catch (RuntimeException e) {
             log.warn("Failed to store attachment: user={}", userId, e);
             return null;

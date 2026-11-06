@@ -100,10 +100,10 @@ public class HistoryCmd implements Cmd {
         StringBuilder text = new StringBuilder(speaker(ctx, message)).append(": ")
                 .append(message.getContent() == null ? "" : message.getContent());
         List<String> images = new ArrayList<>();
-        List<String> unsent = new ArrayList<>();
-        List<String> files = message.getFiles();
+        List<Long> unsent = new ArrayList<>();
+        List<Long> files = message.getFiles();
         if (files != null) {
-            for (String fileId : files) {
+            for (Long fileId : files) {
                 String uri = fileService.imageUri(fileId);
                 if (uri == null) unsent.add(fileId);
                 else images.add(uri);
@@ -111,7 +111,7 @@ public class HistoryCmd implements Cmd {
         }
         if (!unsent.isEmpty())
             text.append("\n").append(ctx.render(Text.HISTORY_ATTACHMENTS,
-                    String.join(", ", unsent)));
+                    String.join(", ", unsent.stream().map(String::valueOf).toList())));
         MsgContent.Builder content = MsgContent.builder().text(text.toString());
         images.forEach(content::image);
         ctx.send(content.build());
