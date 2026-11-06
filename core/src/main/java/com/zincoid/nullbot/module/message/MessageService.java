@@ -3,6 +3,7 @@ package com.zincoid.nullbot.module.message;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -32,6 +33,27 @@ public interface MessageService extends IService<Message> {
      * @return the chat window, oldest first
      */
     List<Message> window(String chatId);
+
+    // ════ Chats ═══════════════════
+
+    /**
+     * 列出保留有消息的会话摘要，按最后消息时间倒序。
+     * <p>Lists chat summaries with retained messages, newest activity first.</p>
+     *
+     * @return the chat summaries
+     */
+    List<ChatSummary> chats();
+
+    /**
+     * 会话摘要：会话标识、保留消息数与最后消息时间。
+     * <p>Chat summary: chat identifier, retained message count, and last message time.</p>
+     *
+     * @param chatId   the composite chat id
+     * @param messages the retained message count
+     * @param lastAt   the last message time
+     */
+    record ChatSummary(String chatId, long messages, LocalDateTime lastAt) {
+    }
 
     // ════ Clear ═══════════════════
 

@@ -58,7 +58,7 @@ public class BotHolder implements BotLifecycle {
      * @return the outbound port
      * @throws BotException when no account is online
      */
-    public synchronized BotClient getBotClient() {
+    public synchronized BotClient getClient() {
         if (entry == null) throw new BotException("Bot offline");
         return entry.client();
     }

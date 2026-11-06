@@ -92,6 +92,8 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 
 ### Added
 
+- 控制台新增“消息”页：左侧按 `chatId` 列出保留有消息的会话，右侧以聊天形式展示角色、昵称、用户 ID、时间、正文、reasoning 与附件数量；附件不随页面加载，按消息在弹窗中按需查看与下载。
+- 消息页支持以机器人身份主动发送文本消息，并可在确认后重置当前会话（删除历史与聊天附件）；发送成功后以 assistant 消息写入历史，QQ 官方机器人受平台主动消息限制，失败原因会显示在控制台。
 - 新增 `#Get` / `#Delete`：使用 `Get <img|aud|vid|quot> <id>` / `Delete <img|aud|vid|quot> <id>` 按类型与 ID 获取或删除收藏。
 - 新增 `#Image` / `#Audio` / `#Video` / `#Quote` 随机发送命令，替代原 `ImageRand`、`AudioRand`、`VideoRand`、`QuoteRand`。
 - AI `send` 工具新增 `last` 参数：标记为最终消息后不再额外发送 final 回复，一次触发内仍可多次调用 `send` 发送多条消息或媒体。

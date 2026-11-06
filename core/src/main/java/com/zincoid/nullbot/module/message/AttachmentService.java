@@ -3,7 +3,10 @@ package com.zincoid.nullbot.module.message;
 import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.po.Attachment;
 
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 聊天附件管理：基于平铺磁盘存储与 {@code attachment} 表。
@@ -42,6 +45,15 @@ public interface AttachmentService extends IService<Attachment> {
     String uri(Attachment attachment);
 
     /**
+     * 返回已存储附件的磁盘路径。
+     * <p>Returns the stored disk path of an attachment.</p>
+     *
+     * @param attachment attachment record
+     * @return the stored path
+     */
+    Path path(Attachment attachment);
+
+    /**
      * 按消息 ID 返回附件，按写入顺序排列。
      * <p>Returns the attachments of a message in insertion order.</p>
      *
@@ -49,6 +61,15 @@ public interface AttachmentService extends IService<Attachment> {
      * @return attachments owned by the message
      */
     List<Attachment> listByMessageId(String messageId);
+
+    /**
+     * 统计多条消息各自的附件数量。
+     * <p>Counts attachments per message for the given message ids.</p>
+     *
+     * @param messageIds owning message ids
+     * @return attachment counts keyed by message id
+     */
+    Map<String, Long> countByMessageIds(Collection<String> messageIds);
 
     /**
      * 删除指定消息的全部附件及其磁盘文件。

@@ -11,8 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * {@link AttachmentService} 的默认实现。
@@ -77,6 +81,12 @@ public class AttachmentServiceImpl extends ServiceImpl<AttachmentMapper, Attachm
         return fileStorage.uri(attachment.getStored());
     }
 
+    @Override
+    public Path path(Attachment attachment) {
+        if (attachment == null) throw new AttachmentException("Missing key: attachment");
+        return fileStorage.path(attachment.getStored());
+    }
+
     // ════ Message ═════════════════
 
     @Override
@@ -87,6 +97,17 @@ public class AttachmentServiceImpl extends ServiceImpl<AttachmentMapper, Attachm
                 .eq(Attachment::getMessageId, messageId)
                 .orderByAsc(Attachment::getId)
                 .list();
+    }
+
+    @Override
+    public Map<String, Long> countByMessageIds(Collection<String> messageIds) {
+        if (messageIds == null || messageIds.isEmpty()) return Map.of();
+        return lambdaQuery()
+                .select(Attachment::getMessageId)
+                .in(Attachment::getMessageId, messageIds)
+                .list()
+                .stream()
+                .collect(Collectors.groupingBy(Attachment::getMessageId, Collectors.counting()));
     }
 
     @Override

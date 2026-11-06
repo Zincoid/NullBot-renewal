@@ -14,6 +14,11 @@ import {
     onLocaleChange as onAccountsLocaleChange,
     showAccountsTab
 } from './views/accounts.js';
+import {
+    bind as bindMessages,
+    loadMessages,
+    onLocaleChange as onMessagesLocaleChange
+} from './views/messages.js';
 import {bind as bindQuotes, loadQuotes} from './views/quotes.js';
 import {bind as bindPlugins, loadPlugins} from './views/plugins.js';
 import {bind as bindPluginData, onLocaleChange as onPluginDataLocaleChange} from './views/plugin-data.js';
@@ -30,6 +35,7 @@ function main() {
         config: loadConfig,
         files: loadFiles,
         accounts: loadAccounts,
+        messages: loadMessages,
         quotes: loadQuotes,
         plugins: loadPlugins
     };
@@ -73,6 +79,15 @@ function main() {
 
         const nav = document.querySelector('.nav');
         const navToggle = $('nav-toggle');
+        const topbarActions = document.querySelector('.topbar-actions');
+        const logout = $('logout');
+        const narrow = window.matchMedia('(max-width: 1000px)');
+        const placeLogout = () => {
+            if (narrow.matches) nav.appendChild(logout);
+            else topbarActions.insertBefore(logout, navToggle);
+        };
+        placeLogout();
+        narrow.addEventListener('change', placeLogout);
         const closeNav = () => {
             nav.classList.remove('nav-open');
             navToggle.classList.remove('nav-toggle--open');
@@ -101,6 +116,7 @@ function main() {
         bindConfig();
         bindFiles();
         bindAccounts();
+        bindMessages();
         bindQuotes();
         bindPlugins();
         bindPluginData();
@@ -127,6 +143,7 @@ function main() {
     document.addEventListener('console:localechange', () => {
         onFilesLocaleChange();
         onAccountsLocaleChange();
+        onMessagesLocaleChange();
         onPluginDataLocaleChange();
         onLogsLocaleChange();
         renderView();

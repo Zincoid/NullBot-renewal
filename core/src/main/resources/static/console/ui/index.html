@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/logs.css">
     <link rel="stylesheet" href="css/plugin-data.css">
+    <link rel="stylesheet" href="css/messages.css">
     <script type="module" src="app.js"></script>
     <script src="digital-flow.js" defer></script>
 </head>
@@ -50,6 +51,14 @@
                 <path d="M11.4 9.8c1.5.3 2.6 1.4 2.6 3.2"/>
             </svg>
             <span data-i18n="nav.accounts">角色</span>
+        </a>
+        <a href="#/messages" data-view="messages">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="10" height="8" rx="1"/>
+                <path d="M3.5 4.75 8 8 12.5 4.75"/>
+            </svg>
+            <span data-i18n="nav.messages">消息</span>
         </a>
         <a href="#/quotes" data-view="quotes">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -116,7 +125,7 @@
             </svg>
         </button>
         <button type="button" class="icon-btn locale-btn" id="locale-toggle">EN</button>
-        <button id="logout" data-i18n="nav.logout">退出</button>
+        <button id="logout" data-i18n="nav.logout">登出</button>
         <button type="button" class="nav-toggle" id="nav-toggle"
                 data-i18n-aria-label="common.menu" aria-label="菜单" aria-expanded="false">
             <span></span>
@@ -459,6 +468,63 @@
         <div class="pager" id="files-pager"></div>
     </section>
 
+    <!-- ═══ Messages ══════════════ -->
+    <section class="view" id="view-messages" hidden>
+        <div class="view-head">
+            <div class="page-header">
+                <h1 class="page-header__title"># <span data-i18n="view.messages">消息</span><span class="cursor">_</span></h1>
+                <p class="page-header__subtitle" data-i18n="view.messages.sub">按会话查看聊天记录与附件</p>
+            </div>
+            <div class="view-actions">
+                <button id="messages-refresh" class="icon-only" data-i18n-title="common.refresh"
+                        data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                        <path d="M21 3v6h-6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="messages-layout">
+            <aside class="messages-chats">
+                <div class="messages-chats__head">
+                    <span data-i18n="messages.chats">会话</span>
+                    <span id="messages-chat-total" class="muted"></span>
+                </div>
+                <div class="messages-chats__list" id="messages-chat-list"></div>
+            </aside>
+            <section class="messages-panel">
+                <header class="messages-panel__head" id="messages-head" hidden>
+                    <div class="messages-panel__title">
+                        <div class="messages-panel__name">
+                            <span id="messages-chat-kind" class="messages-kind"></span>
+                            <h2 id="messages-chat-name"></h2>
+                        </div>
+                        <div class="messages-panel__sub">
+                            <span id="messages-chat-meta" class="muted"></span>
+                        </div>
+                    </div>
+                    <div class="messages-panel__actions">
+                        <code class="messages-panel__chat-id"><span id="messages-chat-id"></span></code>
+                        <button type="button" id="messages-reset" class="small danger btn-delete"
+                                data-i18n="messages.reset">重置</button>
+                    </div>
+                </header>
+                <div class="messages-timeline" id="messages-timeline"></div>
+                <form class="messages-compose" id="messages-compose" hidden>
+                    <textarea id="messages-input" rows="1" maxlength="4000"
+                              data-i18n-placeholder="messages.composePlaceholder"
+                              data-i18n-aria-label="messages.composePlaceholder"
+                              data-i18n-title="messages.composeHint"
+                              placeholder="输入消息..." aria-label="输入消息..."></textarea>
+                    <button type="submit" id="messages-send" class="primary"
+                            data-i18n="messages.send">发送</button>
+                </form>
+            </section>
+        </div>
+    </section>
+
     <!-- ═══ Accounts ══════════════ -->
     <section class="view" id="view-accounts" hidden>
         <div class="view-head">
@@ -696,6 +762,22 @@
         </button>
     </div>
     <div class="preview-body" id="preview-body"></div>
+</dialog>
+
+<!-- ═══ Attachments dialog ═══════ -->
+<dialog id="message-attachments-dialog" class="message-attachments-dialog">
+    <div class="dialog-head">
+        <div>
+            <h2 id="message-attachments-title" data-i18n="messages.attachmentsTitle">消息附件</h2>
+            <p class="muted" id="message-attachments-subtitle"></p>
+        </div>
+        <button type="button" class="dialog-close" data-close
+                data-i18n-aria-label="common.close" aria-label="关闭">×</button>
+    </div>
+    <div class="dialog-body">
+        <p id="message-attachments-status" class="status" role="status" aria-live="polite"></p>
+        <div id="message-attachments-list" class="message-attachments-list"></div>
+    </div>
 </dialog>
 
 <!-- ═══ Group dialog ═════════════ -->

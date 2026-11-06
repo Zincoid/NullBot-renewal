@@ -66,6 +66,18 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         return newest;
     }
 
+    // ════ Chats ═══════════════════
+
+    @Override
+    public List<ChatSummary> chats() {
+        return baseMapper.chats().stream()
+                .map(row -> new ChatSummary(
+                        row.getChatId(),
+                        row.getMessages() == null ? 0L : row.getMessages(),
+                        row.getLastAt()))
+                .toList();
+    }
+
     // ════ Clear ═══════════════════
 
     @Override

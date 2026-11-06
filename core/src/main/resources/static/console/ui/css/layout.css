@@ -102,8 +102,14 @@
     border-bottom-color: var(--color-primary);
 }
 
-.nav a[data-view="usage"]:not(.active) {
-    border-bottom-color: rgba(236, 102, 166, 0.25);
+.nav a[data-view="usage"] {
+    border-bottom-color: rgba(37, 99, 235, 0.25);
+}
+
+.nav a[data-view="usage"].active {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.12);
+    border-bottom-color: #2563eb;
 }
 
 .nav a[data-view="plugins"] {

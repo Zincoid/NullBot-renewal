@@ -36,7 +36,7 @@ public class BotController {
         String selfId = botHolder.onlineId();
         if (selfId == null) return new BotView(false, null, null, null);
         try {
-            UserInfo info = botHolder.getBotClient().getLoginInfo();
+            UserInfo info = botHolder.getClient().getLoginInfo();
             return new BotView(true, info.userId(), info.nickname(), info.avatar());
         } catch (RuntimeException e) {
             log.warn("Bot info unavailable: {}", selfId, e);

@@ -44,6 +44,38 @@ public final class ConsoleDownloads {
                 .body(new FileSystemResource(path));
     }
 
+    /**
+     * 构建内联内容响应，供控制台按需预览附件。
+     * <p>Builds an inline content response for on-demand console attachment previews.</p>
+     *
+     * @param path        the file path
+     * @param filename    the display filename, nullable
+     * @param contentType the MIME type, nullable
+     * @return the inline response
+     */
+    public static ResponseEntity<Resource> inline(Path path, String filename, String contentType) {
+        String name = clean(filename);
+        MediaType mediaType = mediaType(contentType);
+        ContentDisposition disposition = ContentDisposition.inline()
+                .filename(name, StandardCharsets.UTF_8)
+                .build();
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .header("X-Content-Type-Options", "nosniff")
+                .body(new FileSystemResource(path));
+    }
+
+    private static MediaType mediaType(String contentType) {
+        if (contentType == null || contentType.isBlank())
+            return MediaType.APPLICATION_OCTET_STREAM;
+        try {
+            return MediaType.parseMediaType(contentType);
+        } catch (IllegalArgumentException e) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
     private static String clean(String filename) {
         String name = filename == null ? "" : filename.replaceAll("\\p{Cntrl}", "").trim();
         return name.isEmpty() ? "file" : name;
