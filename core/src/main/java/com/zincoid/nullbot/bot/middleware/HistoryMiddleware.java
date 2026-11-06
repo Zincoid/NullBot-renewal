@@ -10,11 +10,9 @@ import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.file.FileService;
+import com.zincoid.nullbot.module.message.AttachmentService;
 import com.zincoid.nullbot.module.message.MessageService;
-import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
-import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +35,12 @@ import java.util.UUID;
 public class HistoryMiddleware implements Middleware {
 
     private final MessageService messageService;
-    private final FileService fileService;
+    private final AttachmentService attachmentService;
 
     // ════ Handle ══════════════════
 
     /**
-     * 记录消息与戳一戳事件并保存消息中的媒体附件，事件继续传递。
+     * 记录消息与戳一戳事件，保存消息中的媒体附件后继续传递事件。
      * <p>Records message and poke events, stores message media attachments, then passes the event on.</p>
      *
      * @param client the outbound port
@@ -65,8 +63,8 @@ public class HistoryMiddleware implements Middleware {
     // ════ Helpers ═════════════════
 
     /**
-     * 记录事件消息并落盘其中的媒体附件；跳过机器人自身的消息回显。
-     * <p>Records the event message and stores its media attachments, skipping echoes of the bot's own messages.</p>
+     * 记录事件消息，随后落盘其中的媒体附件；跳过机器人自身的消息回显。
+     * <p>Records the event message, then stores its media attachments, skipping echoes of the bot's own messages.</p>
      *
      * @param client the outbound port
      * @param chatId chat identifier
@@ -75,14 +73,13 @@ public class HistoryMiddleware implements Middleware {
     private void recordMsg(BotClient client, String chatId, MsgEvent event) {
         if (event.selfId().equals(event.userId())) return;
         StringBuilder content = new StringBuilder();
-        List<Long> files = new ArrayList<>();
+        List<MsgSegment.Image> images = new ArrayList<>();
         for (MsgSegment segment : event.content().segments()) {
             switch (segment) {
                 case MsgSegment.Text s -> content.append(s.text());
                 case MsgSegment.Image s -> {
                     content.append("[Image]");
-                    Long fileId = saveAttachment(event.userId(), s.url(), s.file());
-                    if (fileId != null) files.add(fileId);
+                    images.add(s);
                 }  // Only save image files to local
                 case MsgSegment.Video _ -> content.append("[Video]");
                 case MsgSegment.Voice _ -> content.append("[Voice]");
@@ -92,7 +89,7 @@ public class HistoryMiddleware implements Middleware {
                 case MsgSegment.Raw s -> content.append("[Unsupported type=").append(s.type()).append("]");
             }
         }
-        if (content.isEmpty() && files.isEmpty()) return;
+        if (content.isEmpty()) return;
         Message message = Message.builder()
                 .id(event.messageId())
                 .chatId(chatId)
@@ -100,22 +97,10 @@ public class HistoryMiddleware implements Middleware {
                 .role(MessageRole.USER)
                 .nickname(event.nickname())
                 .content(content.toString())
-                .files(files)
                 .build();
-        try {
-            messageService.append(message);
-        } catch (RuntimeException e) {
-            if (messageService.getById(message.getId()) == null) {
-                for (Long fileId : files) {
-                    try {
-                        fileService.delete(fileId);
-                    } catch (RuntimeException ex) {
-                        log.warn("Failed to delete attachment: {}", fileId, ex);
-                    }
-                }
-            }
-            throw e;
-        }
+        messageService.append(message);
+        for (MsgSegment.Image image : images)
+            saveAttachment(message.getId(), event.userId(), image.url(), image.file());
     }
 
     /**
@@ -156,21 +141,19 @@ public class HistoryMiddleware implements Middleware {
     }
 
     /**
-     * 保存一个媒体附件并返回其记录 ID。
-     * <p>Stores one media attachment and returns its record id.</p>
+     * 保存一个媒体附件。
+     * <p>Stores one media attachment.</p>
      *
-     * @param userId uploader platform user id
-     * @param url    media source url
-     * @param file   original filename, nullable
-     * @return the file record id, or null when skipped or failed
+     * @param messageId owning message id
+     * @param userId    uploader platform user id
+     * @param url       media source url
+     * @param file      original filename, nullable
      */
-    private Long saveAttachment(String userId, String url, String file) {
+    private void saveAttachment(String messageId, String userId, String url, String file) {
         try {
-            File saved = fileService.save(userId, BizType.CHAT, url, file);
-            return saved.getId();
+            attachmentService.save(messageId, userId, url, file);
         } catch (RuntimeException e) {
-            log.warn("Failed to store attachment: user={}", userId, e);
-            return null;
+            log.warn("Failed to store attachment: message={}, user={}", messageId, userId, e);
         }
     }
 }

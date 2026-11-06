@@ -6,23 +6,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.mapper.FileMapper;
+import com.zincoid.nullbot.module.http.UrlDownloader;
 import com.zincoid.nullbot.platform.persistence.po.File;
-import com.zincoid.nullbot.platform.util.MimeUtils;
 import com.zincoid.nullbot.platform.util.PageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -39,23 +33,17 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     public static final int MAX_LIMIT = Integer.MAX_VALUE;
 
     private final FileStorage fileStorage;
-
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
+    private final UrlDownloader urlDownloader;
 
     // ════ Save ════════════════════
 
     @Override
     public File save(String userId, BizType type, String url, String original) {
         validate(userId, type);
-        if (url == null || url.isBlank()) throw new FileException("Missing key: url");
-        HttpResponse<InputStream> resp = download(url);
-        try (InputStream in = resp.body()) {
+        try (InputStream in = urlDownloader.open(url)) {
             return store(userId, original, in, type, null);
         } catch (IOException e) {
-            throw new FileException("Failed to read download body", e);
+            throw new FileException("Failed to close download body", e);
         }
     }
 
@@ -107,20 +95,6 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     public String uri(File file) {
         if (file == null) throw new FileException("Missing key: file");
         return fileStorage.uri(file.getStored());
-    }
-
-    @Override
-    public String imageUri(Long fileId) {
-        if (fileId == null) return null;
-        try {
-            File file = getById(fileId);
-            if (file == null) return null;
-            String mime = MimeUtils.mime(file.getStored());
-            if (mime == null) mime = MimeUtils.mime(file.getOriginal());
-            return mime != null && mime.startsWith("image/") ? uri(file) : null;
-        } catch (RuntimeException e) {
-            return null;
-        }
     }
 
     // ════ Random ══════════════════
@@ -217,32 +191,6 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
             fileStorage.delete(stored);
         } catch (IOException e) {
             log.warn("Failed to delete file: {}", stored, e);
-        }
-    }
-
-    private HttpResponse<InputStream> download(String url) {
-        HttpRequest request;
-        try {
-            request = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(30))
-                    .GET()
-                    .build();
-        } catch (IllegalArgumentException e) {
-            throw new FileException("Malformed URL", e);
-        }
-        try {
-            HttpResponse<InputStream> resp = httpClient.send(
-                    request, HttpResponse.BodyHandlers.ofInputStream());
-            if (resp.statusCode() / 100 != 2) {
-                IOUtils.closeQuietly(resp.body());
-                throw new FileException("Download failed: status=" + resp.statusCode());
-            }
-            return resp;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new FileException("Download interrupted", e);
-        } catch (IOException e) {
-            throw new FileException("Download failed", e);
         }
     }
 }

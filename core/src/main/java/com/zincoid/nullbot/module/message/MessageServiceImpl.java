@@ -3,10 +3,7 @@ package com.zincoid.nullbot.module.message;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
-import com.zincoid.nullbot.module.file.FileService;
-import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.mapper.MessageMapper;
-import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +23,7 @@ import java.util.List;
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
     private final ConfigService configService;
-    private final FileService fileService;
+    private final AttachmentService attachmentService;
 
     // ════ Append ══════════════════
 
@@ -44,14 +41,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             throw new MessageException("Missing key: role");
         if (message.getNickname() == null)
             throw new MessageException("Missing key: nickname");
-        boolean noContent = message.getContent() == null || message.getContent().isEmpty();
-        boolean noFiles = message.getFiles() == null || message.getFiles().isEmpty();
-        if (noContent && noFiles)
-            throw new MessageException("Missing content and files");
-        message.setContent(noContent ? null : message.getContent());
+        if (message.getContent() == null || message.getContent().isEmpty())
+            throw new MessageException("Missing content");
         message.setReasoning(message.getReasoning() == null || message.getReasoning().isEmpty()
                 ? null : message.getReasoning());
-        message.setFiles(noFiles ? null : message.getFiles());
         message.setCreatedAt(LocalDateTime.now());
         save(message);
         log.info("Message saved: {}", message.getId());
@@ -79,7 +72,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     public int clear(String chatId) {
         if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
         List<Message> messages = lambdaQuery()
-                .select(Message::getId, Message::getFiles)
+                .select(Message::getId)
                 .eq(Message::getChatId, chatId)
                 .list();
         if (messages.isEmpty()) return 0;
@@ -112,7 +105,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private void trim(String chatId) {
         int size = size();
         List<Message> all = lambdaQuery()
-                .select(Message::getId, Message::getFiles)
+                .select(Message::getId)
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
                 .list();
@@ -123,21 +116,16 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     /**
-     * 删除消息所引用的附件：仅删除消息自己保存的聊天文件。
-     * <p>Deletes the attachments of a message: only chat files saved with the message.</p>
+     * 删除消息所拥有的聊天附件及其磁盘文件。
+     * <p>Deletes the chat attachments owned by a message and their stored files.</p>
      *
      * @param message the removed message
      */
     private void deleteAttachments(Message message) {
-        if (message.getFiles() == null || message.getFiles().isEmpty()) return;
-        for (Long fileId : message.getFiles()) {
-            try {
-                File file = fileService.getById(fileId);
-                if (file == null || file.getType() != BizType.CHAT) continue;
-                fileService.delete(file.getId());
-            } catch (RuntimeException e) {
-                log.warn("Failed to delete attachment: {}", fileId, e);
-            }
+        try {
+            attachmentService.deleteByMessageId(message.getId());
+        } catch (RuntimeException e) {
+            log.warn("Failed to delete attachments: message={}", message.getId(), e);
         }
     }
 }

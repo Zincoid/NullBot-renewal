@@ -177,8 +177,7 @@
             'files.type0': '图片',
             'files.type1': '视频',
             'files.type2': '音频',
-            'files.type3': '聊天',
-            'files.type4': '表情',
+            'files.type3': '表情',
 
             'accounts.usersTab': '用户',
             'accounts.groupsTab': '群组',
@@ -607,8 +606,7 @@
             'files.type0': 'Image',
             'files.type1': 'Video',
             'files.type2': 'Audio',
-            'files.type3': 'Chat',
-            'files.type4': 'Meme',
+            'files.type3': 'Meme',
 
             'accounts.usersTab': 'Users',
             'accounts.groupsTab': 'Groups',

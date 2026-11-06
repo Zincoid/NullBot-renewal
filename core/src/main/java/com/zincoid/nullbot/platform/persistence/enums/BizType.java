@@ -15,8 +15,7 @@ public enum BizType {
     IMAGE(0, "image"),
     VIDEO(1, "video"),
     AUDIO(2, "audio"),
-    CHAT(3, "chat"),
-    MEME(4, "meme");
+    MEME(3, "meme");
 
     @EnumValue
     private final Integer value;

@@ -28,22 +28,29 @@ public class ChatPrompt {
             
             History:
             - User messages are formatted as [id=<message id>] nickname(userId): text.
-            - A [Reply id=<message id>] marker quotes another message; use the "read" tool to fetch its content or attachments.
+            - A [Reply id=<message id>] marker quotes another message.
             - @you means the user mentioned you.
-            - Media data is not included in history; use the "read" tool to list attachment file ids and the "view" tool to view an image.
-            - Notes in your own messages that record sent attachments are metadata, not text you said to the user.
-            
+            - Media data is not included in history.
+            - Notes in your own messages that record sent media are metadata, not text you said to the user.
+
+            Tools:
+            - "read" takes a message id and returns its content and attachment ids.
+            - "view" takes attachment=<id> for a chat attachment, or file=<id> for a collection file.
+            - "search" finds collection files; "send" takes file=<id> to send one.
+
             Rules:
-            - You can call the "send" tool multiple times in one turn to send separate messages or media.
-            - Set last=true on the send that completes your answer; no separate final reply will be sent. Otherwise, still produce a final reply, and never repeat what you already sent.
-            - The trigger note identifies which message to respond to and how the conversation was triggered.
+            - Call "send" as many times as needed for separate messages or media.
+            - In normal conversation, use one send per chat bubble.
+            - Use a line break only when the content genuinely needs it (for example code), and never output blank lines.
+            - Set last=true on the send that completes your answer; no separate final reply is then sent.
+            - If no send has last=true, give a final reply without repeating what you already sent.
+            - The trigger note identifies the message to respond to and how the turn was triggered.
             - Use ids only as tool arguments; never write ids, history markers, or attachment notes in your reply.
             
-            Reply like a person texting in a chat app:
+            Style:
             - Keep it short and conversational, and match the user's language.
             - Never write documents, reports, headings, bullet lists, or tables.
-            - Avoid markdown formatting unless the user asks for code.
-            - Use a line break only when it is truly needed, and never output blank lines.""";
+            - Avoid markdown formatting unless the user asks for code.""";
 
     private final ConfigService configService;
 

@@ -4,13 +4,14 @@ import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupRecallEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.LanguageService;
 import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.module.message.AttachmentService;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
+import com.zincoid.nullbot.platform.persistence.po.Attachment;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class RecallMiddleware implements Middleware {
     private final GroupSettingService groupSettingService;
     private final LanguageService languageService;
     private final MessageService messageService;
-    private final FileService fileService;
+    private final AttachmentService attachmentService;
 
     // ════ Handle ══════════════════
 
@@ -77,12 +78,8 @@ public class RecallMiddleware implements Middleware {
         Language language = languageService.group(event.groupId());
         MsgContent.Builder msg = MsgContent.builder().text(Text.ANTI_RECALL_DETECTED.of(
                 language, message.getNickname(), message.getUserId(), message.getContent()));
-        if (message.getFiles() != null) {
-            for (Long fileId : message.getFiles()) {
-                String uri = fileService.imageUri(fileId);
-                if (uri != null) msg.image(uri);
-            }
-        }
+        for (Attachment attachment : attachmentService.listByMessageId(message.getId()))
+            msg.image(attachmentService.uri(attachment));
         client.sendGroupMsg(event.groupId(), msg.build());
         log.info("Anti-recall: group={}, user={}, message={}",
                 event.groupId(), event.userId(), event.messageId());

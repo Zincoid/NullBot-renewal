@@ -35,7 +35,7 @@ public class Search implements Tool {
     @Override
     public ToolDefinition definition() {
         return ToolDefinition.builder("search", """
-                        Searches stored files of a business type by keyword.
+                        Searches stored collection files of a business type by keyword.
                         Returns file ids; use send with file=<id> to send one.""")
                 .addEnum("type", "file business type", TYPES, true)
                 .addString("keyword", "keyword matched against description or filename, optional")

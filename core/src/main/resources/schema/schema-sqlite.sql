@@ -109,13 +109,24 @@ CREATE TABLE IF NOT EXISTS `message` (
     `nickname`      VARCHAR(255)    NOT NULL,
     `content`       TEXT            DEFAULT NULL,
     `reasoning`     TEXT            DEFAULT NULL,
-    `files`         TEXT            DEFAULT NULL,
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS `idx_message_chat_created` ON `message` (`chat_id`, `created_at`);
 CREATE INDEX IF NOT EXISTS `idx_message_created_at` ON `message` (`created_at`);
 
--- 10. Quote
+-- 10. Attachment
+CREATE TABLE IF NOT EXISTS `attachment` (
+    `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
+    `message_id`    VARCHAR(64)     DEFAULT NULL,
+    `user_id`       VARCHAR(64)     NOT NULL,
+    `original`      VARCHAR(255)    NOT NULL,
+    `stored`        VARCHAR(255)    NOT NULL,
+    `size`          BIGINT          NOT NULL DEFAULT 0,
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS `idx_attachment_message_id` ON `attachment` (`message_id`);
+
+-- 11. Quote
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -126,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `quote` (
 CREATE INDEX IF NOT EXISTS `idx_quote_user_id` ON `quote` (`user_id`);
 CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
 
--- 11. Cmd Usage
+-- 12. Cmd Usage
 CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATE            NOT NULL,              -- statistics date
@@ -139,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `cmd_usage` (
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_usage_key`
     ON `cmd_usage` (`time`, `chat_type`, `target_id`, `user_id`, `cmd`);
 
--- 12. AI Usage
+-- 13. AI Usage
 CREATE TABLE IF NOT EXISTS `ai_usage` (
     `id`             INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`           DATE            NOT NULL,              -- statistics date

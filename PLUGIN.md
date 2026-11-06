@@ -152,8 +152,10 @@ public class DemoPlugin implements Plugin {
 | `users()` / `groups()` | 用户、群记录 |
 | `groupSettings()` / `userSettings()` | 群、用户设置 |
 | `quotes()` | 语录服务 |
-| `files()` | 文件记录与磁盘存储 |
+| `files()` | 收藏文件记录与磁盘存储（不含聊天附件） |
 | `languages()` | 回复语言服务 |
+
+`BizType.CHAT` 已移除，聊天附件不通过 `PluginContext` 暴露；引用该常量的插件需要更新并重新编译。
 
 插件配置和缓存文件放在 `dataDir()` 下，不要依赖宿主的内部工作目录。
 

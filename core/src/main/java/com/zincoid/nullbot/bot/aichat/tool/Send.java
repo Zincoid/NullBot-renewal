@@ -21,9 +21,9 @@ public class Send implements Tool {
         return ToolDefinition.builder("send", """
                         Sends an additional message to the current chat before the final reply; you may call it multiple times.
                         Set last=true when this message completes your answer; no separate final reply will be sent.
-                        Set file to attach an image, video, or audio by file id.""")
+                        Set file to attach a collection image, video, or audio by file id from the search tool.""")
                 .addString("content", "message text, optional when file is set")
-                .addInteger("file", "file id of an image, video, or audio to send, optional")
+                .addInteger("file", "collection file id from the search tool, optional")
                 .addString("reply", "message id to quote, optional")
                 .addBoolean("last", "set true when this message completes your answer", false)
                 .build();

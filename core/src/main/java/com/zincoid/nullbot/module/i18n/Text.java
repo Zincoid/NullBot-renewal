@@ -99,7 +99,6 @@ public enum Text {
     HISTORY_TITLE("聊天历史", "Chat history"),
     HISTORY_EMPTY("暂无聊天历史", "No chat history"),
     HISTORY_ASSISTANT("AI", "AI"),
-    HISTORY_ATTACHMENTS("附件：%s", "Attachments: %s"),
     HISTORY_CLEARED("♻️ 聊天历史已清空（%d 条）", "♻️ Chat history cleared (%d messages)"),
     HISTORY_UNKNOWN_OP("未知历史参数：%s", "Unknown history argument: %s"),
 

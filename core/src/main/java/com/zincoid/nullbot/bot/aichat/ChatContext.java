@@ -72,7 +72,6 @@ public record ChatContext(
     public ToolRes send(String text, List<Long> fileIds, String replyId, boolean last) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
-        List<Long> files = new ArrayList<>();
         List<String> media = new ArrayList<>();
         if (!compact.isBlank())
             builder.text(compact);
@@ -81,22 +80,21 @@ public record ChatContext(
             if (file == null) continue;
             String kind = attach(builder, file);
             if (kind == null) continue;
-            files.add(id);
             media.add(kind + ", file id=" + id);
         }
-        if (compact.isBlank() && files.isEmpty())
+        if (compact.isBlank() && media.isEmpty())
             return ToolRes.error("No valid media: " + fileIds);
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);
         MsgContent message = builder.build();
         String content = annotate(compact, media);
-        String messageId = deliver(message, content, files, null, last);
+        String messageId = deliver(message, content, null, last);
         return ToolRes.of(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
     }
 
-    public String deliver(MsgContent message, String content, List<Long> files,
+    public String deliver(MsgContent message, String content,
                           String reasoning, boolean last) {
         String messageId = chatType == ChatType.GROUP
                 ? client.sendGroupMsg(targetId, message)
@@ -107,7 +105,7 @@ public record ChatContext(
             return messageId;
         }
         memory.add(chatId, messageId, event.selfId(), SELF_NAME,
-                AiMessage.assistant(content).withReasoning(reasoning), files);
+                AiMessage.assistant(content).withReasoning(reasoning));
         return messageId;
     }
 

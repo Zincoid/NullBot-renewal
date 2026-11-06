@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -110,7 +109,7 @@ public class ChatPipeline {
             record(chatType, targetId, event.userId(), aiSource, res.getUsage());
             if (ctx.hasFinalSent()) return true;
             String content = ChatText.compact(res.getContent());
-            ctx.deliver(MsgContent.of(content), content, List.of(), res.getReasoning(), true);
+            ctx.deliver(MsgContent.of(content), content, res.getReasoning(), true);
         } finally {
             lock.unlock();
         }

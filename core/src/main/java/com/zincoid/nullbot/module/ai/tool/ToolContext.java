@@ -21,7 +21,7 @@ public interface ToolContext {
      * <p>Sends one message to the current chat, optionally marking it as the final message of the turn.</p>
      *
      * @param text    the message text, may be blank when files are present
-     * @param fileIds the file ids of media to attach
+     * @param fileIds the collection file ids of media to attach
      * @param replyId the platform message id to quote, nullable
      * @param last    whether this message completes the turn
      * @return the tool result

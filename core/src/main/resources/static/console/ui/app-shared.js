@@ -22,7 +22,7 @@ export const {t} = window.ConsoleUI;
 
 export const PAGE_SIZE = 20;
 export const UPLOAD_LINE_TTL = 4000;
-export const BIZ_TYPES = [0, 1, 2, 3, 4];
+export const BIZ_TYPES = [0, 1, 2, 3];
 export const ACCESS_LEVELS = [-2, -1, 0, 1, 2];
 
 export function options(items, selected) {

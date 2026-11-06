@@ -4,6 +4,92 @@
 
 ## [Unreleased]
 
+### 数据结构与迁移
+
+- 新增 `attachment` 表存放聊天附件，通过 `message_id` 归属消息；`file` 表只保留媒体收藏（`IMAGE=0` / `VIDEO=1` / `AUDIO=2` / `MEME=3`）。
+- `message` 不再保存附件 id，迁移后删除旧的 `files` 列；assistant 消息不再记录发送过的收藏文件 id，内容里的 `(sent image, file id=N)` 文本保留。
+- 升级前请停止机器人、备份数据库与 `nullbot.file.root`，并**先执行迁移 SQL 再启动新版本**。SQLite 启动时会自动创建 `attachment` 表与索引，但不会删除已有 `message.files` 列，因此手工迁移不可省略。
+
+MySQL 8.0.4+：
+
+```sql
+CREATE TABLE `attachment` (
+    `id`         BIGINT       NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+    `message_id` VARCHAR(64)  DEFAULT NULL COMMENT 'Owning message id',
+    `user_id`    VARCHAR(64)  NOT NULL COMMENT 'Uploader platform user id',
+    `original`   VARCHAR(255) NOT NULL COMMENT 'Original filename',
+    `stored`     VARCHAR(255) NOT NULL COMMENT 'Stored flat filename',
+    `size`       BIGINT       NOT NULL DEFAULT 0 COMMENT 'File size in bytes',
+    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
+    PRIMARY KEY (`id`),
+    KEY `idx_attachment_message_id` (`message_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat attachment table';
+
+INSERT INTO `attachment` (`id`,`user_id`,`original`,`stored`,`size`,`created_at`)
+SELECT `id`,`user_id`,`original`,`stored`,`size`,`created_at`
+FROM `file` WHERE `type` = 3;
+
+UPDATE `attachment` a
+JOIN (
+    SELECT m.`id` AS `message_id`, CAST(jt.`raw` AS UNSIGNED) AS `attachment_id`
+    FROM `message` m,
+    JSON_TABLE(m.`files`, '$[*]' COLUMNS (`raw` VARCHAR(64) PATH '$')) jt
+    WHERE m.`files` IS NOT NULL
+) r ON r.`attachment_id` = a.`id`
+SET a.`message_id` = r.`message_id`;
+
+ALTER TABLE `message` DROP COLUMN `files`;
+
+DELETE FROM `file` WHERE `type` = 3;
+```
+
+说明：老消息里指向收藏文件的 id 因关联不到 `attachment` 会被忽略；旧字符串 id 通过 `CAST` 归一为数字；附件顺序由 `attachment.id` 保持。未被任何消息引用的旧 `type=3` 行会保留为 `message_id = NULL` 的孤立附件。`JSON_TABLE` 需要 MySQL 8.0.4+；更低版本请改用应用侧脚本回填。
+
+SQLite 3.35+（需要 JSON1）：
+
+```sql
+CREATE TABLE IF NOT EXISTS `attachment` (
+    `id`         INTEGER      PRIMARY KEY AUTOINCREMENT,
+    `message_id` VARCHAR(64)  DEFAULT NULL,
+    `user_id`    VARCHAR(64)  NOT NULL,
+    `original`   VARCHAR(255) NOT NULL,
+    `stored`     VARCHAR(255) NOT NULL,
+    `size`       BIGINT       NOT NULL DEFAULT 0,
+    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS `idx_attachment_message_id` ON `attachment` (`message_id`);
+
+INSERT INTO `attachment` (`id`,`user_id`,`original`,`stored`,`size`,`created_at`)
+SELECT `id`,`user_id`,`original`,`stored`,`size`,`created_at`
+FROM `file` WHERE `type` = 3;
+
+UPDATE `attachment`
+SET `message_id` = (
+    SELECT m.`id`
+    FROM `message` m,
+         json_each(CASE WHEN json_valid(m.`files`) THEN m.`files` ELSE NULL END) j
+    WHERE CAST(j.`value` AS INTEGER) = `attachment`.`id`
+      AND json_type(CASE WHEN json_valid(m.`files`) THEN m.`files` ELSE NULL END) = 'array'
+    LIMIT 1
+);
+
+ALTER TABLE `message` DROP COLUMN `files`;
+
+DELETE FROM `file` WHERE `type` = 3;
+```
+
+说明：执行前用 `json_valid` 预检并修复畸形 JSON；`ALTER TABLE ... DROP COLUMN` 需要 SQLite 3.35+，更低版本需用“建新表 + 复制 + 改名”的方式删除 `message.files`。未被任何消息引用的旧 `type=3` 行会保留为 `message_id = NULL` 的孤立附件。
+
+聊天附件迁移后校验（两种数据库通用）：`file` 中 `type=3` 应为 0（此时尚未移动 MEME）；`attachment` 数量等于迁移前 `type=3` 数量；`attachment.message_id` 应指向存在的 `message.id` 或为 `NULL`（孤立附件）。旧 `type=3` 行的 `description` 不会迁移；未被任何消息引用的行可按需手工清理。
+
+`MEME` 的枚举值已改为 3，旧库中仍为 4。请在聊天附件迁移**完成之后**执行：
+
+```sql
+UPDATE `file` SET `type` = 3 WHERE `type` = 4;
+```
+
+顺序不能反：旧 `type=3` 是聊天附件，提前移动 MEME 会让附件迁移把 MEME 行当作旧聊天文件复制并删除。
+
 ### Added
 
 - 新增 `#Get` / `#Delete`：使用 `Get <img|aud|vid|quot> <id>` / `Delete <img|aud|vid|quot> <id>` 按类型与 ID 获取或删除收藏。
@@ -12,19 +98,21 @@
 
 ### Changed
 
+- 聊天附件改由 `attachment` 表存储并通过 `message_id` 归属消息；AI `read` 返回附件 id，`view` 新增 `attachment` 参数用于查看聊天附件，`send` 仍只发送收藏文件，`search` 不再提供 `chat` 类型。
+- 控制台文件页的类型改为图片 / 视频 / 音频 / 表情；`BizType.CHAT` 移除，引用该常量的外部插件需要重新编译。
 - `#Save` 改为只保存被引用的消息，移除 `-i` / `--id` 选项；保存媒体时文件记录的用户 ID 改为被引用消息的发送者，与语录保存一致（此前是指令发起者）。
 - 媒体与语录指令改为按操作统一：保存使用 `#Save`，获取 / 删除使用 `#Get` / `#Delete`，随机使用 `#Image` / `#Audio` / `#Video` / `#Quote`。原 `ImageSave` / `ImageGet` / `ImageDel`、`AudioSave` / …、`VideoSave` / …、`QuoteSave` / `QuoteGet` / `QuoteDel` 命令移除，引用这些命令的关键词规则需要更新；用量与禁用记录也改用新命令名。
 - `#GroupSet` 更名为 `#Setting`（别名改为 `设置`）；引用旧命令名的关键词与禁用规则需要更新。
 - 指向机器人的戳一戳改由消息入库中间件记录，与普通消息一致：即使 AI 关闭或触发被限速也会写入会话历史，可在 `#History` 与后续 AI 上下文中看到；群内用户之间的戳一戳和机器人自身的戳一戳不记录。
 - AI 聊天内部整理：戳一戳记录移出 `ChatPipeline`，发送与历史写入统一走 `ChatContext.deliver`，系统提示词组装移至 `ChatPrompt`。
 - 消息历史窗口逻辑从 `MessageWindowStore` 合并进 `MessageService`：追加消息时裁剪窗口、读取会话窗口、清空历史与附件清理均由 `MessageService` 承担，`ChatMemory` 继续作为 AI 记忆适配器；无行为变化。
-- `message.files` 的元素类型由 `String` 改为 `Long`：新消息以数字数组写入，旧数据中的字符串 id 仍可正常读取，无需迁移。
+- 聊天附件与消息的关联改为 `attachment.message_id`：写入时先落消息再保存附件，读取时按 `message_id` 查询，不再用 JSON 数组保存附件 id。
 - 内置 AI 工具（`call`、`mute`、`read`、`recall`、`search`、`send`、`view`、`web`）从 `module.ai.tool.builtin` 移至 `bot.aichat.tool`，`module.ai` 只保留工具协议与注册表，不再依赖 `bot`；工具名与行为不变。
 - AI 代理类 `AgentClient` 更名为 `Agent`，并与 `AgentOptions` 一起从 `module.ai.client` 移至 `module.ai.agent`；无行为变化。
 - `AiMessage` 的 OpenAI 消息序列化移至 `model/openai/OpenAiReq`，`AiMessage` 只保留领域字段；无行为变化。
 - 输入等待相关类从 `bot.cmd.input` 移至 `bot.input`（`InputManager`、`InputMode`、`InputResult`、`PageSelector`、`InputException`），插件需更新 import；`InputException` 改为直接继承 `NullBotException`，不再依赖 `CmdException`。
 - 内置指令不再通过 `call` 工具暴露给 AI，仅保留 `Help`；图片、音频、视频的发送改由现有 `search` + `send` 工具完成，AI 不再能保存收藏或发送语录。
-- `BizType` 的媒体类型常量简化为 `IMAGE` / `VIDEO` / `AUDIO`，控制台文件类型文案同步改为“图片 / 视频 / 音频”；AI `search` 工具的 `type` 枚举相应变为 `image` / `video` / `audio`，旧值 `image_collection` 等不再接受。
+- `BizType` 的媒体类型常量简化为 `IMAGE` / `VIDEO` / `AUDIO` / `MEME`，控制台文件类型文案同步改为“图片 / 视频 / 音频 / 表情”；AI `search` 工具的 `type` 枚举相应变为 `image` / `video` / `audio` / `meme`，旧值 `image_collection` 等不再接受。
 - 控制台 AI 排行右侧的输入 / 输出词元改用与统计卡片一致的图标显示，缩短行宽，窄窗口下名称不再被挤换行。
 - 控制台语录页的复制按钮固定到内容列最右侧，短文本不再紧跟按钮。
 - `ai_usage` / `cmd_usage` 的 `chat_id` 列重命名为 `target_id`（存的是原始群 / 用户 ID，与聊天层的 `g:` / `p:` 会话键区分）。升级旧库需执行：
@@ -38,6 +126,8 @@
 
 ### Removed
 
+- 移除 `BizType.CHAT`（type=3）；聊天附件不再出现在 `file` 表、控制台文件页、AI `search` 与插件的 `FileService` 中。
+- 移除 `FileService.imageUri`：外部插件若引用过该方法，需改用 `FileService.uri`。
 - 移除 `#Ping` 与 `#Mute` 指令；AI 的 `mute` 工具不受影响。
 
 ### Fixed

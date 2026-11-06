@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `file` (
     `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
     `description`   VARCHAR(255)    DEFAULT NULL             COMMENT 'File description',
     `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
-    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=CHAT, 4=MEME',
+    `type`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Business type: 0=IMAGE, 1=VIDEO, 2=AUDIO, 3=MEME',
     `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
     PRIMARY KEY (`id`),
     KEY `idx_user_id` (`user_id`),
@@ -138,9 +138,8 @@ CREATE TABLE IF NOT EXISTS `message` (
     `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Sender platform user id',
     `role`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Message role: 0=USER, 1=ASSISTANT',
     `nickname`      VARCHAR(255)    NOT NULL                 COMMENT 'Sender nickname',
-    `content`       TEXT            DEFAULT NULL             COMMENT 'Text content (nullable when files present)',
+    `content`       TEXT            DEFAULT NULL             COMMENT 'Text content',
     `reasoning`     TEXT            DEFAULT NULL             COMMENT 'Assistant reasoning content for thinking models',
-    `files`         JSON            DEFAULT NULL             COMMENT 'Attached file record ids (JSON array)',
     `created_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
     PRIMARY KEY (`id`),
     KEY `idx_chat_created` (`chat_id`, `created_at`),
@@ -148,7 +147,22 @@ CREATE TABLE IF NOT EXISTS `message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat message table';
 
 -- =============================================
--- 10. Quote Table
+-- 10. Attachment Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `attachment` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `message_id`    VARCHAR(64)     DEFAULT NULL             COMMENT 'Owning message id',
+    `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Uploader platform user id',
+    `original`      VARCHAR(255)    NOT NULL                 COMMENT 'Original filename',
+    `stored`        VARCHAR(255)    NOT NULL                 COMMENT 'Stored flat filename',
+    `size`          BIGINT          NOT NULL DEFAULT 0       COMMENT 'File size in bytes',
+    `created_at`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
+    PRIMARY KEY (`id`),
+    KEY `idx_attachment_message_id` (`message_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat attachment table';
+
+-- =============================================
+-- 11. Quote Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -162,7 +176,7 @@ CREATE TABLE IF NOT EXISTS `quote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quote table';
 
 -- =============================================
--- 11. Cmd Usage Table
+-- 12. Cmd Usage Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -177,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `cmd_usage` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily command usage table';
 
 -- =============================================
--- 12. AI Usage Table
+-- 13. AI Usage Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `ai_usage` (
     `id`             BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',

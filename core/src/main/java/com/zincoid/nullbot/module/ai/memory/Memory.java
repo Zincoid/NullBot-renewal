@@ -28,7 +28,6 @@ public interface Memory {
      * @param userId    the sender platform user id
      * @param nickname  the sender nickname
      * @param message   the message
-     * @param files     attached file record ids, may be empty
      */
-    void add(String chatId, String messageId, String userId, String nickname, AiMessage message, List<Long> files);
+    void add(String chatId, String messageId, String userId, String nickname, AiMessage message);
 }

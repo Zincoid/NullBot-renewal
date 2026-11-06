@@ -4,9 +4,9 @@ import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
+import com.zincoid.nullbot.module.message.AttachmentService;
 import com.zincoid.nullbot.module.message.MessageService;
-import com.zincoid.nullbot.module.file.FileService;
-import com.zincoid.nullbot.platform.persistence.po.File;
+import com.zincoid.nullbot.platform.persistence.po.Attachment;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
@@ -15,20 +15,20 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 消息查看工具：按消息 ID 返回正文与附件文件名。
- * <p>Message tool: returns a message's content and attachment filenames.</p>
+ * 消息查看工具：按消息 ID 返回正文与附件 ID。
+ * <p>Message tool: returns a message's content and attachment ids.</p>
  */
 @Component
 @RequiredArgsConstructor
 public class Read implements Tool {
 
     private final MessageService messageService;
-    private final FileService fileService;
+    private final AttachmentService attachmentService;
 
     @Override
     public ToolDefinition definition() {
         return ToolDefinition.builder("read", """
-                        Returns a message's content and attachment filenames.""")
+                        Returns a message's content and attachment ids.""")
                 .addString("id", "message id", true)
                 .build();
     }
@@ -47,24 +47,13 @@ public class Read implements Tool {
                 .append("[id=").append(msg.getId()).append("] ")
                 .append(name).append("(").append(msg.getUserId()).append("): ")
                 .append(content);
-        List<Long> files = msg.getFiles();
-        if (files == null || files.isEmpty()) {
-            text.append("\nAttachments: none");
-        } else {
-            text.append("\nAttachments:");
-            for (Long fileId : files)
-                text.append("\n").append(attachment(fileId));
-        }
+        List<Long> attachments = attachmentService.listByMessageId(msg.getId()).stream()
+                .map(Attachment::getId)
+                .toList();
+        if (attachments.isEmpty()) text.append("\nAttachments: none");
+        else text.append("\nAttachments: ").append(String.join(
+                ", ", attachments.stream().map(String::valueOf).toList()));
         return ToolRes.of(text.toString());
-    }
-
-    // ════ Helpers ═════════════════
-
-    private String attachment(Long id) {
-        File file = fileService.getById(id);
-        return file == null
-                ? "- file id=" + id + ": not found"
-                : "- file id=" + id + ": " + file.getOriginal();
     }
 
     private record Args(String id) {

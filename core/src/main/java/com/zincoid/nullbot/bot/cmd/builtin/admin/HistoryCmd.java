@@ -9,18 +9,18 @@ import com.zincoid.nullbot.bot.input.PageSelector;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.i18n.Text;
+import com.zincoid.nullbot.module.message.AttachmentService;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.Access;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
+import com.zincoid.nullbot.platform.persistence.po.Attachment;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,7 +37,7 @@ public class HistoryCmd implements Cmd {
     private static final long INPUT_TIMEOUT = 60;
 
     private final MessageService messageService;
-    private final FileService fileService;
+    private final AttachmentService attachmentService;
     private final InputManager inputManager;
 
     // ════ Run ═════════════════════
@@ -97,23 +97,11 @@ public class HistoryCmd implements Cmd {
     }
 
     private void detail(CmdContext ctx, Message message) {
-        StringBuilder text = new StringBuilder(speaker(ctx, message)).append(": ")
-                .append(message.getContent() == null ? "" : message.getContent());
-        List<String> images = new ArrayList<>();
-        List<Long> unsent = new ArrayList<>();
-        List<Long> files = message.getFiles();
-        if (files != null) {
-            for (Long fileId : files) {
-                String uri = fileService.imageUri(fileId);
-                if (uri == null) unsent.add(fileId);
-                else images.add(uri);
-            }
-        }
-        if (!unsent.isEmpty())
-            text.append("\n").append(ctx.render(Text.HISTORY_ATTACHMENTS,
-                    String.join(", ", unsent.stream().map(String::valueOf).toList())));
-        MsgContent.Builder content = MsgContent.builder().text(text.toString());
-        images.forEach(content::image);
+        String text = speaker(ctx, message) + ": "
+                + (message.getContent() == null ? "" : message.getContent());
+        MsgContent.Builder content = MsgContent.builder().text(text);
+        for (Attachment attachment : attachmentService.listByMessageId(message.getId()))
+            content.image(attachmentService.uri(attachment));
         ctx.send(content.build());
     }
 

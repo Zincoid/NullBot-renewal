@@ -70,7 +70,7 @@ java -jar launcher/target/launcher-qq.jar \
 | `nullbot.db.type` | `sqlite` | `sqlite` 或 `mysql` |
 | `nullbot.db.sqlite.path` | `./data/sqlite.db` | SQLite 文件 |
 | `nullbot.db.mysql.*` | - | MySQL 主机、端口、库名、账号、密码 |
-| `nullbot.file.root` | `./files` | 文件存储根目录 |
+| `nullbot.file.root` | `./files` | 收藏文件与聊天附件的存储根目录 |
 | `nullbot.plugin.enabled` / `dir` | `true` / `./plugins` | 外部插件开关与目录 |
 | `nullbot.shiro.token` | 空 | Shiro 适配器访问令牌 |
 | `nullbot.shiro.server.enable` / `url` | `true` / `/ws` | 反向 WS |
@@ -93,7 +93,7 @@ MySQL 需手动执行 `schema-mysql.sql`；从旧版本升级时还需按 [CHANG
 QQ 官方机器人统一以主动消息发送（不携带 `msg_id`），不会触发被动回复的自动 @；额度受开放平台认证、权限与频控限制。群内默认只有 @机器人 时才会收到消息，全量群消息需在开放平台和群设置中授权。其他限制：
 
 - 群信息、群成员列表为白名单/内邀能力，成员没有头像；`#Usage`、`#Say` 等卡片使用占位头像或省略头像，`#Wife` 成员模式可能没有可选成员。
-- 没有群消息历史；事件中的引用消息会解析并缓存，`#Save` 与 AI `read` 可读取被引用消息的正文和附件；无法按引用索引反查更早的历史消息。
+- 没有群消息历史；事件中的引用消息会解析并缓存，`#Save` 与 AI `read` 可读取被引用消息的正文和附件文件名；无法按引用索引反查更早的历史消息。
 - 不处理入退群、戳一戳、防撤回等通知类事件。
 - 图片支持 png/jpg，视频 mp4，语音 silk/mp3/wav；本地文件大于 5 MB 首版不支持，WebP/GIF 可能上传失败。
 - 群与用户 ID 使用平台 openid 体系，不是 QQ 号，不同机器人的 openid 不通用；文本中的 `@用户` 以 `@<openid>` 显示。
@@ -102,6 +102,8 @@ QQ 官方机器人统一以主动消息发送（不携带 `msg_id`），不会�
 ## AI 对话
 
 群聊 @机器人、私聊消息、戳一戳（适配器支持时）和自动聊天可以触发 AI 对话；群聊 @ 时优先匹配指令，未命中指令才进入 AI。AI 不经过指令链，群 AI 使用群功能限速，私聊 AI 暂不限速。指向机器人的戳一戳会写入会话历史（即使 AI 关闭或触发被限速），可用 `#History` 查看。
+
+AI 可通过 `read` 获取聊天附件的 id，并用 `view` 的 `attachment` 参数查看；`send` 与 `view` 的 `file` 用于收藏文件，`search` 不包含聊天附件。
 
 AI 是否可用由“角色”页的群 / 用户“AI 对话”开关决定：群默认开启，私聊默认关闭。群设置中可开启自动聊天并调整触发概率。
 

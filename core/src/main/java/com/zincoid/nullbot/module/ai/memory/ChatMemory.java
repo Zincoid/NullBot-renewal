@@ -33,7 +33,7 @@ public class ChatMemory implements Memory {
 
     @Override
     public void add(String chatId, String messageId, String userId, String nickname,
-                    AiMessage message, List<Long> files) {
+                    AiMessage message) {
         if (message == null) throw new AiException("Missing key: message");
         String content = message.getContent();
         if (content == null || content.isBlank()) throw new AiException("Missing content");
@@ -50,7 +50,6 @@ public class ChatMemory implements Memory {
                 .role(role)
                 .content(content)
                 .reasoning(message.getReasoning())
-                .files(files)
                 .build());
     }
 
