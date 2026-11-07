@@ -139,6 +139,11 @@ dialog::backdrop {
     color: #fff;
 }
 
+#preview-download .button-icon {
+    width: 20px;
+    height: 20px;
+}
+
 .preview-body {
     position: absolute;
     inset: 0;
@@ -156,6 +161,11 @@ dialog::backdrop {
     border-radius: var(--rounded-lg);
     background: transparent;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform-origin: center center;
+    will-change: transform;
+    transition: transform 0.08s ease-out;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 audio.preview-media {

@@ -1,16 +1,15 @@
 import {
     $, t, api, apiBlob, escapeHtml, formatBytes, formatTime, setStatus,
-    emptyRow, renderPager, confirmAction, toast, bindBackdropClick,
+    emptyRow, renderPager, confirmAction, toast,
     PAGE_SIZE, UPLOAD_LINE_TTL, bizLabel, bizOptions
 } from '../app-shared.js';
+import {openPreview, previewable} from '../preview.js';
 
 // ═══ Files ═══════════════════════
 
 const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', items: []};
 const fileSelection = new Set();
 let editingFile = null;
-let previewUrl = null;
-let previewFile = null;
 let uploading = false;
 let deletingFiles = false;
 
@@ -59,7 +58,7 @@ function renderFiles(data) {
         body.innerHTML = data.items.map(file => {
             const name = escapeHtml(file.original || '-');
             const title = escapeHtml(file.original || '');
-            const fileName = previewKind(file)
+            const fileName = previewable(file.contentType)
                 ? `<button type="button" class="file-name file-name--link"
                            data-action="preview" data-id="${file.id}" title="${title}"
                            aria-label="${escapeHtml(t('files.preview'))}: ${title}">${name}</button>`
@@ -141,68 +140,6 @@ async function downloadFile(file) {
         setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (e) {
         toast(t('files.downloadFailed', {msg: e.message}), 'error');
-    }
-}
-
-const UNPREVIEWABLE_AUDIO = new Set(['audio/silk', 'audio/x-silk', 'audio/amr']);
-
-function previewKind(file) {
-    const type = (file.contentType || '').toLowerCase();
-    if (type.startsWith('image/')) return 'image';
-    if (type.startsWith('video/')) return 'video';
-    if (type.startsWith('audio/')) return 'audio';
-    return null;
-}
-
-function releasePreview() {
-    if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        previewUrl = null;
-    }
-    $('preview-body').innerHTML = '';
-}
-
-async function openPreview(file) {
-    const kind = previewKind(file);
-    if (!kind) return;
-    previewFile = file;
-    const type = (file.contentType || '').toLowerCase();
-    if (kind === 'audio' && UNPREVIEWABLE_AUDIO.has(type)) {
-        releasePreview();
-        $('preview-title').textContent = file.original || ('file-' + file.id);
-        const wrap = document.createElement('div');
-        wrap.className = 'preview-unsupported';
-        const message = document.createElement('p');
-        message.textContent = t('files.previewUnsupported', {type: file.contentType || ''});
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'small';
-        button.textContent = t('common.download');
-        button.addEventListener('click', () => downloadFile(file));
-        wrap.append(message, button);
-        $('preview-body').appendChild(wrap);
-        $('preview-dialog').showModal();
-        return;
-    }
-    try {
-        const blob = await apiBlob('/files/' + file.id + '/content');
-        releasePreview();
-        previewUrl = URL.createObjectURL(blob);
-        $('preview-title').textContent = file.original || ('file-' + file.id);
-        const media = document.createElement(kind === 'image' ? 'img' : kind);
-        media.className = 'preview-media';
-        if (kind === 'image') {
-            media.alt = file.original || '';
-        } else {
-            media.controls = true;
-            media.autoplay = true;
-            if (kind === 'video') media.volume = 0.25;
-        }
-        media.src = previewUrl;
-        $('preview-body').appendChild(media);
-        $('preview-dialog').showModal();
-    } catch (e) {
-        toast(t('files.previewFailed', {msg: e.message}), 'error');
     }
 }
 
@@ -357,8 +294,14 @@ export function bind() {
         const file = fileState.items.find(item => item.id === Number(button.dataset.id));
         if (!file) return;
         if (button.dataset.action === 'edit') openFileDialog(file);
-        else if (button.dataset.action === 'preview') openPreview(file);
-        else if (button.dataset.action === 'download') downloadFile(file);
+        else if (button.dataset.action === 'preview') {
+            openPreview({
+                title: file.original || ('file-' + file.id),
+                contentType: file.contentType,
+                load: () => apiBlob('/files/' + file.id + '/content'),
+                download: () => downloadFile(file)
+            });
+        } else if (button.dataset.action === 'download') downloadFile(file);
         else if (button.dataset.action === 'delete') deleteFile(file);
     });
     $('files-body').addEventListener('change', event => {
@@ -382,16 +325,8 @@ export function bind() {
     });
     $('files-batch-delete').onclick = deleteSelectedFiles;
 
-    $('preview-download').addEventListener('click', () => {
-        if (previewFile) downloadFile(previewFile);
-    });
-    bindBackdropClick($('preview-body'), () => $('preview-dialog').close());
     $('file-dialog').addEventListener('close', () => {
         editingFile = null;
-    });
-    $('preview-dialog').addEventListener('close', () => {
-        releasePreview();
-        previewFile = null;
     });
 }
 

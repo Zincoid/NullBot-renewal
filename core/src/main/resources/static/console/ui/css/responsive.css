@@ -180,6 +180,22 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    #usage-tab-totals {
+        min-height: 0;
+    }
+
+    #usage-tab-totals .cards {
+        flex: none;
+        grid-template-columns: minmax(0, 1fr);
+        grid-auto-rows: auto;
+    }
+
+    #usage-tab-totals .stat {
+        min-height: 120px;
+        padding: var(--spacing-lg);
+        padding-left: var(--spacing-xl);
+    }
+
     #group-tab-keywords .toolbar {
         grid-template-columns: minmax(0, 1fr) auto;
     }

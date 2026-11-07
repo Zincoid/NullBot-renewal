@@ -246,6 +246,11 @@
     --color-primary-bg: rgba(107, 140, 255, 0.07);
     --chart-primary: #58a6ff;
     --chart-line: #ec66a6;
+    --chart-input: #60a5fa;
+    --chart-output: #fb923c;
+    --chart-calls: #4ade80;
+    --chart-users: #22d3ee;
+    --chart-violet: #a78bfa;
 
     --cursor-block: #f778ba;
 
@@ -330,14 +335,6 @@
     color: #fbbf24;
     background: rgba(251, 191, 36, 0.14);
     border-bottom-color: #fbbf24;
-}
-
-[data-theme="dark"] .card {
-    --edge-glow: #2952cc;
-}
-
-[data-theme="dark"] .cards .stat:nth-child(4) {
-    --stat-accent: #a78bfa;
 }
 
 [data-theme="dark"] button.primary,

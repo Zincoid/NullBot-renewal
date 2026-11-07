@@ -53,6 +53,7 @@ async function loadUsage() {
 }
 
 async function loadCommandUsage() {
+    hideChartTooltip();
     const chart = $('usage-chart');
     chart.innerHTML = `<p class="empty">${escapeHtml(t('common.loading'))}</p>`;
     try {
@@ -64,6 +65,7 @@ async function loadCommandUsage() {
 }
 
 async function loadAiUsage() {
+    hideChartTooltip();
     const charts = [$('ai-usage-chart'), $('ai-token-chart')];
     charts.forEach(chart => {
         chart.innerHTML = `<p class="empty">${escapeHtml(t('common.loading'))}</p>`;
@@ -95,6 +97,7 @@ async function loadTotals() {
 }
 
 function renderUsage(data) {
+    hideChartTooltip();
     usageData = data;
     $('usage-total').textContent = Number(data.total || 0).toLocaleString();
     $('usage-users').textContent = Number(data.activeUsers || 0).toLocaleString();
@@ -113,6 +116,7 @@ function renderUsage(data) {
 }
 
 function renderAiUsage(data) {
+    hideChartTooltip();
     aiUsageData = data;
     $('ai-usage-total').textContent = formatNumber(data.total);
     $('ai-usage-users').textContent = formatNumber(data.activeUsers);
@@ -141,9 +145,16 @@ function aiTriggerLabel(key) {
 }
 
 function aiRankLabel(rank) {
-    return `<span>${escapeHtml(t('usage.aiRank', {count: formatNumber(rank.count)}))}</span>`
+    return aiRankCalls(rank.count)
         + aiRankTokens('input', rank.inputTokens)
         + aiRankTokens('output', rank.outputTokens);
+}
+
+function aiRankCalls(value) {
+    const label = t('usage.aiCallsShort');
+    const text = compactNumber(value);
+    return `<span class="rank-token ico-total" title="${escapeHtml(`${label} ${text}`)}">`
+        + `${escapeHtml(text)}</span>`;
 }
 
 function aiRankTokens(kind, value) {
@@ -163,13 +174,13 @@ function aiCallsSvg(days) {
 }
 
 function aiTokenSvg(days) {
-    return chartSvg(days, {
+    return barChartSvg(days, {
         id: 'ai-token-chart',
         axis: compactNumber,
         label: t('usage.aiTokenDaily'),
         series: [
-            {className: 'input', value: day => day.inputTokens},
-            {className: 'output', value: day => day.outputTokens}
+            {className: 'output', value: day => day.outputTokens},
+            {className: 'input', value: day => day.inputTokens}
         ],
         tooltip: day => t('usage.aiTokenTooltip', {
             date: day.date,
@@ -191,6 +202,11 @@ function compactNumber(value) {
     return String(Math.round(number));
 }
 
+function axisLeft(labels, width, min = 36) {
+    const chars = Math.max(1, ...labels.map(label => String(label).length));
+    return Math.min(Math.max(min, chars * 7.5 + 12), Math.round(width * 0.3));
+}
+
 function usageSvg(days) {
     return chartSvg(days, {
         id: 'usage-chart',
@@ -205,7 +221,7 @@ function chartSvg(days, options) {
     const element = $(options.id);
     const width = Math.max(320, Math.round(element.clientWidth || 720));
     const height = 120;
-    const left = 36;
+    let left = 36;
     const right = 16;
     const top = 10;
     const bottom = 24;
@@ -214,6 +230,8 @@ function chartSvg(days, options) {
         days.map(day => Number(item.value(day)) || 0));
     const max = Math.max(1, ...seriesValues.flat());
     const axis = options.axis || formatNumber;
+    const ticks = [0, 1, 2, 3].map(i => Math.round(max * (1 - i / 3)));
+    left = axisLeft(ticks.map(axis), width);
     const fillId = 'usage-fill-' + options.id;
     const step = days.length > 1 ? (width - left - right) / (days.length - 1) : 0;
     const x = index => left + step * index;
@@ -236,10 +254,9 @@ function chartSvg(days, options) {
     let grid = '';
     for (let i = 0; i <= 3; i++) {
         const lineY = top + (height - top - bottom) * i / 3;
-        const value = Math.round(max * (1 - i / 3));
         grid += `<line x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}" class="grid"/>`
             + `<text x="${left - 8}" y="${lineY + 4}" class="axis" text-anchor="end">`
-            + `${escapeHtml(axis(value))}</text>`;
+            + `${escapeHtml(axis(ticks[i]))}</text>`;
     }
 
     const tick = Math.max(1, Math.ceil(days.length / 6));
@@ -268,8 +285,8 @@ function chartSvg(days, options) {
         }).join('');
         return `<g class="point">`
             + `<rect x="${hitLeft.toFixed(1)}" y="${top}"`
-            + ` width="${(hitRight - hitLeft).toFixed(1)}" height="${(baseline - top).toFixed(1)}" class="hit">`
-            + `<title>${escapeHtml(pointTitle(day, index))}</title></rect>`
+            + ` width="${(hitRight - hitLeft).toFixed(1)}" height="${(baseline - top).toFixed(1)}"`
+            + ` class="hit" data-tip="${escapeHtml(pointTitle(day, index))}"></rect>`
             + `<line x1="${point.x.toFixed(1)}" y1="${top}"`
             + ` x2="${point.x.toFixed(1)}" y2="${baseline}" class="guide"/>`
             + guides
@@ -293,6 +310,77 @@ function chartSvg(days, options) {
         <path d="${area}" fill="url(#${fillId})"/>
         ${lines}
         ${dots}
+        ${labels}
+    </svg>`;
+}
+
+function barChartSvg(days, options) {
+    if (!days.length) return `<p class="empty">${escapeHtml(t('usage.empty'))}</p>`;
+    const element = $(options.id);
+    const width = Math.max(320, Math.round(element.clientWidth || 720));
+    const height = 150;
+    let left = 40;
+    const right = 16;
+    const top = 12;
+    const bottom = 24;
+    const plotHeight = height - top - bottom;
+    const baseline = height - bottom;
+    const series = options.series || [{className: '', value: options.value}];
+    const totals = days.map(day =>
+        series.reduce((sum, item) => sum + (Number(item.value(day)) || 0), 0));
+    const max = Math.max(1, ...totals);
+    const axis = options.axis || formatNumber;
+    const ticks = [0, 1, 2, 3].map(i => Math.round(max * (1 - i / 3)));
+    left = axisLeft(ticks.map(axis), width, 40);
+    const band = (width - left - right) / days.length;
+    const x = index => left + band * (index + 0.5);
+
+    let grid = '';
+    for (let i = 0; i <= 3; i++) {
+        const lineY = top + plotHeight * i / 3;
+        grid += `<line x1="${left}" y1="${lineY.toFixed(1)}" x2="${width - right}" y2="${lineY.toFixed(1)}" class="grid"/>`
+            + `<text x="${left - 8}" y="${lineY + 4}" class="axis" text-anchor="end">`
+            + `${escapeHtml(axis(ticks[i]))}</text>`;
+    }
+
+    const tick = Math.max(1, Math.ceil(days.length / 6));
+    let labels = '';
+    days.forEach((day, index) => {
+        if (index % tick !== 0 && index !== days.length - 1) return;
+        labels += `<text x="${x(index).toFixed(1)}" y="${height - bottom + 16}" class="axis" text-anchor="middle">`
+            + `${escapeHtml(String(day.date).slice(5))}</text>`;
+    });
+
+    const bars = days.map((day, index) => {
+        const x0 = left + band * index;
+        const barWidth = index === days.length - 1 ? band : band + 0.5;
+        let segmentBottom = baseline;
+        const segments = series.map((item, seriesIndex) => {
+            const value = Number(item.value(day)) || 0;
+            if (value <= 0) return '';
+            const segmentHeight = plotHeight * value / max;
+            const segmentTop = segmentBottom - segmentHeight;
+            const overlap = seriesIndex > 0 && segmentBottom < baseline ? 0.5 : 0;
+            const className = item.className ? ' ' + item.className : '';
+            const rect = `<rect x="${x0.toFixed(1)}" y="${segmentTop.toFixed(1)}"`
+                + ` width="${barWidth.toFixed(1)}" height="${(segmentHeight + overlap).toFixed(1)}"`
+                + ` class="bar${className}"/>`;
+            segmentBottom = segmentTop;
+            return rect;
+        }).join('');
+        const tooltip = options.tooltip
+            ? options.tooltip(day)
+            : `${day.date} · ${formatNumber(totals[index])}`;
+        return `<g class="bar-point">`
+            + segments
+            + `<rect x="${x0.toFixed(1)}" y="${top}" width="${band.toFixed(1)}"`
+            + ` height="${plotHeight}" class="hit" data-tip="${escapeHtml(tooltip)}"></rect>`
+            + `</g>`;
+    }).join('');
+
+    return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(options.label)}">
+        ${grid}
+        ${bars}
         ${labels}
     </svg>`;
 }
@@ -347,6 +435,61 @@ function renderRanks(element, ranks, empty, label, value) {
         </div>`).join('');
 }
 
+function chartHit(target) {
+    return target instanceof Element
+        ? target.closest('.chart .hit[data-tip]')
+        : null;
+}
+
+function placeChartTooltip(event) {
+    const tip = $('chart-tooltip');
+    const gap = 14;
+    const edge = 8;
+    const rect = tip.getBoundingClientRect();
+    let left = event.clientX + gap;
+    let top = event.clientY + gap;
+    if (left + rect.width > window.innerWidth - edge)
+        left = event.clientX - rect.width - gap;
+    if (top + rect.height > window.innerHeight - edge)
+        top = event.clientY - rect.height - gap;
+    tip.style.left = Math.max(edge, left) + 'px';
+    tip.style.top = Math.max(edge, top) + 'px';
+}
+
+function showChartTooltip(hit, event) {
+    const tip = $('chart-tooltip');
+    tip.textContent = hit.dataset.tip || '';
+    tip.hidden = false;
+    placeChartTooltip(event);
+}
+
+function hideChartTooltip() {
+    $('chart-tooltip').hidden = true;
+}
+
+function bindChartTooltip() {
+    document.addEventListener('pointerover', event => {
+        const hit = chartHit(event.target);
+        if (hit) showChartTooltip(hit, event);
+    });
+    document.addEventListener('pointermove', event => {
+        const hit = chartHit(event.target);
+        if (!hit) {
+            hideChartTooltip();
+            return;
+        }
+        showChartTooltip(hit, event);
+    });
+    document.addEventListener('pointerout', event => {
+        const hit = chartHit(event.target);
+        if (!hit) return;
+        if (chartHit(event.relatedTarget)) return;
+        hideChartTooltip();
+    });
+    window.addEventListener('scroll', hideChartTooltip, true);
+    window.addEventListener('resize', hideChartTooltip);
+}
+
 function showUsageTab(tab) {
     usageTab = tab === 'ai' || tab === 'totals' ? tab : 'commands';
     document.querySelectorAll('[data-usage-tab]').forEach(button =>
@@ -358,6 +501,7 @@ function showUsageTab(tab) {
 }
 
 export function bind() {
+    bindChartTooltip();
     showUsageTab(usageTab);
     document.querySelectorAll('[data-usage-tab]').forEach(button => {
         button.onclick = () => {
@@ -382,6 +526,7 @@ export function observeChart() {
         if (!usageData && !aiUsageData) return;
         cancelAnimationFrame(usageResizeFrame);
         usageResizeFrame = requestAnimationFrame(() => {
+            hideChartTooltip();
             const chart = $('usage-chart');
             if (usageData && chart && chart.clientWidth > 0)
                 chart.innerHTML = usageSvg(usageData.daily);

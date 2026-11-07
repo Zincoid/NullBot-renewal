@@ -2,12 +2,16 @@ import {
     $, t, api, apiBlob, escapeHtml, formatBytes, formatTime, setStatus, toast,
     confirmAction
 } from '../app-shared.js';
+import {openPreview} from '../preview.js';
+import {downloadIcon, paperclipIcon, previewIcon, sendIcon} from '../icons.js';
 
 // ═══ Messages ════════════════════
 
 const state = {
     chats: [],
     chatId: null,
+    chatKind: 'group',
+    chatKindChosen: false,
     messages: [],
     chatsLoading: false,
     chatsError: '',
@@ -16,7 +20,8 @@ const state = {
     sending: false,
     resetting: false
 };
-let requestSeq = 0;
+let chatsSeq = 0;
+let messagesSeq = 0;
 
 const attachmentState = {
     messageId: null,
@@ -46,6 +51,20 @@ function currentChat() {
     return state.chats.find(chat => chat.chatId === state.chatId) || null;
 }
 
+function chatsOf(kind) {
+    return state.chats.filter(chat => kindKey(chat.type) === kind);
+}
+
+function visibleChats() {
+    return chatsOf(state.chatKind);
+}
+
+function ensureChatSelection() {
+    const chats = visibleChats();
+    if (chats.some(chat => chat.chatId === state.chatId)) return;
+    state.chatId = chats.length ? chats[0].chatId : null;
+}
+
 function emptyState(text, retry = false) {
     const button = retry
         ? ` <button type="button" class="small" data-action="retry">${escapeHtml(t('common.refresh'))}</button>`
@@ -56,11 +75,16 @@ function emptyState(text, retry = false) {
 // ═══ Render ══════════════════════
 
 function renderChats() {
-    const total = $('messages-chat-total');
     const list = $('messages-chat-list');
-    total.textContent = state.chats.length
-        ? t('messages.chatCount', {n: state.chats.length})
-        : '';
+    const switcher = $('messages-chat-switch');
+    $('messages-group-count').textContent = chatsOf('group').length;
+    $('messages-private-count').textContent = chatsOf('private').length;
+    switcher.dataset.active = state.chatKind;
+    switcher.querySelectorAll('button[data-chat-kind]').forEach(button => {
+        const active = button.dataset.chatKind === state.chatKind;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
     if (state.chatsLoading) {
         list.innerHTML = emptyState(t('common.loading'));
         return;
@@ -69,11 +93,14 @@ function renderChats() {
         list.innerHTML = emptyState(state.chatsError);
         return;
     }
-    if (!state.chats.length) {
-        list.innerHTML = emptyState(t('messages.emptyChats'));
+    const chats = visibleChats();
+    if (!chats.length) {
+        list.innerHTML = emptyState(t(state.chatKind === 'private'
+            ? 'messages.emptyPrivateChats'
+            : 'messages.emptyGroupChats'));
         return;
     }
-    list.innerHTML = state.chats.map(chat => {
+    list.innerHTML = chats.map(chat => {
         const active = chat.chatId === state.chatId;
         const name = chat.name || chat.chatId;
         const secondary = name === chat.chatId ? '' : chat.chatId;
@@ -108,7 +135,8 @@ function renderComposer() {
     form.hidden = !hasChat;
     input.disabled = busy;
     button.disabled = busy || !hasChat || !input.value.trim();
-    button.textContent = state.sending ? t('messages.sending') : t('messages.send');
+    $('messages-send-label').textContent =
+        state.sending ? t('messages.sending') : t('messages.send');
     $('messages-reset').disabled = busy || !hasChat;
 }
 
@@ -144,19 +172,13 @@ function renderMessage(message) {
            </details>`
         : '';
     const attachments = count > 0
-        ? `<div class="messages-message__foot">
-               <button type="button" class="small messages-message__attachments"
-                       data-action="attachments" data-message-id="${escapeHtml(message.id)}"
-                       title="${escapeHtml(t('messages.attachmentsCount', {n: count}))}"
-                       aria-label="${escapeHtml(t('messages.viewAttachments'))}">
-                   <svg class="messages-message__clip" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" aria-hidden="true">
-                       <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                   </svg>
-                   <span>${escapeHtml(String(count))}</span>
-               </button>
-           </div>`
+        ? `<button type="button" class="messages-message__attachments"
+                   data-action="attachments" data-message-id="${escapeHtml(message.id)}"
+                   title="${escapeHtml(t('messages.attachmentsCount', {n: count}))}"
+                   aria-label="${escapeHtml(t('messages.viewAttachments'))}">
+               ${paperclipIcon}
+               <span>${escapeHtml(String(count))}</span>
+           </button>`
         : '';
     return `
         <article class="messages-message messages-message--${assistant ? 'assistant' : 'user'}">
@@ -166,10 +188,12 @@ function renderMessage(message) {
                 ${message.userId ? `<code class="messages-message__user" title="${escapeHtml(message.userId)}">${escapeHtml(message.userId)}</code>` : ''}
                 <time class="messages-message__time">${escapeHtml(stamp(message.createdAt))}</time>
             </div>
-            <div class="messages-message__bubble"
-                 title="${escapeHtml(t('messages.messageId', {id: message.id}))}">
-                <div class="messages-message__content">${escapeHtml(message.content || '')}</div>
-                ${reasoning}
+            <div class="messages-message__row">
+                <div class="messages-message__bubble"
+                     title="${escapeHtml(t('messages.messageId', {id: message.id}))}">
+                    <div class="messages-message__content">${escapeHtml(message.content || '')}</div>
+                    ${reasoning}
+                </div>
                 ${attachments}
             </div>
         </article>`;
@@ -199,7 +223,7 @@ function renderMessages() {
 
 // ═══ Load ════════════════════════
 
-async function loadChatMessages(chatId, seq = ++requestSeq) {
+async function loadChatMessages(chatId, seq = ++messagesSeq) {
     state.messagesLoading = true;
     state.messagesError = '';
     state.messages = [];
@@ -207,12 +231,12 @@ async function loadChatMessages(chatId, seq = ++requestSeq) {
     try {
         const params = new URLSearchParams({chatId});
         const messages = await api('/messages?' + params.toString());
-        if (seq !== requestSeq) return;
+        if (seq !== messagesSeq) return;
         state.messages = Array.isArray(messages) ? messages : [];
         state.messagesLoading = false;
         renderMessages();
     } catch (e) {
-        if (seq !== requestSeq) return;
+        if (seq !== messagesSeq) return;
         state.messagesLoading = false;
         state.messagesError = t('messages.loadMessagesFailed', {msg: e.message});
         renderMessages();
@@ -230,28 +254,49 @@ function selectChat(chatId) {
     loadChatMessages(chatId);
 }
 
+function switchChatKind(kind) {
+    if (kind !== 'group' && kind !== 'private') return;
+    if (kind === state.chatKind) return;
+    state.chatKind = kind;
+    state.chatKindChosen = true;
+    ensureChatSelection();
+    renderChats();
+    renderHead();
+    if (!state.chatId) {
+        state.messages = [];
+        state.messagesError = '';
+        renderMessages();
+        return;
+    }
+    loadChatMessages(state.chatId);
+}
+
 export async function loadMessages() {
-    const seq = ++requestSeq;
+    const seq = ++chatsSeq;
     state.chatsLoading = true;
     state.chatsError = '';
     renderChats();
     try {
         const chats = await api('/messages/chats');
-        if (seq !== requestSeq) return;
+        if (seq !== chatsSeq) return;
         state.chats = Array.isArray(chats) ? chats : [];
         state.chatsLoading = false;
-        if (!state.chats.some(chat => chat.chatId === state.chatId))
-            state.chatId = state.chats.length ? state.chats[0].chatId : null;
+        if (!state.chatKindChosen) {
+            state.chatKindChosen = true;
+            if (!chatsOf('group').length && chatsOf('private').length)
+                state.chatKind = 'private';
+        }
+        ensureChatSelection();
         renderChats();
         renderHead();
         if (state.chatId) {
-            await loadChatMessages(state.chatId, seq);
+            await loadChatMessages(state.chatId);
         } else {
             state.messages = [];
             renderMessages();
         }
     } catch (e) {
-        if (seq !== requestSeq) return;
+        if (seq !== chatsSeq) return;
         state.chatsLoading = false;
         state.chatsError = t('messages.loadChatsFailed', {msg: e.message});
         state.chats = [];
@@ -406,8 +451,12 @@ function renderAttachments(seq) {
                 <span class="message-attachment__name" title="${escapeHtml(item.original || '')}">${escapeHtml(item.original || '-')}</span>
                 <span class="muted">${escapeHtml(formatBytes(item.size))} · ${escapeHtml(item.contentType || '-')}</span>
                 <span class="muted">${escapeHtml(formatTime(item.createdAt))}</span>
-                <button type="button" class="small" data-action="download-attachment"
-                        data-id="${item.id}">${escapeHtml(t('common.download'))}</button>
+                <div class="message-attachment__actions">
+                    <button type="button" class="small" data-action="preview-attachment"
+                            data-id="${item.id}">${previewIcon}<span>${escapeHtml(t('files.preview'))}</span></button>
+                    <button type="button" class="small" data-action="download-attachment"
+                            data-id="${item.id}">${downloadIcon}<span>${escapeHtml(t('common.download'))}</span></button>
+                </div>
             </figcaption>
         </figure>`).join('');
     attachmentState.items.forEach(item => {
@@ -466,10 +515,23 @@ async function downloadAttachment(item) {
     }
 }
 
+function openAttachmentPreview(item) {
+    const messageId = attachmentState.messageId;
+    if (!messageId) return;
+    openPreview({
+        title: item.original || ('attachment-' + item.id),
+        contentType: item.contentType,
+        load: () => apiBlob('/messages/' + encodeURIComponent(messageId)
+            + '/attachments/' + item.id + '/content'),
+        download: () => downloadAttachment(item)
+    });
+}
+
 // ═══ Binding ═════════════════════
 
 export function bind() {
     const compose = $('messages-compose');
+    $('messages-send').insertAdjacentHTML('afterbegin', sendIcon);
     $('messages-refresh').onclick = loadMessages;
     $('messages-reset').onclick = resetChat;
     compose.addEventListener('submit', sendMessage);
@@ -487,6 +549,10 @@ export function bind() {
         const button = event.target.closest('button[data-chat-id]');
         if (button) selectChat(button.dataset.chatId);
     });
+    $('messages-chat-switch').addEventListener('click', event => {
+        const button = event.target.closest('button[data-chat-kind]');
+        if (button) switchChatKind(button.dataset.chatKind);
+    });
     $('messages-timeline').addEventListener('click', event => {
         const button = event.target.closest('button[data-action]');
         if (!button) return;
@@ -498,10 +564,12 @@ export function bind() {
         }
     });
     $('message-attachments-list').addEventListener('click', event => {
-        const button = event.target.closest('button[data-action="download-attachment"]');
+        const button = event.target.closest('button[data-action]');
         if (!button) return;
         const item = attachmentState.items.find(entry => entry.id === Number(button.dataset.id));
-        if (item) downloadAttachment(item);
+        if (!item) return;
+        if (button.dataset.action === 'preview-attachment') openAttachmentPreview(item);
+        else if (button.dataset.action === 'download-attachment') downloadAttachment(item);
     });
     $('message-attachments-dialog').addEventListener('close', resetAttachments);
 }

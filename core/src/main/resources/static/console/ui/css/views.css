@@ -35,16 +35,54 @@
     grid-column: span 2;
 }
 
-.token-cards .stat:nth-child(1) {
-    --stat-accent: var(--color-warning);
+#usage-tab-totals {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    min-height: max(340px, calc(100vh - var(--navbar-height) - 400px));
 }
 
-.token-cards .stat:nth-child(2) {
-    --stat-accent: var(--color-success);
+#usage-tab-totals .usage-section-head {
+    margin-bottom: 0;
 }
 
-#usage-tab-totals .cards .stat {
-    grid-column: span 2;
+#usage-tab-totals .cards {
+    flex: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    margin-bottom: 0;
+}
+
+#usage-tab-totals .stat {
+    grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--spacing-xl);
+    padding-left: var(--spacing-2xl);
+}
+
+#usage-tab-totals .stat::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(circle at 100% 100%, var(--stat-accent) 0%, transparent 60%);
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+#usage-tab-totals .stat > * {
+    position: relative;
+    z-index: 1;
+}
+
+#usage-tab-totals .stat .value {
+    margin-top: var(--spacing-md);
+    font-size: clamp(1.75rem, 2.6vw, 2.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
 }
 
 .chart-card {
@@ -88,15 +126,15 @@
     white-space: nowrap;
 }
 
-.legend-line {
-    width: 14px;
-    height: 2px;
-    border-radius: var(--rounded-full);
-    background: var(--color-warning);
+.legend-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--chart-input);
 }
 
-.legend-line.output {
-    background: var(--color-success);
+.legend-swatch.output {
+    background: var(--chart-output);
 }
 
 .chart svg {
@@ -126,13 +164,29 @@
 .chart .line.input,
 .chart .guide.input,
 .chart .dot.input {
-    stroke: var(--color-warning);
+    stroke: var(--chart-input);
 }
 
 .chart .line.output,
 .chart .guide.output,
 .chart .dot.output {
-    stroke: var(--color-success);
+    stroke: var(--chart-output);
+}
+
+.chart .bar {
+    transition: opacity 0.15s ease;
+}
+
+.chart .bar.input {
+    fill: var(--chart-input);
+}
+
+.chart .bar.output {
+    fill: var(--chart-output);
+}
+
+.chart .bar-point:hover .bar {
+    opacity: 0.8;
 }
 
 .chart .fill-start {
@@ -174,6 +228,23 @@
     opacity: 1;
 }
 
+.chart-tooltip {
+    position: fixed;
+    z-index: 80;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 6px 9px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+}
+
 .rank-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -181,6 +252,8 @@
 }
 
 .rank-grid .card {
+    --stat-accent: var(--chart-calls);
+    --edge-glow: var(--chart-calls);
     padding: var(--spacing-xl);
 }
 
@@ -240,12 +313,16 @@
     mask-size: contain;
 }
 
+.rank-token.ico-total::before {
+    background-color: var(--chart-calls);
+}
+
 .rank-token.ico-input::before {
-    background-color: var(--color-warning);
+    background-color: var(--chart-input);
 }
 
 .rank-token.ico-output::before {
-    background-color: var(--color-success);
+    background-color: var(--chart-output);
 }
 
 .rank-bar {
@@ -259,7 +336,7 @@
 .rank-bar span {
     display: block;
     height: 100%;
-    background: var(--chart-primary);
+    background: var(--chart-calls);
     border-radius: inherit;
 }
 

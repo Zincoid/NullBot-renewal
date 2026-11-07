@@ -212,6 +212,12 @@ button.icon-only svg {
     height: 16px;
 }
 
+.button-icon {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+}
+
 button.btn-search::before,
 button.btn-upload::before,
 button.btn-save::before,

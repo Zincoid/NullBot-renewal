@@ -106,23 +106,11 @@
         </button>
         <button type="button" class="icon-btn" id="about-toggle" data-i18n-title="nav.about"
                 data-i18n-aria-label="nav.about" title="关于" aria-label="关于">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9"/>
-                <path d="M12 11v5"/>
-                <path d="M12 7.5h.01"/>
-            </svg>
+            <span class="icon-about" aria-hidden="true"></span>
         </button>
         <button type="button" class="icon-btn" id="theme-toggle" data-i18n-title="common.toggleTheme">
-            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>
-            </svg>
-            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
-            </svg>
+            <span class="icon-moon" aria-hidden="true"></span>
+            <span class="icon-sun" aria-hidden="true"></span>
         </button>
         <button type="button" class="icon-btn locale-btn" id="locale-toggle">EN</button>
         <button id="logout" data-i18n="nav.logout">登出</button>
@@ -173,11 +161,7 @@
                 </label>
                 <button id="usage-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
@@ -208,19 +192,19 @@
                 <span class="usage-section-desc" data-i18n="usage.sectionStatsDesc">区间汇总</span>
             </div>
             <div class="cards">
-                <div class="card stat stat-blue">
+                <div class="card stat stat-calls">
                     <div class="label ico-total" data-i18n="usage.total">指令调用</div>
                     <div class="value" id="usage-total">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-users">
                     <div class="label ico-users" data-i18n="usage.users">活跃用户</div>
                     <div class="value" id="usage-users">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-groups">
                     <div class="label ico-groups" data-i18n="usage.groups">活跃群</div>
                     <div class="value" id="usage-groups">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-period">
                     <div class="label ico-period" data-i18n="usage.period">统计区间</div>
                     <div class="value" id="usage-range">-</div>
                 </div>
@@ -261,29 +245,29 @@
                 <span class="usage-section-desc" data-i18n="usage.sectionStatsDesc">区间汇总</span>
             </div>
             <div class="cards">
-                <div class="card stat stat-blue">
+                <div class="card stat stat-calls">
                     <div class="label ico-total" data-i18n="usage.aiTotal">AI 调用</div>
                     <div class="value" id="ai-usage-total">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-users">
                     <div class="label ico-users" data-i18n="usage.users">活跃用户</div>
                     <div class="value" id="ai-usage-users">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-groups">
                     <div class="label ico-groups" data-i18n="usage.groups">活跃群</div>
                     <div class="value" id="ai-usage-groups">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-period">
                     <div class="label ico-period" data-i18n="usage.period">统计区间</div>
                     <div class="value" id="ai-usage-range">-</div>
                 </div>
             </div>
             <div class="cards token-cards">
-                <div class="card stat">
+                <div class="card stat stat-input">
                     <div class="label ico-input" data-i18n="usage.aiInput">输入词元</div>
                     <div class="value" id="ai-usage-input">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-output">
                     <div class="label ico-output" data-i18n="usage.aiOutput">输出词元</div>
                     <div class="value" id="ai-usage-output">-</div>
                 </div>
@@ -304,8 +288,8 @@
                     <h2 class="ico-token" data-i18n="usage.aiTokenDaily">每日词元</h2>
                     <span class="chart-head-side">
                         <span class="chart-legend">
-                            <span class="legend-item"><span class="legend-line input"></span><span data-i18n="usage.aiInputShort">输入</span></span>
-                            <span class="legend-item"><span class="legend-line output"></span><span data-i18n="usage.aiOutputShort">输出</span></span>
+                            <span class="legend-item"><span class="legend-swatch input"></span><span data-i18n="usage.aiInputShort">输入</span></span>
+                            <span class="legend-item"><span class="legend-swatch output"></span><span data-i18n="usage.aiOutputShort">输出</span></span>
                         </span>
                         <span class="muted" id="ai-token-chart-note"></span>
                     </span>
@@ -337,11 +321,11 @@
                 <span class="usage-section-desc" data-i18n="usage.sectionTotalsDesc">不限时间范围</span>
             </div>
             <div class="cards">
-                <div class="card stat stat-blue">
+                <div class="card stat stat-calls">
                     <div class="label ico-total" data-i18n="usage.total">指令调用</div>
                     <div class="value" id="total-cmd">-</div>
                 </div>
-                <div class="card stat stat-blue">
+                <div class="card stat stat-calls">
                     <div class="label ico-total" data-i18n="usage.aiTotal">AI 调用</div>
                     <div class="value" id="total-ai">-</div>
                 </div>
@@ -351,11 +335,11 @@
                 <span class="usage-section-desc" data-i18n="usage.sectionTotalsDesc">不限时间范围</span>
             </div>
             <div class="cards token-cards">
-                <div class="card stat">
+                <div class="card stat stat-input">
                     <div class="label ico-input" data-i18n="usage.aiInput">输入词元</div>
                     <div class="value" id="total-input">-</div>
                 </div>
-                <div class="card stat">
+                <div class="card stat stat-output">
                     <div class="label ico-output" data-i18n="usage.aiOutput">输出词元</div>
                     <div class="value" id="total-output">-</div>
                 </div>
@@ -375,11 +359,7 @@
                 <span id="config-status" class="status"></span>
                 <button id="config-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
@@ -396,11 +376,7 @@
             <div class="view-actions">
                 <button id="files-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
@@ -478,19 +454,27 @@
             <div class="view-actions">
                 <button id="messages-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
         <div class="messages-layout">
             <aside class="messages-chats">
                 <div class="messages-chats__head">
-                    <span data-i18n="messages.chats">会话</span>
-                    <span id="messages-chat-total" class="muted"></span>
+                    <div class="messages-switch" id="messages-chat-switch" data-active="group"
+                         role="group" data-i18n-aria-label="messages.chatKind" aria-label="会话类型">
+                        <span class="messages-switch__thumb" aria-hidden="true"></span>
+                        <button type="button" class="messages-switch__option active"
+                                data-chat-kind="group" aria-pressed="true">
+                            <span data-i18n="messages.kind.group">群聊</span>
+                            <span class="messages-switch__count" id="messages-group-count">0</span>
+                        </button>
+                        <button type="button" class="messages-switch__option"
+                                data-chat-kind="private" aria-pressed="false">
+                            <span data-i18n="messages.kind.private">私聊</span>
+                            <span class="messages-switch__count" id="messages-private-count">0</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="messages-chats__list" id="messages-chat-list"></div>
             </aside>
@@ -518,8 +502,9 @@
                               data-i18n-aria-label="messages.composePlaceholder"
                               data-i18n-title="messages.composeHint"
                               placeholder="输入消息..." aria-label="输入消息..."></textarea>
-                    <button type="submit" id="messages-send" class="primary"
-                            data-i18n="messages.send">发送</button>
+                    <button type="submit" id="messages-send" class="primary">
+                        <span id="messages-send-label" data-i18n="messages.send">发送</span>
+                    </button>
                 </form>
             </section>
         </div>
@@ -535,11 +520,7 @@
             <div class="view-actions">
                 <button id="accounts-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
@@ -611,11 +592,7 @@
             <div class="view-actions">
                 <button id="quotes-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
@@ -659,11 +636,7 @@
                 <button id="plugins-reload-all" class="btn-reset" data-i18n="plugins.reloadAll" hidden>重载全部</button>
                 <button id="plugins-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
@@ -711,6 +684,7 @@
     </div>
 </footer>
 
+<div class="chart-tooltip" id="chart-tooltip" hidden></div>
 <div class="toast" id="toast" popover="manual"></div>
 
 <!-- ═══ File dialog ══════════════ -->
@@ -743,14 +717,7 @@
     <div class="preview-toolbar">
         <button type="button" class="preview-btn" id="preview-download"
                 data-i18n-title="common.download" data-i18n-aria-label="common.download"
-                aria-label="下载" title="下载">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-        </button>
+                aria-label="下载" title="下载"></button>
         <button type="button" class="preview-btn" data-close
                 data-i18n-title="common.close" data-i18n-aria-label="common.close"
                 aria-label="关闭" title="关闭">
@@ -1072,11 +1039,7 @@
                 <button type="button" id="plugin-config-refresh" class="icon-only"
                         data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh"
                         title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
             <textarea id="plugin-config-content" class="plugin-config-editor" rows="18"
@@ -1092,11 +1055,7 @@
                         data-i18n-title="plugins.configSaveReload"
                         data-i18n-aria-label="plugins.configSaveReload"
                         title="保存并重载" aria-label="保存并重载">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                     <span data-i18n="plugins.configSaveReload">保存并重载</span>
                 </button>
             </div>
@@ -1120,11 +1079,7 @@
                 <button type="button" id="plugin-data-refresh" class="icon-only"
                         data-i18n-title="common.refresh" data-i18n-aria-label="common.refresh"
                         title="刷新" aria-label="刷新">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-                        <path d="M21 3v6h-6"/>
-                    </svg>
+                    <span class="icon-refresh" aria-hidden="true"></span>
                 </button>
             </div>
             <form id="plugin-data-folder-form" class="plugin-data-folder" hidden>

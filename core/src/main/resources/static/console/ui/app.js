@@ -1,4 +1,5 @@
 import {$, t, bindBackdropClick, requireToken, getToken, clearToken} from './app-shared.js';
+import {bindPreview} from './preview.js';
 import {bind as bindUsage, loadBot, loadUsage, observeChart} from './views/usage.js';
 import {bind as bindConfig, loadConfig} from './views/config.js';
 import {
@@ -112,6 +113,7 @@ function main() {
         });
         nav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
 
+        bindPreview();
         bindUsage();
         bindConfig();
         bindFiles();
