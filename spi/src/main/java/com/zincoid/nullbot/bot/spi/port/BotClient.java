@@ -63,6 +63,32 @@ public interface BotClient {
         throw SpiException.unsupported("recall");
     }
 
+    // ════ Files ═══════════════════
+
+    /**
+     * 发送群文件。
+     * <p>Sends a file to a group.</p>
+     *
+     * @param groupId the group id
+     * @param url     the file url
+     * @param name    the displayed file name
+     */
+    default void sendGroupFile(String groupId, String url, String name) {
+        throw SpiException.unsupported("sendGroupFile");
+    }
+
+    /**
+     * 发送私聊文件。
+     * <p>Sends a file in a private chat.</p>
+     *
+     * @param userId the user id
+     * @param url    the file url
+     * @param name   the displayed file name
+     */
+    default void sendPrivateFile(String userId, String url, String name) {
+        throw SpiException.unsupported("sendPrivateFile");
+    }
+
     // ════ Poke ════════════════════
 
     /**

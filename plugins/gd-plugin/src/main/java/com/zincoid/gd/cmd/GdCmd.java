@@ -13,6 +13,8 @@ import com.zincoid.gd.service.GdLevelService;
 import com.zincoid.gd.service.GdProgressService;
 import com.zincoid.gd.service.GdProgressService.LocalB20Result;
 import com.zincoid.gd.service.GdProgressService.UpdateResult;
+import com.zincoid.gd.service.GdSongService;
+import com.zincoid.gd.service.GdSongService.GdSong;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
@@ -43,8 +45,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 /**
- * GD 指令：关卡搜索与详情。
- * <p>GD command: level search and details.</p>
+ * GD 指令：关卡搜索、详情与歌曲文件。
+ * <p>GD command: level search, details, and song files.</p>
  */
 @Slf4j
 @CmdMapping({"GD", "几何冲刺"})
@@ -60,6 +62,7 @@ public class GdCmd implements Cmd {
     private final GdPresenter presenter;
     private final PluginContext context;
     private final GdProgressService progress;
+    private final GdSongService songs;
 
     // ════ Run ═════════════════════
 
@@ -80,6 +83,7 @@ public class GdCmd implements Cmd {
         switch (sub) {
             case "search" -> search(ctx, args, targetId, userId, group);
             case "level" -> level(ctx, args);
+            case "song" -> song(ctx, args, targetId, group);
             case "gddl" -> throw new CmdWarnException(GdText.GDDL_SPLIT.of(ctx.language()));
             case "register" -> register(ctx, userId);
             case "update" -> update(ctx, args, userId);
@@ -466,6 +470,55 @@ public class GdCmd implements Cmd {
         }
     }
 
+    // ════ Song ════════════════════
+
+    private void song(CmdContext ctx, CmdArgs args, String targetId, boolean group) {
+        long id = songId(ctx, args);
+        GdSong song;
+        try {
+            song = songs.song(id);
+        } catch (GdException e) {
+            log.warn("GD song query failed: id={}", id, e);
+            throw new CmdWarnException(GdText.SONG_QUERY_FAILED.of(ctx.language()));
+        }
+        if (song == null)
+            throw new CmdInfoException(GdText.SONG_NOT_FOUND.of(ctx.language()));
+
+        String fileName = songFileName(song);
+        try {
+            if (group) ctx.client().sendGroupFile(targetId, song.url(), fileName);
+            else ctx.client().sendPrivateFile(targetId, song.url(), fileName);
+        } catch (RuntimeException e) {
+            log.warn("GD song send failed: id={}, target={}", id, targetId, e);
+            throw new CmdWarnException(GdText.SONG_SEND_FAILED.of(ctx.language()));
+        }
+        log.info("GD song sent: id={}, name={}, target={}", id, song.name(), targetId);
+    }
+
+    private static long songId(CmdContext ctx, CmdArgs args) {
+        String raw = args.next("").trim();
+        if (raw.isEmpty())
+            throw new CmdWarnException(GdText.MISSING_SONG_ID.of(ctx.language()));
+        try {
+            long id = Long.parseLong(raw);
+            if (id <= 0) throw new NumberFormatException();
+            return id;
+        } catch (NumberFormatException e) {
+            throw new CmdWarnException(GdText.INVALID_SONG_ID.of(ctx.language(), raw));
+        }
+    }
+
+    private static String songFileName(GdSong song) {
+        String title = song.name() == null || song.name().isBlank()
+                ? "song-" + song.id() : song.name().trim();
+        String author = song.author() == null ? "" : song.author().trim();
+        String base = author.isEmpty() ? title : title + " - " + author;
+        base = base.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").trim();
+        if (base.isEmpty()) base = "song-" + song.id();
+        if (base.length() > 80) base = base.substring(0, 80).trim();
+        return base + ".mp3";
+    }
+
     // ════ Helpers ═════════════════
 
     private static Difficulty difficulty(CmdContext ctx, String value) {
@@ -511,11 +564,12 @@ public class GdCmd implements Cmd {
     public String getHelp(Language language) {
         return language == Language.EN ? """
                 GD
-                Geometry Dash level search, details, and local progress.
+                Geometry Dash level search, details, song files, and local progress.
 
                 Usage:
                   GD search <keyword> [options]
                   GD level <level id>
+                  GD song <song id>
                   GD register
                   GD update <level id> <progress>
                   GD remove <level id>
@@ -536,13 +590,15 @@ public class GdCmd implements Cmd {
                 Notes: Reply with a number to view details, next for the next page, or end to cancel.
                        update/remove/unregister/b20 require register; progress is 1-100.
                        Local B20 uses your recorded progress and GDDL level ratings; it is not an official GDDL record.
-                       Use the GDDL command for GDDL B20 ratings.""" : """
+                       Use the GDDL command for GDDL B20 ratings.
+                       song sends a custom song MP3 as a group or private file; only songs indexed by the GD server are supported.""" : """
                 GD
-                几何冲刺关卡搜索、详情与本地进度。
+                几何冲刺关卡搜索、详情、歌曲文件与本地进度。
 
                 用法：
                   GD search <关键词> [选项]
                   GD level <关卡ID>
+                  GD song <歌曲ID>
                   GD register
                   GD update <关卡ID> <进度>
                   GD remove <关卡ID>
@@ -563,6 +619,7 @@ public class GdCmd implements Cmd {
                 说明：回复序号查看详情，next 下一页，end 取消。
                       update/remove/unregister/b20 需要先 register；进度为 1–100。
                       本地 B20 使用自己记录的进度和 GDDL 关卡评级，非 GDDL 官方记录。
-                      GDDL B20 请使用 GDDL 指令。""";
+                      GDDL B20 请使用 GDDL 指令。
+                      song 以群文件或私聊文件发送自定义歌曲；仅支持 GD 服务器收录的歌曲。""";
     }
 }

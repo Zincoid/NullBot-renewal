@@ -98,7 +98,19 @@ public class QqClient implements BotClient {
         return last;
     }
 
-    // ════ Info ═══════════════════
+    // ════ Files ═══════════════════
+
+    @Override
+    public void sendGroupFile(String groupId, String url, String name) {
+        media.sendFile(new QqTarget(true, groupId), url, name);
+    }
+
+    @Override
+    public void sendPrivateFile(String userId, String url, String name) {
+        media.sendFile(new QqTarget(false, userId), url, name);
+    }
+
+    // ════ Info ════════════════════
 
     @Override
     public UserInfo getLoginInfo() {
@@ -150,7 +162,7 @@ public class QqClient implements BotClient {
         }
     }
 
-    // ════ Message actions ════════
+    // ════ Message actions ═════════
 
     @Override
     public MsgDetail getMsg(String messageId) {

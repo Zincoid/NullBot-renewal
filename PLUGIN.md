@@ -129,8 +129,9 @@ public class DemoPlugin implements Plugin {
 | `3` | 指令、AI 工具、图片渲染与插件模板 |
 | `4` | 以上能力，以及插件 `properties()` |
 | `5` | 以上能力，以及宿主 HTTP `http()` |
+| `6` | 以上能力，以及 `BotClient` 群/私聊文件发送 |
 
-宿主当前支持 `1`–`5`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
+宿主当前支持 `1`–`6`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
 
 - Maven 模块版本由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只改这一处。
 - `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。从 IDE 或 classpath 运行时可能取不到版本，此时返回 `dev`。
@@ -258,7 +259,7 @@ String rest = args.rest("");       // 其余位置参数，空格连接
 
 - `ctx.send(String)` / `ctx.send(MsgContent)`：发送到指令来源会话；
 - `ctx.language()`：当前回复语言；
-- `ctx.client()`：`BotClient` 出站端口；
+- `ctx.client()`：`BotClient` 出站端口；`sendGroupFile(...)` / `sendPrivateFile(...)` 发送群/私聊文件，需 `apiVersion() >= 6`；
 - `ctx.render(Text, ...)`：渲染 core 文案。
 
 消息内容用 `MsgContent.builder()` 组合：
@@ -448,7 +449,7 @@ java -jar launcher/target/launcher-stdin.jar \
 - `META-INF/services/...Plugin` 缺失或写错；
 - 一个 JAR 中存在多个 `Plugin` 实现；
 - 插件 ID 不合法或与其他插件重复；
-- `apiVersion()` 超出 `1`–`5`；
+- `apiVersion()` 超出 `1`–`6`；
 - 插件 JAR 包含了宿主 `com.zincoid.nullbot.*` 类；
 - 第三方依赖没有 shade，运行时出现 `NoClassDefFoundError`。
 
@@ -475,4 +476,5 @@ java -jar launcher/target/launcher-stdin.jar \
 - [ ] 使用图片渲染时 `apiVersion() >= 3`
 - [ ] 使用 `properties()` 时 `apiVersion() >= 4`
 - [ ] 使用 `PluginContext.http()` 时 `apiVersion() == 5`
+- [ ] 使用 `BotClient` 群/私聊文件发送时 `apiVersion() >= 6`
 - [ ] 本地 stdin 适配器验证通过

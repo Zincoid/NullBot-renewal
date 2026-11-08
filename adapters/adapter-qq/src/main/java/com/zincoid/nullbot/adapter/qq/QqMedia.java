@@ -54,6 +54,25 @@ public class QqMedia {
         return id;
     }
 
+    /**
+     * 上传并直接发送一个文件。
+     * <p>Uploads and sends one file directly.</p>
+     *
+     * @param target the target conversation
+     * @param url    the file url
+     * @param name   the displayed file name
+     * @return the platform message id
+     */
+    public String sendFile(QqTarget target, String url, String name) {
+        String source = url == null ? "" : url.trim();
+        if (QqText.isBlank(source)) throw new QqException("Missing QQ file url");
+        QqModels.UploadResponse response = api.upload(target, new QqModels.UploadRequest(
+                4, source, null, fileName(name, "file.bin"), true));
+        String id = response == null ? null : response.id();
+        if (QqText.isBlank(id)) throw new QqException("Missing QQ file message id");
+        return id;
+    }
+
     private QqModels.UploadResponse upload(MsgSegment.Media media, QqTarget target) {
         int fileType = fileType(media);
         String defaultName = switch (fileType) {

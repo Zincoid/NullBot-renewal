@@ -97,6 +97,8 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - 新增 `#Get` / `#Delete`：使用 `Get <img|aud|vid|quot> <id>` / `Delete <img|aud|vid|quot> <id>` 按类型与 ID 获取或删除收藏。
 - 新增 `#Image` / `#Audio` / `#Video` / `#Quote` 随机发送命令，替代原 `ImageRand`、`AudioRand`、`VideoRand`、`QuoteRand`。
 - AI `send` 工具新增 `last` 参数：标记为最终消息后不再额外发送 final 回复，一次触发内仍可多次调用 `send` 发送多条消息或媒体。
+- 插件 API 升到 6：`BotClient` 新增 `sendGroupFile` / `sendPrivateFile`，Shiro、QQ 与 stdin 适配器已实现；使用该能力的插件需声明 `apiVersion() == 6`。
+- gd-plugin 的 `#GD` 新增 `song <歌曲ID>` 子命令：通过几何冲刺歌曲接口获取 Newgrounds 音频并作为群文件/私聊文件发送，仅支持 GD 服务器收录的歌曲。
 
 ### Changed
 

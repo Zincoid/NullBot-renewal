@@ -53,13 +53,15 @@ import java.util.stream.Stream;
 public class PluginLoader {
 
     /**
-     * 当前插件 API 版本，支持 1 至 5；2 增加 AI 工具，3 增加图片渲染与插件模板，
-     * 4 增加 PluginContext.properties()，5 增加 PluginContext.http()。
-     * <p>Current plugin API version, supporting 1 through 5; version 2 adds AI tools,
+     * 当前插件 API 版本，支持 1 至 6；2 增加 AI 工具，3 增加图片渲染与插件模板，
+     * 4 增加 PluginContext.properties()，5 增加 PluginContext.http()，
+     * 6 增加 BotClient 群/私聊文件发送。
+     * <p>Current plugin API version, supporting 1 through 6; version 2 adds AI tools,
      * version 3 adds image rendering and plugin templates, version 4 adds
-     * PluginContext.properties(), and version 5 adds PluginContext.http().</p>
+     * PluginContext.properties(), version 5 adds PluginContext.http(), and version 6
+     * adds BotClient group/private file sending.</p>
      */
-    private static final int API_VERSION = 5;
+    private static final int API_VERSION = 6;
     private static final int MIN_API_VERSION = 1;
     private static final Pattern PLUGIN_ID = Pattern.compile("[A-Za-z0-9_-]{1,64}");
     private static final String HOST_PACKAGE = "com/zincoid/nullbot/";

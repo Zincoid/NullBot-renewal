@@ -10,6 +10,7 @@ import com.zincoid.gd.service.GddlService;
 import com.zincoid.gd.service.GdHttp;
 import com.zincoid.gd.service.GdLevelService;
 import com.zincoid.gd.service.GdProgressService;
+import com.zincoid.gd.service.GdSongService;
 import com.zincoid.gd.store.GdBindings;
 import com.zincoid.gd.store.GdProgressStore;
 import com.zincoid.nullbot.bot.cmd.Cmd;
@@ -20,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * GD 插件：注册几何冲刺查询、本地进度与 GDDL 指令。
- * <p>GD plugin registering Geometry Dash queries, local progress, and GDDL commands.</p>
+ * GD 插件：注册几何冲刺查询、歌曲文件、本地进度与 GDDL 指令。
+ * <p>GD plugin registering Geometry Dash queries, song files, local progress, and GDDL commands.</p>
  */
 @Slf4j
 public class GdPlugin implements Plugin {
@@ -30,6 +31,7 @@ public class GdPlugin implements Plugin {
     private volatile GdLevelService levels;
     private volatile GddlService gddl;
     private volatile GdProgressService progress;
+    private volatile GdSongService songs;
     private volatile GdPresenter presenter;
     private volatile GdBindings bindings;
 
@@ -40,13 +42,13 @@ public class GdPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 5;
+        return 6;
     }
 
     @Override
     public List<Cmd> cmds() {
         return List.of(
-                new GdCmd(levels, gddl, presenter, context, progress),
+                new GdCmd(levels, gddl, presenter, context, progress, songs),
                 new GddlCmd(gddl, presenter, bindings));
     }
 
@@ -68,11 +70,13 @@ public class GdPlugin implements Plugin {
                 presenter = text;
             }
             GdProgressService progress = new GdProgressService(store, levels, gddl, loaded, http);
+            GdSongService songs = new GdSongService(http);
 
             this.context = context;
             this.levels = levels;
             this.gddl = gddl;
             this.progress = progress;
+            this.songs = songs;
             this.bindings = bindings;
             this.presenter = presenter;
             log.info("GD config: gddl={}, thumbnail={}, cacheTtl={}s, tierCacheTtl={}s, "
@@ -94,6 +98,7 @@ public class GdPlugin implements Plugin {
         GdProgressService current = this.progress;
         if (current != null) current.close();
         this.progress = null;
+        this.songs = null;
         this.presenter = null;
         this.levels = null;
         this.gddl = null;

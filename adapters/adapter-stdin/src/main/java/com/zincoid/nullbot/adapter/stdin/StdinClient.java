@@ -65,6 +65,20 @@ public class StdinClient implements BotClient {
         log.info("Recall message {}", messageId);
     }
 
+    // ════ Files ═══════════════════
+
+    @Override
+    public void sendGroupFile(String groupId, String url, String name) {
+        log.info("Send group file to {}: {} ({})", groupId, name, url);
+        record(SELF_ID, MsgContent.of("[file " + name + "] " + url));
+    }
+
+    @Override
+    public void sendPrivateFile(String userId, String url, String name) {
+        log.info("Send private file to {}: {} ({})", userId, name, url);
+        record(SELF_ID, MsgContent.of("[file " + name + "] " + url));
+    }
+
     // ════ Poke ════════════════════
 
     @Override

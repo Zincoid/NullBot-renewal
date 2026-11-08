@@ -61,6 +61,18 @@ public class ShiroClient implements BotClient {
         check(bot.deleteMsg((int) num(messageId)));
     }
 
+    // ════ Files ═══════════════════
+
+    @Override
+    public void sendGroupFile(String groupId, String url, String name) {
+        check(bot.uploadGroupFile(num(groupId), url, name));
+    }
+
+    @Override
+    public void sendPrivateFile(String userId, String url, String name) {
+        check(bot.uploadPrivateFile(num(userId), url, name));
+    }
+
     // ════ Poke ════════════════════
 
     @Override
