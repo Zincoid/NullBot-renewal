@@ -117,6 +117,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - `BizType` 的媒体类型常量简化为 `IMAGE` / `VIDEO` / `AUDIO` / `MEME`，控制台文件类型文案同步改为“图片 / 视频 / 音频 / 表情”；AI `search` 工具的 `type` 枚举相应变为 `image` / `video` / `audio` / `meme`，旧值 `image_collection` 等不再接受。
 - 控制台 AI 排行右侧的输入 / 输出词元改用与统计卡片一致的图标显示，缩短行宽，窄窗口下名称不再被挤换行。
 - 控制台语录页的复制按钮固定到内容列最右侧，短文本不再紧跟按钮。
+- GD 关卡搜索默认只搜索有星（已评级）关卡；需要包含未评级关卡时在 `--filter` 中加入 `no-star`。
 - `ai_usage` / `cmd_usage` 的 `chat_id` 列重命名为 `target_id`（存的是原始群 / 用户 ID，与聊天层的 `g:` / `p:` 会话键区分）。升级旧库需执行：
 
   ```sql

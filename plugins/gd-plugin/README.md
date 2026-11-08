@@ -23,7 +23,7 @@ Geometry Dash 关卡搜索、详情与本地进度（`#GD`），以及 GDDL B20 
 - `--diff, -d`：`easy,normal,hard,harder,insane,demon`（逗号分隔）；
 - `--demon`：`easy,medium,hard,insane,extreme`（自动按 demon 难度搜索）；
 - `--length, -l`：`tiny,short,medium,long,xl,platformer`（逗号分隔）；
-- `--filter`：`star,no-star,featured,original,two-player,coins,epic,custom-song`；
+- `--filter`：`star,no-star,featured,original,two-player,coins,epic,custom-song`；默认只搜有星（已评级）关卡，加 `no-star` 才包含未评级关卡；
 - `--page, -p`：页码，从 1 开始。
 
 ### GDDL

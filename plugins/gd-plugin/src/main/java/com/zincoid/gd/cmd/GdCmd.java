@@ -315,13 +315,15 @@ public class GdCmd implements Cmd {
             for (String part : lengths.split(",")) values.add(length(ctx, part.trim()));
             filter = filter.withLengths(values);
         }
+        // Rated (starred) levels only by default; NO_STAR explicitly opts out.
+        EnumSet<LevelSearchFilter.Toggle> values =
+                EnumSet.of(LevelSearchFilter.Toggle.STAR);
         String toggles = args.getOpt("filter", null, "").trim();
-        if (!toggles.isEmpty()) {
-            EnumSet<LevelSearchFilter.Toggle> values =
-                    EnumSet.noneOf(LevelSearchFilter.Toggle.class);
+        if (!toggles.isEmpty())
             for (String part : toggles.split(",")) values.add(toggle(ctx, part.trim()));
-            filter = filter.withToggles(values);
-        }
+        if (values.contains(LevelSearchFilter.Toggle.NO_STAR))
+            values.remove(LevelSearchFilter.Toggle.STAR);
+        filter = filter.withToggles(values);
         return filter;
     }
 
@@ -525,6 +527,7 @@ public class GdCmd implements Cmd {
                   --demon         demon difficulty: easy,medium,hard,insane,extreme (implies --diff=demon)
                   --length, -l    lengths: tiny,short,medium,long,xl,platformer (comma separated)
                   --filter        tags: star,no-star,featured,original,two-player,coins,epic,custom-song
+                                  (rated levels only by default; add no-star to include unrated)
                   --page, -p      page number, starting at 1
                   --all, -a       show the full B20 list
 
@@ -551,6 +554,7 @@ public class GdCmd implements Cmd {
                   --demon         恶魔难度：easy,medium,hard,insane,extreme（自动按 demon 难度搜索）
                   --length, -l    长度：tiny,short,medium,long,xl,platformer（逗号分隔）
                   --filter        标签：star,no-star,featured,original,two-player,coins,epic,custom-song
+                                  （默认只搜有星关卡；加 no-star 可包含未评级关卡）
                   --page, -p      页码，从 1 开始
                   --all, -a       B20 显示完整列表
 
