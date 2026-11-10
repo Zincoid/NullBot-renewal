@@ -38,7 +38,7 @@ public class ConfigController {
 
     private final ConfigService configService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 列出所有配置项。
@@ -67,7 +67,7 @@ public class ConfigController {
         return view(conf(key));
     }
 
-    // ════ Update ═════════════════
+    // ════ Update ══════════════════
 
     /**
      * 更新配置项的值。

@@ -97,7 +97,8 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - 新增 `#Get` / `#Delete`：使用 `Get <img|aud|vid|quot> <id>` / `Delete <img|aud|vid|quot> <id>` 按类型与 ID 获取或删除收藏。
 - 新增 `#Image` / `#Audio` / `#Video` / `#Quote` 随机发送命令，替代原 `ImageRand`、`AudioRand`、`VideoRand`、`QuoteRand`。
 - AI `send` 工具新增 `last` 参数：标记为最终消息后不再额外发送 final 回复，一次触发内仍可多次调用 `send` 发送多条消息或媒体。
-- 插件 API 升到 6：`BotClient` 新增 `sendGroupFile` / `sendPrivateFile`，Shiro、QQ 与 stdin 适配器已实现；使用该能力的插件需声明 `apiVersion() == 6`。
+- 插件 API 升到 6：`BotClient` 新增 `sendGroupFile` / `sendPrivateFile`，Shiro、QQ 与 stdin 适配器已实现；使用该能力的插件需声明 `apiVersion() >= 6`。
+- 新增 `UrlDownloader.download(url, target)`：流式下载网络文件，先写同目录临时文件再原子替换，失败时清理临时文件；插件可直接用它把文件保存到 `dataDir()`，无需提升 `apiVersion()`。
 - gd-plugin 的 `#GD` 新增 `song <歌曲ID>` 子命令：通过几何冲刺歌曲接口获取 Newgrounds 音频并作为群文件/私聊文件发送，仅支持 GD 服务器收录的歌曲。
 
 ### Changed
@@ -128,6 +129,9 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
   ```
 
   MySQL 8+ 与 SQLite 3.25+ 支持该语法。
+- HTTP 与文件落盘逻辑整理：`UrlDownloader` 改为纯静态工具类（`open` 与 `download` 均为静态方法），与 `JdkHttpService` 共用 URL 校验与 HTTP 客户端缓存，`UrlDownloader.download`、`PluginResources` 与插件数据上传共用 `AtomicFiles.copy`；无行为变化。
+- 校验与解析错误统一改为自定义异常：HTTP 模块（含 `UrlDownloader`）改抛 `HttpException`，`AtomicFiles.copy` 空参数改抛 `PlatformException`，指令参数与非媒体分支改抛 `CmdException`，AI 工具与 QQ 适配器不再直接抛 `IllegalArgumentException` / `IllegalStateException` / `RuntimeException`；业务行为不变。
+- 文档整理：README 重排配置、指令、AI 与插件章节；PLUGIN 增加目录、静态工具索引与文件发送示例；插件 README 统一结构并修正过期指令说明。
 
 ### Removed
 

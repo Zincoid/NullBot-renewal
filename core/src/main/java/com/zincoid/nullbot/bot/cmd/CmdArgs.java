@@ -274,10 +274,10 @@ public final class CmdArgs {
 
     private static void checkOpt(String name, String alias) {
         if (name == null || name.length() < 2 || name.startsWith("-"))
-            throw new IllegalArgumentException(
+            throw new CmdException(
                     "Long option name must be at least 2 characters and not start with '-': " + name);
         if (alias != null && (alias.length() != 1 || !Character.isLetter(alias.charAt(0))))
-            throw new IllegalArgumentException("Short option alias must be a single letter: " + alias);
+            throw new CmdException("Short option alias must be a single letter: " + alias);
     }
 
     private static boolean tryParseOpt(String p, Map<String, String> opt) {

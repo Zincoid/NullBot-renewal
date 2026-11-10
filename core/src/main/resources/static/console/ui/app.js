@@ -26,7 +26,7 @@ import {bind as bindPluginData, onLocaleChange as onPluginDataLocaleChange} from
 import {bind as bindLogs, onLocaleChange as onLogsLocaleChange} from './logs.js';
 
 function main() {
-    // ═══ Navigation ══════════════════
+    // ═══ Navigation ═══════════════
 
     const loaders = {
         usage: () => {
@@ -61,7 +61,7 @@ function main() {
         loaders[view]();
     }
 
-    // ═══ Binding ═════════════════════
+    // ═══ Binding ══════════════════
 
     function bindDialogs() {
         document.querySelectorAll('dialog').forEach(dialog => {

@@ -1,7 +1,7 @@
 import {$, t, toast, bindBackdropClick} from './app-shared.js';
 import {downloadIcon} from './icons.js';
 
-// ═══ Preview ════════════════════
+// ═══ Preview ══════════════════════
 
 const UNPREVIEWABLE_AUDIO = new Set(['audio/silk', 'audio/x-silk', 'audio/amr']);
 const MIN_SCALE = 1;

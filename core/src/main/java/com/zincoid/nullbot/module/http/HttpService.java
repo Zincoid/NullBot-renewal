@@ -91,6 +91,8 @@ public interface HttpService {
     /**
      * HTTP 请求选项，不可变；通过 {@link #defaults()} 和 {@code with*} 方法构建。
      * <p>Immutable HTTP request options built through {@link #defaults()} and {@code with*} methods.</p>
+     * <p>无效参数抛出 {@link HttpException}。</p>
+     * <p>Invalid arguments raise {@link HttpException}.</p>
      */
     final class Options {
 
@@ -121,9 +123,9 @@ public interface HttpService {
             this.connectTimeout = positive(connectTimeout, "connect timeout");
             this.requestTimeout = positive(requestTimeout, "request timeout");
             if (retries < 0 || retries > MAX_RETRIES)
-                throw new IllegalArgumentException("Retries must be 0-" + MAX_RETRIES + ": " + retries);
+                throw new HttpException("Retries must be 0-" + MAX_RETRIES + ": " + retries);
             if (maxBytes < 1 || maxBytes == Integer.MAX_VALUE)
-                throw new IllegalArgumentException("Invalid max bytes: " + maxBytes);
+                throw new HttpException("Invalid max bytes: " + maxBytes);
             this.retries = retries;
             this.maxBytes = maxBytes;
             this.proxy = proxy == null ? "" : proxy;
@@ -209,9 +211,9 @@ public interface HttpService {
          */
         public Options withHeader(String name, String value) {
             if (name == null || name.isBlank())
-                throw new IllegalArgumentException("Blank header name");
+                throw new HttpException("Blank header name");
             if (value == null)
-                throw new IllegalArgumentException("Null header value: " + name);
+                throw new HttpException("Null header value: " + name);
             Map<String, String> copy = new LinkedHashMap<>(headers);
             copy.put(name, value);
             return new Options(copy, connectTimeout, requestTimeout, retries, maxBytes, proxy);
@@ -229,9 +231,9 @@ public interface HttpService {
             Map<String, String> copy = new LinkedHashMap<>(headers);
             values.forEach((name, value) -> {
                 if (name == null || name.isBlank())
-                    throw new IllegalArgumentException("Blank header name");
+                    throw new HttpException("Blank header name");
                 if (value == null)
-                    throw new IllegalArgumentException("Null header value: " + name);
+                    throw new HttpException("Null header value: " + name);
                 copy.put(name, value);
             });
             return new Options(copy, connectTimeout, requestTimeout, retries, maxBytes, proxy);
@@ -294,11 +296,11 @@ public interface HttpService {
             return new Options(headers, connectTimeout, requestTimeout, retries, maxBytes, value);
         }
 
-        // ════ Helpers ═════════════════
+        // ════ Helpers ═════════════
 
         private static Duration positive(Duration value, String name) {
             if (value == null || value.isZero() || value.isNegative())
-                throw new IllegalArgumentException("Invalid " + name + ": " + value);
+                throw new HttpException("Invalid " + name + ": " + value);
             return value;
         }
     }

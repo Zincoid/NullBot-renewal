@@ -38,7 +38,7 @@ public class CmdUsageController {
     private final GroupService groupService;
     private final UserService userService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 查询全量指令用量。

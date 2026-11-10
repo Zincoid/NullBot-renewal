@@ -2,6 +2,20 @@
 
 本文说明如何为 NullBot 编写外部插件。完整可运行示例见 [`plugins/hello-plugin`](plugins/hello-plugin)；包含服务、缓存、配置与图片渲染的示例见 [`plugins/gd-plugin`](plugins/gd-plugin) 和 [`plugins/query-plugin`](plugins/query-plugin)。
 
+## 目录
+
+- [快速开始](#快速开始)
+- [入口与生命周期](#入口与生命周期)
+- [版本与兼容](#版本与兼容)
+- [宿主服务](#宿主服务)
+- [指令与参数](#指令与参数)
+- [文案与异常](#文案与异常)
+- [AI 工具](#ai-工具)
+- [图片渲染](#图片渲染)
+- [数据、配置与资源](#数据配置与资源)
+- [打包、调试与排错](#打包调试与排错)
+- [代码风格与检查清单](#代码风格与检查清单)
+
 ## 快速开始
 
 一个插件是一个独立 JAR，包含：
@@ -20,7 +34,7 @@ plugins/demo-plugin/
     ├── java/com/zincoid/demo/
     │   ├── DemoPlugin.java          # 插件入口
     │   ├── DemoText.java            # 双语文案
-    │   ├── DemoException.java       # 可选
+    │   ├── DemoException.java
     │   ├── cmd/DemoCmd.java
     │   ├── config/DemoConfig.java   # 可选
     │   └── service/DemoService.java # 可选
@@ -29,7 +43,9 @@ plugins/demo-plugin/
         └── config.properties        # 可选，默认配置
 ```
 
-根包只放插件入口、文案与可选的插件异常；其余按需分层：`cmd`、`config`、`service`、`model`、`render`、`tool`、`store`（插件自有持久化）。单类插件不需要为了结构完整而创建空包。每个插件目录附带 `README.md`，说明指令、配置与数据布局；根 README 只保留插件索引。
+- 根包只放插件入口、文案与可选的插件异常；
+- 其余按需分层：`cmd`、`config`、`service`、`model`、`render`、`tool`、`store`（插件自有持久化）；
+- 单类插件不必为了结构完整创建空包；每个插件目录附带 `README.md`，根 README 只保留插件索引。
 
 在 `plugins/pom.xml` 的 `<modules>` 中加入 `demo-plugin`，然后声明模块：
 
@@ -45,7 +61,10 @@ plugins/demo-plugin/
 
 `revision` 由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只需修改这一处。
 
-父模块已把 `core` 和 Lombok 设为 `provided`，并提供了复制 JAR 到 `workspace/plugins/` 的 `maven-antrun-plugin`。简单插件只需在 `<build><plugins>` 中声明 `maven-antrun-plugin`；使用 JTE 模板时再声明 `jte-maven-plugin`（参考 `hello-plugin/pom.xml`）。
+父模块已把 `core` 和 Lombok 设为 `provided`，并提供复制 JAR 到 `workspace/plugins/` 的 `maven-antrun-plugin`。
+
+- 简单插件只需在 `<build><plugins>` 中声明 `maven-antrun-plugin`；
+- 使用 JTE 模板时再声明 `jte-maven-plugin`（参考 `hello-plugin/pom.xml`）。
 
 注册文件 `META-INF/services/com.zincoid.nullbot.bot.plugin.Plugin` 只写一行实现类全名：
 
@@ -81,28 +100,22 @@ public class DemoPlugin implements Plugin {
 
     @Override
     public int apiVersion() {
-        return 4; // 仅指令用 1；AI 工具用 2；图片渲染用 3；properties 用 4；宿主 HTTP 用 5
+        return 4; // 1 指令、2 AI 工具、3 渲染、4 properties、5 HTTP、6 文件发送
     }
 
     @Override
     public List<Cmd> cmds() {
-        return List.of(new DemoCmd(service()));
+        return List.of(new DemoCmd(service));
     }
 
     @Override
     public void start(PluginContext context) {
-        this.service = new DemoService(DemoConfig.load(context.properties()));
+        service = new DemoService(DemoConfig.load(context.properties()));
     }
 
     @Override
     public void stop() {
-        this.service = null;
-    }
-
-    DemoService service() {
-        DemoService value = service;
-        if (value == null) throw new IllegalStateException("Plugin not started");
-        return value;
+        service = null;
     }
 }
 ```
@@ -114,9 +127,8 @@ public class DemoPlugin implements Plugin {
 - `id()` 必须匹配 `[A-Za-z0-9_-]{1,64}`，且全局唯一；
 - `start()` 在 `cmds()` / `tools()` 之前调用；
 - `stop()` 在停用、重载或卸载时调用，应释放字段与资源；
-- `cmds()` / `tools()` 可能被多次调用（例如帮助页列举指令），应轻量返回新实例，不要在 `cmds()` 里做重初始化；
-- 指令通过构造器接收 `PluginContext`、服务等依赖，不直接依赖整个插件实例；
-- 插件访问器保持包内可见即可。
+- `cmds()` / `tools()` 可能被多次调用，应轻量返回新实例，不要在 `cmds()` 里做重初始化；
+- 指令通过构造器接收 `PluginContext`、服务等依赖，不直接依赖整个插件实例。
 
 ## 版本与兼容
 
@@ -129,9 +141,9 @@ public class DemoPlugin implements Plugin {
 | `3` | 指令、AI 工具、图片渲染与插件模板 |
 | `4` | 以上能力，以及插件 `properties()` |
 | `5` | 以上能力，以及宿主 HTTP `http()` |
-| `6` | 以上能力，以及 `BotClient` 群/私聊文件发送 |
+| `6` | 以上能力，以及 `BotClient` 群 / 私聊文件发送（`sendGroupFile` / `sendPrivateFile`） |
 
-宿主当前支持 `1`–`6`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`。
+宿主当前支持 `1`–`6`，超出范围会拒绝加载。只使用指令时无需显式覆写 `apiVersion()`；声明较高版本会包含全部较低版本的能力。
 
 - Maven 模块版本由根 `pom.xml` 的 `<revision>` 属性统一控制，发布时只改这一处。
 - `Plugin.version()` 默认读取插件 JAR manifest 的 `Implementation-Version`；Maven 构建会自动写入，内部插件无需手改。从 IDE 或 classpath 运行时可能取不到版本，此时返回 `dev`。
@@ -143,18 +155,18 @@ public class DemoPlugin implements Plugin {
 
 | 方法 | 用途 |
 | --- | --- |
-| `dataDir()` | 插件独立数据目录 |
-| `http()` | 宿主 HTTP 服务（GET/POST/文件上传，超时、重试、代理与大小限制） |
-| `renderer()` | SVG/JTE 图片渲染与字体注册 |
-| `config()` | 宿主配置存储 |
 | `properties()` | 插件自己的 `config.properties` 配置快照 |
-| `inputs()` | 多轮输入等待 |
-| `model()` | AI 模型调用 |
+| `dataDir()` | 插件独立数据目录 |
 | `users()` / `groups()` | 用户、群记录 |
-| `groupSettings()` / `userSettings()` | 群、用户设置 |
+| `userSettings()` / `groupSettings()` | 用户、群设置 |
+| `languages()` | 回复语言服务 |
 | `quotes()` | 语录服务 |
 | `files()` | 收藏文件记录与磁盘存储（不含聊天附件） |
-| `languages()` | 回复语言服务 |
+| `config()` | 宿主配置存储 |
+| `inputs()` | 多轮输入等待 |
+| `model()` | AI 模型调用 |
+| `http()` | 宿主 HTTP 服务（GET / 字节 POST / 单文件上传，超时、重试、代理与大小限制） |
+| `renderer()` | SVG/JTE 图片渲染与字体注册 |
 
 `BizType.CHAT` 已移除，聊天附件不通过 `PluginContext` 暴露；引用该常量的插件需要更新并重新编译。
 
@@ -162,7 +174,7 @@ public class DemoPlugin implements Plugin {
 
 ### HTTP 请求
 
-使用 `PluginContext.http()` 时 `apiVersion()` 必须为 5。`HttpService` 提供同步的 GET、字节 POST 与单文件 multipart 上传；非 2xx 响应不会抛异常，而是通过状态码返回。
+使用 `PluginContext.http()` 时 `apiVersion()` 至少为 5。`HttpService` 提供同步的 GET、字节 POST 与单文件 multipart 上传；非 2xx 响应不会抛异常，而是通过状态码返回。
 
 ```java
 HttpService http = context.http();
@@ -178,8 +190,8 @@ String body = response.text();
 ```
 
 - 默认连接超时 10 秒、请求超时 20 秒、重试 0 次、响应上限 8 MiB、不使用代理。
-- `withProxy("host:port")` 使用 HTTP 代理；`withRetries(n)` 只应对幂等请求启用。
-- `HttpException` 表示网络、URL、代理、响应超限或中断；中断会恢复线程中断标志。
+- `Options` 可设置请求头、超时、重试、响应上限与代理；`withRetries(n)` 只应对幂等请求启用。
+- `HttpException` 表示网络、URL、代理、参数、响应超限或中断。
 
 ## 指令与参数
 
@@ -228,8 +240,8 @@ public class DemoCmd implements Cmd {
 
 | 方法 | 说明 |
 | --- | --- |
-| `getHelp(Language)` | `指令 -H` 与帮助列表使用的文案 |
-| `getAiHelp()` | 供 AI 阅读的英文说明；`isAiCallable()` 为 true 时建议覆写 |
+| `getHelp(Language)` | `指令 -H` 使用的文案 |
+| `getAiHelp()` | 供 AI 阅读的英文说明；`isAiCallable()` 为 `true` 时建议覆写 |
 | `isAiCallable()` | 是否允许 AI 通过 `call` 工具调用，默认 `false` |
 | `getAccess()` | 所需限权，默认 `Access.NORMAL` |
 
@@ -244,7 +256,7 @@ public class DemoCmd implements Cmd {
 - 长选项名至少两个字符，短选项必须是单个字母；不符合形式的参数按位置参数处理；
 - 其余参数按原顺序作为位置参数。
 
-`hasOpt` / `getOpt` 的 `name` 必须至少两个字符，`alias` 必须是单个字母，否则抛 `IllegalArgumentException`。
+`hasOpt` / `getOpt` 的 `name` 必须至少两个字符，`alias` 必须是单个字母，否则抛 `CmdException`。
 
 `-H` / `--help`、`-B` / `--ban`、`-U` / `--unban` 由宿主保留，插件指令不要使用这些参数。
 
@@ -257,10 +269,20 @@ String rest = args.rest("");       // 其余位置参数，空格连接
 
 `CmdContext` 提供：
 
-- `ctx.send(String)` / `ctx.send(MsgContent)`：发送到指令来源会话；
+- `ctx.send(String)` / `ctx.send(Text, ...)` / `ctx.send(MsgContent)`：发送到指令来源会话；
 - `ctx.language()`：当前回复语言；
-- `ctx.client()`：`BotClient` 出站端口；`sendGroupFile(...)` / `sendPrivateFile(...)` 发送群/私聊文件，需 `apiVersion() >= 6`；
-- `ctx.render(Text, ...)`：渲染 core 文案。
+- `ctx.client()`：`BotClient` 出站端口；`sendGroupFile(groupId, url, name)` / `sendPrivateFile(userId, url, name)` 发送群 / 私聊文件，需 `apiVersion() >= 6`；
+- `ctx.render(Text, ...)`：渲染 core 文案；
+- `ctx.warn(Text, ...)` / `ctx.info(Text, ...)`：构造本地化的告警 / 提示异常。
+
+文件发送示例：
+
+```java
+if (event instanceof GroupMsgEvent e)
+    ctx.client().sendGroupFile(e.groupId(), url, name);
+else
+    ctx.client().sendPrivateFile(event.userId(), url, name);
+```
 
 消息内容用 `MsgContent.builder()` 组合：
 
@@ -280,13 +302,7 @@ ctx.send(MsgContent.builder()
 
 ```java
 public enum DemoText {
-    HELP("""
-            Demo
-            用法：Demo <关键词>
-            别名：示例""", """
-            Demo
-            Usage: Demo <keyword>
-            Aliases: 示例"""),
+    HELP("用法：Demo <关键词>", "Usage: Demo <keyword>"),
     MISSING_KEYWORD("缺少关键词", "Missing keyword"),
     QUERY_FAILED("查询失败，请稍后重试", "Query failed; try again later");
 
@@ -301,19 +317,17 @@ public enum DemoText {
     public String of(Language language) {
         return language == Language.EN ? en : zh;
     }
-
-    public String of(Language language, Object... args) {
-        return String.format(Locale.ROOT, of(language), args);
-    }
 }
 ```
+
+需要格式化参数时，再加一个 `of(Language, Object...)` 重载即可。
 
 异常分层：
 
 - `CmdWarnException`：用户可修正的问题，例如参数错误、缺少输入；
 - `CmdInfoException`：提示后中止，例如没有数据、已取消；
 - 插件自定义 `XxxException`：网络、解析、图片处理等领域边界；
-- 指令层捕获插件异常，记录日志并转换为本地化 `CmdWarnException`。
+- 插件指令在边界处捕获自定义异常，记录日志并转换为本地化 `CmdWarnException`。
 
 执行成功的提示直接用 `ctx.send(...)` 后返回，不要为了发消息抛异常。
 
@@ -352,7 +366,7 @@ public class DemoTool implements Tool {
 
 ## 图片渲染
 
-使用渲染能力时 `apiVersion()` 返回 `3`。`PluginContext.renderer()` 提供：
+使用渲染能力时 `apiVersion()` 至少为 `3`。`PluginContext.renderer()` 提供：
 
 - `svg(String)`：原始 SVG → PNG；
 - `template(String, Map)`：预编译 JTE 模板 → PNG；
@@ -399,11 +413,47 @@ String value = context.properties().get("demo.key", "default");
 int limit = context.properties().getInt("demo.limit", 10);
 ```
 
-`properties()` 是插件启动时读取的配置快照，修改 `config.properties` 后需要重载插件；它只提供原始属性读取，类型校验和业务默认值仍由插件自己的 `XxxConfig` 决定。新增配置项时插件仍需在代码中保留默认值，避免旧配置文件缺少键。
+- `properties()` 是插件启动时读取的配置快照，修改 `config.properties` 后需要重载插件；
+- 它只提供原始属性读取，类型校验与默认值由插件自己的 `XxxConfig` 负责；新增配置项时仍要在代码中保留默认值，避免旧配置文件缺少键。
 
 控制台“插件数据”弹窗的“配置”页可直接编辑 `config.properties`，保存后可按需重载插件；“文件”页保留插件数据文件管理。
 
-随 JAR 分发的图片/二进制资源可放在 `src/main/resources/`，启动时用 `PluginResources.extract(...)` 解压到数据目录；`pubg-plugin` 是示例。只读资源也可以直接从 classpath 读取。插件不应写入 `dataDir()` 之外的路径，也不应依赖宿主的内部工作目录。
+随 JAR 分发的图片 / 二进制资源可放在 `src/main/resources/`，启动时解压到数据目录；`pubg-plugin` 是示例。`PluginResources.extract` 以资源文件名为目标文件名，目标已存在时直接返回：
+
+```java
+import com.zincoid.nullbot.bot.plugin.PluginResources;
+
+import java.nio.file.Path;
+
+Path image = PluginResources.extract(DemoPlugin.class, "/Erangel.png", context.dataDir());
+```
+
+只读资源也可以直接从 classpath 读取。插件不应写入 `dataDir()` 之外的路径，也不应依赖宿主的内部工作目录。
+
+### 静态工具
+
+插件可直接使用这些 core 静态工具，不需要通过 `PluginContext`，也不占用 `apiVersion()`：
+
+- `UrlDownloader`：打开 URL 流或下载到文件；
+- `PluginResources`：解压插件 JAR 内的资源；
+- `AtomicFiles`：原子写入、替换或移动文件；
+- `JsonUtils`：JSON 解析；
+- `ImageData`、`SvgText`、`SvgTable`：图片处理与 SVG 排版。
+
+有状态、需要权限或配置的能力仍通过 `PluginContext` 使用。
+
+### 下载网络文件
+
+需要把网络文件保存到数据目录时，使用 `UrlDownloader.download(url, target)`：
+
+```java
+import com.zincoid.nullbot.module.http.UrlDownloader;
+
+Path target = context.dataDir().resolve("cache").resolve("cover.png");
+UrlDownloader.download(url, target);
+```
+
+下载会流式写入目标文件，先写同目录临时文件再原子替换；目标已存在时覆盖，父目录自动创建，失败时保留原目标。URL 非法、网络错误、非 2xx 与中断都会抛出 `HttpException`。
 
 ## 打包、调试与排错
 
@@ -449,6 +499,7 @@ java -jar launcher/target/launcher-stdin.jar \
 - `META-INF/services/...Plugin` 缺失或写错；
 - 一个 JAR 中存在多个 `Plugin` 实现；
 - 插件 ID 不合法或与其他插件重复；
+- 提供 AI 工具但 `apiVersion()` 小于 `2`；
 - `apiVersion()` 超出 `1`–`6`；
 - 插件 JAR 包含了宿主 `com.zincoid.nullbot.*` 类；
 - 第三方依赖没有 shade，运行时出现 `NoClassDefFoundError`。
@@ -473,8 +524,5 @@ java -jar launcher/target/launcher-stdin.jar \
 - [ ] 每个指令有 `getHelp(Language)`，AI 可调用指令有 `getAiHelp()`
 - [ ] 用户可见文案走 `XxxText`
 - [ ] 网络/解析异常转换为本地化 `CmdWarnException`
-- [ ] 使用图片渲染时 `apiVersion() >= 3`
-- [ ] 使用 `properties()` 时 `apiVersion() >= 4`
-- [ ] 使用 `PluginContext.http()` 时 `apiVersion() == 5`
-- [ ] 使用 `BotClient` 群/私聊文件发送时 `apiVersion() >= 6`
+- [ ] 使用渲染 / `properties()` / HTTP / 文件发送时，`apiVersion()` 分别 `>= 3` / `4` / `5` / `6`
 - [ ] 本地 stdin 适配器验证通过

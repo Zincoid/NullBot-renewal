@@ -36,7 +36,7 @@ public class GroupKeywordController {
 
     private final GroupKeywordService groupKeywordService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 列出群内全部关键词规则。
@@ -50,7 +50,7 @@ public class GroupKeywordController {
         return groupKeywordService.listAll(groupId).stream().map(GroupKeywordView::of).toList();
     }
 
-    // ════ Create ═════════════════
+    // ════ Create ══════════════════
 
     /**
      * 新增关键词规则。
@@ -75,7 +75,7 @@ public class GroupKeywordController {
         }
     }
 
-    // ════ Update ═════════════════
+    // ════ Update ══════════════════
 
     /**
      * 修改关键词规则。
@@ -101,7 +101,7 @@ public class GroupKeywordController {
         }
     }
 
-    // ════ Enable ═════════════════
+    // ════ Enable ══════════════════
 
     /**
      * 启用关键词规则。
@@ -133,7 +133,7 @@ public class GroupKeywordController {
         return ResponseEntity.noContent().build();
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 删除关键词规则。

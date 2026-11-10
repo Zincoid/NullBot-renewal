@@ -29,7 +29,7 @@ public class QuoteController {
 
     private final QuoteService quoteService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 分页查询语录。
@@ -49,7 +49,7 @@ public class QuoteController {
                 ConsoleValidation.page(page), ConsoleValidation.size(size)), QuoteView::of);
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 删除语录。

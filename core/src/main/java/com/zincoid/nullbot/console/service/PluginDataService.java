@@ -25,7 +25,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,7 +48,7 @@ public class PluginDataService {
 
     private final PluginLoader pluginLoader;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 列出插件数据目录中的条目。
@@ -85,7 +84,7 @@ public class PluginDataService {
         return new PluginDataView(relative(root, dir), entries);
     }
 
-    // ════ Modify ═════════════════
+    // ════ Modify ══════════════════
 
     /**
      * 在插件数据目录中新建文件夹。
@@ -137,7 +136,7 @@ public class PluginDataService {
                 Path target = dir.resolve(targetName);
                 if (Files.isDirectory(target))
                     throw new IOException("Target is a directory");
-                write(file, dir, target);
+                write(file, target);
                 items.add(new PluginDataResult.Item(targetName, true, null));
             } catch (IOException | ConsoleException e) {
                 items.add(failed(label, e));
@@ -146,7 +145,7 @@ public class PluginDataService {
         return new PluginDataResult(items);
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 批量删除插件数据条目，文件夹递归删除。
@@ -179,7 +178,7 @@ public class PluginDataService {
         return new PluginDataResult(items);
     }
 
-    // ════ Download ═══════════════
+    // ════ Download ════════════════
 
     /**
      * 返回可下载的插件数据文件路径。
@@ -200,7 +199,7 @@ public class PluginDataService {
         return target;
     }
 
-    // ════ Config ═════════════════
+    // ════ Config ══════════════════
 
     /**
      * 读取插件配置文件。
@@ -280,7 +279,7 @@ public class PluginDataService {
         return file;
     }
 
-    // ════ Helpers ════════════════
+    // ════ Helpers ═════════════════
 
     private Path root(String jar) {
         Path root;
@@ -377,13 +376,9 @@ public class PluginDataService {
                 message == null || message.isBlank() ? e.getClass().getSimpleName() : message);
     }
 
-    private static void write(MultipartFile file, Path dir, Path target) throws IOException {
-        Path temp = Files.createTempFile(dir, ".upload-", ".tmp");
+    private static void write(MultipartFile file, Path target) throws IOException {
         try (InputStream in = file.getInputStream()) {
-            Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
-            AtomicFiles.moveReplace(temp, target);
-        } finally {
-            Files.deleteIfExists(temp);
+            AtomicFiles.copy(in, target);
         }
     }
 

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 /**
  * 插件资源工具：把插件 JAR 内的 classpath 资源解压到插件数据目录。
@@ -25,7 +24,6 @@ public final class PluginResources {
      * @param resource the absolute classpath resource path, such as {@code /Erangel.png}
      * @param dir      the target directory; the filename is derived from the resource path
      * @return the extracted file path
-     * @throws PluginException when the resource is missing or cannot be extracted
      */
     public static Path extract(Class<?> anchor, String resource, Path dir) {
         Path name = Path.of(resource).getFileName();
@@ -36,14 +34,7 @@ public final class PluginResources {
         try (InputStream in = anchor.getResourceAsStream(resource)) {
             if (in == null)
                 throw new PluginException("Plugin resource missing: " + resource);
-            Files.createDirectories(dir);
-            Path temp = Files.createTempFile(dir, ".resource-", ".tmp");
-            try {
-                Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
-                AtomicFiles.moveReplace(temp, target);
-            } finally {
-                Files.deleteIfExists(temp);
-            }
+            AtomicFiles.copy(in, target);
             return target;
         } catch (IOException e) {
             throw new PluginException("Cannot extract plugin resource: " + resource, e);

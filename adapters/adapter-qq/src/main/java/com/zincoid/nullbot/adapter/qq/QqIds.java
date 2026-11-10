@@ -31,7 +31,7 @@ public final class QqIds {
                     .digest(messageId.getBytes(StandardCharsets.UTF_8));
             return "q" + Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 unavailable", e);
+            throw new QqException("SHA-256 unavailable", e);
         }
     }
 }

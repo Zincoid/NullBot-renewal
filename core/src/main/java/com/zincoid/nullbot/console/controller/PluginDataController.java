@@ -38,7 +38,7 @@ public class PluginDataController {
 
     private final PluginDataService dataService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 列出插件数据目录。
@@ -87,7 +87,7 @@ public class PluginDataController {
         return dataService.upload(ConsoleValidation.pluginJar(jar), path, files);
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 批量删除插件数据条目，文件夹递归删除。
@@ -103,7 +103,7 @@ public class PluginDataController {
         return dataService.delete(ConsoleValidation.pluginJar(jar), request.path(), request.names());
     }
 
-    // ════ Download ═══════════════
+    // ════ Download ════════════════
 
     /**
      * 下载插件数据文件。

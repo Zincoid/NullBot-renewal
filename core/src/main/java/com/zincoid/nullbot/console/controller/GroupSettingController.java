@@ -29,7 +29,7 @@ public class GroupSettingController {
     private final GroupSettingService groupSettingService;
     private final GroupRateLimiter groupRateLimiter;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 读取群设置，缺失时创建默认设置。
@@ -44,7 +44,7 @@ public class GroupSettingController {
                 ConsoleValidation.required(groupId, 64, "groupId")));
     }
 
-    // ════ Update ═════════════════
+    // ════ Update ══════════════════
 
     /**
      * 全量更新群设置。

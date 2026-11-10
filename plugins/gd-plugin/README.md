@@ -1,6 +1,6 @@
 # gd-plugin
 
-Geometry Dash 关卡搜索、详情与本地进度（`#GD`），以及 GDDL B20 评分与账号绑定（`#GDDL`）；群聊与私聊均可用。插件 ID `gd`；搜索结果、关卡详情、本地 B20 与 GDDL B20 均以图片卡片输出。
+Geometry Dash 关卡搜索、详情与本地进度（`#GD`），以及 GDDL B20 评分与账号绑定（`#GDDL`）；群聊与私聊均可用，权限 normal。插件 ID `gd`；搜索结果、关卡详情、本地 B20 与 GDDL B20 均以图片卡片输出。
 
 ## 指令
 
@@ -26,6 +26,8 @@ Geometry Dash 关卡搜索、详情与本地进度（`#GD`），以及 GDDL B20 
 - `--length, -l`：`tiny,short,medium,long,xl,platformer`（逗号分隔）；
 - `--filter`：`star,no-star,featured,original,two-player,coins,epic,custom-song`；默认只搜有星（已评级）关卡，加 `no-star` 才包含未评级关卡；
 - `--page, -p`：页码，从 1 开始。
+
+搜索选择与注销确认等待 30 秒；群聊中只有发起者可以选择序号、`next` 或 `end`。
 
 ### GDDL
 

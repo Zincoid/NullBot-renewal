@@ -23,7 +23,7 @@ public class BotController {
 
     private final BotHolder botHolder;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 查询当前在线账号信息。

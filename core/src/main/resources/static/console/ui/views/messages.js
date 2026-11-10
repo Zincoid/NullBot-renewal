@@ -5,7 +5,7 @@ import {
 import {openPreview} from '../preview.js';
 import {downloadIcon, paperclipIcon, previewIcon, sendIcon} from '../icons.js';
 
-// ═══ Messages ════════════════════
+// ═══ Messages ═════════════════════
 
 const state = {
     chats: [],
@@ -72,7 +72,7 @@ function emptyState(text, retry = false) {
     return `<div class="messages-state">${escapeHtml(text)}${button}</div>`;
 }
 
-// ═══ Render ══════════════════════
+// ═══ Render ═══════════════════════
 
 function renderChats() {
     const list = $('messages-chat-list');
@@ -221,7 +221,7 @@ function renderMessages() {
     timeline.scrollTop = timeline.scrollHeight;
 }
 
-// ═══ Load ════════════════════════
+// ═══ Load ═════════════════════════
 
 async function loadChatMessages(chatId, seq = ++messagesSeq) {
     state.messagesLoading = true;
@@ -309,7 +309,7 @@ export async function loadMessages() {
     }
 }
 
-// ═══ Reset ═══════════════════════
+// ═══ Reset ════════════════════════
 
 async function resetChat() {
     if (!state.chatId || state.sending || state.resetting) return;
@@ -332,7 +332,7 @@ async function resetChat() {
     }
 }
 
-// ═══ Send ════════════════════════
+// ═══ Send ═════════════════════════
 
 async function sendMessage(event) {
     event.preventDefault();
@@ -365,7 +365,7 @@ async function sendMessage(event) {
     }
 }
 
-// ═══ Attachments ═════════════════
+// ═══ Attachments ══════════════════
 
 function attachmentCard(id) {
     return document.querySelector(`#message-attachments-list [data-attachment-id="${id}"]`);
@@ -527,7 +527,7 @@ function openAttachmentPreview(item) {
     });
 }
 
-// ═══ Binding ═════════════════════
+// ═══ Binding ══════════════════════
 
 export function bind() {
     const compose = $('messages-compose');

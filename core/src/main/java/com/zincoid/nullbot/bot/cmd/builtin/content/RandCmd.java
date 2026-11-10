@@ -3,6 +3,7 @@ package com.zincoid.nullbot.bot.cmd.builtin.content;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
+import com.zincoid.nullbot.bot.cmd.CmdException;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
@@ -63,7 +64,7 @@ abstract class RandCmd implements Cmd {
             case IMAGE -> MsgContent.builder().image(fileService.uri(file)).build();
             case AUDIO -> MsgContent.builder().voice(fileService.uri(file)).build();
             case VIDEO -> MsgContent.builder().video(fileService.uri(file)).build();
-            default -> throw new IllegalArgumentException("Not media: " + file.getType());
+            default -> throw new CmdException("Not media: " + file.getType());
         };
     }
 }

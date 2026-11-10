@@ -1,7 +1,7 @@
 import {$, t, api, escapeHtml, emptyRow, toast, confirmAction} from '../app-shared.js';
 import {openPluginData} from './plugin-data.js';
 
-// ═══ Plugins ═══════════════════
+// ═══ Plugins ══════════════════════
 
 let pluginItems = [];
 let pluginEnabled = true;

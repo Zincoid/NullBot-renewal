@@ -5,7 +5,7 @@ import {
 } from '../app-shared.js';
 import {openPreview, previewable} from '../preview.js';
 
-// ═══ Files ═══════════════════════
+// ═══ Files ════════════════════════
 
 const fileState = {page: 1, size: PAGE_SIZE, type: '', keyword: '', items: []};
 const fileSelection = new Set();

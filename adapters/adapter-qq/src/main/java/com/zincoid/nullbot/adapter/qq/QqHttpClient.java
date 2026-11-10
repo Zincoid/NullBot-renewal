@@ -54,7 +54,7 @@ public class QqHttpClient {
                 .build();
     }
 
-    // ════ JSON ═══════════════════
+    // ════ JSON ════════════════════
 
     /**
      * 把对象序列化为 JSON。
@@ -107,7 +107,7 @@ public class QqHttpClient {
         }
     }
 
-    // ════ Token ══════════════════
+    // ════ Token ═══════════════════
 
     /**
      * 返回有效的 access token，必要时刷新。
@@ -157,7 +157,7 @@ public class QqHttpClient {
         }
     }
 
-    // ════ Requests ═══════════════
+    // ════ Requests ════════════════
 
     /**
      * 发送 GET 请求并解析响应。
@@ -236,7 +236,7 @@ public class QqHttpClient {
         }
     }
 
-    // ════ HTTP ═══════════════════
+    // ════ HTTP ════════════════════
 
     private String send(String method, String path, Object body) {
         try {

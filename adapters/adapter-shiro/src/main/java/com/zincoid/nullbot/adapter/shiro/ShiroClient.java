@@ -92,7 +92,7 @@ public class ShiroClient implements BotClient {
         check(bot.setGroupBan(num(groupId), num(userId), seconds));
     }
 
-    // ════ Info queries ════════════
+    // ════ Info ════════════════════
 
     @Override
     public UserInfo getLoginInfo() {

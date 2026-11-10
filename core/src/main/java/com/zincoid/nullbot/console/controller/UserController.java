@@ -38,7 +38,7 @@ public class UserController {
     private final UserService userService;
     private final UserSettingService userSettingService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 分页查询用户。
@@ -58,7 +58,7 @@ public class UserController {
                 ConsoleValidation.page(page), ConsoleValidation.size(size)), UserView::of);
     }
 
-    // ════ Update ═════════════════
+    // ════ Update ══════════════════
 
     /**
      * 修改用户权限。
@@ -84,7 +84,7 @@ public class UserController {
         return UserView.of(user);
     }
 
-    // ════ Setting ════════════════
+    // ════ Setting ═════════════════
 
     /**
      * 查询用户设置。
@@ -120,7 +120,7 @@ public class UserController {
         return UserSettingView.of(id, userSettingService.get(id));
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 删除用户记录。

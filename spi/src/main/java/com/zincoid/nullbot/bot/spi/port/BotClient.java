@@ -117,7 +117,7 @@ public interface BotClient {
         throw SpiException.unsupported("mute");
     }
 
-    // ════ Info queries ════════════
+    // ════ Info ════════════════════
 
     /**
      * 登录信息。

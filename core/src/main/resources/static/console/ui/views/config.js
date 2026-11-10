@@ -2,7 +2,7 @@ import {
     $, t, api, escapeHtml, setStatus, setRowStatus, confirmAction
 } from '../app-shared.js';
 
-// ═══ Config ══════════════════════
+// ═══ Config ═══════════════════════
 
 async function loadConfig() {
     const status = $('config-status');

@@ -4,7 +4,7 @@ import {
 } from '../app-shared.js';
 import {copyIcon} from '../icons.js';
 
-// ═══ Quotes ══════════════════════
+// ═══ Quotes ═══════════════════════
 
 const quoteState = {page: 1, size: PAGE_SIZE, keyword: '', items: []};
 

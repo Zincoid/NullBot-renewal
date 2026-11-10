@@ -98,7 +98,7 @@ public class StdinClient implements BotClient {
         log.info("Mute {} in group {} for {}s", userId, groupId, seconds);
     }
 
-    // ════ Info queries ════════════
+    // ════ Info ════════════════════
 
     @Override
     public UserInfo getLoginInfo() {

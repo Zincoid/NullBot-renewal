@@ -5,8 +5,6 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -15,19 +13,16 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 基于 JDK HttpClient 的宿主 HTTP 服务。
  * <p>Host HTTP service backed by the JDK HttpClient.</p>
  */
 @Component
-public final class JdkHttpService implements HttpService {
+public class JdkHttpService implements HttpService {
 
     private static final Duration RETRY_DELAY = Duration.ofMillis(250);
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
-
-    private final Map<ClientKey, HttpClient> clients = new ConcurrentHashMap<>();
 
     @Override
     public Response get(String url, Options options) {
@@ -53,8 +48,8 @@ public final class JdkHttpService implements HttpService {
     private Response send(String method, String url, byte[] body, String contentType,
                           Options options) {
         Options opts = options == null ? Options.defaults() : options;
-        URI uri = uri(url);
-        HttpClient client = client(opts);
+        URI uri = HttpSupport.uri(url);
+        HttpClient client = HttpSupport.client(opts.proxy(), opts.connectTimeout(), true);
         HttpRequest request = request(method, uri, body, contentType, opts);
         IOException last = null;
         for (int attempt = 1; attempt <= opts.retries() + 1; attempt++) {
@@ -120,20 +115,6 @@ public final class JdkHttpService implements HttpService {
         }
     }
 
-    private static URI uri(String url) {
-        if (url == null || url.isBlank())
-            throw new HttpException("Missing URL");
-        try {
-            URI uri = URI.create(url);
-            String scheme = uri.getScheme();
-            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))
-                throw new HttpException("Unsupported URL scheme: " + scheme);
-            return uri;
-        } catch (IllegalArgumentException e) {
-            throw new HttpException("Malformed URL", e);
-        }
-    }
-
     private static void sleep() {
         try {
             Thread.sleep(RETRY_DELAY.toMillis());
@@ -141,33 +122,6 @@ public final class JdkHttpService implements HttpService {
             Thread.currentThread().interrupt();
             throw new HttpException("HTTP request interrupted", e);
         }
-    }
-
-    // ════ Client ══════════════════
-
-    private HttpClient client(Options options) {
-        ClientKey key = new ClientKey(options.proxy(), options.connectTimeout());
-        return clients.computeIfAbsent(key, JdkHttpService::buildClient);
-    }
-
-    private static HttpClient buildClient(ClientKey key) {
-        HttpClient.Builder builder = HttpClient.newBuilder()
-                .connectTimeout(key.connectTimeout())
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .version(HttpClient.Version.HTTP_1_1);
-        if (!key.proxy().isBlank()) builder.proxy(proxy(key.proxy()));
-        return builder.build();
-    }
-
-    private static ProxySelector proxy(String raw) {
-        ProxyAddress address;
-        try {
-            address = ProxyAddress.parse(raw);
-        } catch (IllegalArgumentException e) {
-            throw new HttpException("Invalid proxy: " + raw, e);
-        }
-        return ProxySelector.of(InetSocketAddress.createUnresolved(
-                address.host(), address.port()));
     }
 
     // ════ Multipart ═══════════════
@@ -200,8 +154,5 @@ public final class JdkHttpService implements HttpService {
     }
 
     private record Multipart(byte[] body, String contentType) {
-    }
-
-    private record ClientKey(String proxy, Duration connectTimeout) {
     }
 }

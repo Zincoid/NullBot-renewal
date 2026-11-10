@@ -3,7 +3,7 @@ import {
     setStatus, emptyRow, confirmAction, toast
 } from '../app-shared.js';
 
-// ═══ Plugin data ═════════════════
+// ═══ Plugin data ══════════════════
 
 const pluginDataState = {
     jar: '',

@@ -1,4 +1,4 @@
-// ═══ Icons ═══════════════════════
+// ═══ Icons ════════════════════════
 
 export const previewIcon = `
 <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"

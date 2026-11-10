@@ -35,7 +35,6 @@ public interface ConfigService extends IService<Config> {
      *
      * @param conf configuration entry
      * @return the stored value as an integer, or the converted default value when absent
-     * @throws ConfigException when the value is not a valid integer
      */
     int getInt(Conf conf);
 
@@ -45,7 +44,6 @@ public interface ConfigService extends IService<Config> {
      *
      * @param conf configuration entry
      * @return the stored value as a boolean, or the converted default value when absent
-     * @throws ConfigException when the value is neither true nor false
      */
     boolean getBool(Conf conf);
 

@@ -22,7 +22,7 @@ public class LogController {
 
     private final LogStreamService logStreamService;
 
-    // ════ Stream ═════════════════
+    // ════ Stream ══════════════════
 
     /**
      * 订阅实时日志流。

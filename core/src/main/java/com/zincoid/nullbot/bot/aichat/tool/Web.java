@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.bot.aichat.tool;
 
+import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
@@ -10,9 +11,11 @@ import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -81,9 +84,10 @@ public class Web implements Tool {
      *
      * @param url the webpage URL
      * @return the response body
-     * @throws Exception when the request fails or the response is unsupported
+     * @throws IOException          when the request fails
+     * @throws InterruptedException when the thread is interrupted
      */
-    private String fetchPage(String url) throws Exception {
+    private String fetchPage(String url) throws IOException, InterruptedException {
         URI uri = URI.create(url);
         for (int redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
             validate(uri);
@@ -107,25 +111,25 @@ public class Web implements Tool {
                 String location = response.headers().firstValue("Location").orElse(null);
                 response.body().close();
                 if (location == null || location.isBlank())
-                    throw new RuntimeException("Redirect without Location");
+                    throw new AiException("Redirect without Location");
                 uri = uri.resolve(location);
                 continue;
             }
             String contentType = response.headers().firstValue("Content-Type").orElse("");
             if (status != 200) {
                 response.body().close();
-                throw new RuntimeException("HTTP %d".formatted(status));
+                throw new AiException("HTTP %d".formatted(status));
             }
             String type = contentType.toLowerCase(Locale.ROOT);
             if (!type.contains("text/html") && !type.contains("text/plain")) {
                 response.body().close();
-                throw new RuntimeException("Unsupported Content-Type: %s, only HTML/text pages are supported".formatted(contentType));
+                throw new AiException("Unsupported Content-Type: %s, only HTML/text pages are supported".formatted(contentType));
             }
             try (InputStream body = response.body()) {
                 return new String(body.readNBytes(MAX_BODY_BYTES), charset(contentType));
             }
         }
-        throw new RuntimeException("Too many redirects: " + MAX_REDIRECTS);
+        throw new AiException("Too many redirects: " + MAX_REDIRECTS);
     }
 
     /**
@@ -133,15 +137,15 @@ public class Web implements Tool {
      * <p>Validates the request URI, rejecting non-http/https targets and local or private hosts.</p>
      *
      * @param uri the request URI
-     * @throws Exception when the host cannot be resolved
+     * @throws UnknownHostException when the host cannot be resolved
      */
-    private static void validate(URI uri) throws Exception {
+    private static void validate(URI uri) throws UnknownHostException {
         String scheme = uri.getScheme();
         if (scheme == null || (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https")))
-            throw new RuntimeException("Unsupported URL scheme, only http/https is allowed");
+            throw new AiException("Unsupported URL scheme, only http/https is allowed");
         String host = uri.getHost();
         if (host == null || host.isBlank())
-            throw new RuntimeException("Missing URL host");
+            throw new AiException("Missing URL host");
         if (host.startsWith("[") && host.endsWith("]"))
             host = host.substring(1, host.length() - 1);
         for (InetAddress address : InetAddress.getAllByName(host)) {
@@ -150,7 +154,7 @@ public class Web implements Tool {
                     || address.isLinkLocalAddress() || address.isSiteLocalAddress()
                     || address.isMulticastAddress()
                     || (bytes.length == 16 && (bytes[0] & 0xFE) == 0xFC))
-                throw new RuntimeException("Blocked URL host: " + host);
+                throw new AiException("Blocked URL host: " + host);
         }
     }
 

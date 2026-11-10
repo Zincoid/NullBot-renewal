@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.module.ai.tool;
 
+import com.zincoid.nullbot.module.ai.AiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +29,7 @@ public class ToolRegistry {
 
     public ToolRegistry(List<Tool> tools) {
         if (!register(tools))
-            throw new IllegalStateException("Built-in tool registration failed");
+            throw new AiException("Built-in tool registration failed");
     }
 
     // ════ Get ═════════════════════

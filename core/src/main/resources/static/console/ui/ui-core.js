@@ -4,7 +4,7 @@
     const TOKEN_KEY = 'nullbot.console.token';
     const LOGIN_PAGE = 'login.html';
 
-    // ═══ Helpers ═════════════════════
+    // ═══ Helpers ══════════════════
 
     const $ = id => document.getElementById(id);
 
@@ -83,7 +83,7 @@
         element.append(info, sizeLabel, prev, next);
     }
 
-    // ═══ Token ═══════════════════════
+    // ═══ Token ════════════════════
 
     function getToken() {
         return (localStorage.getItem(TOKEN_KEY) || '').trim();
@@ -115,7 +115,7 @@
         return token;
     }
 
-    // ═══ API ═════════════════════════
+    // ═══ API ══════════════════════
 
     async function api(path, request = {}) {
         const token = getToken();
@@ -167,7 +167,7 @@
         return res.blob();
     }
 
-    // ═══ Toast ═══════════════════════
+    // ═══ Toast ════════════════════
 
     function raiseToast(box) {
         if (typeof box.showPopover !== 'function') return;
@@ -201,7 +201,7 @@
         }, 3200);
     }
 
-    // ═══ Confirm ═════════════════════
+    // ═══ Confirm ══════════════════
 
     let confirmResolve = null;
     let confirmTimer = 0;

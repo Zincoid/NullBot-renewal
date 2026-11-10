@@ -3,7 +3,7 @@ import {
     confirmAction, toast, PAGE_SIZE, options, accessOptions, formatTime
 } from '../app-shared.js';
 
-// ═══ Accounts ════════════════════
+// ═══ Accounts ═════════════════════
 
 const userState = {page: 1, size: PAGE_SIZE, keyword: '', items: []};
 const groupState = {page: 1, size: PAGE_SIZE, keyword: '', items: []};
@@ -563,7 +563,7 @@ async function deleteKeyword(rule) {
     }
 }
 
-// ════ Command disables ═════════
+// ═══ Command disables ═════════════
 
 function syncDurationInput(prefix) {
     const unit = $(prefix + '-duration-unit');

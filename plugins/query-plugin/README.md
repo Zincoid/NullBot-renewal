@@ -1,6 +1,6 @@
 # query-plugin
 
-模型排行、PRTS 干员资料与图片溯源，群聊与私聊均可用。插件 ID `query`。
+模型排行、PRTS 干员资料与图片溯源，群聊与私聊均可用，权限 normal。插件 ID `query`。
 
 ## 指令
 

@@ -39,7 +39,7 @@ public class AiUsageController {
     private final GroupService groupService;
     private final UserService userService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 查询全量 AI 用量。

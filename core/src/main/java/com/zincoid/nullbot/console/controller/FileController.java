@@ -40,7 +40,7 @@ public class FileController {
 
     private final FileService fileService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 分页查询文件。
@@ -63,7 +63,7 @@ public class FileController {
                 ConsoleValidation.page(page), ConsoleValidation.size(size)), FileView::of);
     }
 
-    // ════ Upload ═════════════════
+    // ════ Upload ══════════════════
 
     /**
      * 上传单个文件。
@@ -86,7 +86,7 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.CREATED).body(FileView.of(saved));
     }
 
-    // ════ Update ═════════════════
+    // ════ Update ══════════════════
 
     /**
      * 修改文件的原始文件名与描述。
@@ -107,7 +107,7 @@ public class FileController {
         return FileView.of(file);
     }
 
-    // ════ Content ════════════════
+    // ════ Content ═════════════════
 
     /**
      * 读取已存储文件的内容。
@@ -122,7 +122,7 @@ public class FileController {
         return ConsoleDownloads.attachment(fileService.path(file), file.getOriginal(), file.getStored());
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 删除文件记录与磁盘文件。

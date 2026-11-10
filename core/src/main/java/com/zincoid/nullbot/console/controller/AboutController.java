@@ -50,7 +50,7 @@ public class AboutController {
         this.os = SystemInfo.os();
     }
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 查询应用、构建与运行信息。

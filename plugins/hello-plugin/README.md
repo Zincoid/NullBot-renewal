@@ -4,7 +4,7 @@
 
 ## 指令
 
-`#Hello`（别名 `#你好`），群聊指令。
+`#Hello`（别名 `#你好`），群聊指令，权限 normal。
 
 - 默认回复 `Hello from plugin! Data: <hello.data>`；
 - `--image` / `-i`：渲染示例图片卡片。

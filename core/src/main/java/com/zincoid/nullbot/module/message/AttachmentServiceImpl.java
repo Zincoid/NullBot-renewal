@@ -29,7 +29,6 @@ public class AttachmentServiceImpl extends ServiceImpl<AttachmentMapper, Attachm
         implements AttachmentService {
 
     private final FileStorage fileStorage;
-    private final UrlDownloader urlDownloader;
 
     // ════ Save ════════════════════
 
@@ -40,7 +39,7 @@ public class AttachmentServiceImpl extends ServiceImpl<AttachmentMapper, Attachm
         if (userId == null || userId.isBlank())
             throw new AttachmentException("Missing key: userId");
         FileStorage.StoredFile saved;
-        try (InputStream in = urlDownloader.open(url)) {
+        try (InputStream in = UrlDownloader.open(url)) {
             saved = fileStorage.save(original, in);
         } catch (IOException e) {
             throw new AttachmentException("Failed to store attachment: " + original, e);

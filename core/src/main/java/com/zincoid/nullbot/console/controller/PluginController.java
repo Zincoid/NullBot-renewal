@@ -39,7 +39,7 @@ public class PluginController {
 
     private final PluginLoader pluginLoader;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 列出插件目录中的 JAR 与加载状态。
@@ -55,7 +55,7 @@ public class PluginController {
         return new PluginListView(pluginLoader.isEnabled(), items);
     }
 
-    // ════ Manage ═════════════════
+    // ════ Manage ══════════════════
 
     /**
      * 上传插件 JAR 并立即加载；同名 JAR 已存在时返回冲突。

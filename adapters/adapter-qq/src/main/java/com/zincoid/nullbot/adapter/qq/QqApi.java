@@ -42,7 +42,7 @@ public class QqApi {
     private volatile QqModels.BotInfo botInfo;
     private volatile Instant botInfoRetryAt = Instant.EPOCH;
 
-    // ════ Gateway ════════════════
+    // ════ Gateway ═════════════════
 
     /**
      * 获取 WebSocket 网关地址。
@@ -58,7 +58,7 @@ public class QqApi {
         return response.url();
     }
 
-    // ════ Bot info ═══════════════
+    // ════ Bot info ════════════════
 
     /**
      * 返回机器人资料，可能为 null。
@@ -99,7 +99,7 @@ public class QqApi {
         this.botInfoRetryAt = Instant.EPOCH;
     }
 
-    // ════ Group info ═════════════
+    // ════ Group info ══════════════
 
     /**
      * 返回群名称，失败时回退为群 ID。
@@ -160,7 +160,7 @@ public class QqApi {
         return result;
     }
 
-    // ════ Messages ═══════════════
+    // ════ Messages ════════════════
 
     /**
      * 发送文本消息。
@@ -183,7 +183,7 @@ public class QqApi {
         return response.id();
     }
 
-    // ════ Upload ═════════════════
+    // ════ Upload ══════════════════
 
     /**
      * 上传并直接发送富媒体。
@@ -201,7 +201,7 @@ public class QqApi {
         return response;
     }
 
-    // ════ Management ═════════════
+    // ════ Management ══════════════
 
     /**
      * 撤回消息。

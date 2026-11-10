@@ -33,7 +33,7 @@ public class GroupController {
 
     private final GroupService groupService;
 
-    // ════ Query ══════════════════
+    // ════ Query ═══════════════════
 
     /**
      * 分页查询群。
@@ -53,7 +53,7 @@ public class GroupController {
                 ConsoleValidation.page(page), ConsoleValidation.size(size)), GroupView::of);
     }
 
-    // ════ Update ═════════════════
+    // ════ Update ══════════════════
 
     /**
      * 修改群权限。
@@ -79,7 +79,7 @@ public class GroupController {
         return GroupView.of(group);
     }
 
-    // ════ Delete ═════════════════
+    // ════ Delete ══════════════════
 
     /**
      * 删除群记录。

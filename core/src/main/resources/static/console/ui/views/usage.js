@@ -1,6 +1,6 @@
 import {$, t, api, escapeHtml, toast} from '../app-shared.js';
 
-// ═══ Usage ═══════════════════════
+// ═══ Usage ════════════════════════
 
 const usageState = {days: 14};
 let usageTab = 'totals';

@@ -21,7 +21,6 @@ public class BotHolder implements BotLifecycle {
      *
      * @param selfId the bot account id
      * @param client the outbound port for this account
-     * @throws BotException when another account is already online
      */
     @Override
     public synchronized void online(String selfId, BotClient client) {
@@ -56,7 +55,6 @@ public class BotHolder implements BotLifecycle {
      * <p>Returns the outbound port of the online account.</p>
      *
      * @return the outbound port
-     * @throws BotException when no account is online
      */
     public synchronized BotClient getClient() {
         if (entry == null) throw new BotException("Bot offline");

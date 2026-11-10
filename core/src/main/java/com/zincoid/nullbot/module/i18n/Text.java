@@ -10,7 +10,7 @@ import java.util.Locale;
  */
 public enum Text {
 
-    // ════ Common ═════════════════
+    // ════ Common ══════════════════
 
     MISSING_REPLY("缺少回复", "Missing reply"),
     UNSUPPORTED_CONTENT("不支持的内容", "Unsupported content"),
@@ -27,14 +27,14 @@ public enum Text {
     QUOTE_ALREADY_SAVED("语录已保存", "Quote already saved"),
     AI_GUARD_REFUSED("⚠️ 对话被拒绝", "⚠️ Conversation refused"),
 
-    // ════ Arguments ══════════════
+    // ════ Arguments ═══════════════
 
     ARG_MISSING("缺少参数", "Missing argument"),
     ARG_MALFORMED("参数格式错误", "Malformed argument"),
     ARG_MISSING_OPTION("缺少选项：--%s / -%s", "Missing option: --%s / -%s"),
     ARG_MISSING_OPTION_ALIAS("缺少选项：--%s", "Missing option: --%s"),
 
-    // ════ Handlers ═══════════════
+    // ════ Handlers ════════════════
 
     ACCESS_DENIED("🚫 权限不足：需要 %s，当前 %s", "🚫 Access denied: required %s, yours %s"),
     GROUP_ACCESS_DENIED("🚫 群权限不足：需要 %s，当前 %s", "🚫 Group access denied: required %s, current %s"),
@@ -50,12 +50,12 @@ public enum Text {
     CMD_WARN("⚠️ 警告：%s", "⚠️ Warn: %s"),
     CMD_ERROR("❌ 错误：%s", "❌ Error: %s"),
 
-    // ════ Unsupported events ═════
+    // ════ Unsupported events ══════
 
     CMD_UNSUPPORTED_GROUP_MSG("指令不支持群消息事件", "Command does not support group message events"),
     CMD_UNSUPPORTED_PRIVATE_MSG("指令不支持私聊消息事件", "Command does not support private message events"),
 
-    // ════ Media ══════════════════
+    // ════ Media ═══════════════════
 
     IMAGE_SAVED_ONE("💾 图片已保存：id=%d", "💾 Image saved: id=%d"),
     IMAGE_SAVED_MANY("💾 已保存 %d 张图片", "💾 Images saved: %d"),
@@ -69,7 +69,7 @@ public enum Text {
     QUOTE_SAVED("💾 语录已保存：no.%d", "💾 Quote saved: no.%d"),
     QUOTE_DELETED("⚠️ 语录 No.%d 已删除", "⚠️ Quote No.%d deleted"),
 
-    // ════ Config ═════════════════
+    // ════ Config ══════════════════
 
     CONFIG_HEADER("配置：", "Config:"),
     CONFIG_EMPTY("（空）", "(empty)"),
@@ -78,13 +78,13 @@ public enum Text {
     CONFIG_UNKNOWN_KEY("未知配置项：%s", "Unknown config key: %s"),
     CONFIG_INVALID_LANGUAGE("语言只能是 zh 或 en：%s", "Language must be zh or en: %s"),
 
-    // ════ Member ═══════════════
+    // ════ Member ══════════════════
 
     MEMBER_JOINED("欢迎新成员 %s(%s) 加入！", "Welcome new member %s(%s)!"),
     MEMBER_LEFT("%s(%s) 离开了我们...", "%s(%s) left the group..."),
     MEMBER_KICKED("%s(%s) 被驱逐了...", "%s(%s) was kicked..."),
 
-    // ════ Anti-Recall ════════════
+    // ════ Anti-Recall ═════════════
 
     ANTI_RECALL_DETECTED("""
             检测到撤回消息！
@@ -94,7 +94,7 @@ public enum Text {
             User: %s(%s)
             Content: %s"""),
 
-    // ════ History ════════════════
+    // ════ History ═════════════════
 
     HISTORY_TITLE("聊天历史", "Chat history"),
     HISTORY_EMPTY("暂无聊天历史", "No chat history"),
@@ -102,7 +102,7 @@ public enum Text {
     HISTORY_CLEARED("♻️ 聊天历史已清空（%d 条）", "♻️ Chat history cleared (%d messages)"),
     HISTORY_UNKNOWN_OP("未知历史参数：%s", "Unknown history argument: %s"),
 
-    // ════ Prompt ═════════════════
+    // ════ Prompt ══════════════════
 
     PROMPT_VIEW("当前提示词：%s", "Current prompt: %s"),
     PROMPT_MISSING("缺少提示词", "Missing prompt"),
@@ -111,7 +111,7 @@ public enum Text {
     PROMPT_RESET("提示词已重置", "Prompt reset"),
     PROMPT_UNKNOWN_OP("未知操作", "Unknown operation"),
 
-    // ════ Paging ═════════════════
+    // ════ Paging ══════════════════
 
     PAGE_HEADER("[%s] 🔍 共 %d 个结果", "[%s] 🔍 %d results"),
     PAGE_FOOTER("""
@@ -158,7 +158,7 @@ public enum Text {
     DISABLE_NOTICE_USER("🚫 你已被禁止使用该指令（%s）",
             "🚫 You are blocked from using this command (%s)"),
 
-    // ════ Setting ════════════════
+    // ════ Setting ═════════════════
 
     SETTING_UNKNOWN_OPTION("未知选项", "Unknown option"),
     SETTING_UNKNOWN_LIMIT("未知限速项：%s", "Unknown limit setting: %s"),

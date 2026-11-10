@@ -33,14 +33,13 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements Fi
     public static final int MAX_LIMIT = Integer.MAX_VALUE;
 
     private final FileStorage fileStorage;
-    private final UrlDownloader urlDownloader;
 
     // ════ Save ════════════════════
 
     @Override
     public File save(String userId, BizType type, String url, String original) {
         validate(userId, type);
-        try (InputStream in = urlDownloader.open(url)) {
+        try (InputStream in = UrlDownloader.open(url)) {
             return store(userId, original, in, type, null);
         } catch (IOException e) {
             throw new FileException("Failed to close download body", e);

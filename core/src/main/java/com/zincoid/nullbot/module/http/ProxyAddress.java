@@ -18,23 +18,26 @@ record ProxyAddress(String host, int port) {
      */
     static ProxyAddress parse(String raw) {
         String value = raw.trim();
-        if (value.startsWith("http://")) value = value.substring("http://".length());
-        else if (value.startsWith("https://")) value = value.substring("https://".length());
+        if (value.startsWith("http://"))
+            value = value.substring("http://".length());
+        else if (value.startsWith("https://"))
+            value = value.substring("https://".length());
         int split = value.lastIndexOf(':');
         if (split <= 0 || split == value.length() - 1)
-            throw new IllegalArgumentException("Invalid proxy: " + raw);
+            throw new HttpException("Invalid proxy: " + raw);
         String host = value.substring(0, split);
         if (host.startsWith("[") && host.endsWith("]"))
             host = host.substring(1, host.length() - 1);
-        if (host.isBlank()) throw new IllegalArgumentException("Invalid proxy: " + raw);
+        if (host.isBlank())
+            throw new HttpException("Invalid proxy: " + raw);
         int port;
         try {
             port = Integer.parseInt(value.substring(split + 1));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid proxy: " + raw, e);
+            throw new HttpException("Invalid proxy: " + raw, e);
         }
         if (port < 1 || port > 65535)
-            throw new IllegalArgumentException("Invalid proxy: " + raw);
+            throw new HttpException("Invalid proxy: " + raw);
         return new ProxyAddress(host, port);
     }
 

@@ -61,7 +61,7 @@ public class QqGateway {
     private volatile boolean awaitingHeartbeatAck;
     private volatile Thread thread;
 
-    // ════ Lifecycle ══════════════
+    // ════ Lifecycle ═══════════════
 
     /**
      * 启动网关线程；未配置凭据时跳过。
@@ -96,7 +96,7 @@ public class QqGateway {
         log.info("QQ adapter stopped");
     }
 
-    // ════ Gateway loop ═══════════
+    // ════ Gateway loop ════════════
 
     private void run() {
         while (!shutdown && !fatal) {
@@ -162,7 +162,7 @@ public class QqGateway {
         return seconds * 1000;
     }
 
-    // ════ Payload ════════════════
+    // ════ Payload ═════════════════
 
     private void handlePayload(String json) {
         QqModels.Payload payload;
@@ -228,7 +228,7 @@ public class QqGateway {
         log.info("QQ gateway ready: bot={}", selfId);
     }
 
-    // ════ Heartbeat ══════════════
+    // ════ Heartbeat ═══════════════
 
     private void startHeartbeat(JsonNode data) {
         stopHeartbeat();
@@ -314,7 +314,7 @@ public class QqGateway {
         }
     }
 
-    // ════ Account lifecycle ══════
+    // ════ Account lifecycle ═══════
 
     private void online() {
         if (online || selfId == null || shutdown) return;
@@ -338,7 +338,7 @@ public class QqGateway {
         log.info("QQ bot offline: {}", selfId);
     }
 
-    // ════ Connection control ═════
+    // ════ Connection control ══════
 
     private void closeCurrent() {
         WebSocket ws = socket;
@@ -378,7 +378,7 @@ public class QqGateway {
                 || code == 4914 || code == 4915;
     }
 
-    // ════ Listener ═══════════════
+    // ════ Listener ════════════════
 
     private final class Listener implements WebSocket.Listener {
 
