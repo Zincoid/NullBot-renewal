@@ -10,14 +10,14 @@
     position: fixed;
     top: var(--navbar-height);
     right: 0;
-    left: 0;
+    left: var(--sidebar-width);
     z-index: 90;
     display: flex;
     flex-direction: column;
     height: clamp(220px, 38vh, 380px);
     background: var(--terminal-bg);
     border-bottom: 1px solid var(--color-border);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 10px 12px -10px rgba(0, 0, 0, 0.25);
 }
 
 .log-panel:not([hidden]) {
@@ -230,6 +230,12 @@
     overflow-wrap: anywhere;
 }
 
+@media (max-width: 1000px) {
+    .log-panel {
+        left: 0;
+    }
+}
+
 @media (max-width: 640px) {
     .log-panel {
         height: clamp(200px, 42vh, 320px);
@@ -250,24 +256,6 @@
 
     .log-line__logger {
         display: none;
-    }
-}
-
-/* The extra navbar button still fits the smallest top bars. */
-@media (max-width: 480px) {
-    .brand {
-        padding-right: var(--spacing-sm);
-        font-size: var(--text-base);
-    }
-
-    .topbar-actions .icon-btn,
-    .nav-toggle {
-        width: 34px;
-    }
-
-    #logout {
-        width: 3.5rem;
-        font-size: var(--text-xs);
     }
 }
 

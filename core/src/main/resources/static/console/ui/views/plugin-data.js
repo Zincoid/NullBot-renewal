@@ -12,6 +12,7 @@ const pluginDataState = {
     tab: 'config',
     path: '',
     entries: [],
+    filter: '',
     selection: new Set(),
     busy: false,
     error: '',
@@ -31,6 +32,7 @@ function openPluginData(plugin) {
     pluginDataState.tab = 'config';
     pluginDataState.path = '';
     pluginDataState.entries = [];
+    pluginDataState.filter = '';
     pluginDataState.selection.clear();
     pluginDataState.busy = false;
     pluginDataState.error = '';
@@ -40,6 +42,7 @@ function openPluginData(plugin) {
     pluginDataState.configExists = false;
     $('plugin-data-folder-form').hidden = true;
     $('plugin-data-folder-name').value = '';
+    $('plugin-data-filter').value = '';
     $('plugin-data-subtitle').textContent = t('plugins.dataSubtitle', {
         id: plugin.id,
         jar: plugin.jar
@@ -63,6 +66,7 @@ function resetPluginData() {
     pluginDataState.tab = 'config';
     pluginDataState.path = '';
     pluginDataState.entries = [];
+    pluginDataState.filter = '';
     pluginDataState.selection.clear();
     pluginDataState.busy = false;
     pluginDataState.error = '';
@@ -73,6 +77,7 @@ function resetPluginData() {
     $('plugin-data-folder-form').hidden = true;
     $('plugin-data-folder-name').value = '';
     $('plugin-data-files').value = '';
+    $('plugin-data-filter').value = '';
     $('plugin-data-body').innerHTML = '';
     $('plugin-data-crumbs').innerHTML = '';
     $('plugin-data-count').textContent = '';
@@ -226,22 +231,34 @@ async function savePluginConfig(reload) {
     }
 }
 
+function filteredPluginEntries() {
+    const needle = pluginDataState.filter.trim().toLowerCase();
+    return pluginDataState.entries
+        .map((entry, index) => ({entry, index}))
+        .filter(({entry}) => !needle || entry.name.toLowerCase().includes(needle));
+}
+
 function renderPluginData() {
     const state = pluginDataState;
+    const filtered = filteredPluginEntries();
     $('plugin-data-subtitle').textContent = t('plugins.dataSubtitle', {
         id: state.id,
         jar: state.jar
     });
     renderPluginDataCrumbs();
-    $('plugin-data-count').textContent = t('plugins.dataCount', {n: state.entries.length});
+    $('plugin-data-count').textContent = state.filter.trim()
+        ? t('plugins.dataFilteredCount', {n: filtered.length, total: state.entries.length})
+        : t('plugins.dataCount', {n: state.entries.length});
     const body = $('plugin-data-body');
     if (state.error) {
         body.innerHTML = emptyRow(6, t('plugins.dataLoadFailed', {msg: state.error}));
     } else if (!state.entries.length) {
         body.innerHTML = emptyRow(6, t('plugins.dataEmpty'));
+    } else if (!filtered.length) {
+        body.innerHTML = emptyRow(6, t('plugins.dataNoMatch'));
     } else {
-        body.innerHTML = state.entries
-            .map((entry, index) => pluginDataRow(entry, index))
+        body.innerHTML = filtered
+            .map(({entry, index}) => pluginDataRow(entry, index))
             .join('');
     }
     updatePluginDataToolbar();
@@ -306,21 +323,23 @@ function pluginDataRow(entry, index) {
 function updatePluginDataToolbar() {
     const state = pluginDataState;
     const busy = state.busy;
-    const total = state.entries.length;
+    const filtered = filteredPluginEntries();
     const selected = state.selection.size;
     $('plugin-data-up').disabled = busy || !state.path;
     $('plugin-data-refresh').disabled = busy;
     $('plugin-data-new-folder').disabled = busy;
     $('plugin-data-upload').disabled = busy;
+    $('plugin-data-filter').disabled = busy;
     $('plugin-data-delete').disabled = busy || selected === 0;
     $('plugin-data-delete').textContent = selected
         ? t('plugins.dataDeleteCount', {n: selected})
         : t('plugins.dataDelete');
     const selectAll = $('plugin-data-select-all');
-    const selectedOnPage = state.entries.filter(entry => state.selection.has(entry.name)).length;
-    selectAll.disabled = busy || total === 0;
-    selectAll.checked = total > 0 && selectedOnPage === total;
-    selectAll.indeterminate = selectedOnPage > 0 && selectedOnPage < total;
+    const selectedOnPage = filtered
+        .filter(({entry}) => state.selection.has(entry.name)).length;
+    selectAll.disabled = busy || filtered.length === 0;
+    selectAll.checked = filtered.length > 0 && selectedOnPage === filtered.length;
+    selectAll.indeterminate = selectedOnPage > 0 && selectedOnPage < filtered.length;
     document.querySelectorAll('#plugin-data-body input.plugin-data-select').forEach(input => {
         input.disabled = busy;
     });
@@ -329,9 +348,11 @@ function updatePluginDataToolbar() {
 function navigatePluginData(path) {
     if (pluginDataState.busy) return;
     pluginDataState.path = path || '';
+    pluginDataState.filter = '';
     pluginDataState.selection.clear();
     $('plugin-data-folder-form').hidden = true;
     $('plugin-data-folder-name').value = '';
+    $('plugin-data-filter').value = '';
     loadPluginData();
 }
 
@@ -559,9 +580,14 @@ export function bind() {
     };
     $('plugin-data-files').addEventListener('change', uploadPluginData);
     $('plugin-data-delete').onclick = deletePluginDataSelection;
+    $('plugin-data-filter').addEventListener('input', event => {
+        pluginDataState.filter = event.target.value;
+        pluginDataState.selection.clear();
+        renderPluginData();
+    });
     $('plugin-data-select-all').addEventListener('change', event => {
         const checked = event.target.checked;
-        pluginDataState.entries.forEach(entry => {
+        filteredPluginEntries().forEach(({entry}) => {
             if (checked) pluginDataState.selection.add(entry.name);
             else pluginDataState.selection.delete(entry.name);
         });

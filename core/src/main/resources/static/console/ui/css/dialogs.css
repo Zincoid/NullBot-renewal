@@ -59,6 +59,61 @@ dialog::backdrop {
     overflow-y: auto;
 }
 
+/* Tabs that hold a list: the dialog gets a definite height and the table body
+   takes the remaining space, so its header stays put while rows scroll. */
+dialog[open]:has(.dialog-table-tab) {
+    display: flex;
+    flex-direction: column;
+}
+
+dialog[open]:has(.dialog-table-tab) .dialog-head {
+    flex: 0 0 auto;
+}
+
+dialog[open]:has(.dialog-table-tab) .dialog-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    max-height: none;
+}
+
+.dialog-table-tab:not([hidden]) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    min-height: 0;
+}
+
+.dialog-table-tab > .toolbar,
+.dialog-table-tab > .status,
+.dialog-table-tab > .table-wrap,
+.dialog-table-tab > .plugin-data-bar,
+.dialog-table-tab > .plugin-data-folder {
+    margin: 0;
+}
+
+.dialog-table-tab > .status:empty {
+    display: none;
+}
+
+.dialog-table-tab > :not(.table-wrap) {
+    flex: 0 0 auto;
+}
+
+.dialog-table-tab > .table-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.dialog-table-tab > .table-wrap thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
 .dialog-foot {
     display: flex;
     justify-content: flex-end;

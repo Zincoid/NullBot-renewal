@@ -35,6 +35,16 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.console-page {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "sidebar main"
+        "sidebar footer";
+    padding-top: var(--navbar-height);
+}
+
 h1,
 h2,
 h3 {

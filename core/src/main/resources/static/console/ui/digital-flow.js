@@ -29,7 +29,6 @@
     function buildCells() {
         cells = [];
         const columns = [];
-        for (let x = 4; x < MARGIN_WIDTH; x += CELL_W) columns.push(x);
         for (let x = width - MARGIN_WIDTH + 4; x < width - 4; x += CELL_W) columns.push(x);
 
         for (const x of columns) {

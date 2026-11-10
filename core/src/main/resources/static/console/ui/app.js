@@ -26,6 +26,33 @@ import {bind as bindPluginData, onLocaleChange as onPluginDataLocaleChange} from
 import {bind as bindLogs, onLocaleChange as onLogsLocaleChange} from './logs.js';
 
 function main() {
+    // ═══ Sidebar collapse ═════════
+    const SIDEBAR_KEY = 'nullbot.console.sidebar';
+    const sidebarToggle = $('sidebar-toggle');
+
+    function sidebarCollapsed() {
+        return document.body.classList.contains('sidebar-collapsed');
+    }
+
+    function syncSidebarToggle() {
+        const collapsed = sidebarCollapsed();
+        const label = t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar');
+        sidebarToggle.title = label;
+        sidebarToggle.setAttribute('aria-label', label);
+        sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+    }
+
+    function setSidebarCollapsed(collapsed) {
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        syncSidebarToggle();
+    }
+
+    try {
+        setSidebarCollapsed(localStorage.getItem(SIDEBAR_KEY) === 'collapsed');
+    } catch (e) {
+        setSidebarCollapsed(false);
+    }
+
     // ═══ Navigation ═══════════════
 
     const loaders = {
@@ -78,31 +105,37 @@ function main() {
             location.replace('login.html');
         };
 
-        const nav = document.querySelector('.nav');
-        const navToggle = $('nav-toggle');
-        const topbarActions = document.querySelector('.topbar-actions');
-        const logout = $('logout');
-        const narrow = window.matchMedia('(max-width: 1000px)');
-        const placeLogout = () => {
-            if (narrow.matches) nav.appendChild(logout);
-            else topbarActions.insertBefore(logout, navToggle);
+        sidebarToggle.onclick = () => {
+            const collapsed = !sidebarCollapsed();
+            setSidebarCollapsed(collapsed);
+            try {
+                localStorage.setItem(SIDEBAR_KEY, collapsed ? 'collapsed' : 'expanded');
+            } catch (e) {
+                // Storage unavailable: keep the state for this session only.
+            }
         };
-        placeLogout();
-        narrow.addEventListener('change', placeLogout);
+        document.addEventListener('console:localechange', syncSidebarToggle);
+
+        const nav = document.querySelector('.nav');
+        const sidebar = document.querySelector('.sidebar');
+        const navToggle = $('nav-toggle');
+        const sidebarBackdrop = $('sidebar-backdrop');
         const closeNav = () => {
-            nav.classList.remove('nav-open');
+            document.body.classList.remove('sidebar-open');
             navToggle.classList.remove('nav-toggle--open');
             navToggle.setAttribute('aria-expanded', 'false');
         };
         navToggle.onclick = event => {
             event.stopPropagation();
-            const open = !nav.classList.contains('nav-open');
-            nav.classList.toggle('nav-open', open);
+            const open = !document.body.classList.contains('sidebar-open');
+            document.body.classList.toggle('sidebar-open', open);
             navToggle.classList.toggle('nav-toggle--open', open);
             navToggle.setAttribute('aria-expanded', String(open));
         };
+        sidebarBackdrop.addEventListener('click', closeNav);
         document.addEventListener('click', event => {
-            if (!nav.contains(event.target) && !navToggle.contains(event.target)) closeNav();
+            if (!document.body.classList.contains('sidebar-open')) return;
+            if (!sidebar.contains(event.target) && !navToggle.contains(event.target)) closeNav();
         });
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') closeNav();
@@ -125,9 +158,39 @@ function main() {
         bindLogs();
     }
 
+    function bindClock() {
+        const date = $('topbar-date');
+        const time = $('topbar-time');
+        const greeting = $('topbar-greeting');
+        const pad = value => String(value).padStart(2, '0');
+        const greetingKey = hour => {
+            if (hour >= 23 || hour < 5) return 'nav.greeting.late';
+            if (hour < 9) return 'nav.greeting.early';
+            if (hour < 12) return 'nav.greeting.morning';
+            if (hour < 14) return 'nav.greeting.noon';
+            if (hour < 18) return 'nav.greeting.afternoon';
+            return 'nav.greeting.evening';
+        };
+        const render = () => {
+            const now = new Date();
+            date.textContent = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+            time.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            time.dateTime = now.toISOString();
+            greeting.textContent = t(greetingKey(now.getHours()));
+        };
+        const schedule = () => setTimeout(() => {
+            render();
+            schedule();
+        }, 1000 - Date.now() % 1000);
+        render();
+        schedule();
+        document.addEventListener('console:localechange', render);
+    }
+
     function init() {
         window.ConsoleUI.apply();
         $('footer-year').textContent = new Date().getFullYear();
+        bindClock();
         populateSelects();
         bindDialogs();
         bindEvents();

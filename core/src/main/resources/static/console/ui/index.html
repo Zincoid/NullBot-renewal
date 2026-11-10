@@ -28,71 +28,20 @@
     <script type="module" src="app.js"></script>
     <script src="digital-flow.js" defer></script>
 </head>
-<body>
+<body class="console-page">
 <canvas id="digital-flow" class="digital-flow" aria-hidden="true"></canvas>
 <header class="topbar">
-    <div class="brand">NullBot <span>Console</span></div>
-    <nav class="nav" id="nav">
-        <a href="#/usage" data-view="usage">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 3v10h10"/>
-                <path d="M5.5 9.5l2.5-3 2 2 3-4"/>
-            </svg>
-            <span data-i18n="nav.usage">概览</span>
-        </a>
-        <span class="nav-divider" aria-hidden="true"></span>
-        <a href="#/accounts" data-view="accounts">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="6" cy="5" r="2.2"/>
-                <path d="M2.6 13c0-2 1.5-3.3 3.4-3.3s3.4 1.3 3.4 3.3"/>
-                <path d="M10.6 3.3a2 2 0 0 1 0 3.6"/>
-                <path d="M11.4 9.8c1.5.3 2.6 1.4 2.6 3.2"/>
-            </svg>
-            <span data-i18n="nav.accounts">角色</span>
-        </a>
-        <a href="#/messages" data-view="messages">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3" y="4" width="10" height="8" rx="1"/>
-                <path d="M3.5 4.75 8 8 12.5 4.75"/>
-            </svg>
-            <span data-i18n="nav.messages">消息</span>
-        </a>
-        <a href="#/quotes" data-view="quotes">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3.5 3.5h9a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H8l-3 2.5V10.5H3.5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1z"/>
-                <path d="M5 6.2h6M5 8.2h3.5"/>
-            </svg>
-            <span data-i18n="nav.quotes">语录</span>
-        </a>
-        <a href="#/files" data-view="files">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 2h4.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>
-            </svg>
-            <span data-i18n="nav.files">文件</span>
-        </a>
-        <a href="#/config" data-view="config">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M2.5 5h11M2.5 11h11"/>
-                <circle cx="9.5" cy="5" r="1.8"/>
-                <circle cx="6.5" cy="11" r="1.8"/>
-            </svg>
-            <span data-i18n="nav.config">配置</span>
-        </a>
-        <a href="#/plugins" data-view="plugins">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M6 2.5v3M10 2.5v3M4 5.5h8v2.5a4 4 0 0 1-8 0z"/>
-                <path d="M8 12v1.5"/>
-            </svg>
-            <span data-i18n="nav.plugins">插件</span>
-        </a>
-    </nav>
+    <div class="topbar-left">
+        <div class="brand">
+            <span class="brand__title">NullBot <span class="brand__suffix">Console</span></span>
+            <span class="brand__mark" aria-hidden="true">N</span>
+        </div>
+        <div class="topbar-clock" id="topbar-clock" data-i18n-title="nav.clock" title="当前时间">
+            <span class="topbar-clock__date" id="topbar-date">----------</span>
+            <time class="topbar-clock__time" id="topbar-time">--:--:--</time>
+            <span class="topbar-clock__greeting" id="topbar-greeting"></span>
+        </div>
+    </div>
     <div class="topbar-actions">
         <button type="button" class="icon-btn" id="log-toggle"
                 data-i18n-title="logs.title" data-i18n-aria-label="logs.title"
@@ -113,7 +62,6 @@
             <span class="icon-sun" aria-hidden="true"></span>
         </button>
         <button type="button" class="icon-btn locale-btn" id="locale-toggle">EN</button>
-        <button id="logout" data-i18n="nav.logout">登出</button>
         <button type="button" class="nav-toggle" id="nav-toggle"
                 data-i18n-aria-label="common.menu" aria-label="菜单" aria-expanded="false">
             <span></span>
@@ -122,6 +70,90 @@
         </button>
     </div>
 </header>
+
+<aside class="sidebar">
+    <nav class="nav" id="nav">
+        <a href="#/usage" data-view="usage" data-i18n-title="nav.usage">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3v10h10"/>
+                <path d="M5.5 9.5l2.5-3 2 2 3-4"/>
+            </svg>
+            <span data-i18n="nav.usage">概览</span>
+        </a>
+        <span class="nav-divider" aria-hidden="true"></span>
+        <a href="#/accounts" data-view="accounts" data-i18n-title="nav.accounts">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="6" cy="5" r="2.2"/>
+                <path d="M2.6 13c0-2 1.5-3.3 3.4-3.3s3.4 1.3 3.4 3.3"/>
+                <path d="M10.6 3.3a2 2 0 0 1 0 3.6"/>
+                <path d="M11.4 9.8c1.5.3 2.6 1.4 2.6 3.2"/>
+            </svg>
+            <span data-i18n="nav.accounts">角色</span>
+        </a>
+        <a href="#/messages" data-view="messages" data-i18n-title="nav.messages">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="10" height="8" rx="1"/>
+                <path d="M3.5 4.75 8 8 12.5 4.75"/>
+            </svg>
+            <span data-i18n="nav.messages">消息</span>
+        </a>
+        <a href="#/quotes" data-view="quotes" data-i18n-title="nav.quotes">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.5 3.5h9a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H8l-3 2.5V10.5H3.5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1z"/>
+                <path d="M5 6.2h6M5 8.2h3.5"/>
+            </svg>
+            <span data-i18n="nav.quotes">语录</span>
+        </a>
+        <a href="#/files" data-view="files" data-i18n-title="nav.files">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.5 4.5a1 1 0 0 1 1-1h3l1.5 2h4.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1z"/>
+            </svg>
+            <span data-i18n="nav.files">文件</span>
+        </a>
+        <a href="#/config" data-view="config" data-i18n-title="nav.config">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2.5 5h11M2.5 11h11"/>
+                <circle cx="9.5" cy="5" r="1.8"/>
+                <circle cx="6.5" cy="11" r="1.8"/>
+            </svg>
+            <span data-i18n="nav.config">配置</span>
+        </a>
+        <a href="#/plugins" data-view="plugins" data-i18n-title="nav.plugins">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 2.5v3M10 2.5v3M4 5.5h8v2.5a4 4 0 0 1-8 0z"/>
+                <path d="M8 12v1.5"/>
+            </svg>
+            <span data-i18n="nav.plugins">插件</span>
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <button id="logout" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout"
+                title="登出" aria-label="登出">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 2.5H3.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H6"/>
+                <path d="M10 5.5 12.5 8 10 10.5"/>
+                <path d="M6.5 8h6"/>
+            </svg>
+            <span data-i18n="nav.logout">登出</span>
+        </button>
+    </div>
+    <button type="button" class="sidebar-toggle" id="sidebar-toggle"
+            title="收起侧栏" aria-label="收起侧栏" aria-expanded="true" aria-controls="nav">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.5 3.5 5 8l4.5 4.5"/>
+        </svg>
+    </button>
+</aside>
+<div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
 
 <section class="log-panel" id="log-panel" hidden data-state="disconnected"
          data-i18n-aria-label="logs.title" aria-label="实时日志">
@@ -367,7 +399,7 @@
     </section>
 
     <!-- ═══ Files ═════════════════ -->
-    <section class="view" id="view-files" hidden>
+    <section class="view view-fill" id="view-files" hidden>
         <div class="view-head">
             <div class="page-header">
                 <h1 class="page-header__title"># <span data-i18n="view.files">文件</span><span class="cursor">_</span></h1>
@@ -445,13 +477,19 @@
     </section>
 
     <!-- ═══ Messages ══════════════ -->
-    <section class="view" id="view-messages" hidden>
+    <section class="view view-fill" id="view-messages" hidden>
         <div class="view-head">
             <div class="page-header">
                 <h1 class="page-header__title"># <span data-i18n="view.messages">消息</span><span class="cursor">_</span></h1>
                 <p class="page-header__subtitle" data-i18n="view.messages.sub">按会话查看聊天记录与附件</p>
             </div>
             <div class="view-actions">
+                <label class="auto-refresh" data-i18n-title="messages.autoRefreshHint"
+                       title="每 5 秒自动刷新">
+                    <span data-i18n="messages.autoRefresh">自动刷新</span>
+                    <input type="checkbox" id="messages-auto-refresh">
+                    <span class="auto-refresh__track" aria-hidden="true"></span>
+                </label>
                 <button id="messages-refresh" class="icon-only" data-i18n-title="common.refresh"
                         data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
                     <span class="icon-refresh" aria-hidden="true"></span>
@@ -511,7 +549,7 @@
     </section>
 
     <!-- ═══ Accounts ══════════════ -->
-    <section class="view" id="view-accounts" hidden>
+    <section class="view view-fill" id="view-accounts" hidden>
         <div class="view-head">
             <div class="page-header">
                 <h1 class="page-header__title"># <span data-i18n="view.accounts">角色</span><span class="cursor">_</span></h1>
@@ -583,7 +621,7 @@
     </section>
 
     <!-- ═══ Quotes ════════════════ -->
-    <section class="view" id="view-quotes" hidden>
+    <section class="view view-fill" id="view-quotes" hidden>
         <div class="view-head">
             <div class="page-header">
                 <h1 class="page-header__title"># <span data-i18n="view.quotes">语录</span><span class="cursor">_</span></h1>
@@ -623,7 +661,7 @@
     </section>
 
     <!-- ═══ Plugins ═══════════════ -->
-    <section class="view" id="view-plugins" hidden>
+    <section class="view view-fill" id="view-plugins" hidden>
         <div class="view-head">
             <div class="page-header">
                 <h1 class="page-header__title"># <span data-i18n="view.plugins">插件</span><span class="cursor">_</span></h1>
@@ -837,12 +875,11 @@
                 </section>
                 <p id="gs-status" class="status"></p>
                 <div class="dialog-foot">
-                    <button type="button" data-close data-i18n="common.cancel">取消</button>
                     <button type="submit" class="primary btn-save" data-i18n="group.save">保存</button>
                 </div>
             </form>
         </div>
-        <div id="group-tab-keywords" hidden>
+        <div id="group-tab-keywords" class="dialog-table-tab" hidden>
             <div class="toolbar">
                 <input id="kw-keyword" maxlength="255"
                        data-i18n-placeholder="group.keywordKeyword" placeholder="关键词">
@@ -872,7 +909,7 @@
                 </table>
             </div>
         </div>
-        <div id="group-tab-commands" hidden>
+        <div id="group-tab-commands" class="dialog-table-tab" hidden>
             <div class="toolbar cmd-disable-toolbar">
                 <div class="cmd-target">
                     <select id="gcd-target" data-i18n-aria-label="cmdDisable.target" aria-label="目标">
@@ -962,12 +999,11 @@
                 </section>
                 <p id="us-status" class="status"></p>
                 <div class="dialog-foot">
-                    <button type="button" data-close data-i18n="common.cancel">取消</button>
                     <button type="submit" class="primary btn-save" data-i18n="common.save">保存</button>
                 </div>
             </form>
         </div>
-        <div id="user-tab-commands" hidden>
+        <div id="user-tab-commands" class="dialog-table-tab" hidden>
             <div class="toolbar cmd-disable-toolbar">
                 <input id="ucd-cmd" maxlength="100"
                        data-i18n-placeholder="cmdDisable.cmdPlaceholder" placeholder="指令名">
@@ -1060,7 +1096,7 @@
                 </button>
             </div>
         </div>
-        <div id="plugin-data-tab-files" hidden>
+        <div id="plugin-data-tab-files" class="dialog-table-tab" hidden>
             <div class="plugin-data-bar">
                 <button type="button" id="plugin-data-up" class="small"
                         data-i18n="plugins.dataUp">上一级</button>
@@ -1074,6 +1110,9 @@
                 <input id="plugin-data-files" type="file" multiple hidden>
                 <button type="button" id="plugin-data-delete" class="danger btn-delete"
                         data-i18n="plugins.dataDelete" disabled>删除所选</button>
+                <input id="plugin-data-filter" class="search plugin-data-filter" maxlength="255"
+                       data-i18n-placeholder="plugins.dataSearchPlaceholder"
+                       placeholder="搜索当前目录">
                 <span class="plugin-data-spacer"></span>
                 <span id="plugin-data-count" class="muted"></span>
                 <button type="button" id="plugin-data-refresh" class="icon-only"

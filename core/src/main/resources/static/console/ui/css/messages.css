@@ -1,35 +1,86 @@
 /* ═══ Messages ══════════════════════ */
 
 .nav a[data-view="messages"] {
-    border-bottom-color: rgba(220, 38, 38, 0.25);
-}
-
-.nav a[data-view="messages"].active {
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.12);
-    border-bottom-color: #dc2626;
+    --nav-accent: #dc2626;
+    --nav-accent-bg: rgba(220, 38, 38, 0.12);
 }
 
 [data-theme="dark"] .nav a[data-view="messages"] {
-    border-bottom-color: rgba(248, 113, 113, 0.25);
-}
-
-[data-theme="dark"] .nav a[data-view="messages"].active {
-    color: #f87171;
-    background: rgba(248, 113, 113, 0.14);
-    border-bottom-color: #f87171;
+    --nav-accent: #f87171;
+    --nav-accent-bg: rgba(248, 113, 113, 0.14);
 }
 
 .messages-layout {
     display: grid;
+    flex: 1 1 auto;
     grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-    height: calc(100vh - var(--navbar-height) - 210px);
-    min-height: 440px;
+    min-height: 200px;
     overflow: hidden;
     border: 1px solid var(--color-border);
     border-radius: var(--rounded-lg);
     background: var(--color-surface);
     box-shadow: var(--shadow-sm);
+}
+
+/* ═══ Auto refresh ══════════════════ */
+
+.auto-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.auto-refresh input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+}
+
+.auto-refresh__track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--rounded-full);
+    background: var(--color-bg-alt);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.auto-refresh__track::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: var(--rounded-full);
+    background: var(--color-text-secondary);
+    transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.auto-refresh input:checked + .auto-refresh__track {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.auto-refresh input:checked + .auto-refresh__track::after {
+    background: var(--color-primary);
+    transform: translateX(20px);
+}
+
+.auto-refresh input:focus-visible + .auto-refresh__track {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+#view-messages .view-actions {
+    gap: var(--spacing-lg);
 }
 
 /* ═══ Chat list ═════════════════════ */

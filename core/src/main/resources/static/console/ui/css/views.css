@@ -35,11 +35,19 @@
     grid-column: span 2;
 }
 
+#view-usage:not([hidden]) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
 #usage-tab-totals {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: var(--spacing-lg);
-    min-height: max(340px, calc(100vh - var(--navbar-height) - 400px));
+    min-height: 340px;
 }
 
 #usage-tab-totals .usage-section-head {

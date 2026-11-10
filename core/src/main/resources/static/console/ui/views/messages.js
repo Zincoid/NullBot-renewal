@@ -23,6 +23,11 @@ const state = {
 let chatsSeq = 0;
 let messagesSeq = 0;
 
+const AUTO_REFRESH_MS = 5000;
+const AUTO_REFRESH_KEY = 'nullbot.console.messages.autoRefresh';
+let autoRefreshTimer = 0;
+let autoRefreshBusy = false;
+
 const attachmentState = {
     messageId: null,
     items: [],
@@ -527,6 +532,94 @@ function openAttachmentPreview(item) {
     });
 }
 
+// ═══ Auto refresh ═════════════════
+
+function sameChatList(next, current) {
+    if (next.length !== current.length) return false;
+    for (let i = 0; i < next.length; i++) {
+        const a = next[i];
+        const b = current[i];
+        if (a.chatId !== b.chatId || a.type !== b.type || a.name !== b.name
+                || a.messages !== b.messages || a.lastAt !== b.lastAt) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function sameMessageList(next, current) {
+    if (next.length !== current.length) return false;
+    return !next.length || next[next.length - 1].id === current[current.length - 1].id;
+}
+
+async function refreshSilently() {
+    if (autoRefreshBusy || state.chatsLoading || state.messagesLoading
+            || state.sending || state.resetting) return;
+    if (document.hidden || $('view-messages').hidden) return;
+    autoRefreshBusy = true;
+    const chatsSeqAtStart = chatsSeq;
+    const messagesSeqAtStart = messagesSeq;
+    try {
+        const chats = await api('/messages/chats');
+        if (chatsSeqAtStart !== chatsSeq || document.hidden || $('view-messages').hidden) return;
+        const nextChats = Array.isArray(chats) ? chats : [];
+        const previousChatId = state.chatId;
+        if (state.chatsError || !sameChatList(nextChats, state.chats)) {
+            const chatList = $('messages-chat-list');
+            const chatScroll = chatList.scrollTop;
+            state.chats = nextChats;
+            state.chatsError = '';
+            ensureChatSelection();
+            renderChats();
+            chatList.scrollTop = chatScroll;
+            renderHead();
+        }
+        if (!state.chatId) {
+            if (state.messages.length) {
+                state.messages = [];
+                renderMessages();
+            }
+            return;
+        }
+        const chatId = state.chatId;
+        const messages = await api('/messages?' + new URLSearchParams({chatId}).toString());
+        if (messagesSeqAtStart !== messagesSeq || state.chatId !== chatId
+                || document.hidden || $('view-messages').hidden) return;
+        const nextMessages = Array.isArray(messages) ? messages : [];
+        if (previousChatId === chatId && !state.messagesError
+                && sameMessageList(nextMessages, state.messages)) return;
+        const timeline = $('messages-timeline');
+        const scrollTop = timeline.scrollTop;
+        const atBottom = timeline.scrollHeight - timeline.scrollTop - timeline.clientHeight < 8;
+        state.messages = nextMessages;
+        state.messagesError = '';
+        renderMessages();
+        if (previousChatId === chatId && !atBottom) timeline.scrollTop = scrollTop;
+    } catch {
+        // Keep the current content; the next tick will retry.
+    } finally {
+        autoRefreshBusy = false;
+    }
+}
+
+function setAutoRefresh(enabled) {
+    const toggle = $('messages-auto-refresh');
+    toggle.checked = enabled;
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = 0;
+    }
+    if (enabled) {
+        autoRefreshTimer = setInterval(refreshSilently, AUTO_REFRESH_MS);
+        refreshSilently();
+    }
+    try {
+        localStorage.setItem(AUTO_REFRESH_KEY, enabled ? '1' : '0');
+    } catch {
+        // Storage unavailable: keep the state for this session only.
+    }
+}
+
 // ═══ Binding ══════════════════════
 
 export function bind() {
@@ -534,6 +627,17 @@ export function bind() {
     $('messages-send').insertAdjacentHTML('afterbegin', sendIcon);
     $('messages-refresh').onclick = loadMessages;
     $('messages-reset').onclick = resetChat;
+
+    const autoRefreshToggle = $('messages-auto-refresh');
+    autoRefreshToggle.addEventListener('change',
+        () => setAutoRefresh(autoRefreshToggle.checked));
+    let autoRefreshSaved = false;
+    try {
+        autoRefreshSaved = localStorage.getItem(AUTO_REFRESH_KEY) === '1';
+    } catch {
+        autoRefreshSaved = false;
+    }
+    if (autoRefreshSaved) setAutoRefresh(true);
     compose.addEventListener('submit', sendMessage);
     $('messages-input').addEventListener('input', () => {
         resizeInput();

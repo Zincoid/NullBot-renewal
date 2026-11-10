@@ -93,7 +93,9 @@
 
     /* ── Layout ── */
     --navbar-height: 64px;
-    --content-wide: min(clamp(1000px, 75vw, 1400px), 100%);
+    --sidebar-width: 220px;
+    --footer-height: 52px;
+    --content-padding: var(--spacing-3xl);
 
     /* ── Transitions ── */
     --transition-fast: 150ms ease;

@@ -88,10 +88,6 @@ tbody tr:hover {
     background: var(--color-primary-bg);
 }
 
-tr:last-child td {
-    border-bottom: none;
-}
-
 .check-col {
     width: 36px;
     padding-right: 4px;
@@ -422,6 +418,15 @@ button.quote-copy svg {
     color: var(--color-text-secondary);
     text-align: center;
     font-size: var(--text-sm);
+}
+
+.table-wrap:has(.empty-row) table {
+    height: 100%;
+}
+
+.table-wrap:has(.empty-row) .empty {
+    height: 100%;
+    vertical-align: middle;
 }
 
 .badge {

@@ -113,6 +113,11 @@ button.btn-save-reload svg {
     height: 39px;
 }
 
+.plugin-data-filter {
+    width: min(240px, 100%);
+    height: 39px;
+}
+
 .plugin-data-spacer {
     flex: 1;
 }

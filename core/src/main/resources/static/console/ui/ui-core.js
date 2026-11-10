@@ -45,7 +45,7 @@
     }
 
     function emptyRow(colspan, text) {
-        return `<tr><td colspan="${colspan}" class="empty">${escapeHtml(text)}</td></tr>`;
+        return `<tr class="empty-row"><td colspan="${colspan}" class="empty">${escapeHtml(text)}</td></tr>`;
     }
 
     function renderPager(element, data, change, resize) {
