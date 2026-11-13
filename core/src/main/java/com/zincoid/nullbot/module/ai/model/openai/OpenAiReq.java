@@ -23,7 +23,7 @@ import java.util.Map;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpenAiReq {
+public final class OpenAiReq {
 
     /**
      * 思考模型要求助手消息回传推理内容，缺失时使用的占位文本。
@@ -43,14 +43,14 @@ public class OpenAiReq {
 
     @Data
     @Builder
-    public static class Tool {
+    public static final class Tool {
         private String type;
         private Function function;
     }
 
     @Data
     @Builder
-    public static class Function {
+    public static final class Function {
         private String name;
         private String description;
         @JsonRawValue

@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class ModelReq {
+public final class ModelReq {
 
     private final List<AiMessage> messages;
     private final List<ToolDefinition> tools;

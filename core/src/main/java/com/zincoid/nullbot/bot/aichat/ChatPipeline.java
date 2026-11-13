@@ -1,10 +1,7 @@
 package com.zincoid.nullbot.bot.aichat;
 
-import com.zincoid.nullbot.bot.cmd.CmdDispatcher;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
-import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
-import com.zincoid.nullbot.bot.spi.event.PrivateEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.agent.Agent;
@@ -12,9 +9,9 @@ import com.zincoid.nullbot.module.ai.agent.AgentOptions;
 import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.TokenUsage;
+import com.zincoid.nullbot.module.ai.tool.ToolContext;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
-import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.module.system.AiUsageService;
@@ -23,12 +20,10 @@ import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import com.zincoid.nullbot.platform.persistence.po.UserSetting;
-import com.zincoid.nullbot.platform.util.ChatIds;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -49,10 +44,10 @@ public class ChatPipeline {
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
     private final UserSettingService userSettingService;
-    private final CmdDispatcher cmdDispatcher;
     private final ChatGuard chatGuard;
     private final ChatPrompt chatPrompt;
-    private final FileService fileService;
+    private final ChatActions chatActions;
+    private final ChatCommands chatCommands;
     private final AiUsageService aiUsageService;
 
     // ════ Chat ════════════════════
@@ -67,11 +62,7 @@ public class ChatPipeline {
      * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
     public boolean chat(BotClient client, BotEvent event, AiSource source) {
-        return switch (event) {
-            case GroupEvent e -> run(client, event, source, ChatType.GROUP, e.groupId());
-            case PrivateEvent e -> run(client, event, source, ChatType.PRIVATE, e.userId());
-            default -> throw new ChatException("Unsupported event: " + event.getClass().getSimpleName());
-        };
+        return run(ChatTurn.of(client, event), source);
     }
 
     // ════ Core ════════════════════
@@ -80,36 +71,27 @@ public class ChatPipeline {
      * 执行一次会话：校验注入、组装上下文，锁定会话后调用模型并写回回复。
      * <p>Runs one conversation: checks injection, builds the context, then locks the chat to invoke the model and store the reply.</p>
      *
-     * @param client   the outbound port
-     * @param event    the triggering event
+     * @param turn     the turn data
      * @param aiSource the trigger source
-     * @param chatType the chat type
-     * @param targetId group or user platform id
      * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
-    private boolean run(BotClient client, BotEvent event, AiSource aiSource,
-                        ChatType chatType, String targetId) {
-        String chatId = switch (chatType) {
-            case GROUP -> ChatIds.ofGroup(targetId);
-            case PRIVATE -> ChatIds.ofPrivate(targetId);
-        };
-        Profile profile = profile(chatType, targetId);
-        if (event instanceof MsgEvent e && profile.guard() && chatGuard.check(e.content().text())) {
-            log.info("Injection blocked: chat={}", chatId);
+    private boolean run(ChatTurn turn, AiSource aiSource) {
+        Profile profile = profile(turn.chatType(), turn.targetId());
+        if (turn.event() instanceof MsgEvent e && profile.guard() && chatGuard.check(e.content().text())) {
+            log.info("Injection blocked: chat={}", turn.chatId());
             return false;
         }
-        String prompt = chatPrompt.system(event, aiSource, profile.prompt());
+        String prompt = chatPrompt.system(turn.event(), aiSource, profile.prompt());
         AgentOptions options = options(profile.effort());
-        ChatContext ctx = new ChatContext(client, chatType, targetId, chatId, event,
-                new AtomicBoolean(), cmdDispatcher, fileService, configService, memory);
-        ReentrantLock lock = getLock(chatId);
+        ToolContext ctx = new ChatToolContext(turn, chatActions, chatCommands);
+        ReentrantLock lock = getLock(turn.chatId());
         lock.lock();
         try {
-            ModelRes res = agent.invoke(ctx, memory.get(chatId), prompt, options);
-            record(chatType, targetId, event.userId(), aiSource, res.getUsage());
-            if (ctx.hasFinalSent()) return true;
+            ModelRes res = agent.invoke(ctx, memory.get(turn.chatId()), prompt, options);
+            record(turn.chatType(), turn.targetId(), turn.event().userId(), aiSource, res.getUsage());
+            if (turn.hasFinalSent()) return true;
             String content = ChatText.compact(res.getContent());
-            ctx.deliver(MsgContent.of(content), content, res.getReasoning(), true);
+            chatActions.deliver(turn, MsgContent.of(content), content, res.getReasoning(), true);
         } finally {
             lock.unlock();
         }

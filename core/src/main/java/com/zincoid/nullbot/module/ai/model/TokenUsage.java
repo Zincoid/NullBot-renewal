@@ -9,14 +9,6 @@ package com.zincoid.nullbot.module.ai.model;
  */
 public record TokenUsage(Integer inputTokens, Integer outputTokens) {
 
-    /**
-     * 合并两次用量，空值按缺失处理。
-     * <p>Combines two usage values, treating null as missing.</p>
-     *
-     * @param first  the first usage, nullable
-     * @param second the second usage, nullable
-     * @return the combined usage, or null when both are null
-     */
     public static TokenUsage plus(TokenUsage first, TokenUsage second) {
         if (first == null) return second;
         if (second == null) return first;

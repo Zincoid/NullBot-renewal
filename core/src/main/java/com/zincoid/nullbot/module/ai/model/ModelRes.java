@@ -12,16 +12,12 @@ import java.util.List;
  */
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class ModelRes {
+public final class ModelRes {
 
     private final List<ToolCall> tcs;
     private final String content;
     private final String reasoning;
-    private TokenUsage usage;
-
-    public boolean hasTcs() {
-        return tcs != null && !tcs.isEmpty();
-    }
+    private final TokenUsage usage;
 
     public static ModelRes of(String content, String reasoning, TokenUsage usage) {
         return ModelRes.of(List.of(), content, reasoning, usage);
@@ -35,8 +31,11 @@ public class ModelRes {
         return ModelRes.of(List.of(), null, usage);
     }
 
+    public boolean hasTcs() {
+        return tcs != null && !tcs.isEmpty();
+    }
+
     public ModelRes withUsage(TokenUsage usage) {
-        this.usage = usage;
-        return this;
+        return ModelRes.of(tcs, content, reasoning, usage);
     }
 }
