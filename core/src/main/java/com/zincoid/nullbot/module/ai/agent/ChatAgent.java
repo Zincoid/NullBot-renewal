@@ -1,6 +1,9 @@
 package com.zincoid.nullbot.module.ai.agent;
 
 import com.zincoid.nullbot.module.ai.AiException;
+import com.zincoid.nullbot.module.ai.context.ContextManager;
+import com.zincoid.nullbot.module.ai.context.ContextPacket;
+import com.zincoid.nullbot.module.ai.memory.Memory;
 import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
@@ -19,36 +22,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * AI 代理：带系统提示词与多轮工具调用的模型对话。
- * <p>AI agent: model conversation with a system prompt and multi-round tool calls.</p>
+ * 聊天代理：带系统提示词、会话记忆与多轮工具调用的模型对话。
+ * <p>Chat agent: model conversation with a system prompt, chat memory, and multi-round tool calls.</p>
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class Agent {
+public class ChatAgent {
 
+    private final Memory memory;
     private final Model model;
     private final ToolRegistry toolRegistry;
+    private final ContextManager contextManager;
 
-    // ════ Invoke ══════════════════
+    // ════ Run ═════════════════════
 
     /**
      * 发起一次对话。
      * <p>Runs one conversation.</p>
      *
-     * @param ctx     the tool context
-     * @param history the conversation history
-     * @param prompt  the system prompt, may be blank
+     * @param chatId  the chat identifier whose history is loaded
      * @param options the agent options
+     * @param ctx     the tool context
+     * @param context the context packets of the conversation
      * @return the final model response
      */
-    public ModelRes invoke(ToolContext ctx, List<AiMessage> history, String prompt,
-                           AgentOptions options) {
+    public ModelRes run(String chatId, AgentOptions options, ToolContext ctx,
+                        List<ContextPacket> context) {
         int maxTcs = options.maxToolRounds();
-        List<AiMessage> work = new ArrayList<>();
-        if (prompt != null && !prompt.isBlank())
-            work.add(AiMessage.system(prompt));
-        work.addAll(history);
+        List<AiMessage> history = memory.get(chatId);
+        List<AiMessage> work = contextManager.build(history, context);
         if (maxTcs <= 0)
             return conclude(work, options, null);
         TokenUsage usage = null;

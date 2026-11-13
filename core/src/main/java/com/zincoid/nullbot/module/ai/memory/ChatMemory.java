@@ -5,6 +5,7 @@ import com.zincoid.nullbot.module.ai.message.AiMessage;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
+import com.zincoid.nullbot.platform.util.UserLabels;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -60,9 +61,7 @@ public class ChatMemory implements Memory {
         if (content == null || content.isEmpty()) content = "(No content)";
         if (message.getRole() == MessageRole.ASSISTANT)
             return AiMessage.assistant(content).withReasoning(message.getReasoning());
-        String name = message.getNickname();
-        if (name == null || name.isBlank()) name = message.getUserId();
-        return AiMessage.user("[id=%s] %s(%s): %s".formatted(
-                message.getId(), name, message.getUserId(), content));
+        return AiMessage.user("[id=%s] %s: %s".formatted(message.getId(),
+                UserLabels.of(message.getNickname(), message.getUserId()), content));
     }
 }

@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.bot.cmd.builtin.content;
 
+import com.zincoid.nullbot.bot.BotClients;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdArgs;
 import com.zincoid.nullbot.bot.cmd.CmdContext;
@@ -18,6 +19,7 @@ import com.zincoid.nullbot.platform.persistence.enums.BizType;
 import com.zincoid.nullbot.platform.persistence.enums.Language;
 import com.zincoid.nullbot.platform.persistence.po.File;
 import com.zincoid.nullbot.platform.persistence.po.Quote;
+import com.zincoid.nullbot.platform.util.UserLabels;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -136,11 +138,7 @@ public class SaveCmd implements Cmd {
     }
 
     private static String atText(String userId, BotClient client) {
-        try {
-            return "@" + client.getUserInfo(userId).nickname() + "(" + userId + ")";
-        } catch (RuntimeException e) {
-            return "@" + userId;
-        }
+        return "@" + UserLabels.of(BotClients.userName(client, userId), userId);
     }
 
     // ════ Help ════════════════════

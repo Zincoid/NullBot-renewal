@@ -4,9 +4,9 @@ import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
-import com.zincoid.nullbot.module.ai.agent.Agent;
+import com.zincoid.nullbot.module.ai.agent.ChatAgent;
 import com.zincoid.nullbot.module.ai.agent.AgentOptions;
-import com.zincoid.nullbot.module.ai.memory.Memory;
+import com.zincoid.nullbot.module.ai.context.ContextPacket;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.TokenUsage;
 import com.zincoid.nullbot.module.ai.tool.ToolContext;
@@ -24,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 机器人聊天流水线：锁定会话、读取记忆、调用模型、发送并写回回复。
- * <p>Bot chat pipeline: locks the chat, reads memory, invokes the model, sends and stores the reply.</p>
+ * 机器人聊天流水线：锁定会话、调用模型、发送并写回回复。
+ * <p>Bot chat pipeline: locks the chat, invokes the model, sends and stores the reply.</p>
  */
 @Slf4j
 @Component
@@ -39,16 +41,14 @@ public class ChatPipeline {
 
     private final ReentrantLock[] locks = initLocks();
 
-    private final Agent agent;
-    private final Memory memory;
+    private final ChatAgent chatAgent;
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
     private final UserSettingService userSettingService;
+    private final AiUsageService aiUsageService;
     private final ChatGuard chatGuard;
-    private final ChatPrompt chatPrompt;
     private final ChatActions chatActions;
     private final ChatCommands chatCommands;
-    private final AiUsageService aiUsageService;
 
     // ════ Chat ════════════════════
 
@@ -62,7 +62,7 @@ public class ChatPipeline {
      * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
     public boolean chat(BotClient client, BotEvent event, AiSource source) {
-        return run(ChatTurn.of(client, event), source);
+        return run(ChatTurn.of(client, event, source));
     }
 
     // ════ Core ════════════════════
@@ -71,24 +71,28 @@ public class ChatPipeline {
      * 执行一次会话：校验注入、组装上下文，锁定会话后调用模型并写回回复。
      * <p>Runs one conversation: checks injection, builds the context, then locks the chat to invoke the model and store the reply.</p>
      *
-     * @param turn     the turn data
-     * @param aiSource the trigger source
+     * @param turn the turn data
      * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
-    private boolean run(ChatTurn turn, AiSource aiSource) {
+    private boolean run(ChatTurn turn) {
         Profile profile = profile(turn.chatType(), turn.targetId());
-        if (turn.event() instanceof MsgEvent e && profile.guard() && chatGuard.check(e.content().text())) {
+        if (turn.event() instanceof MsgEvent e
+                && profile.guard() && chatGuard.check(e.content().text())) {
             log.info("Injection blocked: chat={}", turn.chatId());
             return false;
         }
-        String prompt = chatPrompt.system(turn.event(), aiSource, profile.prompt());
+        List<ContextPacket> context = new ArrayList<>();
+        context.addAll(ChatPrompt.context(
+                turn.event(), turn.source(), profile.prompt(),
+                configService.getString(Conf.AI_DEFAULT_PROMPT)));
+        context.addAll(ChatImages.context(turn.client(), turn.event()));
         AgentOptions options = options(profile.effort());
         ToolContext ctx = new ChatToolContext(turn, chatActions, chatCommands);
         ReentrantLock lock = getLock(turn.chatId());
         lock.lock();
         try {
-            ModelRes res = agent.invoke(ctx, memory.get(turn.chatId()), prompt, options);
-            record(turn.chatType(), turn.targetId(), turn.event().userId(), aiSource, res.getUsage());
+            ModelRes res = chatAgent.run(turn.chatId(), options, ctx, context);
+            record(turn, res.getUsage());
             if (turn.hasFinalSent()) return true;
             String content = ChatText.compact(res.getContent());
             chatActions.deliver(turn, MsgContent.of(content), content, res.getReasoning(), true);
@@ -148,20 +152,16 @@ public class ChatPipeline {
      * 记录一次 AI 回合的用量，失败时不影响对话。
      * <p>Records one AI turn usage; failures do not affect the conversation.</p>
      *
-     * @param chatType the chat type
-     * @param targetId group or user platform id
-     * @param userId   the triggering user platform id
-     * @param source   the trigger source
-     * @param usage    the token usage, nullable
+     * @param turn  the turn data
+     * @param usage the token usage, nullable
      */
-    private void record(ChatType chatType, String targetId, String userId,
-                        AiSource source, TokenUsage usage) {
+    private void record(ChatTurn turn, TokenUsage usage) {
         try {
             aiUsageService.increase(
-                    chatType,
-                    targetId,
-                    userId,
-                    source,
+                    turn.chatType(),
+                    turn.targetId(),
+                    turn.event().userId(),
+                    turn.source(),
                     usage == null ? null : usage.inputTokens(),
                     usage == null ? null : usage.outputTokens());
         } catch (RuntimeException e) {

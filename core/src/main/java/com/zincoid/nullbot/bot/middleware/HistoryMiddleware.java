@@ -15,6 +15,7 @@ import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.ChatIds;
+import com.zincoid.nullbot.platform.util.UserLabels;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -114,14 +115,12 @@ public class HistoryMiddleware implements Middleware {
     private void recordPoke(BotClient client, String chatId, PokeEvent event) {
         if (!event.selfId().equals(event.targetId())) return;
         if (event.selfId().equals(event.userId())) return;
-        String nickname = BotClients.userName(client, event.userId());
-        if (nickname == null || nickname.isBlank()) nickname = event.userId();
         messageService.append(Message.builder()
                 .id(UUID.randomUUID().toString())
                 .chatId(chatId)
                 .userId(event.userId())
                 .role(MessageRole.USER)
-                .nickname(nickname)
+                .nickname(BotClients.userName(client, event.userId()))
                 .content("[Rubbed you]")
                 .build());
     }
@@ -137,7 +136,7 @@ public class HistoryMiddleware implements Middleware {
      */
     private static String atText(BotClient client, String selfId, String userId) {
         if (userId.equals(selfId)) return "@you";
-        return "@" + BotClients.userName(client, userId) + "(" + userId + ")";
+        return "@" + UserLabels.of(BotClients.userName(client, userId), userId);
     }
 
     /**

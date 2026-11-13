@@ -4,24 +4,26 @@ import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateEvent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
+import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.util.ChatIds;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 单轮对话的运行时数据：出站端口、会话标识、触发事件与轮次状态。
- * <p>Per-turn conversation data: outbound port, chat identifiers, triggering event, and turn state.</p>
+ * 单轮对话的运行时数据：出站端口、会话标识、触发事件、触发来源与轮次状态。
+ * <p>Per-turn conversation data: outbound port, chat identifiers, triggering event, trigger source, and turn state.</p>
  *
  * @param client   the outbound port
  * @param chatType the chat type
  * @param targetId group or user platform id
  * @param chatId   the composite chat id
  * @param event    the triggering event
+ * @param source   the trigger source
  * @param state    the turn state
  */
 record ChatTurn(BotClient client, ChatType chatType, String targetId,
-                String chatId, BotEvent event, State state) {
+                String chatId, BotEvent event, AiSource source, State state) {
 
     /**
      * 单轮对话状态：记录是否已通过发送工具发出最终消息。
@@ -41,19 +43,20 @@ record ChatTurn(BotClient client, ChatType chatType, String targetId,
     }
 
     /**
-     * 由触发事件构建单轮数据。
-     * <p>Builds the turn data from the triggering event.</p>
+     * 由触发事件与来源构建单轮数据。
+     * <p>Builds the turn data from the triggering event and source.</p>
      *
      * @param client the outbound port
      * @param event  the triggering event
+     * @param source the trigger source
      * @return the turn data
      */
-    static ChatTurn of(BotClient client, BotEvent event) {
+    static ChatTurn of(BotClient client, BotEvent event, AiSource source) {
         return switch (event) {
             case GroupEvent e -> new ChatTurn(client, ChatType.GROUP, e.groupId(),
-                    ChatIds.ofGroup(e.groupId()), event, new State());
+                    ChatIds.ofGroup(e.groupId()), event, source, new State());
             case PrivateEvent e -> new ChatTurn(client, ChatType.PRIVATE, e.userId(),
-                    ChatIds.ofPrivate(e.userId()), event, new State());
+                    ChatIds.ofPrivate(e.userId()), event, source, new State());
             default -> throw new ChatException(
                     "Unsupported event: " + event.getClass().getSimpleName());
         };

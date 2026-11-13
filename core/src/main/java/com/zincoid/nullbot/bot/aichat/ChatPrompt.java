@@ -3,25 +3,19 @@ package com.zincoid.nullbot.bot.aichat;
 import com.zincoid.nullbot.bot.spi.event.BotEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
-import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
-import com.zincoid.nullbot.module.config.Conf;
-import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.ai.context.ContextPacket;
 import com.zincoid.nullbot.platform.persistence.enums.AiSource;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import com.zincoid.nullbot.platform.util.UserLabels;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
- * 聊天提示词：组装系统提示词与触发说明。
- * <p>Chat prompt: builds the system prompt and trigger note.</p>
+ * 聊天上下文：把系统提示词与触发说明组装为上下文信息包。
+ * <p>Chat context: assembles the system prompt and trigger note into context packets.</p>
  */
-@Component
-@RequiredArgsConstructor
-public class ChatPrompt {
+final class ChatPrompt {
 
     private static final String FORMAT_PROMPT = """
             The following describes the chat history format and how to reply.
@@ -32,12 +26,12 @@ public class ChatPrompt {
             - @you means the user mentioned you.
             - Media data is not included in history.
             - Notes in your own messages that record sent media are metadata, not text you said to the user.
-
+            
             Tools:
             - "read" takes a message id and returns its content and attachment ids.
             - "view" takes attachment=<id> for a chat attachment, or file=<id> for a collection file.
             - "search" finds collection files; "send" takes file=<id> to send one.
-
+            
             Rules:
             - Call "send" as many times as needed for separate messages or media.
             - In normal conversation, use one send per chat bubble.
@@ -52,21 +46,34 @@ public class ChatPrompt {
             - Never write documents, reports, headings, bullet lists, or tables.
             - Avoid markdown formatting unless the user asks for code.""";
 
-    private final ConfigService configService;
+    private static final String GROUP_TRIGGER = "The message to respond to is id=%s from %s in a group chat. %s";
+    private static final String GROUP_AUTO_NOTE = "This is an automatic chat trigger; you were not mentioned.";
+    private static final String GROUP_MENTION_NOTE = "The user mentioned you.";
+    private static final String PRIVATE_TRIGGER = "The message to respond to is id=%s from %s in a private chat.";
+    private static final String GROUP_POKE_TRIGGER = "User %s just rubbed you in a group chat; respond to it.";
+    private static final String PRIVATE_POKE_TRIGGER = "User %s just rubbed you in a private chat; respond to it.";
 
-    // ════ System ══════════════════
+    private ChatPrompt() {
+    }
+
+    // ════ Context ═════════════════
 
     /**
-     * 组装本次对话的系统提示词。
-     * <p>Builds the system prompt of the conversation.</p>
+     * 组装本次对话的提示词信息包。
+     * <p>Builds the prompt packets of the conversation.</p>
      *
-     * @param event  the triggering event
-     * @param source the trigger source
-     * @param prompt the per-chat prompt, nullable
-     * @return the system prompt
+     * @param event         the triggering event
+     * @param source        the trigger source
+     * @param prompt        the per-chat prompt, nullable
+     * @param defaultPrompt the global default prompt, nullable
+     * @return the prompt packets
      */
-    public String system(BotEvent event, AiSource source, String prompt) {
-        return compose(base(prompt), trigger(event, source));
+    static List<ContextPacket> context(BotEvent event, AiSource source,
+                                       String prompt, String defaultPrompt) {
+        return List.of(
+                new ContextPacket.Text(base(prompt, defaultPrompt)),
+                new ContextPacket.Text(FORMAT_PROMPT),
+                new ContextPacket.Text(trigger(event, source)));
     }
 
     // ════ Helpers ═════════════════
@@ -75,26 +82,13 @@ public class ChatPrompt {
      * 选择提示词基底：会话自带提示词优先，否则使用全局配置。
      * <p>Selects the prompt base: the per-chat prompt wins, otherwise the global configuration.</p>
      *
-     * @param prompt the per-chat prompt, nullable
+     * @param prompt        the per-chat prompt, nullable
+     * @param defaultPrompt the global default prompt, nullable
      * @return the prompt base
      */
-    private String base(String prompt) {
+    private static String base(String prompt, String defaultPrompt) {
         if (prompt != null && !prompt.isBlank()) return prompt;
-        return configService.getString(Conf.AI_DEFAULT_PROMPT);
-    }
-
-    /**
-     * 拼接系统提示词。
-     * <p>Builds the system prompt.</p>
-     *
-     * @param base    the base prompt
-     * @param trigger the trigger note, nullable
-     * @return the system prompt
-     */
-    private static String compose(String base, String trigger) {
-        return Stream.of(base, FORMAT_PROMPT, trigger)
-                .filter(text -> text != null && !text.isBlank())
-                .collect(Collectors.joining("\n\n"));
+        return defaultPrompt;
     }
 
     /**
@@ -107,31 +101,14 @@ public class ChatPrompt {
      */
     private static String trigger(BotEvent event, AiSource source) {
         return switch (event) {
-            case GroupMsgEvent e -> "The message to respond to is id=%s from %s in a group chat. %s"
-                    .formatted(e.messageId(), sender(e),
-                            source == AiSource.GROUP_AUTO_CHAT
-                                    ? "This is an automatic chat trigger; you were not mentioned."
-                                    : "The user mentioned you.");
-            case PrivateMsgEvent e -> "The message to respond to is id=%s from %s in a private chat."
-                    .formatted(e.messageId(), sender(e));
-            case GroupPokeEvent e -> "User %s just rubbed you in a group chat; respond to it."
-                    .formatted(e.userId());
-            case PrivatePokeEvent e -> "User %s just rubbed you in a private chat; respond to it."
-                    .formatted(e.userId());
+            case GroupMsgEvent e -> GROUP_TRIGGER.formatted(e.messageId(),
+                    UserLabels.of(e.nickname(), e.userId()),
+                    source == AiSource.GROUP_AUTO_CHAT ? GROUP_AUTO_NOTE : GROUP_MENTION_NOTE);
+            case PrivateMsgEvent e -> PRIVATE_TRIGGER.formatted(e.messageId(),
+                    UserLabels.of(e.nickname(), e.userId()));
+            case GroupPokeEvent e -> GROUP_POKE_TRIGGER.formatted(e.userId());
+            case PrivatePokeEvent e -> PRIVATE_POKE_TRIGGER.formatted(e.userId());
             default -> null;
         };
-    }
-
-    /**
-     * 拼接发送者显示名与平台 ID。
-     * <p>Joins the sender display name and platform id.</p>
-     *
-     * @param event the message event
-     * @return the sender label
-     */
-    private static String sender(MsgEvent event) {
-        String name = event.nickname();
-        if (name == null || name.isBlank()) name = event.userId();
-        return name + "(" + event.userId() + ")";
     }
 }
