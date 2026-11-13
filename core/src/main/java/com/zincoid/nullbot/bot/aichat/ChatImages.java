@@ -7,6 +7,7 @@ import com.zincoid.nullbot.bot.spi.model.MsgDetail;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
+import com.zincoid.nullbot.module.ai.context.ImagePacket;
 import com.zincoid.nullbot.module.http.UrlDownloader;
 import com.zincoid.nullbot.module.render.image.ImageData;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ final class ChatImages {
         for (MsgSegment segment : content.segments()) {
             if (!(segment instanceof MsgSegment.Image image)) continue;
             String data = dataUri(image.url());
-            if (!data.isEmpty()) packets.add(new ContextPacket.Image(data, description));
+            if (!data.isEmpty()) packets.add(new ImagePacket(data, description));
         }
     }
 

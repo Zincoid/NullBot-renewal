@@ -2,7 +2,7 @@ package com.zincoid.nullbot.bot.aichat;
 
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.module.ai.memory.Memory;
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.file.FileService;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
@@ -92,7 +92,7 @@ public class ChatActions {
             return messageId;
         }
         memory.add(turn.chatId(), messageId, turn.event().selfId(), SELF_NAME,
-                AiMessage.assistant(content).withReasoning(reasoning));
+                AiMsg.assistant(content).withReasoning(reasoning));
         return messageId;
     }
 

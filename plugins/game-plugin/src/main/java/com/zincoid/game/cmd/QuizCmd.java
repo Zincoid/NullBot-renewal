@@ -12,7 +12,7 @@ import com.zincoid.nullbot.bot.input.InputResult;
 import com.zincoid.nullbot.bot.plugin.PluginContext;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.platform.exception.PlatformException;
@@ -97,7 +97,7 @@ public class QuizCmd implements Cmd {
         ModelRes res;
         try {
             res = context.model().invoke(ModelReq.of(
-                    List.of(AiMessage.system(PROMPT.formatted(topic, language))),
+                    List.of(AiMsg.system(PROMPT.formatted(topic, language))),
                     Effort.HIGH,
                     MAX_TOKENS));
         } catch (RuntimeException e) {

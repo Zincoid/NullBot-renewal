@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.bot.aichat;
 
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
@@ -44,7 +44,7 @@ public class ChatGuard {
         if (text == null || text.isBlank()) return false;
         try {
             ModelRes res = model.invoke(ModelReq.of(
-                    List.of(AiMessage.system(PROMPT), AiMessage.user(text)),
+                    List.of(AiMsg.system(PROMPT), AiMsg.user(text)),
                     Effort.LOW,
                     MAX_TOKENS));
             String content = res.getContent();

@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.module.ai.context;
 
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -26,9 +26,9 @@ public class ContextManager {
      * @param context the context packets
      * @return the model messages, mutable for the tool loop
      */
-    public List<AiMessage> build(List<AiMessage> history, List<ContextPacket> context) {
-        List<AiMessage> messages = new ArrayList<>();
-        AiMessage system = system(context);
+    public List<AiMsg> build(List<AiMsg> history, List<ContextPacket> context) {
+        List<AiMsg> messages = new ArrayList<>();
+        AiMsg system = system(context);
         if (system != null) messages.add(system);
         messages.addAll(history);
         messages.addAll(images(context));
@@ -44,14 +44,14 @@ public class ContextManager {
      * @param packets the context packets
      * @return the system message, or null when there is no text
      */
-    private static AiMessage system(List<ContextPacket> packets) {
+    private static AiMsg system(List<ContextPacket> packets) {
         String text = packets.stream()
-                .filter(ContextPacket.Text.class::isInstance)
-                .map(ContextPacket.Text.class::cast)
-                .map(ContextPacket.Text::text)
+                .filter(TextPacket.class::isInstance)
+                .map(TextPacket.class::cast)
+                .map(TextPacket::text)
                 .filter(value -> value != null && !value.isBlank())
                 .collect(Collectors.joining("\n\n"));
-        return text.isBlank() ? null : AiMessage.system(text);
+        return text.isBlank() ? null : AiMsg.system(text);
     }
 
     /**
@@ -61,17 +61,17 @@ public class ContextManager {
      * @param packets the context packets
      * @return the user messages carrying the images
      */
-    private static List<AiMessage> images(List<ContextPacket> packets) {
+    private static List<AiMsg> images(List<ContextPacket> packets) {
         Map<String, List<String>> groups = new LinkedHashMap<>();
         for (ContextPacket packet : packets) {
-            if (!(packet instanceof ContextPacket.Image(String url, String description))) continue;
+            if (!(packet instanceof ImagePacket(String url, String description))) continue;
             if (url == null || url.isBlank()) continue;
             groups.computeIfAbsent(description, _ -> new ArrayList<>())
                     .add(url);
         }
-        List<AiMessage> messages = new ArrayList<>();
+        List<AiMsg> messages = new ArrayList<>();
         groups.forEach((description, urls) ->
-                messages.add(AiMessage.user(null, description, urls)));
+                messages.add(AiMsg.user(null, description, urls)));
         return messages;
     }
 }

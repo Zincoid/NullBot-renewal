@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.module.ai.memory;
 
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public interface Memory {
      * @param chatId chat identifier
      * @return the history, oldest first
      */
-    List<AiMessage> get(String chatId);
+    List<AiMsg> get(String chatId);
 
     /**
      * 写入一条会话消息。
@@ -29,5 +29,5 @@ public interface Memory {
      * @param nickname  the sender nickname
      * @param message   the message
      */
-    void add(String chatId, String messageId, String userId, String nickname, AiMessage message);
+    void add(String chatId, String messageId, String userId, String nickname, AiMsg message);
 }

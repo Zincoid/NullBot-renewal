@@ -4,7 +4,7 @@ import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.module.ai.context.ContextManager;
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
 import com.zincoid.nullbot.module.ai.memory.Memory;
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
@@ -49,9 +49,9 @@ public class ChatAgent {
      */
     public ModelRes run(String chatId, AgentOptions options, ToolContext ctx,
                         List<ContextPacket> context) {
-        int maxTcs = options.maxToolRounds();
-        List<AiMessage> history = memory.get(chatId);
-        List<AiMessage> work = contextManager.build(history, context);
+        int maxTcs = options.maxToolCalls();
+        List<AiMsg> history = memory.get(chatId);
+        List<AiMsg> work = contextManager.build(history, context);
         if (maxTcs <= 0)
             return conclude(work, options, null);
         TokenUsage usage = null;
@@ -65,16 +65,16 @@ public class ChatAgent {
             usage = TokenUsage.plus(usage, res.getUsage());
             if (!res.hasTcs()) return requireContent(res).withUsage(usage);
             log.info("Tool round {}: {} call(s)", i + 1, res.getTcs().size());
-            work.add(AiMessage.assistant(res.getTcs())
+            work.add(AiMsg.assistant(res.getTcs())
                     .withReasoning(res.getReasoning()));
-            List<AiMessage> images = new ArrayList<>();
+            List<AiMsg> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
                 ToolRes tr = runTool(tc, ctx);
                 String content = tr.error()
                         ? "Error: " + tr.text() : tr.text();
-                work.add(AiMessage.tool(tc.getId(), content));
+                work.add(AiMsg.tool(tc.getId(), content));
                 if (tr.images().isEmpty()) continue;
-                images.add(AiMessage.user(
+                images.add(AiMsg.user(
                         null,
                         "Image(s) from tool \"%s\"".formatted(tc.getName()),
                         tr.images()
@@ -87,7 +87,7 @@ public class ChatAgent {
             work.addAll(images);
         }
         log.warn("Tool call limit reached: {}", maxTcs);
-        work.add(AiMessage.user("""
+        work.add(AiMsg.user("""
                 The maximum number of tool call rounds has been reached.
                 Please provide the final answer based on the available information.
                 Do not call any more tools!!!"""
@@ -97,7 +97,7 @@ public class ChatAgent {
 
     // ════ Helpers ═════════════════
 
-    private ModelRes conclude(List<AiMessage> work, AgentOptions options,
+    private ModelRes conclude(List<AiMsg> work, AgentOptions options,
                               TokenUsage usage) {
         ModelRes res = requireContent(model.invoke(ModelReq.of(
                 work, options.effort(), options.maxTokens())));

@@ -1,7 +1,9 @@
 package com.zincoid.nullbot.module.ai.memory;
 
 import com.zincoid.nullbot.module.ai.AiException;
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
+import com.zincoid.nullbot.module.ai.message.AssistantMsg;
+import com.zincoid.nullbot.module.ai.message.UserMsg;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
@@ -24,9 +26,9 @@ public class ChatMemory implements Memory {
     // ════ Get ═════════════════════
 
     @Override
-    public List<AiMessage> get(String chatId) {
+    public List<AiMsg> get(String chatId) {
         return messageService.window(chatId).stream()
-                .map(this::toAiMessage)
+                .map(this::toAiMsg)
                 .toList();
     }
 
@@ -34,34 +36,40 @@ public class ChatMemory implements Memory {
 
     @Override
     public void add(String chatId, String messageId, String userId, String nickname,
-                    AiMessage message) {
+                    AiMsg message) {
         if (message == null) throw new AiException("Missing key: message");
-        String content = message.getContent();
-        if (content == null || content.isBlank()) throw new AiException("Missing content");
-        MessageRole role = switch (message.getRole()) {
-            case USER -> MessageRole.USER;
-            case ASSISTANT -> MessageRole.ASSISTANT;
-            default -> throw new AiException("Unsupported role: " + message.getRole());
-        };
-        messageService.append(Message.builder()
+        Message.MessageBuilder builder = Message.builder()
                 .id(messageId)
                 .chatId(chatId)
                 .userId(userId)
-                .nickname(nickname)
-                .role(role)
-                .content(content)
-                .reasoning(message.getReasoning())
-                .build());
+                .nickname(nickname);
+        switch (message) {
+            case UserMsg m -> builder
+                    .role(MessageRole.USER)
+                    .content(m.content());
+            case AssistantMsg m -> builder
+                    .role(MessageRole.ASSISTANT)
+                    .content(m.content())
+                    .reasoning(m.reasoning());
+            default -> throw new AiException("Unsupported message: " + message);
+        }
+        messageService.append(builder.build());
     }
 
     // ════ Helpers ═════════════════
 
-    private AiMessage toAiMessage(Message message) {
+    private AiMsg toAiMsg(Message message) {
         String content = message.getContent();
-        if (content == null || content.isEmpty()) content = "(No content)";
+        if (content == null || content.isEmpty())
+            content = "(No content)";
         if (message.getRole() == MessageRole.ASSISTANT)
-            return AiMessage.assistant(content).withReasoning(message.getReasoning());
-        return AiMessage.user("[id=%s] %s: %s".formatted(message.getId(),
-                UserLabels.of(message.getNickname(), message.getUserId()), content));
+            return AiMsg.assistant(content)
+                    .withReasoning(message.getReasoning());
+        String formatted = "[id=%s] %s: %s".formatted(
+                message.getId(),
+                UserLabels.of(message.getNickname(), message.getUserId()),
+                content
+        );
+        return AiMsg.user(formatted);
     }
 }

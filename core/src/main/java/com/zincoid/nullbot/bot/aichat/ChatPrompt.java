@@ -6,6 +6,7 @@ import com.zincoid.nullbot.bot.spi.event.GroupPokeEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivatePokeEvent;
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
+import com.zincoid.nullbot.module.ai.context.TextPacket;
 import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.util.UserLabels;
 
@@ -71,9 +72,9 @@ final class ChatPrompt {
     static List<ContextPacket> context(BotEvent event, AiSource source,
                                        String prompt, String defaultPrompt) {
         return List.of(
-                new ContextPacket.Text(base(prompt, defaultPrompt)),
-                new ContextPacket.Text(FORMAT_PROMPT),
-                new ContextPacket.Text(trigger(event, source)));
+                new TextPacket(base(prompt, defaultPrompt)),
+                new TextPacket(FORMAT_PROMPT),
+                new TextPacket(trigger(event, source)));
     }
 
     // ════ Helpers ═════════════════

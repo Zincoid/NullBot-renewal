@@ -1,6 +1,6 @@
 package com.zincoid.nullbot.module.ai.model;
 
-import com.zincoid.nullbot.module.ai.message.AiMessage;
+import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import lombok.AllArgsConstructor;
@@ -16,12 +16,12 @@ import java.util.List;
 @AllArgsConstructor(staticName = "of")
 public final class ModelReq {
 
-    private final List<AiMessage> messages;
+    private final List<AiMsg> messages;
     private final List<ToolDefinition> tools;
     private final Effort effort;
     private final int maxTokens;
 
-    public static ModelReq of(List<AiMessage> messages, Effort effort, int maxTokens) {
+    public static ModelReq of(List<AiMsg> messages, Effort effort, int maxTokens) {
         return ModelReq.of(messages, null, effort, maxTokens);
     }
 }
