@@ -22,6 +22,11 @@ final class ChatToolHost implements ToolHost {
     // ════ ToolHost ════════════════
 
     @Override
+    public String chatId() {
+        return turn.chatId();
+    }
+
+    @Override
     public boolean finalSent() {
         return finalSent;
     }

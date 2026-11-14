@@ -114,7 +114,17 @@ CREATE TABLE IF NOT EXISTS `message` (
 CREATE INDEX IF NOT EXISTS `idx_message_chat_created` ON `message` (`chat_id`, `created_at`);
 CREATE INDEX IF NOT EXISTS `idx_message_created_at` ON `message` (`created_at`);
 
--- 10. Attachment
+-- 10. Memory
+CREATE TABLE IF NOT EXISTS `memory` (
+    `id`            INTEGER     PRIMARY KEY AUTOINCREMENT,
+    `chat_id`       VARCHAR(64) NOT NULL,
+    `type`          TINYINT     NOT NULL,              -- 0 = episodic, 1 = semantic
+    `content`       TEXT        NOT NULL,
+    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS `idx_memory_chat_type` ON `memory` (`chat_id`, `type`);
+
+-- 11. Attachment
 CREATE TABLE IF NOT EXISTS `attachment` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `message_id`    VARCHAR(64)     DEFAULT NULL,
@@ -126,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `attachment` (
 );
 CREATE INDEX IF NOT EXISTS `idx_attachment_message_id` ON `attachment` (`message_id`);
 
--- 11. Quote
+-- 12. Quote
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -137,7 +147,7 @@ CREATE TABLE IF NOT EXISTS `quote` (
 CREATE INDEX IF NOT EXISTS `idx_quote_user_id` ON `quote` (`user_id`);
 CREATE INDEX IF NOT EXISTS `idx_quote_time` ON `quote` (`time`);
 
--- 12. Cmd Usage
+-- 13. Cmd Usage
 CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`          DATE            NOT NULL,              -- statistics date
@@ -150,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `cmd_usage` (
 CREATE UNIQUE INDEX IF NOT EXISTS `uk_cmd_usage_key`
     ON `cmd_usage` (`time`, `chat_type`, `target_id`, `user_id`, `cmd`);
 
--- 13. AI Usage
+-- 14. AI Usage
 CREATE TABLE IF NOT EXISTS `ai_usage` (
     `id`             INTEGER         PRIMARY KEY AUTOINCREMENT,
     `time`           DATE            NOT NULL,              -- statistics date

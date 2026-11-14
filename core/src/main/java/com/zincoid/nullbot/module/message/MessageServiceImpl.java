@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,11 +49,18 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setCreatedAt(LocalDateTime.now());
         save(message);
         log.info("Message saved: {}", message.getId());
-        trim(message.getChatId());
+        trimMessages(message.getChatId());
         return message;
     }
 
     // ════ Window ══════════════════
+
+    @Override
+    public int windowSize() {
+        int size = configService.getInt(Conf.MESSAGE_HISTORY_MAX_LENGTH);
+        if (size <= 0) throw new MessageException("Malformed value: " + size);
+        return size;
+    }
 
     @Override
     public List<Message> window(String chatId) {
@@ -60,10 +68,26 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         List<Message> newest = lambdaQuery()
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
-                .last("LIMIT " + size())
+                .orderByDesc(Message::getId)
+                .last("LIMIT " + windowSize())
                 .list();
         Collections.reverse(newest);
         return newest;
+    }
+
+    @Override
+    public List<Message> overflow(String chatId, int window) {
+        if (chatId == null || chatId.isBlank()) throw new MessageException("Missing key: chatId");
+        if (window <= 0) throw new MessageException("Malformed value: " + window);
+        List<Message> newest = lambdaQuery()
+                .eq(Message::getChatId, chatId)
+                .orderByDesc(Message::getCreatedAt)
+                .orderByDesc(Message::getId)
+                .last("LIMIT " + 2 * window)
+                .list();
+        Collections.reverse(newest);
+        if (newest.size() <= window) return List.of();
+        return List.copyOf(newest.subList(0, newest.size() - window));
     }
 
     // ════ Chats ═══════════════════
@@ -78,7 +102,21 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .toList();
     }
 
-    // ════ Clear ═══════════════════
+    // ════ Remove ══════════════════
+
+    @Override
+    public int remove(Collection<String> ids) {
+        if (ids == null || ids.isEmpty()) return 0;
+        List<String> distinct = ids.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        if (distinct.isEmpty()) return 0;
+        int removed = baseMapper.deleteByIds(distinct);
+        distinct.forEach(this::deleteAttachments);
+        log.info("Messages removed: {}", removed);
+        return removed;
+    }
 
     @Override
     public int clear(String chatId) {
@@ -89,7 +127,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .list();
         if (messages.isEmpty()) return 0;
         removeByIds(messages.stream().map(Message::getId).toList());
-        messages.forEach(this::deleteAttachments);
+        messages.forEach(message -> deleteAttachments(message.getId()));
         log.info("Chat history cleared: {}, messages={}", chatId, messages.size());
         return messages.size();
     }
@@ -97,47 +135,36 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     // ════ Helpers ═════════════════
 
     /**
-     * 读取配置的窗口长度。
-     * <p>Reads the configured window size.</p>
-     *
-     * @return the window size
-     */
-    private int size() {
-        int size = configService.getInt(Conf.MESSAGE_HISTORY_MAX_LENGTH);
-        if (size <= 0) throw new MessageException("Malformed value: " + size);
-        return size;
-    }
-
-    /**
-     * 将会话窗口修剪至配置长度。
-     * <p>Trims the chat window to the configured size.</p>
+     * 将会话窗口修剪至配置长度的两倍，为情景摘要留出溢出区。
+     * <p>Trims the chat window to twice the configured size, leaving an overflow area for episodic summaries.</p>
      *
      * @param chatId chat identifier
      */
-    private void trim(String chatId) {
-        int size = size();
+    private void trimMessages(String chatId) {
+        int keep = 2 * windowSize();
         List<Message> all = lambdaQuery()
                 .select(Message::getId)
                 .eq(Message::getChatId, chatId)
                 .orderByDesc(Message::getCreatedAt)
+                .orderByDesc(Message::getId)
                 .list();
-        if (all.size() <= size) return;
-        List<Message> overflow = all.subList(size, all.size());
+        if (all.size() <= keep) return;
+        List<Message> overflow = all.subList(keep, all.size());
         removeByIds(overflow.stream().map(Message::getId).toList());
-        overflow.forEach(this::deleteAttachments);
+        overflow.forEach(message -> deleteAttachments(message.getId()));
     }
 
     /**
      * 删除消息所拥有的聊天附件及其磁盘文件。
      * <p>Deletes the chat attachments owned by a message and their stored files.</p>
      *
-     * @param message the removed message
+     * @param messageId the removed message id
      */
-    private void deleteAttachments(Message message) {
+    private void deleteAttachments(String messageId) {
         try {
-            attachmentService.deleteByMessageId(message.getId());
+            attachmentService.deleteByMessageId(messageId);
         } catch (RuntimeException e) {
-            log.warn("Failed to delete attachments: message={}", message.getId(), e);
+            log.warn("Failed to delete attachments: message={}", messageId, e);
         }
     }
 }

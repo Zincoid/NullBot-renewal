@@ -3,7 +3,9 @@ package com.zincoid.nullbot.module.ai.agent;
 import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.module.ai.context.ContextManager;
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
-import com.zincoid.nullbot.module.ai.memory.Memory;
+import com.zincoid.nullbot.module.ai.memory.EpisodicMemory;
+import com.zincoid.nullbot.module.ai.memory.SemanticMemory;
+import com.zincoid.nullbot.module.ai.memory.WorkingMemory;
 import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
@@ -35,7 +37,9 @@ public class ChatAgent {
             Please provide the final answer based on the available information.
             Do not call any more tools!!!""";
 
-    private final Memory memory;
+    private final WorkingMemory workingMemory;
+    private final EpisodicMemory episodicMemory;
+    private final SemanticMemory semanticMemory;
     private final Model model;
     private final ToolRegistry toolRegistry;
     private final ContextManager contextManager;
@@ -105,8 +109,12 @@ public class ChatAgent {
     private ChatRes run(String chatId, ChatOptions options, ToolHost host,
                         List<ContextPacket> context) {
         int maxTcs = options.maxToolCalls();
-        List<AiMsg> history = memory.get(chatId);
-        List<AiMsg> work = contextManager.build(history, context);
+        episodicMemory.compactIfNeeded(chatId);
+        List<AiMsg> history = workingMemory.get(chatId);
+        List<ContextPacket> packets = new ArrayList<>(context);
+        packets.addAll(episodicMemory.context(chatId));
+        packets.addAll(semanticMemory.context(chatId));
+        List<AiMsg> work = contextManager.build(history, packets);
         if (maxTcs <= 0)
             return ChatRes.unsent(conclude(work, options, null));
         ModelUsage usage = null;

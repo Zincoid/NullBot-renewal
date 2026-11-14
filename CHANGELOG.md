@@ -90,6 +90,22 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 
 顺序不能反：旧 `type=3` 是聊天附件，提前移动 MEME 会让附件迁移把 MEME 行当作旧聊天文件复制并删除。
 
+- 新增 `memory` 表保存 AI 派生记忆：`type=0` 为情景摘要（同一会话仅一条滚动摘要），`type=1` 为长期事实。SQLite 启动时自动建表；MySQL 需手动执行：
+
+  ```sql
+  CREATE TABLE `memory` (
+      `id`            BIGINT       NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+      `chat_id`       VARCHAR(64)  NOT NULL COMMENT 'Chat identifier',
+      `type`          TINYINT      NOT NULL COMMENT 'Memory type: 0=EPISODIC, 1=SEMANTIC',
+      `content`       TEXT         NOT NULL COMMENT 'Memory content',
+      `created_at`    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
+      PRIMARY KEY (`id`),
+      KEY `idx_memory_chat_type` (`chat_id`, `type`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI memory table';
+  ```
+
+- 消息保留上限由配置窗口 N 改为 2N，多出的一条窗口作为情景摘要的溢出区；模型上下文仍只读取最近 N 条。`window` / `trim` / `overflow` 统一按 `(created_at, id)` 倒序，避免同一时间戳下窗口裁剪与摘要覆盖不一致。
+
 ### Added
 
 - 控制台新增“消息”页：左侧按群聊 / 私聊切换并列出保留有消息的会话，右侧以聊天形式展示角色、昵称、用户 ID、时间、正文、reasoning 与附件数量；附件不随页面加载，按消息在弹窗中预览或下载。
@@ -101,6 +117,9 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - 新增 `UrlDownloader.download(url, target)`：流式下载网络文件，先写同目录临时文件再原子替换，失败时清理临时文件；插件可直接用它把文件保存到 `dataDir()`，无需提升 `apiVersion()`。
 - gd-plugin 的 `#GD` 新增 `song <歌曲ID>` 子命令：通过几何冲刺歌曲接口获取 Newgrounds 音频并作为群文件/私聊文件发送，仅支持 GD 服务器收录的歌曲。
 - 控制台插件数据的文件页新增当前目录搜索框，按名称在已加载条目中纯前端过滤，不触发重新加载。
+- AI 情景记忆：窗口外的旧消息积累到阈值后由模型压缩为一条滚动摘要，摘要覆盖的消息随后删除；摘要以 `[Episodic memory]` 注入后续对话。压缩失败或摘要为空时保留消息，下一轮重试；压缩调用的词元不计入 `ai_usage`。
+- AI 长期记忆：新增 `memory` 工具（`add` / `delete` / `search`），长期事实以 `[Semantic memory]` 注入后续对话；同会话同内容的 `add` 去重，`delete` 只能删除长期事实。
+- `ToolHost` 新增 `chatId()`，供工具读取当前会话标识；仓库内唯一实现为 `ChatToolHost`，外部插件若自行实现该接口需要补上此方法。
 
 ### Changed
 
@@ -139,6 +158,8 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - HTTP 与文件落盘逻辑整理：`UrlDownloader` 改为纯静态工具类（`open` 与 `download` 均为静态方法），与 `JdkHttpService` 共用 URL 校验与 HTTP 客户端缓存，`UrlDownloader.download`、`PluginResources` 与插件数据上传共用 `AtomicFiles.copy`；无行为变化。
 - 校验与解析错误统一改为自定义异常：HTTP 模块（含 `UrlDownloader`）改抛 `HttpException`，`AtomicFiles.copy` 空参数改抛 `PlatformException`，指令参数与非媒体分支改抛 `CmdException`，AI 工具与 QQ 适配器不再直接抛 `IllegalArgumentException` / `IllegalStateException` / `RuntimeException`；业务行为不变。
 - 文档整理：README 重排配置、指令、AI 与插件章节；PLUGIN 增加目录、静态工具索引与文件发送示例；插件 README 统一结构并修正过期指令说明。
+- `Memory` 接口更名为 `WorkingMemory`，实现 `ChatMemory` 更名为 `MessageWindowMemory`，继续复用 `message` 表；情景与事实实现分别更名为 `RollingSummaryMemory` / `LongTermFactMemory`，三个实现统一移入 `module.ai.memory.impl`。`ChatAgent` 现在依赖 `WorkingMemory`、`EpisodicMemory`、`SemanticMemory` 三个接口，并在每轮开始前按需压缩情景记忆。
+- `MessageService` 新增 `windowSize()` / `overflow()` / `remove(ids)`；清空聊天历史不再联动清空 `memory`，情景摘要与长期事实独立保留。
 
 ### Removed
 

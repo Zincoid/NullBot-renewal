@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.spring.service.IService;
 import com.zincoid.nullbot.platform.persistence.po.Message;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -26,6 +27,14 @@ public interface MessageService extends IService<Message> {
     // ════ Window ══════════════════
 
     /**
+     * 读取配置的会话窗口长度。
+     * <p>Reads the configured window size.</p>
+     *
+     * @return the window size
+     */
+    int windowSize();
+
+    /**
      * 返回会话最近的消息，按时间正序。
      * <p>Returns the newest messages of the chat in chronological order.</p>
      *
@@ -33,6 +42,16 @@ public interface MessageService extends IService<Message> {
      * @return the chat window, oldest first
      */
     List<Message> window(String chatId);
+
+    /**
+     * 返回超出窗口的旧消息，按时间正序。
+     * <p>Returns the old messages beyond the window in chronological order.</p>
+     *
+     * @param chatId chat identifier
+     * @param window the window size to keep
+     * @return the overflow messages, oldest first; empty when nothing overflows
+     */
+    List<Message> overflow(String chatId, int window);
 
     // ════ Chats ═══════════════════
 
@@ -55,7 +74,16 @@ public interface MessageService extends IService<Message> {
     record ChatSummary(String chatId, long messages, LocalDateTime lastAt) {
     }
 
-    // ════ Clear ═══════════════════
+    // ════ Remove ══════════════════
+
+    /**
+     * 按 id 删除指定消息及其聊天附件。
+     * <p>Deletes the given messages and their chat attachments by id.</p>
+     *
+     * @param ids the message ids
+     * @return the number of deleted messages
+     */
+    int remove(Collection<String> ids);
 
     /**
      * 清空会话的全部消息，并删除其中的聊天附件。

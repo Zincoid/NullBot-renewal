@@ -1,0 +1,165 @@
+package com.zincoid.nullbot.module.memory;
+
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.platform.persistence.enums.MemoryType;
+import com.zincoid.nullbot.platform.persistence.mapper.MemoryMapper;
+import com.zincoid.nullbot.platform.persistence.po.Memory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * {@link MemoryService} 的默认实现。
+ * <p>Default implementation of {@link MemoryService}.</p>
+ */
+@Slf4j
+@Service
+public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> implements MemoryService {
+
+    private static final int MAX_SEMANTIC_CONTENT = 512;
+    private static final int MAX_SEMANTIC_LIMIT = 64;
+
+    // ════ Episodic ════════════════
+
+    @Override
+    public Memory getEpisodic(String chatId) {
+        requireChatId(chatId);
+        return lambdaQuery()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.EPISODIC)
+                .orderByDesc(Memory::getCreatedAt)
+                .orderByDesc(Memory::getId)
+                .last("LIMIT 1")
+                .one();
+    }
+
+    @Override
+    public void putEpisodic(String chatId, String content) {
+        requireChatId(chatId);
+        if (content == null || content.isBlank())
+            throw new MemoryException("Missing content");
+        Memory existing = lambdaQuery()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.EPISODIC)
+                .orderByDesc(Memory::getCreatedAt)
+                .orderByDesc(Memory::getId)
+                .last("LIMIT 1")
+                .one();
+        if (existing != null) {
+            existing.setContent(content);
+            if (!updateById(existing))
+                throw new MemoryException("Failed to update episodic memory");
+            log.info("Episodic memory updated: chat={}, id={}", chatId, existing.getId());
+            return;
+        }
+        Memory memory = Memory.builder()
+                .chatId(chatId)
+                .type(MemoryType.EPISODIC)
+                .content(content)
+                .createdAt(LocalDateTime.now())
+                .build();
+        if (!save(memory))
+            throw new MemoryException("Failed to save episodic memory");
+        log.info("Episodic memory saved: chat={}, id={}", chatId, memory.getId());
+    }
+
+    @Override
+    public void clearEpisodic(String chatId) {
+        clearByType(chatId, MemoryType.EPISODIC);
+    }
+
+    // ════ Semantic ════════════════
+
+    @Override
+    public List<Memory> latestSemantic(String chatId, int limit) {
+        requireChatId(chatId);
+        int size = Math.clamp(limit, 1, MAX_SEMANTIC_LIMIT);
+        return lambdaQuery()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.SEMANTIC)
+                .orderByDesc(Memory::getCreatedAt)
+                .orderByDesc(Memory::getId)
+                .last("LIMIT " + size)
+                .list();
+    }
+
+    @Override
+    public List<Memory> searchSemantic(String chatId, String keyword, int limit) {
+        requireChatId(chatId);
+        if (keyword == null || keyword.isBlank())
+            return latestSemantic(chatId, limit);
+        int size = Math.clamp(limit, 1, MAX_SEMANTIC_LIMIT);
+        return lambdaQuery()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.SEMANTIC)
+                .like(Memory::getContent, keyword)
+                .orderByDesc(Memory::getCreatedAt)
+                .orderByDesc(Memory::getId)
+                .last("LIMIT " + size)
+                .list();
+    }
+
+    @Override
+    public Memory addSemantic(String chatId, String content) {
+        requireChatId(chatId);
+        if (content == null || content.isBlank())
+            throw new MemoryException("Missing content");
+        String normalized = content.strip().replaceAll("\\s+", " ");
+        if (normalized.length() > MAX_SEMANTIC_CONTENT)
+            throw new MemoryException("Content too long: " + normalized.length());
+        Memory existing = lambdaQuery()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.SEMANTIC)
+                .eq(Memory::getContent, normalized)
+                .last("LIMIT 1")
+                .one();
+        if (existing != null) return existing;
+        Memory memory = Memory.builder()
+                .chatId(chatId)
+                .type(MemoryType.SEMANTIC)
+                .content(normalized)
+                .createdAt(LocalDateTime.now())
+                .build();
+        if (!save(memory))
+            throw new MemoryException("Failed to save memory");
+        log.info("Memory saved: chat={}, id={}", chatId, memory.getId());
+        return memory;
+    }
+
+    @Override
+    public boolean deleteSemantic(String chatId, long id) {
+        requireChatId(chatId);
+        boolean removed = lambdaUpdate()
+                .eq(Memory::getId, id)
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.SEMANTIC)
+                .remove();
+        if (removed)
+            log.info("Memory deleted: chat={}, id={}", chatId, id);
+        return removed;
+    }
+
+    @Override
+    public void clearSemantic(String chatId) {
+        clearByType(chatId, MemoryType.SEMANTIC);
+    }
+
+    // ════ Helpers ═════════════════
+
+    private void clearByType(String chatId, MemoryType type) {
+        requireChatId(chatId);
+        boolean removed = lambdaUpdate()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, type)
+                .remove();
+        if (removed)
+            log.info("AI memory cleared: chat={}, type={}", chatId, type);
+    }
+
+    private static void requireChatId(String chatId) {
+        if (chatId == null || chatId.isBlank())
+            throw new MemoryException("Missing key: chatId");
+    }
+}

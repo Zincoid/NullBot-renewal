@@ -1,6 +1,7 @@
-package com.zincoid.nullbot.module.ai.memory;
+package com.zincoid.nullbot.module.ai.memory.impl;
 
 import com.zincoid.nullbot.module.ai.AiException;
+import com.zincoid.nullbot.module.ai.memory.WorkingMemory;
 import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.message.AssistantMsg;
 import com.zincoid.nullbot.module.ai.message.UserMsg;
@@ -14,12 +15,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 基于消息记录的 AI 聊天记忆实现：历史复用 message 表，按 role 区分用户与助手。
- * <p>AI chat memory over message records: history reuses the message table, with role distinguishing user and assistant.</p>
+ * 基于消息记录的工作记忆：历史复用 message 表，按 role 区分用户与助手。
+ * <p>Working memory over message records: history reuses the message table, with role distinguishing user and assistant.</p>
  */
 @Component
 @RequiredArgsConstructor
-public class ChatMemory implements Memory {
+public class MessageWindowMemory implements WorkingMemory {
 
     private final MessageService messageService;
 

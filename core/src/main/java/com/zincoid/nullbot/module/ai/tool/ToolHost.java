@@ -9,6 +9,14 @@ import java.util.List;
 public interface ToolHost {
 
     /**
+     * 当前会话标识。
+     * <p>The current chat identifier.</p>
+     *
+     * @return the composite chat id
+     */
+    String chatId();
+
+    /**
      * 本轮是否已经通过发送工具发出最终消息。
      * <p>Whether the final message of the turn has already been sent through the send tool.</p>
      *

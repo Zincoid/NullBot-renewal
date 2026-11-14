@@ -147,7 +147,20 @@ CREATE TABLE IF NOT EXISTS `message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat message table';
 
 -- =============================================
--- 10. Attachment Table
+-- 10. Memory Table
+-- =============================================
+CREATE TABLE IF NOT EXISTS `memory` (
+    `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
+    `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Chat identifier',
+    `type`          TINYINT         NOT NULL                 COMMENT 'Memory type: 0=EPISODIC, 1=SEMANTIC',
+    `content`       TEXT            NOT NULL                 COMMENT 'Memory content',
+    `created_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
+    PRIMARY KEY (`id`),
+    KEY `idx_memory_chat_type` (`chat_id`, `type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI memory table';
+
+-- =============================================
+-- 11. Attachment Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `attachment` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -162,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `attachment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat attachment table';
 
 -- =============================================
--- 11. Quote Table
+-- 12. Quote Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `quote` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -176,7 +189,7 @@ CREATE TABLE IF NOT EXISTS `quote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Quote table';
 
 -- =============================================
--- 12. Cmd Usage Table
+-- 13. Cmd Usage Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `cmd_usage` (
     `id`            BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',
@@ -191,7 +204,7 @@ CREATE TABLE IF NOT EXISTS `cmd_usage` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Daily command usage table';
 
 -- =============================================
--- 13. AI Usage Table
+-- 14. AI Usage Table
 -- =============================================
 CREATE TABLE IF NOT EXISTS `ai_usage` (
     `id`             BIGINT          NOT NULL AUTO_INCREMENT  COMMENT 'Primary key',

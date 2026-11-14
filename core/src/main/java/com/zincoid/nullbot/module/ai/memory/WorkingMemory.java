@@ -5,10 +5,10 @@ import com.zincoid.nullbot.module.ai.message.AiMsg;
 import java.util.List;
 
 /**
- * AI 聊天记忆：按会话读取与写入对话消息。
- * <p>AI chat memory: reads and writes conversation messages per chat.</p>
+ * 工作记忆：按会话读取与写入最近的原始对话消息。
+ * <p>Working memory: reads and writes the recent raw conversation messages per chat.</p>
  */
-public interface Memory {
+public interface WorkingMemory {
 
     /**
      * 读取会话历史。

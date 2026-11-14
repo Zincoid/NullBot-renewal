@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.aichat;
 
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
-import com.zincoid.nullbot.module.ai.memory.Memory;
+import com.zincoid.nullbot.module.ai.memory.WorkingMemory;
 import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.file.FileService;
@@ -28,7 +28,7 @@ public class ChatActions {
     private static final int MAX_MUTE_MINUTES = 30 * 24 * 60;
 
     private final FileService fileService;
-    private final Memory memory;
+    private final WorkingMemory workingMemory;
 
     // ════ Send ════════════════════
 
@@ -87,7 +87,7 @@ public class ChatActions {
             log.warn("Missing message id after send: chat={}", turn.chatId());
             return messageId;
         }
-        memory.add(turn.chatId(), messageId, turn.event().selfId(), SELF_NAME,
+        workingMemory.add(turn.chatId(), messageId, turn.event().selfId(), SELF_NAME,
                 AiMsg.assistant(content).withReasoning(reasoning));
         return messageId;
     }
