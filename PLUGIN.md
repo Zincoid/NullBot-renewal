@@ -354,7 +354,7 @@ public class DemoTool implements Tool {
                 : JsonUtils.parse(args, Args.class);
         String name = parsed.name() == null || parsed.name().isBlank()
                 ? "world" : parsed.name();
-        return ToolRes.of("Hello, " + name + "!");
+        return ToolRes.success("Hello, " + name + "!");
     }
 
     private record Args(String name) {

@@ -12,9 +12,9 @@ public interface ToolHost {
      * 本轮是否已经通过发送工具发出最终消息。
      * <p>Whether the final message of the turn has already been sent through the send tool.</p>
      *
-     * @return true when no separate final reply is needed
+     * @return true when the final message has been sent
      */
-    boolean hasFinalSent();
+    boolean finalSent();
 
     /**
      * 向当前会话发送一条消息，可标记为本轮最终消息。

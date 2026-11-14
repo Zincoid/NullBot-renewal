@@ -5,10 +5,10 @@ import com.zincoid.nullbot.bot.spi.event.MsgEvent;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.port.BotClient;
 import com.zincoid.nullbot.module.ai.agent.ChatAgent;
-import com.zincoid.nullbot.module.ai.agent.AgentOptions;
+import com.zincoid.nullbot.module.ai.agent.ChatRes;
+import com.zincoid.nullbot.module.ai.agent.ChatOptions;
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
-import com.zincoid.nullbot.module.ai.model.ModelRes;
-import com.zincoid.nullbot.module.ai.model.TokenUsage;
+import com.zincoid.nullbot.module.ai.model.ModelUsage;
 import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -81,26 +80,26 @@ public class ChatPipeline {
             log.info("Injection blocked: chat={}", turn.chatId());
             return false;
         }
-        List<ContextPacket> context = new ArrayList<>();
-        context.addAll(ChatPrompt.context(
+        ChatOptions options = options(profile.effort());
+        List<ContextPacket> promptContext = ChatPrompt.context(
                 turn.event(), turn.source(), profile.prompt(),
-                configService.getString(Conf.AI_DEFAULT_PROMPT)));
-        context.addAll(ChatImages.context(
-                turn.client(), turn.event()));
-        AgentOptions options = options(profile.effort());
+                configService.getString(Conf.AI_DEFAULT_PROMPT));
+        List<ContextPacket> imageContext = ChatImages.context(
+                turn.client(), turn.event());
         ToolHost host = new ChatToolHost(turn, chatActions, chatCommands);
         ReentrantLock lock = getLock(turn.chatId());
         lock.lock();
         try {
-            ModelRes res = chatAgent.chat(turn.chatId())
+            ChatRes res = chatAgent.chat(turn.chatId())
                     .options(options)
-                    .context(context)
+                    .context(promptContext)
+                    .context(imageContext)
                     .tool(host)
                     .call();
-            record(turn, res.getUsage());
-            if (turn.hasFinalSent()) return true;
-            String content = ChatText.compact(res.getContent());
-            chatActions.deliver(turn, MsgContent.of(content), content, res.getReasoning(), true);
+            record(turn, res.usage());
+            if (res.finalSent()) return true;
+            String content = ChatText.compact(res.content());
+            chatActions.deliver(turn, MsgContent.of(content), content, res.reasoning());
         } finally {
             lock.unlock();
         }
@@ -116,8 +115,8 @@ public class ChatPipeline {
      * @param effort the reasoning effort
      * @return the agent options
      */
-    private AgentOptions options(Effort effort) {
-        return new AgentOptions(
+    private ChatOptions options(Effort effort) {
+        return new ChatOptions(
                 effort,
                 configService.getInt(Conf.AI_MAX_TOKENS),
                 configService.getInt(Conf.AI_MAX_TOOL_CALLS));
@@ -160,7 +159,7 @@ public class ChatPipeline {
      * @param turn  the turn data
      * @param usage the token usage, nullable
      */
-    private void record(ChatTurn turn, TokenUsage usage) {
+    private void record(ChatTurn turn, ModelUsage usage) {
         try {
             aiUsageService.increase(
                     turn.chatType(),

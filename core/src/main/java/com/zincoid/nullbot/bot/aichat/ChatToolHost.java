@@ -17,16 +17,20 @@ final class ChatToolHost implements ToolHost {
     private final ChatActions actions;
     private final ChatCommands commands;
 
+    private boolean finalSent;
+
     // ════ ToolHost ════════════════
 
     @Override
-    public boolean hasFinalSent() {
-        return turn.hasFinalSent();
+    public boolean finalSent() {
+        return finalSent;
     }
 
     @Override
     public ToolRes send(String text, List<Long> fileIds, String replyId, boolean last) {
-        return actions.send(turn, text, fileIds, replyId, last);
+        ToolRes res = actions.send(turn, text, fileIds, replyId);
+        if (last && !res.error()) finalSent = true;
+        return res;
     }
 
     @Override

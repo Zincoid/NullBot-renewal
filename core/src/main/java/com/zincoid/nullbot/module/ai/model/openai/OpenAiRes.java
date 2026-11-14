@@ -3,7 +3,7 @@ package com.zincoid.nullbot.module.ai.model.openai;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zincoid.nullbot.module.ai.AiException;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
-import com.zincoid.nullbot.module.ai.model.TokenUsage;
+import com.zincoid.nullbot.module.ai.model.ModelUsage;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
 
 import java.util.List;
@@ -42,16 +42,18 @@ public record OpenAiRes(List<Choice> choices, Usage usage) {
                 : choices.getFirst().message();
         if (msg == null)
             throw new AiException("AI no message");
-        TokenUsage tokens = usage == null
+        ModelUsage tokens = usage == null
                 ? null
-                : new TokenUsage(usage.promptTokens(), usage.completionTokens());
-        String content = msg.content() == null ? "" : msg.content();
-        String reasoning = msg.reasoning() == null ? "" : msg.reasoning();
+                : new ModelUsage(usage.promptTokens(), usage.completionTokens());
+        String content = msg.content() == null
+                ? "" : msg.content();
+        String reasoning = msg.reasoning() == null
+                ? "" : msg.reasoning();
         List<ToolCallNode> tcns = msg.tcns();
         if (tcns == null || tcns.isEmpty()) {
             if (content.isBlank() && !reasoning.isBlank())
                 throw new AiException("AI reasoning truncated");
-            return ModelRes.of(content, reasoning, tokens);
+            return ModelRes.text(content, reasoning, tokens);
         }
         List<ToolCall> tcs = tcns.stream()
                 .map(node -> new ToolCall(
@@ -60,6 +62,6 @@ public record OpenAiRes(List<Choice> choices, Usage usage) {
                         node.function().arguments()
                 ))
                 .toList();
-        return ModelRes.of(tcs, reasoning, tokens);
+        return ModelRes.tool(tcs, reasoning, tokens);
     }
 }

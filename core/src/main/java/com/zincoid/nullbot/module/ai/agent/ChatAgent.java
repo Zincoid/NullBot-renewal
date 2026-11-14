@@ -8,7 +8,7 @@ import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
-import com.zincoid.nullbot.module.ai.model.TokenUsage;
+import com.zincoid.nullbot.module.ai.model.ModelUsage;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
 import com.zincoid.nullbot.module.ai.tool.ToolHost;
@@ -29,6 +29,11 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ChatAgent {
+
+    private static final String TOOL_LIMIT_PROMPT = """
+            The maximum number of tool call rounds has been reached.
+            Please provide the final answer based on the available information.
+            Do not call any more tools!!!""";
 
     private final Memory memory;
     private final Model model;
@@ -56,14 +61,14 @@ public class ChatAgent {
 
         private final String chatId;
         private final List<ContextPacket> context = new ArrayList<>();
-        private AgentOptions options;
+        private ChatOptions options;
         private ToolHost host;
 
         private Call(String chatId) {
             this.chatId = chatId;
         }
 
-        public Call options(AgentOptions options) {
+        public Call options(ChatOptions options) {
             this.options = options;
             return this;
         }
@@ -78,7 +83,7 @@ public class ChatAgent {
             return this;
         }
 
-        public ModelRes call() {
+        public ChatRes call() {
             if (options == null) throw new AiException("Missing options");
             if (host == null) throw new AiException("Missing tool host");
             return ChatAgent.this.run(chatId, options, host, List.copyOf(context));
@@ -92,19 +97,19 @@ public class ChatAgent {
      * <p>Runs one conversation, entered from the fluent call.</p>
      *
      * @param chatId  the chat identifier whose history is loaded
-     * @param options the agent options
+     * @param options the chat options
      * @param host    the tool host
      * @param context the context packets of the conversation
-     * @return the final model response
+     * @return the conversation result
      */
-    private ModelRes run(String chatId, AgentOptions options, ToolHost host,
-                         List<ContextPacket> context) {
+    private ChatRes run(String chatId, ChatOptions options, ToolHost host,
+                        List<ContextPacket> context) {
         int maxTcs = options.maxToolCalls();
         List<AiMsg> history = memory.get(chatId);
         List<AiMsg> work = contextManager.build(history, context);
         if (maxTcs <= 0)
-            return conclude(work, options, null);
-        TokenUsage usage = null;
+            return ChatRes.unsent(conclude(work, options, null));
+        ModelUsage usage = null;
         for (int i = 0; i < maxTcs; i++) {
             ModelRes res = model.invoke(ModelReq.of(
                     work,
@@ -112,13 +117,14 @@ public class ChatAgent {
                     options.effort(),
                     options.maxTokens()
             ));
-            usage = TokenUsage.plus(usage, res.getUsage());
-            if (!res.hasTcs()) return requireContent(res).withUsage(usage);
-            log.info("Tool round {}: {} call(s)", i + 1, res.getTcs().size());
-            work.add(AiMsg.assistant(res.getTcs())
-                    .withReasoning(res.getReasoning()));
+            usage = ModelUsage.plus(usage, res.usage());
+            if (res.tcs().isEmpty())
+                return ChatRes.unsent(res.withUsage(usage));
+            log.info("Tool round {}: {} call(s)", i + 1, res.tcs().size());
+            work.add(AiMsg.assistant(res.tcs())
+                    .withReasoning(res.reasoning()));
             List<AiMsg> images = new ArrayList<>();
-            for (ToolCall tc : res.getTcs()) {
+            for (ToolCall tc : res.tcs()) {
                 ToolRes tr = runTool(tc, host);
                 String content = tr.error()
                         ? "Error: " + tr.text() : tr.text();
@@ -130,34 +136,24 @@ public class ChatAgent {
                         tr.images()
                 ));
             }
-            if (host.hasFinalSent()) {
+            if (host.finalSent()) {
                 log.info("Tool loop ended early: final message sent");
-                return ModelRes.stopped(usage);
+                return ChatRes.sent(usage);
             }
             work.addAll(images);
         }
         log.warn("Tool call limit reached: {}", maxTcs);
-        work.add(AiMsg.user("""
-                The maximum number of tool call rounds has been reached.
-                Please provide the final answer based on the available information.
-                Do not call any more tools!!!"""
-        ));
-        return conclude(work, options, usage);
+        work.add(AiMsg.user(TOOL_LIMIT_PROMPT));
+        return ChatRes.unsent(conclude(work, options, usage));
     }
 
     // ════ Helpers ═════════════════
 
-    private ModelRes conclude(List<AiMsg> work, AgentOptions options,
-                              TokenUsage usage) {
-        ModelRes res = requireContent(model.invoke(ModelReq.of(
-                work, options.effort(), options.maxTokens())));
-        return res.withUsage(TokenUsage.plus(usage, res.getUsage()));
-    }
-
-    private static ModelRes requireContent(ModelRes res) {
-        if (res.getContent() == null || res.getContent().isBlank())
-            throw new AiException("Empty AI response");
-        return res;
+    private ModelRes conclude(List<AiMsg> work, ChatOptions options,
+                              ModelUsage usage) {
+        ModelRes res = model.invoke(ModelReq.of(
+                work, options.effort(), options.maxTokens()));
+        return res.withUsage(ModelUsage.plus(usage, res.usage()));
     }
 
     private ToolRes runTool(ToolCall tc, ToolHost host) {

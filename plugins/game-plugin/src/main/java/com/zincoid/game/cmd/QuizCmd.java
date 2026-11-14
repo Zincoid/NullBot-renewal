@@ -104,7 +104,7 @@ public class QuizCmd implements Cmd {
             log.warn("Quiz generation failed: {}", e.getMessage());
             throw new CmdWarnException(GameText.QUIZ_GENERATE_FAILED.of(ctx.language()));
         }
-        String raw = res.getContent();
+        String raw = res.content();
         if (raw == null || raw.isBlank())
             throw new CmdWarnException(GameText.QUIZ_EMPTY_RESPONSE.of(ctx.language()));
         try {

@@ -53,7 +53,7 @@ public class Read implements Tool {
         if (attachments.isEmpty()) text.append("\nAttachments: none");
         else text.append("\nAttachments: ").append(String.join(
                 ", ", attachments.stream().map(String::valueOf).toList()));
-        return ToolRes.of(text.toString());
+        return ToolRes.success(text.toString());
     }
 
     private record Args(String id) {

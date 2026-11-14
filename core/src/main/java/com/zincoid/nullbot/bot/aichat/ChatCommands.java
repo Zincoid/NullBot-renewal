@@ -48,7 +48,7 @@ public class ChatCommands {
             return ToolRes.error("Command not available for this event");
         boolean checkAccess = configService.getBool(Conf.AI_CMD_ACCESS_CHECK);
         cmdDispatcher.dispatch(turn.client(), cmdEvent, new CmdRequest(name, params), checkAccess);
-        return ToolRes.of("Command executed: " + name);
+        return ToolRes.success("Command executed: " + name);
     }
 
     private static MsgEvent cmdEvent(ChatTurn turn) {

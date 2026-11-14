@@ -8,11 +8,9 @@ import com.zincoid.nullbot.platform.persistence.enums.AiSource;
 import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.util.ChatIds;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
- * 单轮对话的运行时数据：出站端口、会话标识、触发事件、触发来源与轮次状态。
- * <p>Per-turn conversation data: outbound port, chat identifiers, triggering event, trigger source, and turn state.</p>
+ * 单轮对话的运行时数据：出站端口、会话标识、触发事件与触发来源。
+ * <p>Per-turn conversation data: outbound port, chat identifiers, triggering event, and trigger source.</p>
  *
  * @param client   the outbound port
  * @param chatType the chat type
@@ -20,27 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param chatId   the composite chat id
  * @param event    the triggering event
  * @param source   the trigger source
- * @param state    the turn state
  */
 record ChatTurn(BotClient client, ChatType chatType, String targetId,
-                String chatId, BotEvent event, AiSource source, State state) {
-
-    /**
-     * 单轮对话状态：记录是否已通过发送工具发出最终消息。
-     * <p>Per-turn conversation state: records whether the final message has been sent through the send tool.</p>
-     */
-    static final class State {
-
-        private final AtomicBoolean finalSent = new AtomicBoolean();
-
-        boolean hasFinalSent() {
-            return finalSent.get();
-        }
-
-        void markFinalSent() {
-            finalSent.set(true);
-        }
-    }
+                String chatId, BotEvent event, AiSource source) {
 
     /**
      * 由触发事件与来源构建单轮数据。
@@ -54,29 +34,11 @@ record ChatTurn(BotClient client, ChatType chatType, String targetId,
     static ChatTurn of(BotClient client, BotEvent event, AiSource source) {
         return switch (event) {
             case GroupEvent e -> new ChatTurn(client, ChatType.GROUP, e.groupId(),
-                    ChatIds.ofGroup(e.groupId()), event, source, new State());
+                    ChatIds.ofGroup(e.groupId()), event, source);
             case PrivateEvent e -> new ChatTurn(client, ChatType.PRIVATE, e.userId(),
-                    ChatIds.ofPrivate(e.userId()), event, source, new State());
+                    ChatIds.ofPrivate(e.userId()), event, source);
             default -> throw new ChatException(
                     "Unsupported event: " + event.getClass().getSimpleName());
         };
-    }
-
-    /**
-     * 本轮是否已发出最终消息。
-     * <p>Returns whether the final message of the turn has been sent.</p>
-     *
-     * @return true when the final message has been sent
-     */
-    boolean hasFinalSent() {
-        return state.hasFinalSent();
-    }
-
-    /**
-     * 标记本轮已发出最终消息。
-     * <p>Marks the final message of the turn as sent.</p>
-     */
-    void markFinalSent() {
-        state.markFinalSent();
     }
 }

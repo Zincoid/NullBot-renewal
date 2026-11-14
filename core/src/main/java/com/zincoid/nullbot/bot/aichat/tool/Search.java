@@ -50,14 +50,14 @@ public class Search implements Tool {
         if (type == null) return ToolRes.error("Unknown type: " + _args.type);
         int limit = _args.limit == null ? DEFAULT_LIMIT : Math.clamp(_args.limit, 1, MAX_LIMIT);
         List<File> files = fileService.search(type, _args.keyword, limit);
-        if (files.isEmpty()) return ToolRes.of("No files found");
+        if (files.isEmpty()) return ToolRes.success("No files found");
         StringBuilder text = new StringBuilder("Files: ");
         for (File file : files) {
             text.append("\n- id=").append(file.getId())
                     .append(", name=").append(file.getOriginal())
                     .append(", description=").append(file.getDescription());
         }
-        return ToolRes.of(text.toString());
+        return ToolRes.success(text.toString());
     }
 
     private record Args(String type, String keyword, Integer limit) {

@@ -40,10 +40,9 @@ public class ChatActions {
      * @param text    the message text, may be blank when files are present
      * @param fileIds the collection file ids of media to attach
      * @param replyId the platform message id to quote, nullable
-     * @param last    whether this message completes the turn
      * @return the tool result
      */
-    ToolRes send(ChatTurn turn, String text, List<Long> fileIds, String replyId, boolean last) {
+    ToolRes send(ChatTurn turn, String text, List<Long> fileIds, String replyId) {
         MsgContent.Builder builder = MsgContent.builder();
         String compact = ChatText.compact(text);
         List<String> media = new ArrayList<>();
@@ -62,8 +61,8 @@ public class ChatActions {
             builder.reply(replyId);
         MsgContent message = builder.build();
         String content = annotate(compact, media);
-        String messageId = deliver(turn, message, content, null, last);
-        return ToolRes.of(messageId == null || messageId.isBlank()
+        String messageId = deliver(turn, message, content, null);
+        return ToolRes.success(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
     }
@@ -71,22 +70,19 @@ public class ChatActions {
     // ════ Deliver ═════════════════
 
     /**
-     * 发送已构建的消息，并按需标记最终消息与写入会话记忆。
-     * <p>Sends a built message, marking it as final and storing it in the chat memory when required.</p>
+     * 发送已构建的消息并写入会话记忆。
+     * <p>Sends a built message and stores it in the chat memory.</p>
      *
      * @param turn      the turn data
      * @param message   the outbound message
      * @param content   the text stored in memory
      * @param reasoning the reasoning content stored in memory, nullable
-     * @param last      whether this message completes the turn
      * @return the platform message id
      */
-    String deliver(ChatTurn turn, MsgContent message, String content,
-                   String reasoning, boolean last) {
+    String deliver(ChatTurn turn, MsgContent message, String content, String reasoning) {
         String messageId = turn.chatType() == ChatType.GROUP
                 ? turn.client().sendGroupMsg(turn.targetId(), message)
                 : turn.client().sendPrivateMsg(turn.targetId(), message);
-        if (last) turn.markFinalSent();
         if (messageId == null || messageId.isBlank()) {
             log.warn("Missing message id after send: chat={}", turn.chatId());
             return messageId;
@@ -110,7 +106,7 @@ public class ChatActions {
         if (messageId == null || messageId.isBlank())
             return ToolRes.error("Missing message id");
         turn.client().recall(messageId);
-        return ToolRes.of("Message recalled: " + messageId);
+        return ToolRes.success("Message recalled: " + messageId);
     }
 
     // ════ Mute ════════════════════
@@ -134,7 +130,7 @@ public class ChatActions {
         if (minutes < 0 || minutes > MAX_MUTE_MINUTES)
             return ToolRes.error("Invalid minutes: " + minutes);
         turn.client().mute(turn.targetId(), userId, minutes * 60);
-        return ToolRes.of(minutes == 0
+        return ToolRes.success(minutes == 0
                 ? "Unmuted: " + userId
                 : "Muted: " + userId + " for " + minutes + " minute(s)");
     }

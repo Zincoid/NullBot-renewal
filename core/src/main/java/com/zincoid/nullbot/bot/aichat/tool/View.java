@@ -75,7 +75,7 @@ public class View implements Tool {
         String data = ImageData.imageDataUri(reader.get());
         if (data.isBlank())
             return ToolRes.error("Not an image: " + original);
-        return ToolRes.of("Image attached: " + original, List.of(data));
+        return ToolRes.success("Image attached: " + original, List.of(data));
     }
 
     private record Args(Long file, Long attachment) {

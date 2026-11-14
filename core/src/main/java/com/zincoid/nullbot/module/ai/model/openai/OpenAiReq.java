@@ -12,7 +12,6 @@ import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import lombok.Builder;
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,43 +21,31 @@ import java.util.Map;
 /**
  * OpenAI 兼容的 Chat Completions 请求体。
  * <p>OpenAI-compatible Chat Completions request body.</p>
+ *
+ * @param model       the model name
+ * @param messages    the OpenAI message maps
+ * @param tools       the tool definitions, nullable
+ * @param stream      whether to stream the response
+ * @param temperature the sampling temperature
+ * @param effort      the reasoning effort, nullable
+ * @param maxTokens   the output token limit
  */
-@Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public final class OpenAiReq {
+public record OpenAiReq(String model, List<Map<String, Object>> messages,
+                        List<Tool> tools, boolean stream, double temperature,
+                        @JsonProperty("reasoning_effort") String effort,
+                        @JsonProperty("max_tokens") int maxTokens) {
 
-    /**
-     * 思考模型要求助手消息回传推理内容，缺失时使用的占位文本。
-     * <p>Placeholder used when an assistant message has no reasoning to replay to a thinking model.</p>
-     */
-    private static final String REASONING_FALLBACK = "(reasoning content unavailable)";
+    private static final String REASONING_FALLBACK = """
+            (reasoning content unavailable)""";
 
-    private String model;
-    private List<Map<String, Object>> messages;
-    private List<Tool> tools;
-    private boolean stream;
-    private double temperature;
-    @JsonProperty("reasoning_effort")
-    private String effort;
-    @JsonProperty("max_tokens")
-    private int maxTokens;
-
-    @Data
     @Builder
-    public static final class Tool {
-        private String type;
-        private Function function;
-    }
+    public record Tool(String type, Function function) {}
 
-    @Data
     @Builder
-    public static final class Function {
-        private String name;
-        private String description;
-        @JsonRawValue
-        private String parameters;
-    }
+    public record Function(String name, String description,
+                           @JsonRawValue String parameters) {}
 
     /**
      * 由模型请求构造 API 请求体。
@@ -71,14 +58,14 @@ public final class OpenAiReq {
     public static OpenAiReq from(ModelReq req, String modelName) {
         OpenAiReqBuilder builder = OpenAiReq.builder()
                 .model(modelName)
-                .messages(req.getMessages().stream().map(OpenAiReq::toMap).toList())
+                .messages(req.messages().stream().map(OpenAiReq::toMap).toList())
                 .stream(false)
                 .temperature(1.0)
-                .effort(req.getEffort() == null ? null : req.getEffort().getLabel())
-                .maxTokens(req.getMaxTokens());
+                .effort(req.effort() == null ? null : req.effort().getLabel())
+                .maxTokens(req.maxTokens());
 
-        List<ToolDefinition> toolDefinitions = req.getTools();
-        if (toolDefinitions != null && !toolDefinitions.isEmpty()) {
+        List<ToolDefinition> toolDefinitions = req.tools();
+        if (!toolDefinitions.isEmpty()) {
             List<Tool> tools = new ArrayList<>();
             for (ToolDefinition td : toolDefinitions) {
                 tools.add(Tool.builder()
@@ -113,13 +100,6 @@ public final class OpenAiReq {
         };
     }
 
-    /**
-     * 转换系统消息。
-     * <p>Converts a system message.</p>
-     *
-     * @param m the system message
-     * @return the OpenAI message map
-     */
     private static Map<String, Object> system(SystemMsg m) {
         Map<String, Object> map = new HashMap<>();
         map.put("role", "system");
@@ -127,13 +107,6 @@ public final class OpenAiReq {
         return map;
     }
 
-    /**
-     * 转换工具结果消息。
-     * <p>Converts a tool result message.</p>
-     *
-     * @param m the tool message
-     * @return the OpenAI message map
-     */
     private static Map<String, Object> tool(ToolMsg m) {
         Map<String, Object> map = new HashMap<>();
         map.put("role", "tool");
@@ -142,13 +115,6 @@ public final class OpenAiReq {
         return map;
     }
 
-    /**
-     * 转换用户消息。
-     * <p>Converts a user message.</p>
-     *
-     * @param m the user message
-     * @return the OpenAI message map
-     */
     private static Map<String, Object> user(UserMsg m) {
         Map<String, Object> map = new HashMap<>();
         map.put("role", "user");
@@ -177,13 +143,6 @@ public final class OpenAiReq {
         return map;
     }
 
-    /**
-     * 转换助手消息。
-     * <p>Converts an assistant message.</p>
-     *
-     * @param m the assistant message
-     * @return the OpenAI message map
-     */
     private static Map<String, Object> assistant(AssistantMsg m) {
         Map<String, Object> map = new HashMap<>();
         map.put("role", "assistant");

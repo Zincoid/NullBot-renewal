@@ -69,7 +69,7 @@ public class Web implements Tool {
             return ToolRes.error("Unsupported URL scheme, only http/https is allowed");
         try {
             String text = extractText(fetchPage(_args.url));
-            return ToolRes.of("Page content (%s):\n%s".formatted(_args.url, text));
+            return ToolRes.success("Page content (%s):\n%s".formatted(_args.url, text));
         } catch (Exception e) {
             log.warn("Web fetch failed: {}", e.getMessage());
             return ToolRes.error("Failed to fetch webpage: " + e.getMessage());

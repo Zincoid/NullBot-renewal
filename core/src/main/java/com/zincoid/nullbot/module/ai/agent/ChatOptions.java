@@ -11,9 +11,9 @@ import com.zincoid.nullbot.platform.persistence.enums.Effort;
  * @param maxTokens    maximum output tokens
  * @param maxToolCalls maximum tool call rounds
  */
-public record AgentOptions(Effort effort, int maxTokens, int maxToolCalls) {
+public record ChatOptions(Effort effort, int maxTokens, int maxToolCalls) {
 
-    public AgentOptions {
+    public ChatOptions {
         if (effort == null) throw new AiException("Missing key: effort");
         if (maxTokens <= 0) throw new AiException("Malformed value: " + maxTokens);
         if (maxToolCalls < 0) throw new AiException("Malformed value: " + maxToolCalls);

@@ -47,7 +47,7 @@ public class ChatGuard {
                     List.of(AiMsg.system(PROMPT), AiMsg.user(text)),
                     Effort.LOW,
                     MAX_TOKENS));
-            String content = res.getContent();
+            String content = res.content();
             return content != null && "YES".equalsIgnoreCase(content.trim());
         } catch (RuntimeException e) {
             log.warn("Injection check failed: {}", e.getMessage());

@@ -27,7 +27,7 @@ public class HelloTool implements Tool {
         String text = _args.text == null || _args.text.isBlank()
                 ? "Hello from the hello plugin."
                 : "Hello, " + _args.text + "!";
-        return ToolRes.of(text);
+        return ToolRes.success(text);
     }
 
     private record Args(String text) {
