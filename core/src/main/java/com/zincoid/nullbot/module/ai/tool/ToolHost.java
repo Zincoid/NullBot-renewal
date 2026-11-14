@@ -3,10 +3,10 @@ package com.zincoid.nullbot.module.ai.tool;
 import java.util.List;
 
 /**
- * 工具执行上下文：向当前会话发送消息与执行指令的能力。
- * <p>Tool execution context: the ability to send messages to the current chat and run commands.</p>
+ * 工具宿主：向当前会话发送消息、禁言、撤回与执行指令的宿主能力。
+ * <p>Tool host: the host capabilities to send messages, mute, recall, and run commands in the current chat.</p>
  */
-public interface ToolContext {
+public interface ToolHost {
 
     /**
      * 本轮是否已经通过发送工具发出最终消息。

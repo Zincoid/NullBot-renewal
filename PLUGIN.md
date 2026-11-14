@@ -206,27 +206,27 @@ public class DemoCmd implements Cmd {
     private final DemoService service;
 
     @Override
-    public void run(CmdContext ctx, GroupMsgEvent event, CmdArgs args) {
-        handle(ctx, args);
+    public void run(CmdContext host, GroupMsgEvent event, CmdArgs args) {
+        handle(host, args);
     }
 
     @Override
-    public void run(CmdContext ctx, PrivateMsgEvent event, CmdArgs args) {
-        handle(ctx, args);
+    public void run(CmdContext host, PrivateMsgEvent event, CmdArgs args) {
+        handle(host, args);
     }
 
-    private void handle(CmdContext ctx, CmdArgs args) {
+    private void handle(CmdContext host, CmdArgs args) {
         String keyword = args.rest("").trim();
         if (keyword.isEmpty())
-            throw new CmdWarnException(DemoText.MISSING_KEYWORD.of(ctx.language()));
+            throw new CmdWarnException(DemoText.MISSING_KEYWORD.of(host.language()));
         String result;
         try {
             result = service.query(keyword);
         } catch (DemoException e) {
             log.warn("Demo query failed: {}", keyword, e);
-            throw new CmdWarnException(DemoText.QUERY_FAILED.of(ctx.language()));
+            throw new CmdWarnException(DemoText.QUERY_FAILED.of(host.language()));
         }
-        ctx.send(result);
+        host.send(result);
     }
 
     @Override
@@ -269,25 +269,25 @@ String rest = args.rest("");       // 其余位置参数，空格连接
 
 `CmdContext` 提供：
 
-- `ctx.send(String)` / `ctx.send(Text, ...)` / `ctx.send(MsgContent)`：发送到指令来源会话；
-- `ctx.language()`：当前回复语言；
-- `ctx.client()`：`BotClient` 出站端口；`sendGroupFile(groupId, url, name)` / `sendPrivateFile(userId, url, name)` 发送群 / 私聊文件，需 `apiVersion() >= 6`；
-- `ctx.render(Text, ...)`：渲染 core 文案；
-- `ctx.warn(Text, ...)` / `ctx.info(Text, ...)`：构造本地化的告警 / 提示异常。
+- `host.send(String)` / `host.send(Text, ...)` / `host.send(MsgContent)`：发送到指令来源会话；
+- `host.language()`：当前回复语言；
+- `host.client()`：`BotClient` 出站端口；`sendGroupFile(groupId, url, name)` / `sendPrivateFile(userId, url, name)` 发送群 / 私聊文件，需 `apiVersion() >= 6`；
+- `host.render(Text, ...)`：渲染 core 文案；
+- `host.warn(Text, ...)` / `host.info(Text, ...)`：构造本地化的告警 / 提示异常。
 
 文件发送示例：
 
 ```java
 if (event instanceof GroupMsgEvent e)
-    ctx.client().sendGroupFile(e.groupId(), url, name);
+    host.client().sendGroupFile(e.groupId(), url, name);
 else
-    ctx.client().sendPrivateFile(event.userId(), url, name);
+    host.client().sendPrivateFile(event.userId(), url, name);
 ```
 
 消息内容用 `MsgContent.builder()` 组合：
 
 ```java
-ctx.send(MsgContent.builder()
+host.send(MsgContent.builder()
         .at(event.userId())
         .text("结果")
         .imageBase64(png)
@@ -329,7 +329,7 @@ public enum DemoText {
 - 插件自定义 `XxxException`：网络、解析、图片处理等领域边界；
 - 插件指令在边界处捕获自定义异常，记录日志并转换为本地化 `CmdWarnException`。
 
-执行成功的提示直接用 `ctx.send(...)` 后返回，不要为了发消息抛异常。
+执行成功的提示直接用 `host.send(...)` 后返回，不要为了发消息抛异常。
 
 不要用宽泛的 `catch (Exception)` 吞掉错误，也不要把插件内部技术异常直接暴露给用户。
 
@@ -348,7 +348,7 @@ public class DemoTool implements Tool {
     }
 
     @Override
-    public ToolRes run(ToolContext ctx, String args) {
+    public ToolRes run(ToolHost host, String args) {
         Args parsed = args == null || args.isBlank()
                 ? new Args(null)
                 : JsonUtils.parse(args, Args.class);
@@ -362,7 +362,7 @@ public class DemoTool implements Tool {
 }
 ```
 
-工具名必须全局唯一，建议使用 `<插件 ID>_<工具名>`。`ToolContext` 提供向当前会话发送消息、禁言、撤回和执行指令的能力；失败时返回 `ToolRes.error(...)`。`JsonUtils.parse` 解析失败会抛出 `PlatformException`，应在工具内捕获并转换为错误结果。工具会随插件停用或重载同步注销。
+工具名必须全局唯一，建议使用 `<插件 ID>_<工具名>`。`ToolHost` 提供向当前会话发送消息、禁言、撤回和执行指令的能力；失败时返回 `ToolRes.error(...)`。`JsonUtils.parse` 解析失败会抛出 `PlatformException`，应在工具内捕获并转换为错误结果。工具会随插件停用或重载同步注销。
 
 ## 图片渲染
 
@@ -386,7 +386,7 @@ public class DemoTool implements Tool {
 
 ```java
 byte[] png = context.renderer().template("demo.jte", Map.of("title", "Demo"));
-ctx.send(MsgContent.builder().imageBase64(png).build());
+host.send(MsgContent.builder().imageBase64(png).build());
 ```
 
 渲染失败会抛出 `RenderException`（运行时异常）；指令层应捕获并转换为本地化的 `CmdWarnException`，不要让技术异常直接暴露给用户。

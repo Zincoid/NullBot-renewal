@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.aichat.tool;
 
 import com.zincoid.nullbot.module.ai.tool.Tool;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.platform.util.JsonUtils;
@@ -31,14 +31,14 @@ public class Send implements Tool {
     }
 
     @Override
-    public ToolRes run(ToolContext ctx, String args) {
+    public ToolRes run(ToolHost host, String args) {
         Args _args = JsonUtils.parse(args, Args.class);
         String content = _args.content == null ? "" : _args.content;
         if (content.isBlank() && _args.file == null)
             return ToolRes.error("Missing content or file");
         List<Long> files = _args.file == null ? List.of() : List.of(_args.file);
         boolean last = Boolean.TRUE.equals(_args.last);
-        return ctx.send(content, files, _args.reply, last);
+        return host.send(content, files, _args.reply, last);
     }
 
     private record Args(String content, Long file, String reply, Boolean last) {

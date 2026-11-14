@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.aichat.tool;
 
 import com.zincoid.nullbot.module.ai.tool.Tool;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.platform.util.JsonUtils;
@@ -24,11 +24,11 @@ public class Recall implements Tool {
     }
 
     @Override
-    public ToolRes run(ToolContext ctx, String args) {
+    public ToolRes run(ToolHost host, String args) {
         Args _args = JsonUtils.parse(args, Args.class);
         if (_args.id == null || _args.id.isBlank())
             return ToolRes.error("Missing message id");
-        return ctx.recall(_args.id);
+        return host.recall(_args.id);
     }
 
     private record Args(String id) {

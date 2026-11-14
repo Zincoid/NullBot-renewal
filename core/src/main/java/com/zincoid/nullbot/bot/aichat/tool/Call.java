@@ -3,7 +3,7 @@ package com.zincoid.nullbot.bot.aichat.tool;
 import com.zincoid.nullbot.bot.cmd.Cmd;
 import com.zincoid.nullbot.bot.cmd.CmdRegistry;
 import com.zincoid.nullbot.module.ai.tool.Tool;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.platform.util.JsonUtils;
@@ -44,7 +44,7 @@ public class Call implements Tool {
     }
 
     @Override
-    public ToolRes run(ToolContext ctx, String json) {
+    public ToolRes run(ToolHost host, String json) {
         Args args = JsonUtils.parse(json, Args.class);
         Cmd cmd = registry.get(args.cmd);
         if (cmd == null || !cmd.isAiCallable())
@@ -52,7 +52,7 @@ public class Call implements Tool {
         List<String> params = args.args == null || args.args.isBlank()
                 ? List.of()
                 : List.of(args.args.trim().split("\\s+"));
-        return ctx.cmd(args.cmd, params);
+        return host.cmd(args.cmd, params);
     }
 
     private record Args(String cmd, String args) {

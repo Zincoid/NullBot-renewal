@@ -9,7 +9,7 @@ import com.zincoid.nullbot.module.ai.agent.AgentOptions;
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.TokenUsage;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
@@ -88,11 +88,15 @@ public class ChatPipeline {
         context.addAll(ChatImages.context(
                 turn.client(), turn.event()));
         AgentOptions options = options(profile.effort());
-        ToolContext ctx = new ChatToolContext(turn, chatActions, chatCommands);
+        ToolHost host = new ChatToolHost(turn, chatActions, chatCommands);
         ReentrantLock lock = getLock(turn.chatId());
         lock.lock();
         try {
-            ModelRes res = chatAgent.run(turn.chatId(), options, ctx, context);
+            ModelRes res = chatAgent.chat(turn.chatId())
+                    .options(options)
+                    .context(context)
+                    .tool(host)
+                    .call();
             record(turn, res.getUsage());
             if (turn.hasFinalSent()) return true;
             String content = ChatText.compact(res.getContent());

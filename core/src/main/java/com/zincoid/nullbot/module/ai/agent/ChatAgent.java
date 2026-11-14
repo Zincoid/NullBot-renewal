@@ -11,7 +11,7 @@ import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.TokenUsage;
 import com.zincoid.nullbot.module.ai.tool.Tool;
 import com.zincoid.nullbot.module.ai.tool.ToolCall;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import lombok.RequiredArgsConstructor;
@@ -35,20 +35,70 @@ public class ChatAgent {
     private final ToolRegistry toolRegistry;
     private final ContextManager contextManager;
 
+    // ════ Chat ════════════════════
+
+    /**
+     * 创建一次对话的链式调用。
+     * <p>Creates a fluent call for one conversation.</p>
+     *
+     * @param chatId the chat identifier whose history is loaded
+     * @return the fluent call
+     */
+    public Call chat(String chatId) {
+        return new Call(chatId);
+    }
+
+    /**
+     * 单次对话的链式调用：绑定参数后通过 {@link #call()} 执行。
+     * <p>Fluent call of one conversation: binds the arguments and runs through {@link #call()}.</p>
+     */
+    public final class Call {
+
+        private final String chatId;
+        private final List<ContextPacket> context = new ArrayList<>();
+        private AgentOptions options;
+        private ToolHost host;
+
+        private Call(String chatId) {
+            this.chatId = chatId;
+        }
+
+        public Call options(AgentOptions options) {
+            this.options = options;
+            return this;
+        }
+
+        public Call context(List<ContextPacket> packets) {
+            if (packets != null) context.addAll(packets);
+            return this;
+        }
+
+        public Call tool(ToolHost host) {
+            this.host = host;
+            return this;
+        }
+
+        public ModelRes call() {
+            if (options == null) throw new AiException("Missing options");
+            if (host == null) throw new AiException("Missing tool host");
+            return ChatAgent.this.run(chatId, options, host, List.copyOf(context));
+        }
+    }
+
     // ════ Run ═════════════════════
 
     /**
-     * 发起一次对话。
-     * <p>Runs one conversation.</p>
+     * 执行一次对话，由链式调用进入。
+     * <p>Runs one conversation, entered from the fluent call.</p>
      *
      * @param chatId  the chat identifier whose history is loaded
      * @param options the agent options
-     * @param ctx     the tool context
+     * @param host    the tool host
      * @param context the context packets of the conversation
      * @return the final model response
      */
-    public ModelRes run(String chatId, AgentOptions options, ToolContext ctx,
-                        List<ContextPacket> context) {
+    private ModelRes run(String chatId, AgentOptions options, ToolHost host,
+                         List<ContextPacket> context) {
         int maxTcs = options.maxToolCalls();
         List<AiMsg> history = memory.get(chatId);
         List<AiMsg> work = contextManager.build(history, context);
@@ -69,7 +119,7 @@ public class ChatAgent {
                     .withReasoning(res.getReasoning()));
             List<AiMsg> images = new ArrayList<>();
             for (ToolCall tc : res.getTcs()) {
-                ToolRes tr = runTool(tc, ctx);
+                ToolRes tr = runTool(tc, host);
                 String content = tr.error()
                         ? "Error: " + tr.text() : tr.text();
                 work.add(AiMsg.tool(tc.getId(), content));
@@ -80,7 +130,7 @@ public class ChatAgent {
                         tr.images()
                 ));
             }
-            if (ctx.hasFinalSent()) {
+            if (host.hasFinalSent()) {
                 log.info("Tool loop ended early: final message sent");
                 return ModelRes.stopped(usage);
             }
@@ -110,12 +160,12 @@ public class ChatAgent {
         return res;
     }
 
-    private ToolRes runTool(ToolCall tc, ToolContext ctx) {
+    private ToolRes runTool(ToolCall tc, ToolHost host) {
         Tool tool = toolRegistry.get(tc.getName());
         if (tool == null)
             return ToolRes.error("Tool not found");
         try {
-            ToolRes res = tool.run(ctx, tc.getArgs());
+            ToolRes res = tool.run(host, tc.getArgs());
             log.info("Tool success: {} -> {}", tc.getName(), summary(res));
             return res;
         } catch (Exception e) {

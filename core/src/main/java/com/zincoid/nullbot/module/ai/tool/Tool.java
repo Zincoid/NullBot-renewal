@@ -18,9 +18,9 @@ public interface Tool {
      * 执行工具。
      * <p>Runs the tool.</p>
      *
-     * @param ctx  the tool context
+     * @param host the tool host
      * @param args the raw JSON arguments
      * @return the tool result
      */
-    ToolRes run(ToolContext ctx, String args);
+    ToolRes run(ToolHost host, String args);
 }

@@ -1,7 +1,7 @@
 package com.zincoid.nullbot.bot.aichat.tool;
 
 import com.zincoid.nullbot.module.ai.tool.Tool;
-import com.zincoid.nullbot.module.ai.tool.ToolContext;
+import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.ai.tool.ToolDefinition;
 import com.zincoid.nullbot.module.ai.tool.ToolRes;
 import com.zincoid.nullbot.module.file.FileService;
@@ -40,7 +40,7 @@ public class View implements Tool {
     }
 
     @Override
-    public ToolRes run(ToolContext ctx, String args) {
+    public ToolRes run(ToolHost host, String args) {
         Args _args = JsonUtils.parse(args, Args.class);
         boolean hasFile = _args.file != null;
         boolean hasAttachment = _args.attachment != null;
