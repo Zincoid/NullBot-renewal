@@ -71,9 +71,9 @@ public record OpenAiReq(String model, List<Map<String, Object>> messages,
                 tools.add(Tool.builder()
                         .type("function")
                         .function(Function.builder()
-                                .name(td.getName())
-                                .description(td.getDescription())
-                                .parameters(td.getParameters().toString())
+                                .name(td.name())
+                                .description(td.description())
+                                .parameters(td.parameters().toString())
                                 .build())
                         .build());
             }
@@ -156,11 +156,11 @@ public record OpenAiReq(String model, List<Map<String, Object>> messages,
         if (!tcs.isEmpty())
             map.put("tool_calls", tcs.stream()
                     .map(tc -> Map.of(
-                            "id", tc.getId(),
+                            "id", tc.id(),
                             "type", "function",
                             "function", Map.of(
-                                    "name", tc.getName(),
-                                    "arguments", tc.getArgs())))
+                                    "name", tc.name(),
+                                    "arguments", tc.args())))
                     .toList());
         return map;
     }

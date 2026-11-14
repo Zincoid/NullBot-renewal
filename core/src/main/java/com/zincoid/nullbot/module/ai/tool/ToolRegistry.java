@@ -1,6 +1,7 @@
 package com.zincoid.nullbot.module.ai.tool;
 
 import com.zincoid.nullbot.module.ai.AiException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +26,9 @@ public class ToolRegistry {
 
     private static final Pattern NAME = Pattern.compile("[A-Za-z0-9_-]{1,64}");
 
-    private final Map<String, Tool> toolMap = new ConcurrentHashMap<>();
+    @Getter
+    private volatile List<ToolDefinition> definitions = List.of();
+    private final Map<String, Entry> toolMap = new ConcurrentHashMap<>();
 
     public ToolRegistry(List<Tool> tools) {
         if (!register(tools))
@@ -42,20 +45,8 @@ public class ToolRegistry {
      * @return the tool, or null when unknown
      */
     public Tool get(String name) {
-        return name == null ? null : toolMap.get(name);
-    }
-
-    /**
-     * 返回全部工具定义，按名称排序。
-     * <p>Returns all tool definitions, sorted by name.</p>
-     *
-     * @return the tool definitions
-     */
-    public List<ToolDefinition> getAll() {
-        return List.copyOf(toolMap.values()).stream()
-                .map(Tool::definition)
-                .sorted(Comparator.comparing(ToolDefinition::getName))
-                .toList();
+        Entry entry = name == null ? null : toolMap.get(name);
+        return entry == null ? null : entry.tool();
     }
 
     // ════ Register ════════════════
@@ -69,25 +60,27 @@ public class ToolRegistry {
      */
     public synchronized boolean register(Collection<Tool> tools) {
         if (tools == null || tools.isEmpty()) return true;
-        Map<String, Tool> pending = new LinkedHashMap<>();
+        Map<String, Entry> pending = new LinkedHashMap<>();
         for (Tool tool : tools) {
             if (tool == null) return false;
             ToolDefinition definition = tool.definition();
             if (definition == null) return false;
-            String name = definition.getName();
+            String name = definition.name();
             if (name == null || !NAME.matcher(name).matches()) {
                 log.warn("Invalid tool name: {} ({})", name, tool.getClass().getSimpleName());
                 return false;
             }
-            Tool registered = toolMap.get(name);
-            Tool queued = pending.get(name);
-            if ((registered != null && registered != tool) || (queued != null && queued != tool)) {
+            Entry registered = toolMap.get(name);
+            Entry queued = pending.get(name);
+            if ((registered != null && registered.tool() != tool)
+                    || (queued != null && queued.tool() != tool)) {
                 log.warn("Tool name conflict: {} ({})", name, tool.getClass().getSimpleName());
                 return false;
             }
-            pending.put(name, tool);
+            pending.put(name, new Entry(tool, definition));
         }
         toolMap.putAll(pending);
+        refresh();
         return true;
     }
 
@@ -101,6 +94,19 @@ public class ToolRegistry {
         if (tools == null || tools.isEmpty()) return;
         Set<Tool> targets = Collections.newSetFromMap(new IdentityHashMap<>());
         targets.addAll(tools);
-        toolMap.entrySet().removeIf(entry -> targets.contains(entry.getValue()));
+        if (toolMap.entrySet().removeIf(entry -> targets.contains(entry.getValue().tool())))
+            refresh();
+    }
+
+    // ════ Helpers ═════════════════
+
+    private void refresh() {
+        definitions = toolMap.values().stream()
+                .map(Entry::definition)
+                .sorted(Comparator.comparing(ToolDefinition::name))
+                .toList();
+    }
+
+    private record Entry(Tool tool, ToolDefinition definition) {
     }
 }

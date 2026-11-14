@@ -3,8 +3,6 @@ package com.zincoid.nullbot.module.ai.tool;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
@@ -16,19 +14,17 @@ import java.util.TreeSet;
 /**
  * 工具定义：名称、描述与 JSON Schema 参数。
  * <p>Tool definition: name, description, and JSON Schema parameters.</p>
+ *
+ * @param name        the tool name
+ * @param description the tool description
+ * @param parameters  the JSON Schema parameters
  */
-@Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class ToolDefinition {
+public record ToolDefinition(String name, String description, ObjectNode parameters) {
 
     private record ParamSpec(String name, String type, String description, Set<String> enumValues) {
     }
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    private final String name;
-    private final String description;
-    private final ObjectNode parameters;
 
     public static Builder builder(String name, String description) {
         return new Builder(name, description);

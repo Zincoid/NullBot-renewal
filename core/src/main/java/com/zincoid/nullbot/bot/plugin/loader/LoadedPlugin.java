@@ -73,7 +73,7 @@ record LoadedPlugin(
                 .distinct()
                 .toList();
         List<String> tools = tools().stream()
-                .map(tool -> tool.definition().getName())
+                .map(tool -> tool.definition().name())
                 .toList();
         return PluginStatus.loaded(jarName(), id, version, apiVersion, cmds, tools);
     }

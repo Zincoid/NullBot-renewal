@@ -113,7 +113,7 @@ public class ChatAgent {
         for (int i = 0; i < maxTcs; i++) {
             ModelRes res = model.invoke(ModelReq.of(
                     work,
-                    toolRegistry.getAll(),
+                    toolRegistry.getDefinitions(),
                     options.effort(),
                     options.maxTokens()
             ));
@@ -128,11 +128,11 @@ public class ChatAgent {
                 ToolRes tr = runTool(tc, host);
                 String content = tr.error()
                         ? "Error: " + tr.text() : tr.text();
-                work.add(AiMsg.tool(tc.getId(), content));
+                work.add(AiMsg.tool(tc.id(), content));
                 if (tr.images().isEmpty()) continue;
                 images.add(AiMsg.user(
                         null,
-                        "Image(s) from tool \"%s\"".formatted(tc.getName()),
+                        "Image(s) from tool \"%s\"".formatted(tc.name()),
                         tr.images()
                 ));
             }
@@ -157,12 +157,12 @@ public class ChatAgent {
     }
 
     private ToolRes runTool(ToolCall tc, ToolHost host) {
-        Tool tool = toolRegistry.get(tc.getName());
+        Tool tool = toolRegistry.get(tc.name());
         if (tool == null)
             return ToolRes.error("Tool not found");
         try {
-            ToolRes res = tool.run(host, tc.getArgs());
-            log.info("Tool success: {} -> {}", tc.getName(), summary(res));
+            ToolRes res = tool.run(host, tc.args());
+            log.info("Tool success: {} -> {}", tc.name(), summary(res));
             return res;
         } catch (Exception e) {
             log.warn("Tool error: {}", e.getMessage());
