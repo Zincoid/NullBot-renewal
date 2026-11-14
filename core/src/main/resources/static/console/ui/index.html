@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/logs.css">
     <link rel="stylesheet" href="css/plugin-data.css">
     <link rel="stylesheet" href="css/messages.css">
+    <link rel="stylesheet" href="css/memories.css">
     <script type="module" src="app.js"></script>
     <script src="digital-flow.js" defer></script>
 </head>
@@ -99,6 +100,14 @@
                 <path d="M3.5 4.75 8 8 12.5 4.75"/>
             </svg>
             <span data-i18n="nav.messages">消息</span>
+        </a>
+        <a href="#/memories" data-view="memories" data-i18n-title="nav.memories">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3.5h4.5A1.5 1.5 0 0 1 9 5v8H4.5A1.5 1.5 0 0 1 3 11.5z"/>
+                <path d="M13 3.5H8.5A1.5 1.5 0 0 0 7 5v8h4.5A1.5 1.5 0 0 0 13 11.5z"/>
+            </svg>
+            <span data-i18n="nav.memories">记忆</span>
         </a>
         <a href="#/quotes" data-view="quotes" data-i18n-title="nav.quotes">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -544,6 +553,60 @@
                         <span id="messages-send-label" data-i18n="messages.send">发送</span>
                     </button>
                 </form>
+            </section>
+        </div>
+    </section>
+
+    <!-- ═══ Memories ══════════════ -->
+    <section class="view view-fill" id="view-memories" hidden>
+        <div class="view-head">
+            <div class="page-header">
+                <h1 class="page-header__title"># <span data-i18n="view.memories">记忆</span><span class="cursor">_</span></h1>
+                <p class="page-header__subtitle" data-i18n="view.memories.sub">按会话查看与管理 AI 记忆</p>
+            </div>
+            <div class="view-actions">
+                <button id="memories-refresh" class="icon-only" data-i18n-title="common.refresh"
+                        data-i18n-aria-label="common.refresh" title="刷新" aria-label="刷新">
+                    <span class="icon-refresh" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+        <div class="memories-layout">
+            <aside class="memories-chats">
+                <div class="memories-chats__head">
+                    <div class="memories-switch" id="memories-chat-switch" data-active="group"
+                         role="group" data-i18n-aria-label="memories.chatKind" aria-label="会话类型">
+                        <span class="memories-switch__thumb" aria-hidden="true"></span>
+                        <button type="button" class="memories-switch__option active"
+                                data-chat-kind="group" aria-pressed="true">
+                            <span data-i18n="messages.kind.group">群聊</span>
+                            <span class="memories-switch__count" id="memories-group-count">0</span>
+                        </button>
+                        <button type="button" class="memories-switch__option"
+                                data-chat-kind="private" aria-pressed="false">
+                            <span data-i18n="messages.kind.private">私聊</span>
+                            <span class="memories-switch__count" id="memories-private-count">0</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="memories-chats__list" id="memories-chat-list"></div>
+            </aside>
+            <section class="memories-panel">
+                <header class="memories-panel__head" id="memories-head" hidden>
+                    <div class="memories-panel__title">
+                        <div class="memories-panel__name">
+                            <span id="memories-chat-kind" class="memories-kind"></span>
+                            <h2 id="memories-chat-name"></h2>
+                        </div>
+                        <div class="memories-panel__sub">
+                            <span id="memories-chat-meta" class="muted"></span>
+                        </div>
+                    </div>
+                    <div class="memories-panel__actions">
+                        <code class="memories-panel__chat-id"><span id="memories-chat-id"></span></code>
+                    </div>
+                </header>
+                <div class="memories-list" id="memories-list"></div>
             </section>
         </div>
     </section>

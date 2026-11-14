@@ -20,6 +20,11 @@ import {
     loadMessages,
     onLocaleChange as onMessagesLocaleChange
 } from './views/messages.js';
+import {
+    bind as bindMemories,
+    loadMemories,
+    onLocaleChange as onMemoriesLocaleChange
+} from './views/memories.js';
 import {bind as bindQuotes, loadQuotes} from './views/quotes.js';
 import {bind as bindPlugins, loadPlugins} from './views/plugins.js';
 import {bind as bindPluginData, onLocaleChange as onPluginDataLocaleChange} from './views/plugin-data.js';
@@ -64,6 +69,7 @@ function main() {
         files: loadFiles,
         accounts: loadAccounts,
         messages: loadMessages,
+        memories: loadMemories,
         quotes: loadQuotes,
         plugins: loadPlugins
     };
@@ -152,6 +158,7 @@ function main() {
         bindFiles();
         bindAccounts();
         bindMessages();
+        bindMemories();
         bindQuotes();
         bindPlugins();
         bindPluginData();
@@ -209,6 +216,7 @@ function main() {
         onFilesLocaleChange();
         onAccountsLocaleChange();
         onMessagesLocaleChange();
+        onMemoriesLocaleChange();
         onPluginDataLocaleChange();
         onLogsLocaleChange();
         renderView();

@@ -2,6 +2,7 @@ package com.zincoid.nullbot.module.memory;
 
 import com.zincoid.nullbot.platform.persistence.po.Memory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -51,6 +52,15 @@ public interface MemoryService {
     List<Memory> latestSemantic(String chatId, int limit);
 
     /**
+     * 读取会话的语义记忆，最多返回 500 条，供控制台管理页使用。
+     * <p>Reads the semantic memories of the chat, returning at most 500 records for the console page.</p>
+     *
+     * @param chatId chat identifier
+     * @return the memories, newest first
+     */
+    List<Memory> listSemantic(String chatId);
+
+    /**
      * 在语义记忆中按关键词搜索。
      * <p>Searches semantic memories by keyword.</p>
      *
@@ -88,4 +98,26 @@ public interface MemoryService {
      * @param chatId chat identifier
      */
     void clearSemantic(String chatId);
+
+    // ════ Chats ═══════════════════
+
+    /**
+     * 列出有记忆的会话，按最近记忆创建时间倒序。
+     * <p>Lists chats that have memories, newest memory creation first.</p>
+     *
+     * @return the chat summaries
+     */
+    List<ChatSummary> chats();
+
+    /**
+     * 会话记忆摘要：会话标识、情景摘要数、长期事实数与最近创建时间。
+     * <p>Chat memory summary: chat identifier, episodic count, semantic count, and latest creation time.</p>
+     *
+     * @param chatId   the composite chat id
+     * @param episodic the episodic record count
+     * @param semantic the semantic record count
+     * @param lastAt   the latest memory creation time
+     */
+    record ChatSummary(String chatId, long episodic, long semantic, LocalDateTime lastAt) {
+    }
 }

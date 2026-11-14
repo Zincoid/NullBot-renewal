@@ -20,6 +20,7 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
 
     private static final int MAX_SEMANTIC_CONTENT = 512;
     private static final int MAX_SEMANTIC_LIMIT = 64;
+    private static final int CONSOLE_SEMANTIC_LIMIT = 500;
 
     // ════ Episodic ════════════════
 
@@ -86,6 +87,18 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
     }
 
     @Override
+    public List<Memory> listSemantic(String chatId) {
+        requireChatId(chatId);
+        return lambdaQuery()
+                .eq(Memory::getChatId, chatId)
+                .eq(Memory::getType, MemoryType.SEMANTIC)
+                .orderByDesc(Memory::getCreatedAt)
+                .orderByDesc(Memory::getId)
+                .last("LIMIT " + CONSOLE_SEMANTIC_LIMIT)
+                .list();
+    }
+
+    @Override
     public List<Memory> searchSemantic(String chatId, String keyword, int limit) {
         requireChatId(chatId);
         if (keyword == null || keyword.isBlank())
@@ -146,7 +159,24 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
         clearByType(chatId, MemoryType.SEMANTIC);
     }
 
+    // ════ Chats ═══════════════════
+
+    @Override
+    public List<ChatSummary> chats() {
+        return baseMapper.chats().stream()
+                .map(row -> new ChatSummary(
+                        row.getChatId(),
+                        count(row.getEpisodic()),
+                        count(row.getSemantic()),
+                        row.getLastAt()))
+                .toList();
+    }
+
     // ════ Helpers ═════════════════
+
+    private static long count(Long value) {
+        return value == null ? 0 : value;
+    }
 
     private void clearByType(String chatId, MemoryType type) {
         requireChatId(chatId);
