@@ -19,7 +19,8 @@ public class Send implements Tool {
     @Override
     public ToolDefinition definition() {
         return ToolDefinition.builder("send", """
-                        Sends an additional message to the current chat before the final reply; you may call it multiple times.
+                        Sends exactly one chat bubble to the current chat; call it multiple times for multiple messages.
+                        Never put line breaks between separate chat messages in one call.
                         Set last=true when this message completes your answer; no separate final reply will be sent.
                         Set file to attach a collection image, video, or audio by file id from the search tool.""")
                 .addString("content", "message text, optional when file is set")

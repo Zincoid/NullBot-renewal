@@ -85,7 +85,8 @@ public class ChatPipeline {
         context.addAll(ChatPrompt.context(
                 turn.event(), turn.source(), profile.prompt(),
                 configService.getString(Conf.AI_DEFAULT_PROMPT)));
-        context.addAll(ChatImages.context(turn.client(), turn.event()));
+        context.addAll(ChatImages.context(
+                turn.client(), turn.event()));
         AgentOptions options = options(profile.effort());
         ToolContext ctx = new ChatToolContext(turn, chatActions, chatCommands);
         ReentrantLock lock = getLock(turn.chatId());

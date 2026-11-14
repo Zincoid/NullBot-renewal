@@ -34,9 +34,10 @@ final class ChatPrompt {
             - "search" finds collection files; "send" takes file=<id> to send one.
             
             Rules:
-            - Call "send" as many times as needed for separate messages or media.
-            - In normal conversation, use one send per chat bubble.
-            - Use a line break only when the content genuinely needs it (for example code), and never output blank lines.
+            - Each "send" call is exactly one chat bubble; call it multiple times for multiple bubbles.
+            - A bubble may contain multiple sentences; do not use line breaks to separate chat sentences.
+            - Use line breaks only inside fenced code blocks.
+            - Never output blank lines.
             - Set last=true on the send that completes your answer; no separate final reply is then sent.
             - If no send has last=true, give a final reply without repeating what you already sent.
             - The trigger note identifies the message to respond to and how the turn was triggered.
