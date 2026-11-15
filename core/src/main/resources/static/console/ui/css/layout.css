@@ -246,8 +246,8 @@
 }
 
 .nav a[data-view="config"] {
-    --nav-accent: #6b21a8;
-    --nav-accent-bg: rgba(107, 33, 168, 0.12);
+    --nav-accent: #475569;
+    --nav-accent-bg: rgba(71, 85, 105, 0.12);
 }
 
 .nav a[data-view="files"] {

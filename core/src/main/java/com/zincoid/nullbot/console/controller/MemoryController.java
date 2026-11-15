@@ -50,8 +50,8 @@ public class MemoryController {
     // ════ Chats ═══════════════════
 
     /**
-     * 列出有记忆的会话，按最近记忆创建时间倒序。
-     * <p>Lists chats that have memories, newest memory creation first.</p>
+     * 列出有记忆的会话，按最近记忆更新时间倒序。
+     * <p>Lists chats that have memories, newest memory update first.</p>
      *
      * @return the memory chat views
      */

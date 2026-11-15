@@ -109,8 +109,7 @@ public class ChatAgent {
     private ChatRes run(String chatId, ChatOptions options, ToolHost host,
                         List<ContextPacket> context) {
         int maxTcs = options.maxToolCalls();
-        episodicMemory.compactIfNeeded(chatId);
-        List<AiMsg> history = workingMemory.get(chatId);
+        List<AiMsg> history = workingMemory.read(chatId);
         List<ContextPacket> packets = new ArrayList<>(context);
         packets.addAll(episodicMemory.context(chatId));
         packets.addAll(semanticMemory.context(chatId));

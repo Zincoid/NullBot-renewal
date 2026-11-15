@@ -23,8 +23,8 @@ public interface MemoryService {
     Memory getEpisodic(String chatId);
 
     /**
-     * 保存会话的情景摘要，已有摘要时覆盖内容并保留创建时间。
-     * <p>Saves the episodic summary of the chat, overwriting the content and keeping the creation time when a summary exists.</p>
+     * 保存会话的情景摘要，已有摘要时覆盖内容、保留创建时间并刷新更新时间。
+     * <p>Saves the episodic summary of the chat, overwriting the content, keeping the creation time, and refreshing the update time when a summary exists.</p>
      *
      * @param chatId  chat identifier
      * @param content the summary content
@@ -102,21 +102,21 @@ public interface MemoryService {
     // ════ Chats ═══════════════════
 
     /**
-     * 列出有记忆的会话，按最近记忆创建时间倒序。
-     * <p>Lists chats that have memories, newest memory creation first.</p>
+     * 列出有记忆的会话，按最近记忆更新时间倒序。
+     * <p>Lists chats that have memories, newest memory update first.</p>
      *
      * @return the chat summaries
      */
     List<ChatSummary> chats();
 
     /**
-     * 会话记忆摘要：会话标识、情景摘要数、长期事实数与最近创建时间。
-     * <p>Chat memory summary: chat identifier, episodic count, semantic count, and latest creation time.</p>
+     * 会话记忆摘要：会话标识、情景摘要数、长期事实数与最近更新时间。
+     * <p>Chat memory summary: chat identifier, episodic count, semantic count, and latest update time.</p>
      *
      * @param chatId   the composite chat id
      * @param episodic the episodic record count
      * @param semantic the semantic record count
-     * @param lastAt   the latest memory creation time
+     * @param lastAt   the latest memory update time
      */
     record ChatSummary(String chatId, long episodic, long semantic, LocalDateTime lastAt) {
     }

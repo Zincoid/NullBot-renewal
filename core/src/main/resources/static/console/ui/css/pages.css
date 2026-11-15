@@ -304,8 +304,8 @@
 }
 
 [data-theme="dark"] .nav a[data-view="config"] {
-    --nav-accent: #c084fc;
-    --nav-accent-bg: rgba(192, 132, 252, 0.14);
+    --nav-accent: #94a3b8;
+    --nav-accent-bg: rgba(148, 163, 184, 0.14);
 }
 
 [data-theme="dark"] .nav a[data-view="files"] {

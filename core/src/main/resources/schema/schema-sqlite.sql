@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `message` (
     `chat_id`       VARCHAR(64)     NOT NULL,
     `user_id`       VARCHAR(64)     NOT NULL,
     `role`          TINYINT         NOT NULL DEFAULT 0,
+    `status`        TINYINT         NOT NULL DEFAULT 0,    -- 0=UNREAD, 1=READ, 2=COMPACTED
     `nickname`      VARCHAR(255)    NOT NULL,
     `content`       TEXT            DEFAULT NULL,
     `reasoning`     TEXT            DEFAULT NULL,
@@ -120,7 +121,8 @@ CREATE TABLE IF NOT EXISTS `memory` (
     `chat_id`       VARCHAR(64) NOT NULL,
     `type`          TINYINT     NOT NULL,              -- 0 = episodic, 1 = semantic
     `content`       TEXT        NOT NULL,
-    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    `created_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS `idx_memory_chat_type` ON `memory` (`chat_id`, `type`);
 

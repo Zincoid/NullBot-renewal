@@ -12,8 +12,8 @@ import java.util.List;
 public interface MemoryMapper extends BaseMapper<Memory> {
 
     /**
-     * 按会话汇总记忆数量与最近创建时间。
-     * <p>Summarizes memory counts and the latest creation time per chat.</p>
+     * 按会话汇总记忆数量与最近更新时间。
+     * <p>Summarizes memory counts and the latest update time per chat.</p>
      *
      * @return the memory chat rows, newest first
      */
@@ -21,10 +21,10 @@ public interface MemoryMapper extends BaseMapper<Memory> {
             SELECT `chat_id` AS `chatId`,
                    COUNT(CASE WHEN `type` = 0 THEN 1 END) AS `episodic`,
                    COUNT(CASE WHEN `type` = 1 THEN 1 END) AS `semantic`,
-                   MAX(`created_at`) AS `lastAt`
+                   MAX(COALESCE(`updated_at`, `created_at`)) AS `lastAt`
             FROM `memory`
             GROUP BY `chat_id`
-            ORDER BY MAX(`created_at`) DESC, `chat_id` ASC
+            ORDER BY MAX(COALESCE(`updated_at`, `created_at`)) DESC, `chat_id` ASC
             """)
     List<MemoryChatRow> chats();
 }

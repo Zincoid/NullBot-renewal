@@ -24,4 +24,5 @@ public class Memory {
     private MemoryType type;
     private String content;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

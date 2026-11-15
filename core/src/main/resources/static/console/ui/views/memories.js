@@ -61,6 +61,13 @@ function filteredFacts() {
     return facts.filter(fact => String(fact.content || '').toLowerCase().includes(keyword));
 }
 
+function memoryTime(memory) {
+    const created = formatTime(memory.createdAt);
+    const updated = formatTime(memory.updatedAt);
+    return updated !== '-' && updated !== created
+        ? `${created} – ${updated}` : created;
+}
+
 // ═══ Render ═══════════════════════
 
 function renderChats() {
@@ -95,24 +102,30 @@ function renderChats() {
         const secondary = name === chat.chatId ? '' : chat.chatId;
         const badges = [];
         if (Number(chat.episodic) > 0) {
-            badges.push(`<span class="memories-badge memories-badge--episodic"
+            badges.push(`<span class="memories-badge"
                     title="${escapeHtml(t('memories.episodic'))}">${escapeHtml(t('memories.episodicShort'))}</span>`);
         }
         if (Number(chat.semantic) > 0) {
             badges.push(`<span class="memories-badge"
-                    title="${escapeHtml(t('memories.semanticCount', {n: chat.semantic}))}">${escapeHtml(String(chat.semantic))}</span>`);
+                    title="${escapeHtml(t('memories.semanticCount', {n: chat.semantic}))}">${escapeHtml(t('memories.semanticCount', {n: chat.semantic}))}</span>`);
         }
+        const badgeHtml = badges.length
+            ? `<span class="memories-chat__badges">${badges.join('')}</span>`
+            : '';
+        const timeHtml = chat.lastAt
+            ? `<time class="memories-chat__time">${escapeHtml(formatTime(chat.lastAt))}</time>`
+            : '';
+        const sideHtml = badgeHtml || timeHtml
+            ? `<span class="memories-chat__side">${badgeHtml}${timeHtml}</span>`
+            : '';
         return `
             <button type="button" class="memories-chat${active ? ' active' : ''}"
                     data-chat-id="${escapeHtml(chat.chatId)}" aria-pressed="${active}">
                 <span class="memories-chat__main">
                     <span class="memories-chat__name">${escapeHtml(name)}</span>
                     ${secondary ? `<span class="memories-chat__id">${escapeHtml(secondary)}</span>` : ''}
-                    <span class="memories-chat__badges">${badges.join('')}</span>
                 </span>
-                <span class="memories-chat__side">
-                    <span class="memories-chat__time">${escapeHtml(formatTime(chat.lastAt))}</span>
-                </span>
+                ${sideHtml}
             </button>`;
     }).join('');
 }
@@ -151,7 +164,7 @@ function renderFacts() {
         <article class="memories-fact">
             <div class="memories-fact__head">
                 <span class="memories-fact__id">#${escapeHtml(String(fact.id))}</span>
-                <time class="memories-fact__time">${escapeHtml(formatTime(fact.createdAt))}</time>
+                <time class="memories-fact__time">${escapeHtml(memoryTime(fact))}</time>
                 <button type="button" class="small danger btn-delete"
                         data-action="delete-semantic" data-id="${escapeHtml(String(fact.id))}">
                     ${escapeHtml(t('common.delete'))}
@@ -190,7 +203,7 @@ function renderDetail() {
         ? `<section class="memories-block memories-block--episodic">
                <header class="memories-block__head">
                    <h3>${escapeHtml(t('memories.episodic'))}</h3>
-                   <time>${escapeHtml(formatTime(episodic.createdAt))}</time>
+                   <time>${escapeHtml(memoryTime(episodic))}</time>
                    <button type="button" class="small danger btn-delete"
                            data-action="delete-episodic">${escapeHtml(t('common.delete'))}</button>
                </header>
@@ -215,7 +228,7 @@ function renderDetail() {
                            placeholder="${escapeHtml(t('memories.searchPlaceholder'))}"
                            aria-label="${escapeHtml(t('memories.searchPlaceholder'))}"
                            ${total ? '' : 'disabled'}>
-                    <button type="button" class="small danger"
+                    <button type="button" class="small"
                             data-action="clear-semantic" ${total ? '' : 'disabled'}>
                         ${escapeHtml(t('memories.clear'))}
                     </button>

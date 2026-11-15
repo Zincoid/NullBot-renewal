@@ -5,6 +5,7 @@ import com.zincoid.nullbot.module.ai.memory.WorkingMemory;
 import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.message.AssistantMsg;
 import com.zincoid.nullbot.module.ai.message.UserMsg;
+import com.zincoid.nullbot.module.message.MessageLocks;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
@@ -13,30 +14,41 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 基于消息记录的工作记忆：历史复用 message 表，按 role 区分用户与助手。
- * <p>Working memory over message records: history reuses the message table, with role distinguishing user and assistant.</p>
+ * 基于消息记录的工作记忆：读取尚未压缩的消息并标记为已读，保存新的会话消息。
+ * <p>Working memory over message records: reads uncompacted messages, marks them as read, and saves new conversation messages.</p>
  */
 @Component
 @RequiredArgsConstructor
 public class MessageWindowMemory implements WorkingMemory {
 
     private final MessageService messageService;
+    private final MessageLocks messageLocks;
 
-    // ════ Get ═════════════════════
+    // ════ Read ════════════════════
 
     @Override
-    public List<AiMsg> get(String chatId) {
-        return messageService.window(chatId).stream()
-                .map(this::toAiMsg)
-                .toList();
+    public List<AiMsg> read(String chatId) {
+        ReentrantLock lock = messageLocks.get(chatId);
+        lock.lock();
+        try {
+            List<Message> messages = messageService.getUncompacted(chatId);
+            if (!messages.isEmpty())
+                messageService.markRead(messages.stream().map(Message::getId).toList());
+            return messages.stream()
+                    .map(this::toAiMsg)
+                    .toList();
+        } finally {
+            lock.unlock();
+        }
     }
 
-    // ════ Add ═════════════════════
+    // ════ Save ════════════════════
 
     @Override
-    public void add(String chatId, String messageId, String userId, String nickname,
+    public void save(String chatId, String messageId, String userId, String nickname,
                     AiMsg message) {
         if (message == null) throw new AiException("Missing key: message");
         Message.MessageBuilder builder = Message.builder()

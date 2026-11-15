@@ -87,7 +87,7 @@ public class ChatActions {
             log.warn("Missing message id after send: chat={}", turn.chatId());
             return messageId;
         }
-        workingMemory.add(turn.chatId(), messageId, turn.event().selfId(), SELF_NAME,
+        workingMemory.save(turn.chatId(), messageId, turn.event().selfId(), SELF_NAME,
                 AiMsg.assistant(content).withReasoning(reasoning));
         return messageId;
     }

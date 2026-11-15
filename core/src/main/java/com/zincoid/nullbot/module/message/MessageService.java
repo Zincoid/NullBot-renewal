@@ -8,16 +8,16 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 聊天消息记录服务：负责消息落库、会话窗口与历史清理。
- * <p>Chat message record service: message persistence, chat window, and history cleanup.</p>
+ * 聊天消息记录服务：负责消息落库、读取状态、会话窗口与历史清理。
+ * <p>Chat message record service: message persistence, read status, chat window, and history cleanup.</p>
  */
 public interface MessageService extends IService<Message> {
 
     // ════ Append ══════════════════
 
     /**
-     * 追加一条消息，并将会话窗口修剪至配置长度。
-     * <p>Appends a message and trims the chat window to the configured size.</p>
+     * 追加一条消息，并将会话窗口修剪至配置长度，未压缩的已读消息会保留。
+     * <p>Appends a message and trims the chat window to the configured size, retaining uncompacted read messages.</p>
      *
      * @param message the message to append
      * @return the persisted record
@@ -43,15 +43,41 @@ public interface MessageService extends IService<Message> {
      */
     List<Message> window(String chatId);
 
+    // ════ Status ══════════════════
+
     /**
-     * 返回超出窗口的旧消息，按时间正序。
-     * <p>Returns the old messages beyond the window in chronological order.</p>
+     * 返回会话中等待压缩的已读消息，按时间正序。
+     * <p>Returns the read messages awaiting compaction in chronological order.</p>
      *
      * @param chatId chat identifier
-     * @param window the window size to keep
-     * @return the overflow messages, oldest first; empty when nothing overflows
+     * @return the read messages, oldest first
      */
-    List<Message> overflow(String chatId, int window);
+    List<Message> getRead(String chatId);
+
+    /**
+     * 返回会话中尚未压缩的消息，按时间正序。
+     * <p>Returns the uncompacted messages of the chat in chronological order.</p>
+     *
+     * @param chatId chat identifier
+     * @return the uncompacted messages, oldest first
+     */
+    List<Message> getUncompacted(String chatId);
+
+    /**
+     * 将未读消息标记为已读，已压缩的消息不变。
+     * <p>Marks unread messages as read; compacted messages are unchanged.</p>
+     *
+     * @param ids the message ids
+     */
+    void markRead(Collection<String> ids);
+
+    /**
+     * 将已读消息标记为已压缩，未读的消息不变。
+     * <p>Marks read messages as compacted; unread messages are unchanged.</p>
+     *
+     * @param ids the message ids
+     */
+    void markCompacted(Collection<String> ids);
 
     // ════ Chats ═══════════════════
 

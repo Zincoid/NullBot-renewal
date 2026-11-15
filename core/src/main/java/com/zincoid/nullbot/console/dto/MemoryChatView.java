@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * @param type     the chat type label
  * @param episodic the episodic record count
  * @param semantic the semantic record count
- * @param lastAt   the latest memory creation time
+ * @param lastAt   the latest memory update time
  */
 public record MemoryChatView(
         String chatId,

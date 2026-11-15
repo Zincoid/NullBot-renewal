@@ -7,7 +7,9 @@ import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
+import com.zincoid.nullbot.module.message.MessageLocks;
 import com.zincoid.nullbot.module.message.MessageService;
+import com.zincoid.nullbot.module.message.MessageTrimBlockedEvent;
 import com.zincoid.nullbot.module.memory.MemoryService;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
@@ -16,14 +18,16 @@ import com.zincoid.nullbot.platform.persistence.po.Message;
 import com.zincoid.nullbot.platform.util.UserLabels;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 滚动摘要情景记忆：溢出窗口的旧消息经模型压缩为一条滚动摘要。
- * <p>Rolling-summary episodic memory: old messages beyond the window are compacted by the model into one rolling summary.</p>
+ * 滚动摘要情景记忆：待压缩的已读消息经模型压缩为一条滚动摘要。
+ * <p>Rolling-summary episodic memory: pending read messages are compacted by the model into one rolling summary.</p>
  */
 @Slf4j
 @Component
@@ -45,6 +49,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
     private final MessageService messageService;
     private final MemoryService memoryService;
     private final Model model;
+    private final MessageLocks messageLocks;
 
     // ════ Context ═════════════════
 
@@ -63,14 +68,28 @@ public class RollingSummaryMemory implements EpisodicMemory {
 
     // ════ Compact ═════════════════
 
+    /**
+     * 窗口修剪因已读消息停止时，压缩最老的一半待处理消息。
+     * <p>Compacts the oldest half of pending messages when trimming stops at a read message.</p>
+     *
+     * @param event the trim blocked event
+     */
+    @EventListener
+    public void onTrimBlocked(MessageTrimBlockedEvent event) {
+        compact(event.chatId());
+    }
+
     @Override
-    public void compactIfNeeded(String chatId) {
+    public void compact(String chatId) {
+        ReentrantLock lock = messageLocks.get(chatId);
+        lock.lock();
         try {
-            int window = messageService.windowSize();
-            List<Message> overflow = messageService.overflow(chatId, window);
-            if (overflow.size() < Math.max(1, window / 2)) return;
+            List<Message> read = messageService.getRead(chatId);
+            if (read.isEmpty()) return;
+            int keep = Math.max(1, read.size() / 2);
+            List<Message> half = read.subList(0, keep);
             Memory previous = memoryService.getEpisodic(chatId);
-            Batch batch = input(previous, overflow);
+            Batch batch = input(previous, half);
             if (batch.messages().isEmpty()) return;
             ModelRes res = model.invoke(ModelReq.of(
                     List.of(AiMsg.system(COMPACT_PROMPT),
@@ -85,11 +104,15 @@ public class RollingSummaryMemory implements EpisodicMemory {
             }
             String truncated = truncate(content, COMPACT_OUTPUT_MAX_LENGTH);
             memoryService.putEpisodic(chatId, truncated);
-            messageService.remove(batch.messages().stream().map(Message::getId).toList());
-            log.info("Episodic memory compacted: chat={}, messages={}", chatId,
-                    batch.messages().size());
+            messageService.markCompacted(batch.messages().stream()
+                    .map(Message::getId)
+                    .toList());
+            log.info("Episodic memory compacted: chat={}, messages={}",
+                    chatId, batch.messages().size());
         } catch (RuntimeException e) {
             log.warn("Episodic memory compaction failed: {}", e.getMessage());
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -98,7 +121,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
     private record Batch(List<Message> messages, String text) {
     }
 
-    private static Batch input(Memory previous, List<Message> overflow) {
+    private static Batch input(Memory previous, List<Message> read) {
         StringBuilder text = new StringBuilder();
         if (previous != null && previous.getContent() != null && !previous.getContent().isBlank())
             text.append("Previous summary:\n")
@@ -106,9 +129,8 @@ public class RollingSummaryMemory implements EpisodicMemory {
                     .append("\n\n");
         text.append("New messages:\n");
         List<Message> messages = new ArrayList<>();
-        for (Message message : overflow) {
+        for (Message message : read) {
             String line = line(message);
-            if (line.isEmpty()) continue;
             if (text.length() + line.length() + 1 > COMPACT_INPUT_MAX_LENGTH) break;
             messages.add(message);
             text.append(line).append('\n');
@@ -121,7 +143,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
         content = content == null
                 ? ""
                 : content.strip().replaceAll("\\s+", " ");
-        if (content.isEmpty()) return "";
+        if (content.isEmpty()) content = "(No content)";
         if (content.length() > COMPACT_LINE_MAX_LENGTH)
             content = truncate(content, COMPACT_LINE_MAX_LENGTH) + "...";
         String speaker = message.getRole() == MessageRole.ASSISTANT

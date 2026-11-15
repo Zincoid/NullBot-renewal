@@ -137,6 +137,7 @@ CREATE TABLE IF NOT EXISTS `message` (
     `chat_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Chat identifier',
     `user_id`       VARCHAR(64)     NOT NULL                 COMMENT 'Sender platform user id',
     `role`          TINYINT         NOT NULL DEFAULT 0       COMMENT 'Message role: 0=USER, 1=ASSISTANT',
+    `status`        TINYINT         NOT NULL DEFAULT 0       COMMENT 'Message status: 0=UNREAD, 1=READ, 2=COMPACTED',
     `nickname`      VARCHAR(255)    NOT NULL                 COMMENT 'Sender nickname',
     `content`       TEXT            DEFAULT NULL             COMMENT 'Text content',
     `reasoning`     TEXT            DEFAULT NULL             COMMENT 'Assistant reasoning content for thinking models',
@@ -155,6 +156,7 @@ CREATE TABLE IF NOT EXISTS `memory` (
     `type`          TINYINT         NOT NULL                 COMMENT 'Memory type: 0=EPISODIC, 1=SEMANTIC',
     `content`       TEXT            NOT NULL                 COMMENT 'Memory content',
     `created_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
+    `updated_at`    DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Updated at',
     PRIMARY KEY (`id`),
     KEY `idx_memory_chat_type` (`chat_id`, `type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI memory table';

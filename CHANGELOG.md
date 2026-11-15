@@ -99,12 +99,48 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
       `type`          TINYINT      NOT NULL COMMENT 'Memory type: 0=EPISODIC, 1=SEMANTIC',
       `content`       TEXT         NOT NULL COMMENT 'Memory content',
       `created_at`    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
+      `updated_at`    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Updated at',
       PRIMARY KEY (`id`),
       KEY `idx_memory_chat_type` (`chat_id`, `type`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI memory table';
   ```
 
 - 消息保留上限由配置窗口 N 改为 2N，多出的一条窗口作为情景摘要的溢出区；模型上下文仍只读取最近 N 条。`window` / `trim` / `overflow` 统一按 `(created_at, id)` 倒序，避免同一时间戳下窗口裁剪与摘要覆盖不一致。
+- `message` 表新增 `status` 列（`0=UNREAD` / `1=READ` / `2=COMPACTED`），旧库升级需执行。
+
+  MySQL：
+
+  ```sql
+  ALTER TABLE `message`
+      ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0
+      COMMENT 'Message status: 0=UNREAD, 1=READ, 2=COMPACTED'
+      AFTER `role`;
+  ```
+
+  SQLite 不支持 `AFTER`，列会追加到表尾（不影响字段映射）：
+
+  ```sql
+  ALTER TABLE `message` ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0;
+  ```
+
+- `memory` 表新增 `updated_at` 列，旧库升级需执行。
+
+  MySQL：
+
+  ```sql
+  ALTER TABLE `memory`
+      ADD COLUMN `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+      COMMENT 'Updated at'
+      AFTER `created_at`;
+  UPDATE `memory` SET `updated_at` = `created_at`;
+  ```
+
+  SQLite 不支持非常量默认值，先加可空列再回填：
+
+  ```sql
+  ALTER TABLE `memory` ADD COLUMN `updated_at` DATETIME;
+  UPDATE `memory` SET `updated_at` = `created_at`;
+  ```
 
 ### Added
 
@@ -161,6 +197,8 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - 文档整理：README 重排配置、指令、AI 与插件章节；PLUGIN 增加目录、静态工具索引与文件发送示例；插件 README 统一结构并修正过期指令说明。
 - `Memory` 接口更名为 `WorkingMemory`，实现 `ChatMemory` 更名为 `MessageWindowMemory`，继续复用 `message` 表；情景与事实实现分别更名为 `RollingSummaryMemory` / `LongTermFactMemory`，三个实现统一移入 `module.ai.memory.impl`。`ChatAgent` 现在依赖 `WorkingMemory`、`EpisodicMemory`、`SemanticMemory` 三个接口，并在每轮开始前按需压缩情景记忆。
 - `MessageService` 新增 `windowSize()` / `overflow()` / `remove(ids)`；清空聊天历史不再联动清空 `memory`，情景摘要与长期事实独立保留。
+- AI 情景记忆改为单窗口三状态（未读 / 已读 / 已压缩）：AI 只读取未压缩消息并标记已读；窗口修剪从最旧开始，遇到已读消息停止，并压缩最老的一半已读消息为滚动摘要，标记已压缩但保留记录；自动修剪不再删除未压缩的已读消息。`MessageService.overflow()` 移除，`EpisodicMemory.compactIfNeeded` 更名为 `compact` 并由窗口修剪事件触发；升级需为 `message` 增加 `status` 列（上方 2N 溢出区与阈值压缩描述由本条取代）。
+- 控制台记忆页展示情景摘要与长期事实的“创建 – 更新”时间区间；`memory` 表新增 `updated_at`，情景摘要每次更新时刷新。
 
 ### Removed
 

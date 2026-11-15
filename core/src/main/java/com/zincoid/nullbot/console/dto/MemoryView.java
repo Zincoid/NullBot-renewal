@@ -12,8 +12,10 @@ import java.time.LocalDateTime;
  * @param type      the memory type label
  * @param content   the memory content
  * @param createdAt the creation time
+ * @param updatedAt the update time
  */
-public record MemoryView(Long id, String type, String content, LocalDateTime createdAt) {
+public record MemoryView(Long id, String type, String content,
+                         LocalDateTime createdAt, LocalDateTime updatedAt) {
 
     /**
      * 由记忆记录构建视图。
@@ -27,6 +29,7 @@ public record MemoryView(Long id, String type, String content, LocalDateTime cre
                 memory.getId(),
                 memory.getType() == null ? null : memory.getType().getLabel(),
                 memory.getContent(),
-                memory.getCreatedAt());
+                memory.getCreatedAt(),
+                memory.getUpdatedAt());
     }
 }

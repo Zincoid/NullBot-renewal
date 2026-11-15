@@ -5,8 +5,8 @@ import com.zincoid.nullbot.module.ai.context.ContextPacket;
 import java.util.List;
 
 /**
- * 情景记忆：把溢出窗口的旧消息压缩为滚动摘要，并注入后续对话。
- * <p>Episodic memory: compacts old messages beyond the window into a rolling summary and injects it into later turns.</p>
+ * 情景记忆：把待压缩的已读消息压缩为滚动摘要，并注入后续对话。
+ * <p>Episodic memory: compacts pending read messages into a rolling summary and injects it into later turns.</p>
  */
 public interface EpisodicMemory {
 
@@ -20,10 +20,10 @@ public interface EpisodicMemory {
     List<ContextPacket> context(String chatId);
 
     /**
-     * 溢出消息足够多时压缩为情景摘要。
-     * <p>Compacts the overflow messages into an episodic summary when enough of them accumulate.</p>
+     * 压缩待处理的已读消息，优先压缩最老的一半。
+     * <p>Compacts pending read messages, preferring the oldest half.</p>
      *
      * @param chatId chat identifier
      */
-    void compactIfNeeded(String chatId);
+    void compact(String chatId);
 }

@@ -41,6 +41,7 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
         requireChatId(chatId);
         if (content == null || content.isBlank())
             throw new MemoryException("Missing content");
+        LocalDateTime now = LocalDateTime.now();
         Memory existing = lambdaQuery()
                 .eq(Memory::getChatId, chatId)
                 .eq(Memory::getType, MemoryType.EPISODIC)
@@ -50,6 +51,7 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
                 .one();
         if (existing != null) {
             existing.setContent(content);
+            existing.setUpdatedAt(now);
             if (!updateById(existing))
                 throw new MemoryException("Failed to update episodic memory");
             log.info("Episodic memory updated: chat={}, id={}", chatId, existing.getId());
@@ -59,7 +61,8 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
                 .chatId(chatId)
                 .type(MemoryType.EPISODIC)
                 .content(content)
-                .createdAt(LocalDateTime.now())
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
         if (!save(memory))
             throw new MemoryException("Failed to save episodic memory");
@@ -129,11 +132,13 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
                 .last("LIMIT 1")
                 .one();
         if (existing != null) return existing;
+        LocalDateTime now = LocalDateTime.now();
         Memory memory = Memory.builder()
                 .chatId(chatId)
                 .type(MemoryType.SEMANTIC)
                 .content(normalized)
-                .createdAt(LocalDateTime.now())
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
         if (!save(memory))
             throw new MemoryException("Failed to save memory");
