@@ -99,8 +99,8 @@ public class ChatPipeline {
                     .call();
             recordUsage(turn, res.usage());
             if (res.finalSent()) return true;
-            String content = ChatText.compact(res.content());
-            chatActions.deliver(turn, MsgContent.of(content), content, res.reasoning());
+            String cleaned = ChatText.clean(res.content());
+            chatActions.deliver(turn, MsgContent.of(cleaned), cleaned, res.reasoning());
         } finally {
             lock.unlock();
         }

@@ -44,10 +44,10 @@ public class ChatActions {
      */
     ToolRes send(ChatTurn turn, String text, List<Long> fileIds, String replyId) {
         MsgContent.Builder builder = MsgContent.builder();
-        String compact = ChatText.compact(text);
+        String cleaned = ChatText.clean(text);
         List<String> media = new ArrayList<>();
-        if (!compact.isBlank())
-            builder.text(compact);
+        if (!cleaned.isBlank())
+            builder.text(cleaned);
         for (Long id : fileIds) {
             File file = fileService.getById(id);
             if (file == null) continue;
@@ -55,12 +55,12 @@ public class ChatActions {
             if (kind == null) continue;
             media.add(kind + ", file id=" + id);
         }
-        if (compact.isBlank() && media.isEmpty())
+        if (cleaned.isBlank() && media.isEmpty())
             return ToolRes.error("No valid media: " + fileIds);
         if (replyId != null && !replyId.isBlank())
             builder.reply(replyId);
         MsgContent message = builder.build();
-        String content = annotate(compact, media);
+        String content = annotate(cleaned, media);
         String messageId = deliver(turn, message, content, null);
         return ToolRes.success(messageId == null || messageId.isBlank()
                 ? "Message sent"

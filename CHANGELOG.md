@@ -197,7 +197,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - `ToolHost` 新增 `chatId()`，供工具读取当前会话标识；仓库内唯一实现为 `ChatToolHost`，外部插件若自行实现该接口需要补上此方法。
 - 控制台新增“记忆”页：按群聊 / 私聊列出有 AI 记忆的会话，展示情景摘要与长期事实；支持删除单条长期事实、清空长期事实和删除情景摘要。
 - 群设置与用户设置新增“情景记忆”“长期记忆”开关，默认关闭（群设置也可用 `#Setting -a episodic|semantic on|off`）：关闭后不再注入对应记忆，情景记忆同时停止压缩并允许窗口修剪删除已读消息，长期记忆不再向模型提供 `memory` 工具；已有记忆保留。
-- 新增 `ai_compact_max_tokens`（默认 8192）与 `ai_compact_input_max_length`（默认 4096）配置，分别控制情景记忆压缩的输出词元上限与单次输入字符上限。
+- 新增 `ai_compact_max_tokens`（默认 2048）与 `ai_compact_input_max_length`（默认 4096）配置，分别控制情景记忆压缩的输出词元上限与单次输入字符上限。
 
 ### Changed
 
@@ -266,6 +266,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
   ```
 - 情景记忆压缩改为后台任务：窗口修剪事件由 `EpisodicCompactionListener` 异步转交 `RollingSummaryMemory`；压缩先在会话锁内取批、锁外调用模型、再回到锁内提交，消息写入不再等待压缩；压缩输入改为旧摘要完整带入（写入时已按 2048 字符截断）、新消息单独按 `ai_compact_input_max_length` 限制并保证至少包含一条消息，压缩提示词要求摘要按重要性优先、新旧次之排序并控制在 2000 字符内；`RollingSummaryMemory` 与 `ChatPipeline` 的用量记录私有方法统一更名为 `recordUsage`；无数据结构变化。上方 `ai_compact_input_max_length` 的“单次输入字符上限”描述由本条取代。
 - AI 记忆包整理：`RollingSummaryMemory`、`MessageWindowMemory`、`LongTermFactMemory` 与 `EpisodicCompactionListener` 从 `module.ai.memory.impl` 拍平到 `module.ai.memory`，与接口同包；无行为变化。
+- 情景记忆压缩降低开销：摘要上限从 2048 字符降到 1024，压缩提示词同步要求 1000 字符内。已有库中保存的 `ai_compact_output_max_tokens` 值不受新默认值影响，需要在控制台或 `config` 表手动调整。
 
 ### Removed
 
