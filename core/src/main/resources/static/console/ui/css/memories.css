@@ -186,10 +186,7 @@
     flex-direction: column;
     flex-shrink: 0;
     align-items: flex-end;
-    gap: var(--spacing-xs);
-}
-
-.memories-chat__time {
+    gap: 2px;
     color: var(--color-text-secondary);
     font-size: var(--text-xs);
     white-space: nowrap;
@@ -197,23 +194,31 @@
 
 .memories-chat__badges {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     flex-shrink: 0;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: flex-end;
     gap: var(--spacing-xs);
 }
 
 .memories-badge {
-    min-width: 18px;
+    min-width: 20px;
     padding: 0 6px;
-    border: 1px solid var(--color-border);
     border-radius: var(--rounded-full);
-    background: var(--color-surface);
-    color: var(--color-text-secondary);
-    font-size: 10px;
-    line-height: 16px;
+    background: var(--color-border);
+    color: var(--color-text);
+    font-size: var(--text-xs);
     text-align: center;
     white-space: nowrap;
+}
+
+.memories-chat.active .memories-badge {
+    background: var(--memories-accent);
+    color: var(--color-text-inverse);
+}
+
+[data-theme="dark"] .memories-chat.active .memories-badge {
+    color: #0f1117;
 }
 
 /* ═══ Panel ══════════════════════════ */
@@ -379,6 +384,13 @@
     font-size: var(--text-xs);
 }
 
+.memories-tools__divider {
+    flex: 0 0 1px;
+    align-self: stretch;
+    min-height: 16px;
+    background: var(--color-border);
+}
+
 .memories-count {
     display: inline-block;
     min-width: 20px;
@@ -443,6 +455,21 @@
     margin-left: auto;
 }
 
+.memories-fact__delete {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--rounded-md);
+    background: transparent;
+    color: var(--color-text-secondary);
+}
+
+.memories-fact__delete:hover {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+}
+
 .memories-fact__content {
     margin: 0;
     color: var(--color-text);
@@ -480,14 +507,9 @@
 
     .memories-chat__side {
         width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
     }
 
     .memories-chat__badges {
-        flex-direction: row;
         flex-wrap: wrap;
         justify-content: flex-end;
     }

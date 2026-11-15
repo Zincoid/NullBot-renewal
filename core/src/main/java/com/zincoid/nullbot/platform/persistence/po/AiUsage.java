@@ -13,8 +13,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 /**
- * AI 使用记录：按天汇总的触发、会话、调用次数与 token 消耗。
- * <p>AI usage record: daily aggregated trigger, chat, turn count, and token consumption.</p>
+ * AI 使用记录：按天汇总的来源、会话、调用次数与 token 消耗。
+ * <p>AI usage record: daily aggregated source, chat, call count, and token consumption.</p>
  */
 @Data
 @AllArgsConstructor

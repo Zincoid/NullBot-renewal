@@ -169,8 +169,8 @@ CREATE TABLE IF NOT EXISTS `ai_usage` (
     `chat_type`      TINYINT         NOT NULL,              -- 0 = group, 1 = private
     `target_id`      VARCHAR(64)     NOT NULL,              -- raw group id or user id
     `user_id`        VARCHAR(64)     NOT NULL,              -- triggering user id
-    `source`         TINYINT         NOT NULL,              -- 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke
-    `count`          BIGINT          NOT NULL DEFAULT 0,    -- AI turn count
+    `source`         TINYINT         NOT NULL,              -- 0=group_chat, 1=group_auto_chat, 2=group_poke, 3=private_chat, 4=private_poke, 5=compact
+    `count`          BIGINT          NOT NULL DEFAULT 0,    -- AI call count
     `input_tokens`   BIGINT          NOT NULL DEFAULT 0,
     `output_tokens`  BIGINT          NOT NULL DEFAULT 0
 );

@@ -126,6 +126,7 @@
             'usage.ai.trigger.group_poke': '群聊戳一戳',
             'usage.ai.trigger.private_chat': '私聊对话',
             'usage.ai.trigger.private_poke': '私聊戳一戳',
+            'usage.ai.trigger.compact': '记忆压缩',
 
             'bot.current': '当前账号',
             'bot.online': '在线',
@@ -246,7 +247,7 @@
             'memories.semanticEmpty': '该会话暂无长期事实',
             'memories.searchPlaceholder': '搜索长期事实...',
             'memories.searchEmpty': '没有匹配的长期事实',
-            'memories.clear': '清空',
+            'memories.clear': '全部删除',
             'memories.clearConfirm': '清空会话「{name}」的全部长期事实？',
             'memories.deleteEpisodicConfirm': '删除会话「{name}」的情景摘要？',
             'memories.deleteSemanticConfirm': '删除长期事实 #{id}？',
@@ -634,6 +635,7 @@
             'usage.ai.trigger.group_poke': 'Group poke',
             'usage.ai.trigger.private_chat': 'Private chat',
             'usage.ai.trigger.private_poke': 'Private poke',
+            'usage.ai.trigger.compact': 'Memory compaction',
 
             'bot.current': 'Current account',
             'bot.online': 'Online',
@@ -754,7 +756,7 @@
             'memories.semanticEmpty': 'No long-term facts in this chat',
             'memories.searchPlaceholder': 'Search long-term facts...',
             'memories.searchEmpty': 'No matching long-term facts',
-            'memories.clear': 'Clear',
+            'memories.clear': 'Delete all',
             'memories.clearConfirm': 'Clear all long-term facts of "{name}"?',
             'memories.deleteEpisodicConfirm': 'Delete the episodic summary of "{name}"?',
             'memories.deleteSemanticConfirm': 'Delete long-term fact #{id}?',

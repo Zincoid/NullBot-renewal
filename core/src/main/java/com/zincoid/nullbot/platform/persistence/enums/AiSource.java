@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 /**
- * AI 对话触发来源。
- * <p>AI chat trigger source.</p>
+ * AI 调用来源。
+ * <p>AI invocation source.</p>
  */
 @Getter
 public enum AiSource {
@@ -16,7 +16,8 @@ public enum AiSource {
     GROUP_AUTO_CHAT(1, "group_auto_chat"),
     GROUP_POKE(2, "group_poke"),
     PRIVATE_CHAT(3, "private_chat"),
-    PRIVATE_POKE(4, "private_poke");
+    PRIVATE_POKE(4, "private_poke"),
+    COMPACT(5, "compact");
 
     @EnumValue
     private final Integer value;

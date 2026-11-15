@@ -9,23 +9,36 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * AI 使用记录服务：按天累加 AI 对话回合的调用次数与 token。
- * <p>AI usage service: accumulates daily AI turn counts and tokens.</p>
+ * AI 使用记录服务：按天累加 AI 调用的次数与 token。
+ * <p>AI usage service: accumulates daily AI invocation counts and tokens.</p>
  */
 public interface AiUsageService extends IService<AiUsage> {
 
     /**
-     * 将一次 AI 对话回合累加到当天的统计。
-     * <p>Adds one AI conversation turn to the current day's statistics.</p>
+     * 将一次带触发用户的 AI 调用累加到当天的统计。
+     * <p>Adds one AI invocation with a triggering user to the current day's statistics.</p>
      *
      * @param chatType     chat type
      * @param targetId     raw group or user platform id
      * @param userId       triggering platform user id
-     * @param source       trigger source
+     * @param source       invocation source
      * @param inputTokens  input token count, nullable
      * @param outputTokens output token count, nullable
      */
     void increase(ChatType chatType, String targetId, String userId, AiSource source,
+                  Integer inputTokens, Integer outputTokens);
+
+    /**
+     * 将一次无触发用户的 AI 调用累加到当天的统计。
+     * <p>Adds one AI invocation without a triggering user to the current day's statistics.</p>
+     *
+     * @param chatType     chat type
+     * @param targetId     raw group or user platform id
+     * @param source       invocation source
+     * @param inputTokens  input token count, nullable
+     * @param outputTokens output token count, nullable
+     */
+    void increase(ChatType chatType, String targetId, AiSource source,
                   Integer inputTokens, Integer outputTokens);
 
     /**
@@ -52,7 +65,7 @@ public interface AiUsageService extends IService<AiUsage> {
      * <p>AI usage of a single day.</p>
      *
      * @param day          the date
-     * @param count        the AI turn count
+     * @param count        the AI call count
      * @param inputTokens  the input token count
      * @param outputTokens the output token count
      */
@@ -63,8 +76,8 @@ public interface AiUsageService extends IService<AiUsage> {
      * AI 用量排行项。
      * <p>AI usage ranking entry.</p>
      *
-     * @param key          the trigger label, group id, or user id
-     * @param count        the AI turn count
+     * @param key          the source label, group id, or user id
+     * @param count        the AI call count
      * @param inputTokens  the input token count
      * @param outputTokens the output token count
      */
@@ -75,13 +88,13 @@ public interface AiUsageService extends IService<AiUsage> {
      * AI 用量统计结果。
      * <p>AI usage statistics result.</p>
      *
-     * @param total        total AI turn count
+     * @param total        total AI call count
      * @param inputTokens  total input token count
      * @param outputTokens total output token count
      * @param users        distinct active users
      * @param groups       distinct active groups, excluding private chat
      * @param daily        daily usage rows with data
-     * @param triggers     trigger source ranking
+     * @param triggers     invocation source ranking
      * @param topGroups    top groups
      * @param topUsers     top users
      */
@@ -94,7 +107,7 @@ public interface AiUsageService extends IService<AiUsage> {
      * 全量 AI 用量。
      * <p>All-time AI usage.</p>
      *
-     * @param count        the total AI turn count
+     * @param count        the total AI call count
      * @param inputTokens  the total input token count
      * @param outputTokens the total output token count
      */

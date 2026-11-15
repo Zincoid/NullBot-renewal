@@ -18,6 +18,8 @@ import java.util.List;
 @Service
 public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> implements AiUsageService {
 
+    private static final String SYSTEM_USER = "System";
+
     // ════ Increase ════════════════
 
     @Override
@@ -29,6 +31,12 @@ public class AiUsageServiceImpl extends ServiceImpl<AiUsageMapper, AiUsage> impl
         if (source == null) throw new SystemException("Missing key: source");
         baseMapper.increase(LocalDate.now(), chatType, targetId, userId,
                 source, inputTokens, outputTokens);
+    }
+
+    @Override
+    public void increase(ChatType chatType, String targetId, AiSource source,
+                         Integer inputTokens, Integer outputTokens) {
+        increase(chatType, targetId, SYSTEM_USER, source, inputTokens, outputTokens);
     }
 
     // ════ Stats ═══════════════════

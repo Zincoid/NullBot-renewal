@@ -199,6 +199,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - `MessageService` 新增 `windowSize()` / `overflow()` / `remove(ids)`；清空聊天历史不再联动清空 `memory`，情景摘要与长期事实独立保留。
 - AI 情景记忆改为单窗口三状态（未读 / 已读 / 已压缩）：AI 只读取未压缩消息并标记已读；窗口修剪从最旧开始，遇到已读消息停止，并压缩最老的一半已读消息为滚动摘要，标记已压缩但保留记录；自动修剪不再删除未压缩的已读消息。`MessageService.overflow()` 移除，`EpisodicMemory.compactIfNeeded` 更名为 `compact` 并由窗口修剪事件触发；升级需为 `message` 增加 `status` 列（上方 2N 溢出区与阈值压缩描述由本条取代）。
 - 控制台记忆页展示情景摘要与长期事实的“创建 – 更新”时间区间；`memory` 表新增 `updated_at`，情景摘要每次更新时刷新。
+- `ai_usage.source` 新增 `compact`（5）：情景压缩的模型调用现在按次数与输入 / 输出词元计入 AI 用量，触发来源排行显示为“记忆压缩”；压缩记录使用 `System` 用户，会计入用户统计，`source` 仍为 `TINYINT`，无需改表（上方“压缩调用不计入 ai_usage”描述由本条取代）。
 
 ### Removed
 

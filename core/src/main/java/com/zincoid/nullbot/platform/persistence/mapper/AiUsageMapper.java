@@ -23,14 +23,14 @@ import java.util.List;
 public interface AiUsageMapper extends BaseMapper<AiUsage> {
 
     /**
-     * 增加一次 AI 回合的计数与 token，同一天同会话同用户同触发来源累加。
-     * <p>Increases the AI turn count and tokens for the same day, chat, user, and trigger.</p>
+     * 增加一次 AI 调用的计数与 token，同一天同会话同用户同来源累加。
+     * <p>Increases the AI invocation count and tokens for the same day, chat, user, and source.</p>
      *
      * @param time         the statistics date
      * @param chatType     the chat type
      * @param targetId     raw group or user platform id
      * @param userId       triggering platform user id
-     * @param source       the trigger source
+     * @param source       the invocation source
      * @param inputTokens  the input token count, nullable
      * @param outputTokens the output token count, nullable
      */
@@ -43,8 +43,8 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
                   @Param("outputTokens") Integer outputTokens);
 
     /**
-     * 汇总指定日期范围内的 AI 对话、token 与活跃会话。
-     * <p>Summarizes AI turns, tokens, and active chats in the date range.</p>
+     * 汇总指定日期范围内的 AI 调用、token 与活跃会话。
+     * <p>Summarizes AI invocations, tokens, and active chats in the date range.</p>
      *
      * @param start inclusive start date
      * @param end   inclusive end date
@@ -76,8 +76,8 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
     AiUsageSummaryRow total();
 
     /**
-     * 按天汇总指定日期范围内的 AI 对话与 token。
-     * <p>Summarizes AI turns and tokens per day in the date range.</p>
+     * 按天汇总指定日期范围内的 AI 调用与 token。
+     * <p>Summarizes AI invocations and tokens per day in the date range.</p>
      *
      * @param start inclusive start date
      * @param end   inclusive end date
@@ -96,12 +96,12 @@ public interface AiUsageMapper extends BaseMapper<AiUsage> {
     List<AiUsageDailyRow> daily(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
     /**
-     * 汇总指定日期范围内的触发来源。
-     * <p>Summarizes trigger sources in the date range.</p>
+     * 汇总指定日期范围内的调用来源。
+     * <p>Summarizes invocation sources in the date range.</p>
      *
      * @param start inclusive start date
      * @param end   inclusive end date
-     * @return the trigger rows
+     * @return the source rows
      */
     @Select("""
             SELECT `source`,

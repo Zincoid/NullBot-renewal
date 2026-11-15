@@ -116,7 +116,7 @@ function renderChats() {
             ? `<time class="memories-chat__time">${escapeHtml(formatTime(chat.lastAt))}</time>`
             : '';
         const sideHtml = badgeHtml || timeHtml
-            ? `<span class="memories-chat__side">${badgeHtml}${timeHtml}</span>`
+            ? `<span class="memories-chat__side">${timeHtml}${badgeHtml}</span>`
             : '';
         return `
             <button type="button" class="memories-chat${active ? ' active' : ''}"
@@ -164,11 +164,11 @@ function renderFacts() {
         <article class="memories-fact">
             <div class="memories-fact__head">
                 <span class="memories-fact__id">#${escapeHtml(String(fact.id))}</span>
-                <time class="memories-fact__time">${escapeHtml(memoryTime(fact))}</time>
-                <button type="button" class="small danger btn-delete"
-                        data-action="delete-semantic" data-id="${escapeHtml(String(fact.id))}">
-                    ${escapeHtml(t('common.delete'))}
-                </button>
+                <time class="memories-fact__time">${escapeHtml(formatTime(fact.createdAt))}</time>
+                <button type="button" class="memories-fact__delete btn-delete"
+                        data-action="delete-semantic" data-id="${escapeHtml(String(fact.id))}"
+                        title="${escapeHtml(t('common.delete'))}"
+                        aria-label="${escapeHtml(t('common.delete'))}"></button>
             </div>
             <p class="memories-fact__content">${escapeHtml(fact.content || '')}</p>
         </article>`).join('');
@@ -212,6 +212,8 @@ function renderDetail() {
         : `<section class="memories-block memories-block--episodic is-empty">
                <header class="memories-block__head">
                    <h3>${escapeHtml(t('memories.episodic'))}</h3>
+                   <button type="button" class="small danger btn-delete"
+                           data-action="delete-episodic" disabled>${escapeHtml(t('common.delete'))}</button>
                </header>
                <div class="memories-empty">${escapeHtml(t('memories.episodicEmpty'))}</div>
            </section>`;
@@ -228,7 +230,8 @@ function renderDetail() {
                            placeholder="${escapeHtml(t('memories.searchPlaceholder'))}"
                            aria-label="${escapeHtml(t('memories.searchPlaceholder'))}"
                            ${total ? '' : 'disabled'}>
-                    <button type="button" class="small"
+                    <span class="memories-tools__divider" aria-hidden="true"></span>
+                    <button type="button" class="small danger btn-delete"
                             data-action="clear-semantic" ${total ? '' : 'disabled'}>
                         ${escapeHtml(t('memories.clear'))}
                     </button>
