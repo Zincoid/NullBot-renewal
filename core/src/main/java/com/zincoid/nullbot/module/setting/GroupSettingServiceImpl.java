@@ -68,7 +68,7 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
                 .limitRefill(2)
                 .limitInterval(1)
                 .aiEffort(Effort.HIGH)
-                .aiInjectionGuard(true)
+                .aiInjectionGuardEnabled(true)
                 .aiAutoChatEnabled(false)
                 .aiChatFrequency(0.001)
                 .aiEpisodicMemoryEnabled(false)

@@ -10,12 +10,12 @@ import com.zincoid.nullbot.platform.persistence.po.UserSetting;
  * @param userId                       the platform user id
  * @param privateAiPrompt              the private-chat AI prompt
  * @param privateAiEffort              the AI reasoning effort
- * @param privateAiInjectionGuard      whether anti prompt injection is enabled
+ * @param privateAiInjectionGuardEnabled whether anti prompt injection is enabled
  * @param privateAiEpisodicMemoryEnabled whether episodic memory is enabled
  * @param privateAiSemanticMemoryEnabled whether semantic memory is enabled
  */
 public record UserSettingView(String userId, String privateAiPrompt,
-                              Effort privateAiEffort, boolean privateAiInjectionGuard,
+                              Effort privateAiEffort, boolean privateAiInjectionGuardEnabled,
                               boolean privateAiEpisodicMemoryEnabled,
                               boolean privateAiSemanticMemoryEnabled) {
 
@@ -32,7 +32,7 @@ public record UserSettingView(String userId, String privateAiPrompt,
                 userId,
                 setting.getPrivateAiPrompt() == null ? "" : setting.getPrivateAiPrompt(),
                 setting.getPrivateAiEffort(),
-                setting.getPrivateAiInjectionGuard(),
+                setting.getPrivateAiInjectionGuardEnabled(),
                 setting.getPrivateAiEpisodicMemoryEnabled(),
                 setting.getPrivateAiSemanticMemoryEnabled());
     }

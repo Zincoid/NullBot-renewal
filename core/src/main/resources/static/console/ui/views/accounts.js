@@ -248,7 +248,7 @@ async function loadUserSetting() {
     try {
         const setting = await api('/users/' + encodeURIComponent(currentUser.id) + '/setting');
         $('us-effort').value = String(setting.privateAiEffort);
-        $('us-guard').checked = setting.privateAiInjectionGuard;
+        $('us-guard').checked = setting.privateAiInjectionGuardEnabled;
         $('us-episodic-memory').checked = setting.privateAiEpisodicMemoryEnabled;
         $('us-semantic-memory').checked = setting.privateAiSemanticMemoryEnabled;
         $('us-prompt').value = setting.privateAiPrompt || '';
@@ -268,7 +268,7 @@ async function saveUserSetting(event) {
             body: JSON.stringify({
                 privateAiEffort: Number($('us-effort').value),
                 privateAiPrompt: $('us-prompt').value,
-                privateAiInjectionGuard: $('us-guard').checked,
+                privateAiInjectionGuardEnabled: $('us-guard').checked,
                 privateAiEpisodicMemoryEnabled: $('us-episodic-memory').checked,
                 privateAiSemanticMemoryEnabled: $('us-semantic-memory').checked
             })
@@ -326,7 +326,7 @@ async function loadGroupSetting() {
         $('gs-chat-frequency').value = setting.aiChatFrequency;
         $('gs-limit-enabled').checked = setting.limitEnabled;
         $('gs-auto-chat').checked = setting.aiAutoChatEnabled;
-        $('gs-guard').checked = setting.aiInjectionGuard;
+        $('gs-guard').checked = setting.aiInjectionGuardEnabled;
         $('gs-episodic-memory').checked = setting.aiEpisodicMemoryEnabled;
         $('gs-semantic-memory').checked = setting.aiSemanticMemoryEnabled;
         $('gs-prompt').value = setting.aiPrompt || '';
@@ -369,7 +369,7 @@ async function saveGroupSetting(event) {
                 limitRefill: refill,
                 limitInterval: interval,
                 limitEnabled: $('gs-limit-enabled').checked,
-                aiInjectionGuard: $('gs-guard').checked,
+                aiInjectionGuardEnabled: $('gs-guard').checked,
                 aiAutoChatEnabled: $('gs-auto-chat').checked,
                 aiEpisodicMemoryEnabled: $('gs-episodic-memory').checked,
                 aiSemanticMemoryEnabled: $('gs-semantic-memory').checked,

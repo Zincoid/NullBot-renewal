@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
  *
  * @param privateAiPrompt                the private-chat AI prompt, blank clears it
  * @param privateAiEffort                the AI reasoning effort
- * @param privateAiInjectionGuard        whether anti prompt injection is enabled
+ * @param privateAiInjectionGuardEnabled whether anti prompt injection is enabled
  * @param privateAiEpisodicMemoryEnabled whether episodic memory is enabled
  * @param privateAiSemanticMemoryEnabled whether semantic memory is enabled
  */
@@ -21,8 +21,8 @@ public record UserSettingUpdate(
         @NotNull(message = "AI effort is required")
         Effort privateAiEffort,
 
-        @NotNull(message = "privateAiInjectionGuard is required")
-        Boolean privateAiInjectionGuard,
+        @NotNull(message = "privateAiInjectionGuardEnabled is required")
+        Boolean privateAiInjectionGuardEnabled,
 
         @NotNull(message = "privateAiEpisodicMemoryEnabled is required")
         Boolean privateAiEpisodicMemoryEnabled,

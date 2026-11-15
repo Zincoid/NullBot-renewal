@@ -24,7 +24,7 @@ import jakarta.validation.constraints.Size;
  * @param limitInterval           the rate limit refill interval in minutes
  * @param aiEffort                the AI reasoning effort
  * @param aiPrompt                the group system prompt, blank clears it
- * @param aiInjectionGuard        whether anti prompt injection is enabled
+ * @param aiInjectionGuardEnabled whether anti prompt injection is enabled
  * @param aiAutoChatEnabled       whether AI replies to ordinary group messages automatically
  * @param aiChatFrequency         the auto-chat probability per message, 0..1
  * @param aiEpisodicMemoryEnabled whether episodic memory is enabled
@@ -67,8 +67,8 @@ public record GroupSettingUpdate(
         @Size(max = 20000, message = "aiPrompt must not exceed 20000 characters")
         String aiPrompt,
 
-        @NotNull(message = "aiInjectionGuard is required")
-        Boolean aiInjectionGuard,
+        @NotNull(message = "aiInjectionGuardEnabled is required")
+        Boolean aiInjectionGuardEnabled,
 
         @NotNull(message = "aiAutoChatEnabled is required")
         Boolean aiAutoChatEnabled,

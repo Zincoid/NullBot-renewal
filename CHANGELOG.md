@@ -142,6 +142,15 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
   UPDATE `memory` SET `updated_at` = `created_at`;
   ```
 
+- `group_setting.ai_injection_guard` / `user_setting.private_ai_injection_guard` 更名为 `ai_injection_guard_enabled` / `private_ai_injection_guard_enabled`，Java 字段、控制台接口与页面字段同步改名。请先执行分支中新增记忆开关列的迁移，再执行改名。MySQL 8+ / SQLite 3.25+：
+
+  ```sql
+  ALTER TABLE `group_setting`
+      RENAME COLUMN `ai_injection_guard` TO `ai_injection_guard_enabled`;
+  ALTER TABLE `user_setting`
+      RENAME COLUMN `private_ai_injection_guard` TO `private_ai_injection_guard_enabled`;
+  ```
+
 ### Added
 
 - 控制台新增“消息”页：左侧按群聊 / 私聊切换并列出保留有消息的会话，右侧以聊天形式展示角色、昵称、用户 ID、时间、正文、reasoning 与附件数量；附件不随页面加载，按消息在弹窗中预览或下载。

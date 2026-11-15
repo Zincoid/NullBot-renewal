@@ -72,7 +72,7 @@ public class GroupSettingController {
                 .limitInterval(body.limitInterval())
                 .aiEffort(body.aiEffort())
                 .aiPrompt(prompt)
-                .aiInjectionGuard(body.aiInjectionGuard())
+                .aiInjectionGuardEnabled(body.aiInjectionGuardEnabled())
                 .aiAutoChatEnabled(body.aiAutoChatEnabled())
                 .aiChatFrequency(body.aiChatFrequency())
                 .aiEpisodicMemoryEnabled(body.aiEpisodicMemoryEnabled())

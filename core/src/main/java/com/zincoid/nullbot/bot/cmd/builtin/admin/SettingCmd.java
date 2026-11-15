@@ -124,7 +124,7 @@ public class SettingCmd implements Cmd {
             }
             case "guard" -> {
                 boolean enabled = bool(ctx, args.next());
-                update.setAiInjectionGuard(enabled);
+                update.setAiInjectionGuardEnabled(enabled);
                 message = ctx.render(Text.SETTING_AI_GUARD, enabled);
             }
             case "episodic" -> {
@@ -206,7 +206,7 @@ public class SettingCmd implements Cmd {
                 setting.getAntiRecallEnabled(),
                 setting.getLimitEnabled(), setting.getLimitScope().getLabel(),
                 setting.getLimitCapacity(), setting.getLimitRefill(), setting.getLimitInterval(),
-                setting.getAiEffort().getLabel(), setting.getAiInjectionGuard(),
+                setting.getAiEffort().getLabel(), setting.getAiInjectionGuardEnabled(),
                 setting.getAiAutoChatEnabled(), setting.getAiChatFrequency(),
                 setting.getAiEpisodicMemoryEnabled(),
                 setting.getAiSemanticMemoryEnabled(), prompt);

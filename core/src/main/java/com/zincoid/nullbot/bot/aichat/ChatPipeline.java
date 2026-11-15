@@ -142,7 +142,7 @@ public class ChatPipeline {
                 yield new Profile(
                         setting.getAiPrompt(),
                         setting.getAiEffort(),
-                        setting.getAiInjectionGuard(),
+                        setting.getAiInjectionGuardEnabled(),
                         episodicMemory,
                         semanticMemory);
             }
@@ -151,7 +151,7 @@ public class ChatPipeline {
                 yield new Profile(
                         setting.getPrivateAiPrompt(),
                         setting.getPrivateAiEffort(),
-                        setting.getPrivateAiInjectionGuard(),
+                        setting.getPrivateAiInjectionGuardEnabled(),
                         episodicMemory,
                         semanticMemory);
             }

@@ -57,7 +57,7 @@ public class UserSettingServiceImpl extends ServiceImpl<UserSettingMapper, UserS
         return UserSetting.builder()
                 .userId(userId)
                 .privateAiEffort(Effort.HIGH)
-                .privateAiInjectionGuard(true)
+                .privateAiInjectionGuardEnabled(true)
                 .privateAiEpisodicMemoryEnabled(false)
                 .privateAiSemanticMemoryEnabled(false)
                 .build();

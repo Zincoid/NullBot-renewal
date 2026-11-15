@@ -21,7 +21,7 @@ import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
  * @param limitInterval           the rate limit refill interval in minutes
  * @param aiEffort                the AI reasoning effort
  * @param aiPrompt                the group system prompt, blank when unset
- * @param aiInjectionGuard        whether anti prompt injection is enabled
+ * @param aiInjectionGuardEnabled whether anti prompt injection is enabled
  * @param aiAutoChatEnabled       whether AI replies to ordinary group messages automatically
  * @param aiChatFrequency         the auto-chat probability per message, 0..1
  * @param aiEpisodicMemoryEnabled whether episodic memory is enabled
@@ -40,7 +40,7 @@ public record GroupSettingView(
         int limitInterval,
         Effort aiEffort,
         String aiPrompt,
-        boolean aiInjectionGuard,
+        boolean aiInjectionGuardEnabled,
         boolean aiAutoChatEnabled,
         double aiChatFrequency,
         boolean aiEpisodicMemoryEnabled,
@@ -68,7 +68,7 @@ public record GroupSettingView(
                 setting.getLimitInterval(),
                 setting.getAiEffort(),
                 setting.getAiPrompt() == null ? "" : setting.getAiPrompt(),
-                setting.getAiInjectionGuard(),
+                setting.getAiInjectionGuardEnabled(),
                 setting.getAiAutoChatEnabled(),
                 setting.getAiChatFrequency(),
                 setting.getAiEpisodicMemoryEnabled(),

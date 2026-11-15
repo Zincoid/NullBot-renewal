@@ -115,7 +115,7 @@ public class UserController {
                 .userId(id)
                 .privateAiPrompt(prompt)
                 .privateAiEffort(body.privateAiEffort())
-                .privateAiInjectionGuard(body.privateAiInjectionGuard())
+                .privateAiInjectionGuardEnabled(body.privateAiInjectionGuardEnabled())
                 .privateAiEpisodicMemoryEnabled(body.privateAiEpisodicMemoryEnabled())
                 .privateAiSemanticMemoryEnabled(body.privateAiSemanticMemoryEnabled())
                 .build());

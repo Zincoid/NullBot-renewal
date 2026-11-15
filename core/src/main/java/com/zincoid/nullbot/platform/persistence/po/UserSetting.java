@@ -21,7 +21,7 @@ public class UserSetting {
     private String userId;
     private String privateAiPrompt;
     private Effort privateAiEffort;
-    private Boolean privateAiInjectionGuard;
+    private Boolean privateAiInjectionGuardEnabled;
     private Boolean privateAiEpisodicMemoryEnabled;
     private Boolean privateAiSemanticMemoryEnabled;
 }
