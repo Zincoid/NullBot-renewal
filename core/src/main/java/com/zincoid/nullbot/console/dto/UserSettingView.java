@@ -14,8 +14,10 @@ import com.zincoid.nullbot.platform.persistence.po.UserSetting;
  * @param privateAiEpisodicMemoryEnabled whether episodic memory is enabled
  * @param privateAiSemanticMemoryEnabled whether semantic memory is enabled
  */
-public record UserSettingView(String userId, String privateAiPrompt,
-                              Effort privateAiEffort, boolean privateAiInjectionGuardEnabled,
+public record UserSettingView(String userId,
+                              String privateAiPrompt,
+                              Effort privateAiEffort,
+                              boolean privateAiInjectionGuardEnabled,
                               boolean privateAiEpisodicMemoryEnabled,
                               boolean privateAiSemanticMemoryEnabled) {
 

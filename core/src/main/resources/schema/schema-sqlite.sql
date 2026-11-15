@@ -58,9 +58,9 @@ CREATE TABLE IF NOT EXISTS `group_setting` (
     `limit_interval`       INT         NOT NULL DEFAULT 1,
     `ai_prompt`            TEXT        DEFAULT NULL,
     `ai_effort`            TINYINT     NOT NULL DEFAULT 3,
-    `ai_injection_guard_enabled`   BOOLEAN     NOT NULL DEFAULT 1,
     `ai_auto_chat_enabled` BOOLEAN     NOT NULL DEFAULT 0,
     `ai_chat_frequency`    DOUBLE      NOT NULL DEFAULT 0.001,
+    `ai_injection_guard_enabled` BOOLEAN NOT NULL DEFAULT 1,
     `ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0,
     `ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0
 );

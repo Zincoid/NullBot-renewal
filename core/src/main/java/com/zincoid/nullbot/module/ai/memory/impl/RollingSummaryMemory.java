@@ -8,6 +8,8 @@ import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.ModelUsage;
+import com.zincoid.nullbot.module.config.Conf;
+import com.zincoid.nullbot.module.config.ConfigService;
 import com.zincoid.nullbot.module.message.MessageLocks;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.module.message.MessageTrimBlockedEvent;
@@ -39,9 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class RollingSummaryMemory implements EpisodicMemory {
 
-    private static final int COMPACT_MAX_TOKENS = 8192;
     private static final int COMPACT_OUTPUT_MAX_LENGTH = 2048;
-    private static final int COMPACT_INPUT_MAX_LENGTH = 4096;
     private static final int COMPACT_LINE_MAX_LENGTH = 256;
 
     private static final String COMPACT_PROMPT = """
@@ -56,6 +56,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
     private final Model model;
     private final MessageLocks messageLocks;
     private final AiUsageService aiUsageService;
+    private final ConfigService configService;
 
     // ════ Context ═════════════════
 
@@ -93,18 +94,20 @@ public class RollingSummaryMemory implements EpisodicMemory {
             if (!memoryService.isEpisodicEnabled(chatId)) return;
             List<Message> read = messageService.getRead(chatId);
             if (read.isEmpty()) return;
+            int maxTokens = configService.getInt(Conf.AI_COMPACT_MAX_TOKENS);
+            int inputMaxLength = configService.getInt(Conf.AI_COMPACT_INPUT_MAX_LENGTH);
             int keep = Math.max(1, read.size() / 2);
             List<Message> half = read.subList(0, keep);
             Memory previous = memoryService.getEpisodic(chatId);
-            Batch batch = input(previous, half);
+            Batch batch = input(previous, half, inputMaxLength);
             if (batch.messages().isEmpty()) return;
             ModelRes res = model.invoke(ModelReq.of(
                     List.of(AiMsg.system(COMPACT_PROMPT),
                             AiMsg.user(batch.text())),
                     Effort.LOW,
-                    COMPACT_MAX_TOKENS
+                    maxTokens
             ));
-            recordUsage(chatId, res.usage());
+            record(chatId, res.usage());
             String content = res.content() == null ? "" : res.content().strip();
             if (content.isBlank()) {
                 log.warn("Episodic memory compaction empty: chat={}", chatId);
@@ -133,7 +136,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
      * @param chatId chat identifier
      * @param usage  the token usage, nullable
      */
-    private void recordUsage(String chatId, ModelUsage usage) {
+    private void record(String chatId, ModelUsage usage) {
         try {
             ChatType chatType = ChatIds.type(chatId);
             String targetId = ChatIds.rawId(chatId);
@@ -146,10 +149,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
         }
     }
 
-    private record Batch(List<Message> messages, String text) {
-    }
-
-    private static Batch input(Memory previous, List<Message> read) {
+    private static Batch input(Memory previous, List<Message> read, int maxLength) {
         StringBuilder text = new StringBuilder();
         if (previous != null && previous.getContent() != null && !previous.getContent().isBlank())
             text.append("Previous summary:\n")
@@ -159,7 +159,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
         List<Message> messages = new ArrayList<>();
         for (Message message : read) {
             String line = line(message);
-            if (text.length() + line.length() + 1 > COMPACT_INPUT_MAX_LENGTH) break;
+            if (text.length() + line.length() + 1 > maxLength) break;
             messages.add(message);
             text.append(line).append('\n');
         }
@@ -182,5 +182,8 @@ public class RollingSummaryMemory implements EpisodicMemory {
 
     private static String truncate(String text, int maxLength) {
         return text.length() <= maxLength ? text : text.substring(0, maxLength);
+    }
+
+    private record Batch(List<Message> messages, String text) {
     }
 }

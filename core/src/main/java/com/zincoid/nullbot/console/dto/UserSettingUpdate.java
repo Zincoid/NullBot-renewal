@@ -14,20 +14,18 @@ import jakarta.validation.constraints.Size;
  * @param privateAiEpisodicMemoryEnabled whether episodic memory is enabled
  * @param privateAiSemanticMemoryEnabled whether semantic memory is enabled
  */
-public record UserSettingUpdate(
-        @Size(max = 20000, message = "privateAiPrompt must not exceed 20000 characters")
-        String privateAiPrompt,
+public record UserSettingUpdate(@Size(max = 20000, message = "privateAiPrompt must not exceed 20000 characters")
+                                String privateAiPrompt,
 
-        @NotNull(message = "AI effort is required")
-        Effort privateAiEffort,
+                                @NotNull(message = "AI effort is required")
+                                Effort privateAiEffort,
 
-        @NotNull(message = "privateAiInjectionGuardEnabled is required")
-        Boolean privateAiInjectionGuardEnabled,
+                                @NotNull(message = "privateAiInjectionGuardEnabled is required")
+                                Boolean privateAiInjectionGuardEnabled,
 
-        @NotNull(message = "privateAiEpisodicMemoryEnabled is required")
-        Boolean privateAiEpisodicMemoryEnabled,
+                                @NotNull(message = "privateAiEpisodicMemoryEnabled is required")
+                                Boolean privateAiEpisodicMemoryEnabled,
 
-        @NotNull(message = "privateAiSemanticMemoryEnabled is required")
-        Boolean privateAiSemanticMemoryEnabled
-) {
+                                @NotNull(message = "privateAiSemanticMemoryEnabled is required")
+                                Boolean privateAiSemanticMemoryEnabled) {
 }

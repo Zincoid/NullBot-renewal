@@ -70,11 +70,11 @@ public class GroupSettingController {
                 .limitCapacity(body.limitCapacity())
                 .limitRefill(body.limitRefill())
                 .limitInterval(body.limitInterval())
-                .aiEffort(body.aiEffort())
                 .aiPrompt(prompt)
-                .aiInjectionGuardEnabled(body.aiInjectionGuardEnabled())
+                .aiEffort(body.aiEffort())
                 .aiAutoChatEnabled(body.aiAutoChatEnabled())
                 .aiChatFrequency(body.aiChatFrequency())
+                .aiInjectionGuardEnabled(body.aiInjectionGuardEnabled())
                 .aiEpisodicMemoryEnabled(body.aiEpisodicMemoryEnabled())
                 .aiSemanticMemoryEnabled(body.aiSemanticMemoryEnabled())
                 .build();

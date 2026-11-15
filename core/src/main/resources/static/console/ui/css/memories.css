@@ -217,6 +217,10 @@
     color: var(--color-text-inverse);
 }
 
+[data-theme="dark"] .memories-chat:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
 [data-theme="dark"] .memories-chat.active .memories-badge {
     color: #0f1117;
 }

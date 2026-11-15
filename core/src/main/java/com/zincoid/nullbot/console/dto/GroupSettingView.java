@@ -19,33 +19,31 @@ import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
  * @param limitCapacity           the rate limit capacity
  * @param limitRefill             the rate limit refill amount
  * @param limitInterval           the rate limit refill interval in minutes
- * @param aiEffort                the AI reasoning effort
  * @param aiPrompt                the group system prompt, blank when unset
- * @param aiInjectionGuardEnabled whether anti prompt injection is enabled
+ * @param aiEffort                the AI reasoning effort
  * @param aiAutoChatEnabled       whether AI replies to ordinary group messages automatically
  * @param aiChatFrequency         the auto-chat probability per message, 0..1
+ * @param aiInjectionGuardEnabled whether anti prompt injection is enabled
  * @param aiEpisodicMemoryEnabled whether episodic memory is enabled
  * @param aiSemanticMemoryEnabled whether semantic memory is enabled
  */
-public record GroupSettingView(
-        String groupId,
-        Language language,
-        boolean joinNoticeEnabled,
-        boolean leaveNoticeEnabled,
-        boolean antiRecallEnabled,
-        boolean limitEnabled,
-        LimitScope limitScope,
-        int limitCapacity,
-        int limitRefill,
-        int limitInterval,
-        Effort aiEffort,
-        String aiPrompt,
-        boolean aiInjectionGuardEnabled,
-        boolean aiAutoChatEnabled,
-        double aiChatFrequency,
-        boolean aiEpisodicMemoryEnabled,
-        boolean aiSemanticMemoryEnabled
-) {
+public record GroupSettingView(String groupId,
+                               Language language,
+                               boolean joinNoticeEnabled,
+                               boolean leaveNoticeEnabled,
+                               boolean antiRecallEnabled,
+                               boolean limitEnabled,
+                               LimitScope limitScope,
+                               int limitCapacity,
+                               int limitRefill,
+                               int limitInterval,
+                               String aiPrompt,
+                               Effort aiEffort,
+                               boolean aiAutoChatEnabled,
+                               double aiChatFrequency,
+                               boolean aiInjectionGuardEnabled,
+                               boolean aiEpisodicMemoryEnabled,
+                               boolean aiSemanticMemoryEnabled) {
 
     /**
      * 由群设置记录构建视图。
@@ -66,11 +64,11 @@ public record GroupSettingView(
                 setting.getLimitCapacity(),
                 setting.getLimitRefill(),
                 setting.getLimitInterval(),
-                setting.getAiEffort(),
                 setting.getAiPrompt() == null ? "" : setting.getAiPrompt(),
-                setting.getAiInjectionGuardEnabled(),
+                setting.getAiEffort(),
                 setting.getAiAutoChatEnabled(),
                 setting.getAiChatFrequency(),
+                setting.getAiInjectionGuardEnabled(),
                 setting.getAiEpisodicMemoryEnabled(),
                 setting.getAiSemanticMemoryEnabled());
     }

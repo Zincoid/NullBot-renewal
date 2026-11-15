@@ -15,8 +15,10 @@ public enum Conf {
     AI_PROVIDER_API_URL("ai_provider_api_url", "", "OpenAI-compatible API base URL"),
     AI_PROVIDER_API_KEY("ai_provider_api_key", "", "OpenAI-compatible API key", true),
     AI_PROVIDER_MODEL("ai_provider_model", "", "Model name"),
-    AI_MAX_TOKENS("ai_max_tokens", "1024", "Max output tokens per request"),
-    AI_MAX_TOOL_CALLS("ai_max_tool_calls", "5", "Max tool call rounds"),
+    AI_CHAT_MAX_TOKENS("ai_chat_max_tokens", "1024", "Max output tokens per AI chat request"),
+    AI_CHAT_MAX_TOOL_CALLS("ai_chat_max_tool_calls", "5", "Max tool call rounds per AI chat request"),
+    AI_COMPACT_MAX_TOKENS("ai_compact_max_tokens", "8192", "Max output tokens for episodic compaction"),
+    AI_COMPACT_INPUT_MAX_LENGTH("ai_compact_input_max_length", "4096", "Max input characters for one episodic compaction"),
     AI_DEFAULT_PROMPT("ai_default_prompt", "You are a helpful assistant.", "Default chat system prompt"),
     AI_CMD_ACCESS_CHECK("ai_cmd_access_check", "false", "Check access for AI-invoked commands");
 

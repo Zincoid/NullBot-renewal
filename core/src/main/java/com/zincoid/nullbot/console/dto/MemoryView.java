@@ -14,8 +14,11 @@ import java.time.LocalDateTime;
  * @param createdAt the creation time
  * @param updatedAt the update time
  */
-public record MemoryView(Long id, String type, String content,
-                         LocalDateTime createdAt, LocalDateTime updatedAt) {
+public record MemoryView(Long id,
+                         String type,
+                         String content,
+                         LocalDateTime createdAt,
+                         LocalDateTime updatedAt) {
 
     /**
      * 由记忆记录构建视图。

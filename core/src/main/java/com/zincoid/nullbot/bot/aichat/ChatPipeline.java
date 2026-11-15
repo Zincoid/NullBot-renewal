@@ -119,8 +119,8 @@ public class ChatPipeline {
     private ChatOptions options(Profile profile) {
         return new ChatOptions(
                 profile.effort(),
-                configService.getInt(Conf.AI_MAX_TOKENS),
-                configService.getInt(Conf.AI_MAX_TOOL_CALLS),
+                configService.getInt(Conf.AI_CHAT_MAX_TOKENS),
+                configService.getInt(Conf.AI_CHAT_MAX_TOOL_CALLS),
                 profile.episodicMemory(),
                 profile.semanticMemory());
     }

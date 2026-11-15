@@ -142,7 +142,20 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
   UPDATE `memory` SET `updated_at` = `created_at`;
   ```
 
-- `group_setting.ai_injection_guard` / `user_setting.private_ai_injection_guard` 更名为 `ai_injection_guard_enabled` / `private_ai_injection_guard_enabled`，Java 字段、控制台接口与页面字段同步改名。请先执行分支中新增记忆开关列的迁移，再执行改名。MySQL 8+ / SQLite 3.25+：
+- `group_setting.ai_injection_guard` / `user_setting.private_ai_injection_guard` 更名为 `ai_injection_guard_enabled` / `private_ai_injection_guard_enabled`，Java 字段、控制台接口与页面字段同步改名。请先执行分支中新增记忆开关列的迁移，再执行改名。
+
+  MySQL（同时把群设置列移到 `ai_chat_frequency` 之后）：
+
+  ```sql
+  ALTER TABLE `group_setting`
+      CHANGE COLUMN `ai_injection_guard` `ai_injection_guard_enabled`
+          BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Anti prompt injection'
+          AFTER `ai_chat_frequency`;
+  ALTER TABLE `user_setting`
+      RENAME COLUMN `private_ai_injection_guard` TO `private_ai_injection_guard_enabled`;
+  ```
+
+  SQLite 3.25+（列顺序保持不变，不影响字段映射）：
 
   ```sql
   ALTER TABLE `group_setting`
@@ -150,6 +163,15 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
   ALTER TABLE `user_setting`
       RENAME COLUMN `private_ai_injection_guard` TO `private_ai_injection_guard_enabled`;
   ```
+
+- 配置键 `ai_max_tokens` / `ai_max_tool_calls` 更名为 `ai_chat_max_tokens` / `ai_chat_max_tool_calls`，明确只作用于 AI 聊天回复。升级前如修改过这些值，需在启动前执行：
+
+  ```sql
+  UPDATE `config` SET `key` = 'ai_chat_max_tokens' WHERE `key` = 'ai_max_tokens';
+  UPDATE `config` SET `key` = 'ai_chat_max_tool_calls' WHERE `key` = 'ai_max_tool_calls';
+  ```
+
+  若新版本已启动并初始化了默认的新键，请先复制旧值到新键，再删除旧行。
 
 ### Added
 
@@ -167,6 +189,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - `ToolHost` 新增 `chatId()`，供工具读取当前会话标识；仓库内唯一实现为 `ChatToolHost`，外部插件若自行实现该接口需要补上此方法。
 - 控制台新增“记忆”页：按群聊 / 私聊列出有 AI 记忆的会话，展示情景摘要与长期事实；支持删除单条长期事实、清空长期事实和删除情景摘要。
 - 群设置与用户设置新增“情景记忆”“长期记忆”开关，默认关闭（群设置也可用 `#Setting -a episodic|semantic on|off`）：关闭后不再注入对应记忆，情景记忆同时停止压缩并允许窗口修剪删除已读消息，长期记忆不再向模型提供 `memory` 工具；已有记忆保留。
+- 新增 `ai_compact_max_tokens`（默认 8192）与 `ai_compact_input_max_length`（默认 4096）配置，分别控制情景记忆压缩的输出词元上限与单次输入字符上限。
 
 ### Changed
 

@@ -22,66 +22,64 @@ import jakarta.validation.constraints.Size;
  * @param limitCapacity           the rate limit capacity
  * @param limitRefill             the rate limit refill amount
  * @param limitInterval           the rate limit refill interval in minutes
- * @param aiEffort                the AI reasoning effort
  * @param aiPrompt                the group system prompt, blank clears it
- * @param aiInjectionGuardEnabled whether anti prompt injection is enabled
+ * @param aiEffort                the AI reasoning effort
  * @param aiAutoChatEnabled       whether AI replies to ordinary group messages automatically
  * @param aiChatFrequency         the auto-chat probability per message, 0..1
+ * @param aiInjectionGuardEnabled whether anti prompt injection is enabled
  * @param aiEpisodicMemoryEnabled whether episodic memory is enabled
  * @param aiSemanticMemoryEnabled whether semantic memory is enabled
  */
-public record GroupSettingUpdate(
-        @NotNull(message = "Language is required")
-        Language language,
+public record GroupSettingUpdate(@NotNull(message = "Language is required")
+                                 Language language,
 
-        @NotNull(message = "joinNoticeEnabled is required")
-        Boolean joinNoticeEnabled,
+                                 @NotNull(message = "joinNoticeEnabled is required")
+                                 Boolean joinNoticeEnabled,
 
-        @NotNull(message = "leaveNoticeEnabled is required")
-        Boolean leaveNoticeEnabled,
+                                 @NotNull(message = "leaveNoticeEnabled is required")
+                                 Boolean leaveNoticeEnabled,
 
-        @NotNull(message = "antiRecallEnabled is required")
-        Boolean antiRecallEnabled,
+                                 @NotNull(message = "antiRecallEnabled is required")
+                                 Boolean antiRecallEnabled,
 
-        @NotNull(message = "limitEnabled is required")
-        Boolean limitEnabled,
+                                 @NotNull(message = "limitEnabled is required")
+                                 Boolean limitEnabled,
 
-        @NotNull(message = "Limit scope is required")
-        LimitScope limitScope,
+                                 @NotNull(message = "Limit scope is required")
+                                 LimitScope limitScope,
 
-        @NotNull(message = "limitCapacity is required")
-        @Positive(message = "limitCapacity must be positive")
-        Integer limitCapacity,
+                                 @NotNull(message = "limitCapacity is required")
+                                 @Positive(message = "limitCapacity must be positive")
+                                 Integer limitCapacity,
 
-        @NotNull(message = "limitRefill is required")
-        @Positive(message = "limitRefill must be positive")
-        Integer limitRefill,
+                                 @NotNull(message = "limitRefill is required")
+                                 @Positive(message = "limitRefill must be positive")
+                                 Integer limitRefill,
 
-        @NotNull(message = "limitInterval is required")
-        @Positive(message = "limitInterval must be positive")
-        Integer limitInterval,
+                                 @NotNull(message = "limitInterval is required")
+                                 @Positive(message = "limitInterval must be positive")
+                                 Integer limitInterval,
 
-        @NotNull(message = "AI effort is required")
-        Effort aiEffort,
+                                 @Size(max = 20000, message = "aiPrompt must not exceed 20000 characters")
+                                 String aiPrompt,
 
-        @Size(max = 20000, message = "aiPrompt must not exceed 20000 characters")
-        String aiPrompt,
+                                 @NotNull(message = "AI effort is required")
+                                 Effort aiEffort,
 
-        @NotNull(message = "aiInjectionGuardEnabled is required")
-        Boolean aiInjectionGuardEnabled,
+                                 @NotNull(message = "aiAutoChatEnabled is required")
+                                 Boolean aiAutoChatEnabled,
 
-        @NotNull(message = "aiAutoChatEnabled is required")
-        Boolean aiAutoChatEnabled,
+                                 @NotNull(message = "aiChatFrequency is required")
+                                 @DecimalMin(value = "0.0", message = "aiChatFrequency must be between 0 and 1")
+                                 @DecimalMax(value = "1.0", message = "aiChatFrequency must be between 0 and 1")
+                                 Double aiChatFrequency,
 
-        @NotNull(message = "aiChatFrequency is required")
-        @DecimalMin(value = "0.0", message = "aiChatFrequency must be between 0 and 1")
-        @DecimalMax(value = "1.0", message = "aiChatFrequency must be between 0 and 1")
-        Double aiChatFrequency,
+                                 @NotNull(message = "aiInjectionGuardEnabled is required")
+                                 Boolean aiInjectionGuardEnabled,
 
-        @NotNull(message = "aiEpisodicMemoryEnabled is required")
-        Boolean aiEpisodicMemoryEnabled,
+                                 @NotNull(message = "aiEpisodicMemoryEnabled is required")
+                                 Boolean aiEpisodicMemoryEnabled,
 
-        @NotNull(message = "aiSemanticMemoryEnabled is required")
-        Boolean aiSemanticMemoryEnabled
-) {
+                                 @NotNull(message = "aiSemanticMemoryEnabled is required")
+                                 Boolean aiSemanticMemoryEnabled) {
 }

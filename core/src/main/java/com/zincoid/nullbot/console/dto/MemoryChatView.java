@@ -13,12 +13,10 @@ import java.time.LocalDateTime;
  * @param semantic the semantic record count
  * @param lastAt   the latest memory update time
  */
-public record MemoryChatView(
-        String chatId,
-        String name,
-        String type,
-        long episodic,
-        long semantic,
-        LocalDateTime lastAt
-) {
+public record MemoryChatView(String chatId,
+                             String name,
+                             String type,
+                             long episodic,
+                             long semantic,
+                             LocalDateTime lastAt) {
 }

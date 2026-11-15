@@ -30,11 +30,11 @@ public class GroupSetting {
     private Integer limitCapacity;
     private Integer limitRefill;
     private Integer limitInterval;
-    private Effort aiEffort;
     private String aiPrompt;
-    private Boolean aiInjectionGuardEnabled;
+    private Effort aiEffort;
     private Boolean aiAutoChatEnabled;
     private Double aiChatFrequency;
+    private Boolean aiInjectionGuardEnabled;
     private Boolean aiEpisodicMemoryEnabled;
     private Boolean aiSemanticMemoryEnabled;
 }
