@@ -6,6 +6,7 @@ import com.zincoid.nullbot.platform.persistence.po.Message;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * 聊天消息记录服务：负责消息落库、读取状态、会话窗口与历史清理。
@@ -13,16 +14,38 @@ import java.util.List;
  */
 public interface MessageService extends IService<Message> {
 
-    // ════ Append ══════════════════
+    // ════ Locking ═════════════════
 
     /**
-     * 追加一条消息，并将会话窗口修剪至配置长度，未压缩的已读消息会保留。
-     * <p>Appends a message and trims the chat window to the configured size, retaining uncompacted read messages.</p>
+     * 在会话锁内执行一段组合操作，同一会话的操作互斥，异常原样抛出。
+     * <p>Runs a composite operation inside the chat lock, mutually exclusive per chat; exceptions propagate unchanged.</p>
      *
-     * @param message the message to append
+     * @param chatId chat identifier
+     * @param action the operation to run
+     */
+    void runLocked(String chatId, Runnable action);
+
+    /**
+     * 在会话锁内执行一段有返回值的组合操作，同一会话的操作互斥，异常原样抛出。
+     * <p>Runs a composite operation with a result inside the chat lock, mutually exclusive per chat; exceptions propagate unchanged.</p>
+     *
+     * @param chatId chat identifier
+     * @param action the operation to run
+     * @param <T>    the result type
+     * @return the result of the operation
+     */
+    <T> T callLocked(String chatId, Supplier<T> action);
+
+    // ════ Record ══════════════════
+
+    /**
+     * 记录一条消息，并将会话窗口修剪至配置长度，未压缩的已读消息会保留。
+     * <p>Records a message and trims the chat window to the configured size, retaining uncompacted read messages.</p>
+     *
+     * @param message the message to record
      * @return the persisted record
      */
-    Message append(Message message);
+    Message record(Message message);
 
     // ════ Window ══════════════════
 

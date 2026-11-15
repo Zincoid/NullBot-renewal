@@ -29,36 +29,22 @@ public class StartupLogger implements ApplicationRunner {
 
     private final ObjectProvider<BuildProperties> builds;
 
-    /**
-     * 创建启动版本日志组件。
-     * <p>Creates the startup version logger.</p>
-     *
-     * @param builds the build properties provider
-     */
     public StartupLogger(ObjectProvider<BuildProperties> builds) {
         this.builds = builds;
     }
 
     /**
-     * 输出构建版本；未打包运行时回退为 dev。
-     * <p>Logs the build version, falling back to dev when running unpackaged.</p>
+     * 输出构建版本。
+     * <p>Logs the build version.</p>
      *
      * @param args application arguments
      */
     @Override
     public void run(@NonNull ApplicationArguments args) {
         BANNER.lines().forEach(log::info);
-        log.info("NullBot renewal author: @Zincoid");
         BuildProperties build = builds.getIfAvailable();
-        if (build == null || build.getVersion() == null) {
-            log.info("NullBot renewal version: dev");
-            return;
-        }
-        if (build.getTime() == null) {
-            log.info("NullBot renewal version: {}", build.getVersion());
-            return;
-        }
-        log.info("NullBot renewal version: {} (build: {})",
-                build.getVersion(), build.getTime());
+        log.info("NullBot renewal v{} (build: {}) by Zincoid",
+                build == null ? null : build.getVersion(),
+                build == null ? null : build.getTime());
     }
 }

@@ -34,7 +34,7 @@ public class LogStreamAppender extends AppenderBase<ILoggingEvent> {
         setName("console-log-stream");
         start();
         context.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(this);
-        log.info("Log stream appender attached");
+        log.debug("Log stream appender attached");
     }
 
     /**

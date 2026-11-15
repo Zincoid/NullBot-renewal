@@ -173,6 +173,14 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 
   若新版本已启动并初始化了默认的新键，请先复制旧值到新键，再删除旧行。
 
+- 配置键 `ai_compact_max_tokens` 更名为 `ai_compact_output_max_tokens`，与输出词元上限语义一致。升级前如修改过该值，需在启动前执行：
+
+  ```sql
+  UPDATE `config` SET `key` = 'ai_compact_output_max_tokens' WHERE `key` = 'ai_compact_max_tokens';
+  ```
+
+  若新版本已启动并初始化了默认的新键，请先复制旧值到新键，再删除旧行。
+
 ### Added
 
 - 控制台新增“消息”页：左侧按群聊 / 私聊切换并列出保留有消息的会话，右侧以聊天形式展示角色、昵称、用户 ID、时间、正文、reasoning 与附件数量；附件不随页面加载，按消息在弹窗中预览或下载。
@@ -233,6 +241,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - AI 情景记忆改为单窗口三状态（未读 / 已读 / 已压缩）：AI 只读取未压缩消息并标记已读；窗口修剪从最旧开始，遇到已读消息停止，并压缩最老的一半已读消息为滚动摘要，标记已压缩但保留记录；自动修剪不再删除未压缩的已读消息。`MessageService.overflow()` 移除，`EpisodicMemory.compactIfNeeded` 更名为 `compact` 并由窗口修剪事件触发；升级需为 `message` 增加 `status` 列（上方 2N 溢出区与阈值压缩描述由本条取代）。
 - 控制台记忆页展示情景摘要与长期事实的“创建 – 更新”时间区间；`memory` 表新增 `updated_at`，情景摘要每次更新时刷新。
 - `ai_usage.source` 新增 `compact`（5）：情景压缩的模型调用现在按次数与输入 / 输出词元计入 AI 用量，触发来源排行显示为“记忆压缩”；压缩记录使用 `System` 用户，会计入用户统计，`source` 仍为 `TINYINT`，无需改表（上方“压缩调用不计入 ai_usage”描述由本条取代）。
+- 消息会话锁并入 `MessageService`：新增 `runLocked` / `callLocked` 在会话锁内执行组合操作，窗口修剪、工作记忆读取与情景压缩共用按会话分条的同一把锁；移除独立组件 `MessageLocks`；`MessageService.append` 更名为 `record`，无行为变化。
 - `group_setting` / `user_setting` 新增情景记忆与长期记忆开关列，默认关闭；旧库需在启动前执行：
   MySQL：
   ```sql
@@ -255,6 +264,8 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
   ALTER TABLE `user_setting` ADD COLUMN `private_ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
   ALTER TABLE `user_setting` ADD COLUMN `private_ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
   ```
+- 情景记忆压缩改为后台任务：窗口修剪事件由 `EpisodicCompactionListener` 异步转交 `RollingSummaryMemory`；压缩先在会话锁内取批、锁外调用模型、再回到锁内提交，消息写入不再等待压缩；压缩输入改为旧摘要完整带入（写入时已按 2048 字符截断）、新消息单独按 `ai_compact_input_max_length` 限制并保证至少包含一条消息，压缩提示词要求摘要按重要性优先、新旧次之排序并控制在 2000 字符内；`RollingSummaryMemory` 与 `ChatPipeline` 的用量记录私有方法统一更名为 `recordUsage`；无数据结构变化。上方 `ai_compact_input_max_length` 的“单次输入字符上限”描述由本条取代。
+- AI 记忆包整理：`RollingSummaryMemory`、`MessageWindowMemory`、`LongTermFactMemory` 与 `EpisodicCompactionListener` 从 `module.ai.memory.impl` 拍平到 `module.ai.memory`，与接口同包；无行为变化。
 
 ### Removed
 

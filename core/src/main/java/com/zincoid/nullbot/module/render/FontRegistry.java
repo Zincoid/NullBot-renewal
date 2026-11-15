@@ -72,8 +72,8 @@ public class FontRegistry {
             log.debug("Font already registered: {}", name);
             return false;
         }
-        if (resource == null) log.info("Font registered: {}", name);
-        else log.info("Font registered: {} ({})", name, resource);
+        if (resource == null) log.debug("Font registered: {}", name);
+        else log.debug("Font registered: {} ({})", name, resource);
         return true;
     }
 }

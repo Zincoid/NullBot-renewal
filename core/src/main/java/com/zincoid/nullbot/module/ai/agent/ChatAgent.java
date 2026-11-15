@@ -34,10 +34,10 @@ public class ChatAgent {
             Please provide the final answer based on the available information.
             Do not call any more tools!!!""";
 
+    private final Model model;
     private final WorkingMemory workingMemory;
     private final EpisodicMemory episodicMemory;
     private final SemanticMemory semanticMemory;
-    private final Model model;
     private final ToolRegistry toolRegistry;
     private final ContextManager contextManager;
 

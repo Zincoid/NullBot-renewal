@@ -58,7 +58,7 @@ public class AttachmentServiceImpl extends ServiceImpl<AttachmentMapper, Attachm
             deleteQuietly(saved.stored());
             throw new AttachmentException("Failed to save attachment record: " + saved.original(), e);
         }
-        log.info("Attachment saved: {}", attachment.getId());
+        log.debug("Attachment saved: {}", attachment.getId());
         return attachment;
     }
 
@@ -117,7 +117,7 @@ public class AttachmentServiceImpl extends ServiceImpl<AttachmentMapper, Attachm
             removeById(attachment.getId());
             deleteQuietly(attachment.getStored());
         }
-        log.info("Attachments deleted: message={}, count={}", messageId, attachments.size());
+        log.debug("Attachments deleted: message={}, count={}", messageId, attachments.size());
     }
 
     // ════ Helpers ═════════════════

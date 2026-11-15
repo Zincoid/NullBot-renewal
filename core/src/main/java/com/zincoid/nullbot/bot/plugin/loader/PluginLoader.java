@@ -110,7 +110,7 @@ public class PluginLoader {
     public synchronized void load() {
         state.load();
         if (!properties.isEnabled()) {
-            log.info("Plugin loading disabled.");
+            log.info("Plugin loading disabled");
             return;
         }
         cleanStaleCopies();
@@ -118,9 +118,7 @@ public class PluginLoader {
             rescan();
         } catch (PluginException e) {
             log.error("Cannot list plugin directory: {}", dir, e);
-            return;
         }
-        log.info("Plugins loaded: {}", loaded.size());
     }
 
     // ════ List ════════════════════
@@ -375,8 +373,9 @@ public class PluginLoader {
             LoadedPlugin item = loadJar(jar);
             loaded.add(item);
             failures.remove(name);
-            log.info("Plugin loaded: id={}, version={}, api={}, cmds={}, tools={}",
-                    item.id(), item.version(), item.apiVersion(), item.cmds().size(), item.tools().size());
+            log.info("Plugin loaded: [API {}] {} v{} (cmd={}, tool={})",
+                    item.apiVersion(), item.id(), item.version(),
+                    item.cmds().size(), item.tools().size());
         } catch (PluginException e) {
             failures.put(name, message(e));
             log.error("Plugin load failed: {} - {}", name, message(e), e);
@@ -528,6 +527,7 @@ public class PluginLoader {
      * <p>Rescans the directory and synchronizes plugin state; callers must hold the loader monitor.</p>
      */
     private void rescan() {
+        log.info("Plugin scanning...");
         List<Path> jars = scanJars();
         Map<String, Path> byName = new LinkedHashMap<>();
         for (Path jar : jars) byName.put(jar.getFileName().toString(), jar);
@@ -568,8 +568,8 @@ public class PluginLoader {
                 failed++;
             }
         }
-        log.info("Plugin scan complete: scanned={}, unloaded={}, loaded={}, failed={}",
-                byName.size(), unloaded, loaded.size() - before, failed);
+        log.info("Plugin scanned: loaded={}, unloaded={}, failed={}",
+                loaded.size() - before, unloaded, failed);
     }
 
     // ════ Helpers ═════════════════

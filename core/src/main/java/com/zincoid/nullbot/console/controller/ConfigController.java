@@ -122,7 +122,7 @@ public class ConfigController {
         if (conf == Conf.MESSAGE_HISTORY_MAX_LENGTH
                 || conf == Conf.AI_CHAT_MAX_TOKENS
                 || conf == Conf.AI_CHAT_MAX_TOOL_CALLS
-                || conf == Conf.AI_COMPACT_MAX_TOKENS
+                || conf == Conf.AI_COMPACT_OUTPUT_MAX_TOKENS
                 || conf == Conf.AI_COMPACT_INPUT_MAX_LENGTH)
             return integer(value);
         if (conf == Conf.AI_CMD_ACCESS_CHECK)

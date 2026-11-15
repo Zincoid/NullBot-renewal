@@ -203,11 +203,11 @@ public class MessageController {
      * @param messageId platform message id
      * @param selfId    bot account id
      * @param content   message text
-     * @return true when the record was appended
+     * @return true when the message was recorded
      */
     private boolean recordSent(String chatId, String messageId, String selfId, String content) {
         try {
-            messageService.append(Message.builder()
+            messageService.record(Message.builder()
                     .id(messageId)
                     .chatId(chatId)
                     .userId(selfId)

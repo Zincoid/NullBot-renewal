@@ -15,7 +15,7 @@ final class ChatToolHost implements ToolHost {
 
     private final ChatTurn turn;
     private final ChatActions actions;
-    private final ChatCommands commands;
+    private final ChatCmds cmds;
 
     private boolean finalSent;
 
@@ -50,6 +50,6 @@ final class ChatToolHost implements ToolHost {
 
     @Override
     public ToolRes cmd(String name, List<String> params) {
-        return commands.cmd(turn, name, params);
+        return cmds.cmd(turn, name, params);
     }
 }

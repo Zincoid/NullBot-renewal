@@ -1,11 +1,9 @@
-package com.zincoid.nullbot.module.ai.memory.impl;
+package com.zincoid.nullbot.module.ai.memory;
 
 import com.zincoid.nullbot.module.ai.AiException;
-import com.zincoid.nullbot.module.ai.memory.WorkingMemory;
 import com.zincoid.nullbot.module.ai.message.AiMsg;
 import com.zincoid.nullbot.module.ai.message.AssistantMsg;
 import com.zincoid.nullbot.module.ai.message.UserMsg;
-import com.zincoid.nullbot.module.message.MessageLocks;
 import com.zincoid.nullbot.module.message.MessageService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageRole;
 import com.zincoid.nullbot.platform.persistence.po.Message;
@@ -14,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 基于消息记录的工作记忆：读取尚未压缩的消息并标记为已读，保存新的会话消息。
@@ -25,24 +22,19 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MessageWindowMemory implements WorkingMemory {
 
     private final MessageService messageService;
-    private final MessageLocks messageLocks;
 
     // ════ Read ════════════════════
 
     @Override
     public List<AiMsg> read(String chatId) {
-        ReentrantLock lock = messageLocks.get(chatId);
-        lock.lock();
-        try {
+        return messageService.callLocked(chatId, () -> {
             List<Message> messages = messageService.getUncompacted(chatId);
             if (!messages.isEmpty())
                 messageService.markRead(messages.stream().map(Message::getId).toList());
             return messages.stream()
                     .map(this::toAiMsg)
                     .toList();
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     // ════ Save ════════════════════
@@ -66,11 +58,18 @@ public class MessageWindowMemory implements WorkingMemory {
                     .reasoning(m.reasoning());
             default -> throw new AiException("Unsupported message: " + message);
         }
-        messageService.append(builder.build());
+        messageService.record(builder.build());
     }
 
     // ════ Helpers ═════════════════
 
+    /**
+     * 把消息记录转换为模型消息：助手消息保留 reasoning，用户消息附带 id 与昵称。
+     * <p>Converts a message record into a model message: assistant messages keep the reasoning, user messages carry the id and nickname.</p>
+     *
+     * @param message the message record
+     * @return the model message
+     */
     private AiMsg toAiMsg(Message message) {
         String content = message.getContent();
         if (content == null || content.isEmpty())

@@ -1,4 +1,8 @@
 # Shiro 适配器默认配置，由选中 adapter-shiro 的 launcher 构建加载
+logging:
+  level:
+    # 不使用 Shiro 插件 SPI，屏蔽其空扫描警告
+    com.mikuac.shiro.plugin.PluginManager: ERROR
 shiro:
   ws:
     access-token: ${nullbot.shiro.token:}

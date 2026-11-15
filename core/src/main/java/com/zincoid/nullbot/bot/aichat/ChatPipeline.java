@@ -48,7 +48,7 @@ public class ChatPipeline {
     private final AiUsageService aiUsageService;
     private final ChatGuard chatGuard;
     private final ChatActions chatActions;
-    private final ChatCommands chatCommands;
+    private final ChatCmds chatCmds;
 
     // ════ Chat ════════════════════
 
@@ -87,7 +87,7 @@ public class ChatPipeline {
                 configService.getString(Conf.AI_DEFAULT_PROMPT));
         List<ContextPacket> imageContext = ChatImages.context(
                 turn.client(), turn.event());
-        ToolHost host = new ChatToolHost(turn, chatActions, chatCommands);
+        ToolHost host = new ChatToolHost(turn, chatActions, chatCmds);
         ReentrantLock lock = getLock(turn.chatId());
         lock.lock();
         try {
@@ -97,7 +97,7 @@ public class ChatPipeline {
                     .context(imageContext)
                     .tool(host)
                     .call();
-            record(turn, res.usage());
+            recordUsage(turn, res.usage());
             if (res.finalSent()) return true;
             String content = ChatText.compact(res.content());
             chatActions.deliver(turn, MsgContent.of(content), content, res.reasoning());
@@ -169,7 +169,7 @@ public class ChatPipeline {
      * @param turn  the turn data
      * @param usage the token usage, nullable
      */
-    private void record(ChatTurn turn, ModelUsage usage) {
+    private void recordUsage(ChatTurn turn, ModelUsage usage) {
         try {
             aiUsageService.increase(
                     turn.chatType(),

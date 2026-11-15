@@ -32,7 +32,7 @@ logging:
     name: ${nullbot.log.path:./logs/output.log}
   level:
     root: WARN
-    com.zincoid: ${nullbot.log.level:INFO}
+    com.zincoid.nullbot: ${nullbot.log.level:INFO}
   pattern:
     console: >-
       %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}

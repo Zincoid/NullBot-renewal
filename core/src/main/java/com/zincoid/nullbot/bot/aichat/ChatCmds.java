@@ -26,7 +26,7 @@ import java.util.UUID;
  */
 @Component
 @RequiredArgsConstructor
-public class ChatCommands {
+public class ChatCmds {
 
     private final CmdDispatcher cmdDispatcher;
     private final ConfigService configService;

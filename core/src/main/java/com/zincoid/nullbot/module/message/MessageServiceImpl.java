@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * {@link MessageService} 的默认实现。
@@ -29,16 +30,43 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
 
+    private static final int LOCK_STRIPES = 64;
+
+    private final ReentrantLock[] locks = initLocks();
+
     private final ConfigService configService;
     private final AttachmentService attachmentService;
-    private final MessageLocks messageLocks;
     private final ApplicationEventPublisher eventPublisher;
     private final MemoryService memoryService;
 
-    // ════ Append ══════════════════
+    // ════ Locking ═════════════════
 
     @Override
-    public Message append(Message message) {
+    public void runLocked(String chatId, Runnable action) {
+        ReentrantLock lock = lock(chatId);
+        lock.lock();
+        try {
+            action.run();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public <T> T callLocked(String chatId, Supplier<T> action) {
+        ReentrantLock lock = lock(chatId);
+        lock.lock();
+        try {
+            return action.get();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // ════ Record ══════════════════
+
+    @Override
+    public Message record(Message message) {
         if (message == null)
             throw new MessageException("Missing key: message");
         if (message.getId() == null || message.getId().isBlank())
@@ -58,21 +86,23 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setReasoning(message.getReasoning() == null || message.getReasoning().isEmpty()
                 ? null : message.getReasoning());
         String chatId = message.getChatId();
-        ReentrantLock lock = messageLocks.get(chatId);
+        boolean blocked;
+        ReentrantLock lock = lock(chatId);
         lock.lock();
         try {
             message.setCreatedAt(LocalDateTime.now());
             save(message);
-            log.info("Message saved: {}", message.getId());
-            if (trimMessages(chatId)) {
-                try {
-                    eventPublisher.publishEvent(new MessageTrimBlockedEvent(chatId));
-                } catch (RuntimeException e) {
-                    log.warn("Failed to compact read messages: {}", e.getMessage());
-                }
-            }
+            log.debug("Message saved: {}", message.getId());
+            blocked = trimMessages(chatId);
         } finally {
             lock.unlock();
+        }
+        if (blocked) {
+            try {
+                eventPublisher.publishEvent(new MessageTrimBlockedEvent(chatId));
+            } catch (RuntimeException e) {
+                log.warn("Failed to publish trim blocked event: {}", e.getMessage());
+            }
         }
         return message;
     }
@@ -157,7 +187,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         if (distinct.isEmpty()) return 0;
         int removed = baseMapper.deleteByIds(distinct);
         distinct.forEach(this::deleteAttachments);
-        log.info("Messages removed: {}", removed);
+        log.debug("Messages removed: {}", removed);
         return removed;
     }
 
@@ -247,6 +277,30 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         } catch (RuntimeException e) {
             log.warn("Failed to delete attachments: message={}", messageId, e);
         }
+    }
+
+    /**
+     * 选择会话对应的条带锁。
+     * <p>Selects the striped lock for the chat.</p>
+     *
+     * @param chatId chat identifier
+     * @return the striped lock
+     */
+    private ReentrantLock lock(String chatId) {
+        int hash = chatId == null ? 0 : chatId.hashCode();
+        return locks[Math.floorMod(hash, locks.length)];
+    }
+
+    /**
+     * 创建固定数量的条带锁。
+     * <p>Creates the fixed set of striped locks.</p>
+     *
+     * @return the striped locks
+     */
+    private static ReentrantLock[] initLocks() {
+        ReentrantLock[] locks = new ReentrantLock[LOCK_STRIPES];
+        for (int i = 0; i < locks.length; i++) locks[i] = new ReentrantLock();
+        return locks;
     }
 
     /**

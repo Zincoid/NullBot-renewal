@@ -99,7 +99,7 @@ public class HistoryMiddleware implements Middleware {
                 .nickname(event.nickname())
                 .content(content.toString())
                 .build();
-        messageService.append(message);
+        messageService.record(message);
         for (MsgSegment.Image image : images)
             saveAttachment(message.getId(), event.userId(), image.url(), image.file());
     }
@@ -115,7 +115,7 @@ public class HistoryMiddleware implements Middleware {
     private void recordPoke(BotClient client, String chatId, PokeEvent event) {
         if (!event.selfId().equals(event.targetId())) return;
         if (event.selfId().equals(event.userId())) return;
-        messageService.append(Message.builder()
+        messageService.record(Message.builder()
                 .id(UUID.randomUUID().toString())
                 .chatId(chatId)
                 .userId(event.userId())

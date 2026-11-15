@@ -1,8 +1,7 @@
-package com.zincoid.nullbot.module.ai.memory.impl;
+package com.zincoid.nullbot.module.ai.memory;
 
 import com.zincoid.nullbot.module.ai.context.ContextPacket;
 import com.zincoid.nullbot.module.ai.context.TextPacket;
-import com.zincoid.nullbot.module.ai.memory.SemanticMemory;
 import com.zincoid.nullbot.module.memory.MemoryService;
 import com.zincoid.nullbot.platform.persistence.po.Memory;
 import lombok.RequiredArgsConstructor;
