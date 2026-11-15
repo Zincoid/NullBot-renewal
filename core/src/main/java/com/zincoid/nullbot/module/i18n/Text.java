@@ -185,6 +185,8 @@ public enum Text {
     SETTING_AI_PROMPT_RESET("AI 提示词已重置为默认", "AI prompt reset to default"),
     SETTING_AI_PROMPT_UPDATED("AI 提示词已更新", "AI prompt updated"),
     SETTING_AI_GUARD("AI 防注入 = %s", "AI injection guard = %s"),
+    SETTING_AI_EPISODIC_MEMORY("AI 情景记忆 = %s", "AI episodic memory = %s"),
+    SETTING_AI_SEMANTIC_MEMORY("AI 长期记忆 = %s", "AI semantic memory = %s"),
     SETTING_AI_AUTO_CHAT("AI 自动回复 = %s", "AI auto reply = %s"),
     SETTING_AI_CHAT_FREQUENCY("AI 自动回复频率 = %s", "AI auto reply frequency = %s"),
     SETTING_VIEW("""
@@ -194,6 +196,7 @@ public enum Text {
             防撤回：%s
             限速：enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
             AI：effort=%s, guard=%s, auto=%s, frequency=%s
+            记忆：情景=%s, 长期=%s
             提示词：%s""", """
             [Settings: %s]
             Language: %s
@@ -201,6 +204,7 @@ public enum Text {
             Anti-recall: %s
             Limit: enabled=%s, scope=%s, capacity=%s, refill=%s, interval=%s
             AI: effort=%s, guard=%s, auto=%s, frequency=%s
+            Memory: episodic=%s, semantic=%s
             Prompt: %s"""),
     SETTING_LANG_AUTO("auto（全局：%s）", "auto (global: %s)"),
     SETTING_DEFAULT("（默认）", "(default)");

@@ -7,13 +7,17 @@ import com.zincoid.nullbot.platform.persistence.po.UserSetting;
  * 控制台用户设置视图。
  * <p>Console view of user settings.</p>
  *
- * @param userId                 the platform user id
- * @param privateAiPrompt        the private-chat AI prompt
- * @param privateAiEffort        the AI reasoning effort
- * @param privateAiInjectionGuard whether anti prompt injection is enabled
+ * @param userId                       the platform user id
+ * @param privateAiPrompt              the private-chat AI prompt
+ * @param privateAiEffort              the AI reasoning effort
+ * @param privateAiInjectionGuard      whether anti prompt injection is enabled
+ * @param privateAiEpisodicMemoryEnabled whether episodic memory is enabled
+ * @param privateAiSemanticMemoryEnabled whether semantic memory is enabled
  */
 public record UserSettingView(String userId, String privateAiPrompt,
-                              Effort privateAiEffort, boolean privateAiInjectionGuard) {
+                              Effort privateAiEffort, boolean privateAiInjectionGuard,
+                              boolean privateAiEpisodicMemoryEnabled,
+                              boolean privateAiSemanticMemoryEnabled) {
 
     /**
      * 由用户设置构建视图。
@@ -28,6 +32,8 @@ public record UserSettingView(String userId, String privateAiPrompt,
                 userId,
                 setting.getPrivateAiPrompt() == null ? "" : setting.getPrivateAiPrompt(),
                 setting.getPrivateAiEffort(),
-                setting.getPrivateAiInjectionGuard());
+                setting.getPrivateAiInjectionGuard(),
+                setting.getPrivateAiEpisodicMemoryEnabled(),
+                setting.getPrivateAiSemanticMemoryEnabled());
     }
 }

@@ -9,21 +9,23 @@ import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
  * 控制台群设置视图。
  * <p>Console view of group settings.</p>
  *
- * @param groupId             the platform group id
- * @param language            the reply language
- * @param joinNoticeEnabled   whether join notices are enabled
- * @param leaveNoticeEnabled  whether leave notices are enabled
- * @param antiRecallEnabled   whether anti-recall is enabled
- * @param limitEnabled        whether rate limiting is enabled
- * @param limitScope          the rate limit scope
- * @param limitCapacity       the rate limit capacity
- * @param limitRefill         the rate limit refill amount
- * @param limitInterval       the rate limit refill interval in minutes
- * @param aiEffort            the AI reasoning effort
- * @param aiPrompt            the group system prompt, blank when unset
- * @param aiInjectionGuard    whether anti prompt injection is enabled
- * @param aiAutoChatEnabled   whether AI replies to ordinary group messages automatically
- * @param aiChatFrequency     the auto-chat probability per message, 0..1
+ * @param groupId                 the platform group id
+ * @param language                the reply language
+ * @param joinNoticeEnabled       whether join notices are enabled
+ * @param leaveNoticeEnabled      whether leave notices are enabled
+ * @param antiRecallEnabled       whether anti-recall is enabled
+ * @param limitEnabled            whether rate limiting is enabled
+ * @param limitScope              the rate limit scope
+ * @param limitCapacity           the rate limit capacity
+ * @param limitRefill             the rate limit refill amount
+ * @param limitInterval           the rate limit refill interval in minutes
+ * @param aiEffort                the AI reasoning effort
+ * @param aiPrompt                the group system prompt, blank when unset
+ * @param aiInjectionGuard        whether anti prompt injection is enabled
+ * @param aiAutoChatEnabled       whether AI replies to ordinary group messages automatically
+ * @param aiChatFrequency         the auto-chat probability per message, 0..1
+ * @param aiEpisodicMemoryEnabled whether episodic memory is enabled
+ * @param aiSemanticMemoryEnabled whether semantic memory is enabled
  */
 public record GroupSettingView(
         String groupId,
@@ -40,7 +42,9 @@ public record GroupSettingView(
         String aiPrompt,
         boolean aiInjectionGuard,
         boolean aiAutoChatEnabled,
-        double aiChatFrequency
+        double aiChatFrequency,
+        boolean aiEpisodicMemoryEnabled,
+        boolean aiSemanticMemoryEnabled
 ) {
 
     /**
@@ -66,6 +70,8 @@ public record GroupSettingView(
                 setting.getAiPrompt() == null ? "" : setting.getAiPrompt(),
                 setting.getAiInjectionGuard(),
                 setting.getAiAutoChatEnabled(),
-                setting.getAiChatFrequency());
+                setting.getAiChatFrequency(),
+                setting.getAiEpisodicMemoryEnabled(),
+                setting.getAiSemanticMemoryEnabled());
     }
 }

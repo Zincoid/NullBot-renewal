@@ -71,6 +71,8 @@ public class GroupSettingServiceImpl extends ServiceImpl<GroupSettingMapper, Gro
                 .aiInjectionGuard(true)
                 .aiAutoChatEnabled(false)
                 .aiChatFrequency(0.001)
+                .aiEpisodicMemoryEnabled(false)
+                .aiSemanticMemoryEnabled(false)
                 .build();
         save(setting);
         log.info("Group setting created: {}", groupId);

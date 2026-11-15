@@ -12,11 +12,11 @@ import com.zincoid.nullbot.module.ai.model.ModelUsage;
 import com.zincoid.nullbot.module.ai.tool.ToolHost;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.memory.MemoryService;
 import com.zincoid.nullbot.module.setting.GroupSettingService;
 import com.zincoid.nullbot.module.setting.UserSettingService;
 import com.zincoid.nullbot.module.system.AiUsageService;
 import com.zincoid.nullbot.platform.persistence.enums.AiSource;
-import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.enums.Effort;
 import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import com.zincoid.nullbot.platform.persistence.po.UserSetting;
@@ -44,6 +44,7 @@ public class ChatPipeline {
     private final ConfigService configService;
     private final GroupSettingService groupSettingService;
     private final UserSettingService userSettingService;
+    private final MemoryService memoryService;
     private final AiUsageService aiUsageService;
     private final ChatGuard chatGuard;
     private final ChatActions chatActions;
@@ -74,13 +75,13 @@ public class ChatPipeline {
      * @return true when the AI turn ran, false when the message was blocked by the injection guard
      */
     private boolean run(ChatTurn turn) {
-        Profile profile = profile(turn.chatType(), turn.targetId());
+        Profile profile = profile(turn);
         if (turn.event() instanceof MsgEvent e
                 && profile.guard() && chatGuard.check(e.content().text())) {
             log.info("Injection blocked: chat={}", turn.chatId());
             return false;
         }
-        ChatOptions options = options(profile.effort());
+        ChatOptions options = options(profile);
         List<ContextPacket> promptContext = ChatPrompt.context(
                 turn.event(), turn.source(), profile.prompt(),
                 configService.getString(Conf.AI_DEFAULT_PROMPT));
@@ -112,44 +113,53 @@ public class ChatPipeline {
      * 读取单次对话的调用参数。
      * <p>Reads the invocation options for one conversation.</p>
      *
-     * @param effort the reasoning effort
+     * @param profile the chat profile
      * @return the agent options
      */
-    private ChatOptions options(Effort effort) {
+    private ChatOptions options(Profile profile) {
         return new ChatOptions(
-                effort,
+                profile.effort(),
                 configService.getInt(Conf.AI_MAX_TOKENS),
-                configService.getInt(Conf.AI_MAX_TOOL_CALLS));
+                configService.getInt(Conf.AI_MAX_TOOL_CALLS),
+                profile.episodicMemory(),
+                profile.semanticMemory());
     }
 
     /**
      * 读取会话的 AI 设置。
      * <p>Reads the AI settings of the chat.</p>
      *
-     * @param chatType the chat type
-     * @param targetId group or user platform id
+     * @param turn the turn data
      * @return the chat profile
      */
-    private Profile profile(ChatType chatType, String targetId) {
-        return switch (chatType) {
+    private Profile profile(ChatTurn turn) {
+        String chatId = turn.chatId();
+        boolean episodicMemory = memoryService.isEpisodicEnabled(chatId);
+        boolean semanticMemory = memoryService.isSemanticEnabled(chatId);
+        return switch (turn.chatType()) {
             case GROUP -> {
-                GroupSetting setting = groupSettingService.get(targetId);
+                GroupSetting setting = groupSettingService.get(turn.targetId());
                 yield new Profile(
                         setting.getAiPrompt(),
                         setting.getAiEffort(),
-                        setting.getAiInjectionGuard());
+                        setting.getAiInjectionGuard(),
+                        episodicMemory,
+                        semanticMemory);
             }
             case PRIVATE -> {
-                UserSetting setting = userSettingService.get(targetId);
+                UserSetting setting = userSettingService.get(turn.targetId());
                 yield new Profile(
                         setting.getPrivateAiPrompt(),
                         setting.getPrivateAiEffort(),
-                        setting.getPrivateAiInjectionGuard());
+                        setting.getPrivateAiInjectionGuard(),
+                        episodicMemory,
+                        semanticMemory);
             }
         };
     }
 
-    private record Profile(String prompt, Effort effort, boolean guard) {
+    private record Profile(String prompt, Effort effort, boolean guard,
+                           boolean episodicMemory, boolean semanticMemory) {
     }
 
     /**

@@ -35,4 +35,6 @@ public class GroupSetting {
     private Boolean aiInjectionGuard;
     private Boolean aiAutoChatEnabled;
     private Double aiChatFrequency;
+    private Boolean aiEpisodicMemoryEnabled;
+    private Boolean aiSemanticMemoryEnabled;
 }

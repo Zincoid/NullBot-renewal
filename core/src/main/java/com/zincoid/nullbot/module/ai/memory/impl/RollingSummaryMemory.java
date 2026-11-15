@@ -90,6 +90,7 @@ public class RollingSummaryMemory implements EpisodicMemory {
         ReentrantLock lock = messageLocks.get(chatId);
         lock.lock();
         try {
+            if (!memoryService.isEpisodicEnabled(chatId)) return;
             List<Message> read = messageService.getRead(chatId);
             if (read.isEmpty()) return;
             int keep = Math.max(1, read.size() / 2);

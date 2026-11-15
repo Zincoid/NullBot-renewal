@@ -11,11 +11,7 @@ import com.zincoid.nullbot.module.ai.model.Model;
 import com.zincoid.nullbot.module.ai.model.ModelReq;
 import com.zincoid.nullbot.module.ai.model.ModelRes;
 import com.zincoid.nullbot.module.ai.model.ModelUsage;
-import com.zincoid.nullbot.module.ai.tool.Tool;
-import com.zincoid.nullbot.module.ai.tool.ToolCall;
-import com.zincoid.nullbot.module.ai.tool.ToolHost;
-import com.zincoid.nullbot.module.ai.tool.ToolRegistry;
-import com.zincoid.nullbot.module.ai.tool.ToolRes;
+import com.zincoid.nullbot.module.ai.tool.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatAgent {
 
+    private static final String MEMORY_TOOL = "memory";
     private static final String TOOL_LIMIT_PROMPT = """
             The maximum number of tool call rounds has been reached.
             Please provide the final answer based on the available information.
@@ -111,8 +108,10 @@ public class ChatAgent {
         int maxTcs = options.maxToolCalls();
         List<AiMsg> history = workingMemory.read(chatId);
         List<ContextPacket> packets = new ArrayList<>(context);
-        packets.addAll(episodicMemory.context(chatId));
-        packets.addAll(semanticMemory.context(chatId));
+        if (options.episodicMemoryEnabled())
+            packets.addAll(episodicMemory.context(chatId));
+        if (options.semanticMemoryEnabled())
+            packets.addAll(semanticMemory.context(chatId));
         List<AiMsg> work = contextManager.build(history, packets);
         if (maxTcs <= 0)
             return ChatRes.unsent(conclude(work, options, null));
@@ -120,7 +119,7 @@ public class ChatAgent {
         for (int i = 0; i < maxTcs; i++) {
             ModelRes res = model.invoke(ModelReq.of(
                     work,
-                    toolRegistry.getDefinitions(),
+                    tools(options),
                     options.effort(),
                     options.maxTokens()
             ));
@@ -132,7 +131,7 @@ public class ChatAgent {
                     .withReasoning(res.reasoning()));
             List<AiMsg> images = new ArrayList<>();
             for (ToolCall tc : res.tcs()) {
-                ToolRes tr = runTool(tc, host);
+                ToolRes tr = execute(tc, host, options);
                 String content = tr.error()
                         ? "Error: " + tr.text() : tr.text();
                 work.add(AiMsg.tool(tc.id(), content));
@@ -156,6 +155,15 @@ public class ChatAgent {
 
     // ════ Helpers ═════════════════
 
+    private List<ToolDefinition> tools(ChatOptions options) {
+        List<ToolDefinition> definitions = toolRegistry.getDefinitions();
+        if (options.semanticMemoryEnabled()) return definitions;
+        return definitions.stream()
+                .filter(definition ->
+                        !MEMORY_TOOL.equals(definition.name()))
+                .toList();
+    }
+
     private ModelRes conclude(List<AiMsg> work, ChatOptions options,
                               ModelUsage usage) {
         ModelRes res = model.invoke(ModelReq.of(
@@ -163,7 +171,10 @@ public class ChatAgent {
         return res.withUsage(ModelUsage.plus(usage, res.usage()));
     }
 
-    private ToolRes runTool(ToolCall tc, ToolHost host) {
+    private ToolRes execute(ToolCall tc, ToolHost host, ChatOptions options) {
+        if (!options.semanticMemoryEnabled()
+                && MEMORY_TOOL.equals(tc.name()))
+            return ToolRes.error("Memory is disabled");
         Tool tool = toolRegistry.get(tc.name());
         if (tool == null)
             return ToolRes.error("Tool not found");

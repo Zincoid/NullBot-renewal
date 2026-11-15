@@ -1,9 +1,16 @@
 package com.zincoid.nullbot.module.memory;
 
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
+import com.zincoid.nullbot.module.setting.GroupSettingService;
+import com.zincoid.nullbot.module.setting.UserSettingService;
+import com.zincoid.nullbot.platform.persistence.enums.ChatType;
 import com.zincoid.nullbot.platform.persistence.enums.MemoryType;
 import com.zincoid.nullbot.platform.persistence.mapper.MemoryMapper;
+import com.zincoid.nullbot.platform.persistence.po.GroupSetting;
 import com.zincoid.nullbot.platform.persistence.po.Memory;
+import com.zincoid.nullbot.platform.persistence.po.UserSetting;
+import com.zincoid.nullbot.platform.util.ChatIds;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +23,27 @@ import java.util.List;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> implements MemoryService {
 
     private static final int MAX_SEMANTIC_CONTENT = 512;
     private static final int MAX_SEMANTIC_LIMIT = 64;
     private static final int CONSOLE_SEMANTIC_LIMIT = 500;
+
+    private final GroupSettingService groupSettingService;
+    private final UserSettingService userSettingService;
+
+    // ════ Policy ═════════════════
+
+    @Override
+    public boolean isEpisodicEnabled(String chatId) {
+        return flags(chatId).episodic();
+    }
+
+    @Override
+    public boolean isSemanticEnabled(String chatId) {
+        return flags(chatId).semantic();
+    }
 
     // ════ Episodic ════════════════
 
@@ -178,6 +201,35 @@ public class MemoryServiceImpl extends ServiceImpl<MemoryMapper, Memory> impleme
     }
 
     // ════ Helpers ═════════════════
+
+    private Flags flags(String chatId) {
+        ChatType type = ChatIds.type(chatId);
+        if (type == null) return Flags.DISABLED;
+        String targetId = ChatIds.rawId(chatId);
+        if (targetId == null || targetId.isBlank()) return Flags.DISABLED;
+        try {
+            return switch (type) {
+                case GROUP -> {
+                    GroupSetting setting = groupSettingService.get(targetId);
+                    yield new Flags(setting.getAiEpisodicMemoryEnabled(),
+                            setting.getAiSemanticMemoryEnabled());
+                }
+                case PRIVATE -> {
+                    UserSetting setting = userSettingService.get(targetId);
+                    yield new Flags(setting.getPrivateAiEpisodicMemoryEnabled(),
+                            setting.getPrivateAiSemanticMemoryEnabled());
+                }
+            };
+        } catch (RuntimeException e) {
+            log.warn("Failed to read memory settings: chat={}, {}", chatId, e.getMessage());
+            return Flags.DISABLED;
+        }
+    }
+
+    private record Flags(boolean episodic, boolean semantic) {
+
+        private static final Flags DISABLED = new Flags(false, false);
+    }
 
     private static long count(Long value) {
         return value == null ? 0 : value;

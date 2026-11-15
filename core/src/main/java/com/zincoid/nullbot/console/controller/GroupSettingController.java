@@ -75,6 +75,8 @@ public class GroupSettingController {
                 .aiInjectionGuard(body.aiInjectionGuard())
                 .aiAutoChatEnabled(body.aiAutoChatEnabled())
                 .aiChatFrequency(body.aiChatFrequency())
+                .aiEpisodicMemoryEnabled(body.aiEpisodicMemoryEnabled())
+                .aiSemanticMemoryEnabled(body.aiSemanticMemoryEnabled())
                 .build();
         groupSettingService.update(setting);
         groupRateLimiter.reset(id);

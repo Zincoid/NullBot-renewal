@@ -100,8 +100,8 @@ public class UserController {
     }
 
     /**
-     * 更新用户私聊 AI 设置（强度、提示词、防注入）。
-     * <p>Updates the user's private AI settings (effort, prompt, injection guard).</p>
+     * 更新用户私聊 AI 设置（强度、提示词、防注入与记忆开关）。
+     * <p>Updates the user's private AI settings (effort, prompt, injection guard, and memory switches).</p>
      *
      * @param id   platform user id
      * @param body the new private AI settings
@@ -116,6 +116,8 @@ public class UserController {
                 .privateAiPrompt(prompt)
                 .privateAiEffort(body.privateAiEffort())
                 .privateAiInjectionGuard(body.privateAiInjectionGuard())
+                .privateAiEpisodicMemoryEnabled(body.privateAiEpisodicMemoryEnabled())
+                .privateAiSemanticMemoryEnabled(body.privateAiSemanticMemoryEnabled())
                 .build());
         return UserSettingView.of(id, userSettingService.get(id));
     }

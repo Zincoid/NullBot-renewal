@@ -157,6 +157,7 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - AI 长期记忆：新增 `memory` 工具（`add` / `delete` / `search`），长期事实以 `[Semantic memory]` 注入后续对话；同会话同内容的 `add` 去重，`delete` 只能删除长期事实。
 - `ToolHost` 新增 `chatId()`，供工具读取当前会话标识；仓库内唯一实现为 `ChatToolHost`，外部插件若自行实现该接口需要补上此方法。
 - 控制台新增“记忆”页：按群聊 / 私聊列出有 AI 记忆的会话，展示情景摘要与长期事实；支持删除单条长期事实、清空长期事实和删除情景摘要。
+- 群设置与用户设置新增“情景记忆”“长期记忆”开关，默认关闭（群设置也可用 `#Setting -a episodic|semantic on|off`）：关闭后不再注入对应记忆，情景记忆同时停止压缩并允许窗口修剪删除已读消息，长期记忆不再向模型提供 `memory` 工具；已有记忆保留。
 
 ### Changed
 
@@ -200,6 +201,28 @@ UPDATE `file` SET `type` = 3 WHERE `type` = 4;
 - AI 情景记忆改为单窗口三状态（未读 / 已读 / 已压缩）：AI 只读取未压缩消息并标记已读；窗口修剪从最旧开始，遇到已读消息停止，并压缩最老的一半已读消息为滚动摘要，标记已压缩但保留记录；自动修剪不再删除未压缩的已读消息。`MessageService.overflow()` 移除，`EpisodicMemory.compactIfNeeded` 更名为 `compact` 并由窗口修剪事件触发；升级需为 `message` 增加 `status` 列（上方 2N 溢出区与阈值压缩描述由本条取代）。
 - 控制台记忆页展示情景摘要与长期事实的“创建 – 更新”时间区间；`memory` 表新增 `updated_at`，情景摘要每次更新时刷新。
 - `ai_usage.source` 新增 `compact`（5）：情景压缩的模型调用现在按次数与输入 / 输出词元计入 AI 用量，触发来源排行显示为“记忆压缩”；压缩记录使用 `System` 用户，会计入用户统计，`source` 仍为 `TINYINT`，无需改表（上方“压缩调用不计入 ai_usage”描述由本条取代）。
+- `group_setting` / `user_setting` 新增情景记忆与长期记忆开关列，默认关闭；旧库需在启动前执行：
+  MySQL：
+  ```sql
+  ALTER TABLE `group_setting`
+      ADD COLUMN `ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
+          COMMENT 'Episodic memory enabled' AFTER `ai_chat_frequency`,
+      ADD COLUMN `ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
+          COMMENT 'Semantic memory enabled' AFTER `ai_episodic_memory_enabled`;
+
+  ALTER TABLE `user_setting`
+      ADD COLUMN `private_ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
+          COMMENT 'Episodic memory enabled' AFTER `private_ai_injection_guard`,
+      ADD COLUMN `private_ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
+          COMMENT 'Semantic memory enabled' AFTER `private_ai_episodic_memory_enabled`;
+  ```
+  SQLite：
+  ```sql
+  ALTER TABLE `group_setting` ADD COLUMN `ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
+  ALTER TABLE `group_setting` ADD COLUMN `ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
+  ALTER TABLE `user_setting` ADD COLUMN `private_ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
+  ALTER TABLE `user_setting` ADD COLUMN `private_ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
+  ```
 
 ### Removed
 

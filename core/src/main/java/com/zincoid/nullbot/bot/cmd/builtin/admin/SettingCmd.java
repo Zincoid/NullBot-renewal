@@ -127,6 +127,16 @@ public class SettingCmd implements Cmd {
                 update.setAiInjectionGuard(enabled);
                 message = ctx.render(Text.SETTING_AI_GUARD, enabled);
             }
+            case "episodic" -> {
+                boolean enabled = bool(ctx, args.next());
+                update.setAiEpisodicMemoryEnabled(enabled);
+                message = ctx.render(Text.SETTING_AI_EPISODIC_MEMORY, enabled);
+            }
+            case "semantic" -> {
+                boolean enabled = bool(ctx, args.next());
+                update.setAiSemanticMemoryEnabled(enabled);
+                message = ctx.render(Text.SETTING_AI_SEMANTIC_MEMORY, enabled);
+            }
             case "auto" -> {
                 boolean enabled = bool(ctx, args.next());
                 update.setAiAutoChatEnabled(enabled);
@@ -197,7 +207,9 @@ public class SettingCmd implements Cmd {
                 setting.getLimitEnabled(), setting.getLimitScope().getLabel(),
                 setting.getLimitCapacity(), setting.getLimitRefill(), setting.getLimitInterval(),
                 setting.getAiEffort().getLabel(), setting.getAiInjectionGuard(),
-                setting.getAiAutoChatEnabled(), setting.getAiChatFrequency(), prompt);
+                setting.getAiAutoChatEnabled(), setting.getAiChatFrequency(),
+                setting.getAiEpisodicMemoryEnabled(),
+                setting.getAiSemanticMemoryEnabled(), prompt);
     }
 
     // ════ Helpers ═════════════════
@@ -257,11 +269,11 @@ public class SettingCmd implements Cmd {
                 Views or updates the current chat's settings.
                 Usage: Setting [-v|--view]
                        Setting -l|--limit <enabled|scope|capacity|refill|interval> [value]
-                       Setting -a|--ai <effort|prompt|guard|auto|frequency> [value]
+                       Setting -a|--ai <effort|prompt|guard|auto|frequency|episodic|semantic> [value]
                        Setting -g|--lang <auto|zh|en>
                        Setting -n|--notice <join|leave> <on|off>
                        Setting -r|--anti-recall <on|off>
-                Values: scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1
+                Values: scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0..1, episodic/semantic=on|off
                 Note: "Setting ai prompt reset" clears the current chat prompt; "auto" follows the global default_language.
                 Aliases: 设置
                 Access: >=1(manager)""" : """
@@ -269,11 +281,11 @@ public class SettingCmd implements Cmd {
                 查看或修改当前会话的设置。
                 用法：Setting [-v|--view]
                       Setting -l|--limit <enabled|scope|capacity|refill|interval> [value]
-                      Setting -a|--ai <effort|prompt|guard|auto|frequency> [value]
+                      Setting -a|--ai <effort|prompt|guard|auto|frequency|episodic|semantic> [value]
                       Setting -g|--lang <auto|zh|en>
                       Setting -n|--notice <join|leave> <on|off>
                       Setting -r|--anti-recall <on|off>
-                取值：scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1
+                取值：scope=user|group|func, effort=minimal|low|medium|high|xhigh|max|ultra, frequency=0~1, episodic/semantic=on|off
                 说明："Setting ai prompt reset" 清空当前会话提示词；"auto" 跟随全局 default_language。
                 别名：设置
                 权限：>=1(manager)""";

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @TableName("user_setting")
 public class UserSetting {
 
@@ -22,4 +22,6 @@ public class UserSetting {
     private String privateAiPrompt;
     private Effort privateAiEffort;
     private Boolean privateAiInjectionGuard;
+    private Boolean privateAiEpisodicMemoryEnabled;
+    private Boolean privateAiSemanticMemoryEnabled;
 }

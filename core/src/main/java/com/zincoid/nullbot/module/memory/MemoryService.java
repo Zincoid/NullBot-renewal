@@ -6,10 +6,30 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * AI 记忆服务：维护情景摘要与长期事实。
- * <p>AI memory service: maintains episodic summaries and long-term facts.</p>
+ * AI 记忆服务：维护情景摘要与长期事实，并解析会话的记忆开关。
+ * <p>AI memory service: maintains episodic summaries and long-term facts, and resolves the memory switches per chat.</p>
  */
 public interface MemoryService {
+
+    // ════ Policy ═════════════════
+
+    /**
+     * 判断会话是否启用情景记忆；未知会话或读取设置失败时视为禁用。
+     * <p>Checks whether episodic memory is enabled for the chat; unknown chats or settings failures are treated as disabled.</p>
+     *
+     * @param chatId composite chat id
+     * @return true when episodic memory is enabled
+     */
+    boolean isEpisodicEnabled(String chatId);
+
+    /**
+     * 判断会话是否启用长期记忆；未知会话或读取设置失败时视为禁用。
+     * <p>Checks whether semantic memory is enabled for the chat; unknown chats or settings failures are treated as disabled.</p>
+     *
+     * @param chatId composite chat id
+     * @return true when semantic memory is enabled
+     */
+    boolean isSemanticEnabled(String chatId);
 
     // ════ Episodic ════════════════
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zincoid.nullbot.module.config.Conf;
 import com.zincoid.nullbot.module.config.ConfigService;
+import com.zincoid.nullbot.module.memory.MemoryService;
 import com.zincoid.nullbot.platform.persistence.enums.MessageStatus;
 import com.zincoid.nullbot.platform.persistence.mapper.MessageMapper;
 import com.zincoid.nullbot.platform.persistence.po.Message;
@@ -32,6 +33,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     private final AttachmentService attachmentService;
     private final MessageLocks messageLocks;
     private final ApplicationEventPublisher eventPublisher;
+    private final MemoryService memoryService;
 
     // ════ Append ══════════════════
 
@@ -198,8 +200,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     /**
-     * 将会话窗口修剪至配置长度；从最旧开始删除，遇到已读消息停止。
-     * <p>Trims the chat window to the configured size, deleting from the oldest end and stopping at a read message.</p>
+     * 将会话窗口修剪至配置长度；情景记忆开启时从最旧开始删除并在已读消息处停止，关闭时可删除已读消息。
+     * <p>Trims the chat window to the configured size, stopping at a read message while episodic memory is enabled and allowing read messages to be removed otherwise.</p>
      *
      * @param chatId chat identifier
      * @return true when trimming stopped at an uncompacted read message
@@ -216,11 +218,16 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         List<Message> excess = all.subList(keep, all.size());
         List<String> ids = new ArrayList<>();
         boolean blocked = false;
+        Boolean protectRead = null;
         for (int i = excess.size() - 1; i >= 0; i--) {
             Message message = excess.get(i);
             if (message.getStatus() == MessageStatus.READ) {
-                blocked = true;
-                break;
+                if (protectRead == null)
+                    protectRead = memoryService.isEpisodicEnabled(chatId);
+                if (protectRead) {
+                    blocked = true;
+                    break;
+                }
             }
             ids.add(message.getId());
         }
