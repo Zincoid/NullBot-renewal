@@ -362,7 +362,7 @@ public class DemoTool implements Tool {
 }
 ```
 
-工具名必须全局唯一，建议使用 `<插件 ID>_<工具名>`。`ToolHost` 提供向当前会话发送消息、禁言、撤回和执行指令的能力；失败时返回 `ToolRes.error(...)`。`JsonUtils.parse` 解析失败会抛出 `PlatformException`，应在工具内捕获并转换为错误结果。工具会随插件停用或重载同步注销。
+工具名必须全局唯一，建议使用 `<插件 ID>_<工具名>`。`ToolHost` 提供 `chatId()` 读取当前会话标识、`finalSent()` 判断本轮是否已发出最终消息，以及向当前会话发送消息、禁言、撤回和执行指令的能力；发送消息时可标记本轮最终消息。失败时返回 `ToolRes.error(...)`。`JsonUtils.parse` 解析失败会抛出 `PlatformException`，应在工具内捕获并转换为错误结果。工具会随插件停用或重载同步注销。
 
 ## 图片渲染
 
@@ -398,7 +398,7 @@ core 提供以下排版工具，避免每个插件重复测量、截断和列对
 - `ImageData`：data URI、WebP/PNG 解码、居中裁剪缩放与 PNG 编码；
 - `SvgText.fontSegments`：中英与 emoji 混排分段。
 
-插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册，也可调用 `renderer().font(bytes)` 动态注册。字体注册是 JVM 全局的，插件卸载后不会撤销。
+core 内置字体为 JetBrains Maple Mono NF（默认，OFL）与 Noto Emoji（OFL）。插件 JAR 内 `fonts/` 下的 TTF/OTF 会在加载时自动注册，也可调用 `renderer().font(bytes)` 动态注册；`say-plugin` 使用 Noto Serif CJK SC，`hello-plugin` 使用 Bernard MT Condensed（商业字体）。字体注册是 JVM 全局的，插件卸载后不会撤销。
 
 ## 数据、配置与资源
 

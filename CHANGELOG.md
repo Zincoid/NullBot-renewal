@@ -1,445 +1,104 @@
 # Changelog
 
-本项目的所有重要变更都记录在此文件，格式参考 Keep a Changelog。
+本项目的所有重要变更都记录在此文件。
 
 ## [Unreleased]
 
-### 数据结构与迁移
+暂无。
 
-- 新增 `attachment` 表存放聊天附件，通过 `message_id` 归属消息；`file` 表只保留媒体收藏（`IMAGE=0` / `VIDEO=1` / `AUDIO=2` / `MEME=3`）。
-- `message` 不再保存附件 id，迁移后删除旧的 `files` 列；assistant 消息不再记录发送过的收藏文件 id，内容里的 `(sent image, file id=N)` 文本保留。
-- 升级前请停止机器人、备份数据库与 `nullbot.file.root`，并**先执行迁移 SQL 再启动新版本**。SQLite 启动时会自动创建 `attachment` 表与索引，但不会删除已有 `message.files` 列，因此手工迁移不可省略。
+## [1.3.0] - 2026-11-16
 
-MySQL 8.0.4+：
-
-```sql
-CREATE TABLE `attachment` (
-    `id`         BIGINT       NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
-    `message_id` VARCHAR(64)  DEFAULT NULL COMMENT 'Owning message id',
-    `user_id`    VARCHAR(64)  NOT NULL COMMENT 'Uploader platform user id',
-    `original`   VARCHAR(255) NOT NULL COMMENT 'Original filename',
-    `stored`     VARCHAR(255) NOT NULL COMMENT 'Stored flat filename',
-    `size`       BIGINT       NOT NULL DEFAULT 0 COMMENT 'File size in bytes',
-    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at',
-    PRIMARY KEY (`id`),
-    KEY `idx_attachment_message_id` (`message_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Chat attachment table';
-
-INSERT INTO `attachment` (`id`,`user_id`,`original`,`stored`,`size`,`created_at`)
-SELECT `id`,`user_id`,`original`,`stored`,`size`,`created_at`
-FROM `file` WHERE `type` = 3;
-
-UPDATE `attachment` a
-JOIN (
-    SELECT m.`id` AS `message_id`, CAST(jt.`raw` AS UNSIGNED) AS `attachment_id`
-    FROM `message` m,
-    JSON_TABLE(m.`files`, '$[*]' COLUMNS (`raw` VARCHAR(64) PATH '$')) jt
-    WHERE m.`files` IS NOT NULL
-) r ON r.`attachment_id` = a.`id`
-SET a.`message_id` = r.`message_id`;
-
-ALTER TABLE `message` DROP COLUMN `files`;
-
-DELETE FROM `file` WHERE `type` = 3;
-```
-
-说明：老消息里指向收藏文件的 id 因关联不到 `attachment` 会被忽略；旧字符串 id 通过 `CAST` 归一为数字；附件顺序由 `attachment.id` 保持。未被任何消息引用的旧 `type=3` 行会保留为 `message_id = NULL` 的孤立附件。`JSON_TABLE` 需要 MySQL 8.0.4+；更低版本请改用应用侧脚本回填。
-
-SQLite 3.35+（需要 JSON1）：
-
-```sql
-CREATE TABLE IF NOT EXISTS `attachment` (
-    `id`         INTEGER      PRIMARY KEY AUTOINCREMENT,
-    `message_id` VARCHAR(64)  DEFAULT NULL,
-    `user_id`    VARCHAR(64)  NOT NULL,
-    `original`   VARCHAR(255) NOT NULL,
-    `stored`     VARCHAR(255) NOT NULL,
-    `size`       BIGINT       NOT NULL DEFAULT 0,
-    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS `idx_attachment_message_id` ON `attachment` (`message_id`);
-
-INSERT INTO `attachment` (`id`,`user_id`,`original`,`stored`,`size`,`created_at`)
-SELECT `id`,`user_id`,`original`,`stored`,`size`,`created_at`
-FROM `file` WHERE `type` = 3;
-
-UPDATE `attachment`
-SET `message_id` = (
-    SELECT m.`id`
-    FROM `message` m,
-         json_each(CASE WHEN json_valid(m.`files`) THEN m.`files` ELSE NULL END) j
-    WHERE CAST(j.`value` AS INTEGER) = `attachment`.`id`
-      AND json_type(CASE WHEN json_valid(m.`files`) THEN m.`files` ELSE NULL END) = 'array'
-    LIMIT 1
-);
-
-ALTER TABLE `message` DROP COLUMN `files`;
-
-DELETE FROM `file` WHERE `type` = 3;
-```
-
-说明：执行前用 `json_valid` 预检并修复畸形 JSON；`ALTER TABLE ... DROP COLUMN` 需要 SQLite 3.35+，更低版本需用“建新表 + 复制 + 改名”的方式删除 `message.files`。未被任何消息引用的旧 `type=3` 行会保留为 `message_id = NULL` 的孤立附件。
-
-聊天附件迁移后校验（两种数据库通用）：`file` 中 `type=3` 应为 0（此时尚未移动 MEME）；`attachment` 数量等于迁移前 `type=3` 数量；`attachment.message_id` 应指向存在的 `message.id` 或为 `NULL`（孤立附件）。旧 `type=3` 行的 `description` 不会迁移；未被任何消息引用的行可按需手工清理。
-
-`MEME` 的枚举值已改为 3，旧库中仍为 4。请在聊天附件迁移**完成之后**执行：
-
-```sql
-UPDATE `file` SET `type` = 3 WHERE `type` = 4;
-```
-
-顺序不能反：旧 `type=3` 是聊天附件，提前移动 MEME 会让附件迁移把 MEME 行当作旧聊天文件复制并删除。
-
-- 新增 `memory` 表保存 AI 派生记忆：`type=0` 为情景摘要（同一会话仅一条滚动摘要），`type=1` 为长期事实。SQLite 启动时自动建表；MySQL 需手动执行：
-
-  ```sql
-  CREATE TABLE `memory` (
-      `id`            BIGINT       NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
-      `chat_id`       VARCHAR(64)  NOT NULL COMMENT 'Chat identifier',
-      `type`          TINYINT      NOT NULL COMMENT 'Memory type: 0=EPISODIC, 1=SEMANTIC',
-      `content`       TEXT         NOT NULL COMMENT 'Memory content',
-      `created_at`    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Created at',
-      `updated_at`    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'Updated at',
-      PRIMARY KEY (`id`),
-      KEY `idx_memory_chat_type` (`chat_id`, `type`)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI memory table';
-  ```
-
-- 消息保留上限由配置窗口 N 改为 2N，多出的一条窗口作为情景摘要的溢出区；模型上下文仍只读取最近 N 条。`window` / `trim` / `overflow` 统一按 `(created_at, id)` 倒序，避免同一时间戳下窗口裁剪与摘要覆盖不一致。
-- `message` 表新增 `status` 列（`0=UNREAD` / `1=READ` / `2=COMPACTED`），旧库升级需执行。
-
-  MySQL：
-
-  ```sql
-  ALTER TABLE `message`
-      ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0
-      COMMENT 'Message status: 0=UNREAD, 1=READ, 2=COMPACTED'
-      AFTER `role`;
-  ```
-
-  SQLite 不支持 `AFTER`，列会追加到表尾（不影响字段映射）：
-
-  ```sql
-  ALTER TABLE `message` ADD COLUMN `status` TINYINT NOT NULL DEFAULT 0;
-  ```
-
-- `memory` 表新增 `updated_at` 列，旧库升级需执行。
-
-  MySQL：
-
-  ```sql
-  ALTER TABLE `memory`
-      ADD COLUMN `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
-      COMMENT 'Updated at'
-      AFTER `created_at`;
-  UPDATE `memory` SET `updated_at` = `created_at`;
-  ```
-
-  SQLite 不支持非常量默认值，先加可空列再回填：
-
-  ```sql
-  ALTER TABLE `memory` ADD COLUMN `updated_at` DATETIME;
-  UPDATE `memory` SET `updated_at` = `created_at`;
-  ```
-
-- `group_setting.ai_injection_guard` / `user_setting.private_ai_injection_guard` 更名为 `ai_injection_guard_enabled` / `private_ai_injection_guard_enabled`，Java 字段、控制台接口与页面字段同步改名。请先执行分支中新增记忆开关列的迁移，再执行改名。
-
-  MySQL（同时把群设置列移到 `ai_chat_frequency` 之后）：
-
-  ```sql
-  ALTER TABLE `group_setting`
-      CHANGE COLUMN `ai_injection_guard` `ai_injection_guard_enabled`
-          BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Anti prompt injection'
-          AFTER `ai_chat_frequency`;
-  ALTER TABLE `user_setting`
-      RENAME COLUMN `private_ai_injection_guard` TO `private_ai_injection_guard_enabled`;
-  ```
-
-  SQLite 3.25+（列顺序保持不变，不影响字段映射）：
-
-  ```sql
-  ALTER TABLE `group_setting`
-      RENAME COLUMN `ai_injection_guard` TO `ai_injection_guard_enabled`;
-  ALTER TABLE `user_setting`
-      RENAME COLUMN `private_ai_injection_guard` TO `private_ai_injection_guard_enabled`;
-  ```
-
-- 配置键 `ai_max_tokens` / `ai_max_tool_calls` 更名为 `ai_chat_max_tokens` / `ai_chat_max_tool_calls`，明确只作用于 AI 聊天回复。升级前如修改过这些值，需在启动前执行：
-
-  ```sql
-  UPDATE `config` SET `key` = 'ai_chat_max_tokens' WHERE `key` = 'ai_max_tokens';
-  UPDATE `config` SET `key` = 'ai_chat_max_tool_calls' WHERE `key` = 'ai_max_tool_calls';
-  ```
-
-  若新版本已启动并初始化了默认的新键，请先复制旧值到新键，再删除旧行。
-
-- 配置键 `ai_compact_max_tokens` 更名为 `ai_compact_output_max_tokens`，与输出词元上限语义一致。升级前如修改过该值，需在启动前执行：
-
-  ```sql
-  UPDATE `config` SET `key` = 'ai_compact_output_max_tokens' WHERE `key` = 'ai_compact_max_tokens';
-  ```
-
-  若新版本已启动并初始化了默认的新键，请先复制旧值到新键，再删除旧行。
+重构聊天附件与 AI 记忆，新增控制台消息页、记忆页，统一媒体指令，插件 API 升至 6。
 
 ### Added
 
-- 控制台新增“消息”页：左侧按群聊 / 私聊切换并列出保留有消息的会话，右侧以聊天形式展示角色、昵称、用户 ID、时间、正文、reasoning 与附件数量；附件不随页面加载，按消息在弹窗中预览或下载。
-- 消息页支持以机器人身份主动发送文本消息，并可在确认后重置当前会话（删除历史与聊天附件）；发送成功后以 assistant 消息写入历史，QQ 官方机器人受平台主动消息限制，失败原因会显示在控制台。
-- 新增 `#Get` / `#Delete`：使用 `Get <img|aud|vid|quot> <id>` / `Delete <img|aud|vid|quot> <id>` 按类型与 ID 获取或删除收藏。
-- 新增 `#Image` / `#Audio` / `#Video` / `#Quote` 随机发送命令，替代原 `ImageRand`、`AudioRand`、`VideoRand`、`QuoteRand`。
-- AI `send` 工具新增 `last` 参数：标记为最终消息后不再额外发送 final 回复，一次触发内仍可多次调用 `send` 发送多条消息或媒体。
-- 插件 API 升到 6：`BotClient` 新增 `sendGroupFile` / `sendPrivateFile`，Shiro、QQ 与 stdin 适配器已实现；使用该能力的插件需声明 `apiVersion() >= 6`。
-- 新增 `UrlDownloader.download(url, target)`：流式下载网络文件，先写同目录临时文件再原子替换，失败时清理临时文件；插件可直接用它把文件保存到 `dataDir()`，无需提升 `apiVersion()`。
-- gd-plugin 的 `#GD` 新增 `song <歌曲ID>` 子命令：通过几何冲刺歌曲接口获取 Newgrounds 音频并作为群文件/私聊文件发送，仅支持 GD 服务器收录的歌曲。
-- 控制台插件数据的文件页新增当前目录搜索框，按名称在已加载条目中纯前端过滤，不触发重新加载。
-- AI 情景记忆：窗口外的旧消息积累到阈值后由模型压缩为一条滚动摘要，摘要覆盖的消息随后删除；摘要以 `[Episodic memory]` 注入后续对话。压缩失败或摘要为空时保留消息，下一轮重试；压缩调用的词元不计入 `ai_usage`。
-- AI 长期记忆：新增 `memory` 工具（`add` / `delete` / `search`），长期事实以 `[Semantic memory]` 注入后续对话；同会话同内容的 `add` 去重，`delete` 只能删除长期事实。
-- `ToolHost` 新增 `chatId()`，供工具读取当前会话标识；仓库内唯一实现为 `ChatToolHost`，外部插件若自行实现该接口需要补上此方法。
-- 控制台新增“记忆”页：按群聊 / 私聊列出有 AI 记忆的会话，展示情景摘要与长期事实；支持删除单条长期事实、清空长期事实和删除情景摘要。
-- 群设置与用户设置新增“情景记忆”“长期记忆”开关，默认关闭（群设置也可用 `#Setting -a episodic|semantic on|off`）：关闭后不再注入对应记忆，情景记忆同时停止压缩并允许窗口修剪删除已读消息，长期记忆不再向模型提供 `memory` 工具；已有记忆保留。
-- 新增 `ai_compact_max_tokens`（默认 2048）与 `ai_compact_input_max_length`（默认 4096）配置，分别控制情景记忆压缩的输出词元上限与单次输入字符上限。
+- AI 情景记忆与长期记忆，群 / 用户设置开关默认关闭；关闭后停止注入与压缩，已有记忆保留。
+- 控制台新增消息页与记忆页。
+- 新增 `#Get` / `#Delete` 与 `#Image` / `#Audio` / `#Video` / `#Quote`，AI `send` 支持 `last`。
+- 插件 API 6 文件发送、`UrlDownloader.download`、GD `#GD song`。
+- QQ 官方适配器默认订阅并支持群成员加入 / 退出事件；无相关权限时可把 `nullbot.qq.intents` 改回 `33554432`。
+- QQ 官方适配器支持通过 `message_reference` 引用回复文本 / Markdown / 媒体消息，并记录发送响应的 `ext_info.ref_idx`，可引用机器人自己发送的消息。
 
 ### Changed
 
-- 聊天附件改由 `attachment` 表存储并通过 `message_id` 归属消息；AI `read` 返回附件 id，`view` 新增 `attachment` 参数用于查看聊天附件，`send` 仍只发送收藏文件，`search` 不再提供 `chat` 类型。
-- 控制台文件页的类型改为图片 / 视频 / 音频 / 表情；`BizType.CHAT` 移除，引用该常量的外部插件需要重新编译。
-- `#Save` 改为只保存被引用的消息，移除 `-i` / `--id` 选项；保存媒体时文件记录的用户 ID 改为被引用消息的发送者，与语录保存一致（此前是指令发起者）。
-- 媒体与语录指令改为按操作统一：保存使用 `#Save`，获取 / 删除使用 `#Get` / `#Delete`，随机使用 `#Image` / `#Audio` / `#Video` / `#Quote`。原 `ImageSave` / `ImageGet` / `ImageDel`、`AudioSave` / …、`VideoSave` / …、`QuoteSave` / `QuoteGet` / `QuoteDel` 命令移除，引用这些命令的关键词规则需要更新；用量与禁用记录也改用新命令名。
-- `#GroupSet` 更名为 `#Setting`（别名改为 `设置`）；引用旧命令名的关键词与禁用规则需要更新。
-- 指向机器人的戳一戳改由消息入库中间件记录，与普通消息一致：即使 AI 关闭或触发被限速也会写入会话历史，可在 `#History` 与后续 AI 上下文中看到；群内用户之间的戳一戳和机器人自身的戳一戳不记录。
-- AI 聊天内部整理：戳一戳记录移出 `ChatPipeline`，发送与历史写入统一走 `ChatContext.deliver`，系统提示词组装移至 `ChatPrompt`。
-- 消息历史窗口逻辑从 `MessageWindowStore` 合并进 `MessageService`：追加消息时裁剪窗口、读取会话窗口、清空历史与附件清理均由 `MessageService` 承担，`ChatMemory` 继续作为 AI 记忆适配器；无行为变化。
-- 聊天附件与消息的关联改为 `attachment.message_id`：写入时先落消息再保存附件，读取时按 `message_id` 查询，不再用 JSON 数组保存附件 id。
-- 内置 AI 工具（`call`、`mute`、`read`、`recall`、`search`、`send`、`view`、`web`）从 `module.ai.tool.builtin` 移至 `bot.aichat.tool`，`module.ai` 只保留工具协议与注册表，不再依赖 `bot`；工具名与行为不变。
-- AI 代理类 `AgentClient` 更名为 `Agent`，并与 `AgentOptions` 一起从 `module.ai.client` 移至 `module.ai.agent`；无行为变化。
-- `AiMessage` 的 OpenAI 消息序列化移至 `model/openai/OpenAiReq`，`AiMessage` 只保留领域字段；无行为变化。
-- 输入等待相关类从 `bot.cmd.input` 移至 `bot.input`（`InputManager`、`InputMode`、`InputResult`、`PageSelector`、`InputException`），插件需更新 import；`InputException` 改为直接继承 `NullBotException`，不再依赖 `CmdException`。
-- 内置指令不再通过 `call` 工具暴露给 AI，仅保留 `Help`；图片、音频、视频的发送改由现有 `search` + `send` 工具完成，AI 不再能保存收藏或发送语录。
-- `BizType` 的媒体类型常量简化为 `IMAGE` / `VIDEO` / `AUDIO` / `MEME`，控制台文件类型文案同步改为“图片 / 视频 / 音频 / 表情”；AI `search` 工具的 `type` 枚举相应变为 `image` / `video` / `audio` / `meme`，旧值 `image_collection` 等不再接受。
-- 控制台 AI 排行右侧的输入 / 输出词元改用与统计卡片一致的图标显示，缩短行宽，窄窗口下名称不再被挤换行。
-- 控制台语录页的复制按钮固定到内容列最右侧，短文本不再紧跟按钮。
-- 控制台导航改为左侧竖排侧栏，登出按钮固定在侧栏底部；顶部栏保留并在左侧新增实时日期、时间与按时段变化的问候语；移动端顶部栏保持原高度并显示完整标题、分隔线、日期与时间（隐藏问候语），侧栏改为左侧抽屉。
-- 控制台文件、角色、语录与插件页的表格改为在固定高度内滚动，表头吸顶，分页固定在底部，空状态居中填满列表区域。
-- 控制台角色设置的关键字规则 / 指令管理与插件数据的文件标签页改为在弹窗内滚动：内容少时弹窗按内容收缩，内容多时工具栏和状态行固定，表头吸顶，只有表格体在弹窗最大高度内滚动。
-- 控制台 PC 端左侧栏右边缘中部新增收起 / 展开按钮：收起后保留图标导航，品牌区与侧栏同步收窄并带宽度过渡动画，状态保存在本地；登出按钮增加图标，收起时只显示图标；移动端抽屉不受影响。
-- 控制台数字流背景只保留右侧字符；显示断点从 1275px 调整为 1000px，与移动端布局断点一致。
-- 控制台消息页刷新按钮左侧新增自动刷新开关：开启后每 5 秒静默刷新会话列表与当前会话，保留聊天区的滚动位置；开关状态保存在本地。
-- GD 关卡搜索默认只搜索有星（已评级）关卡；需要包含未评级关卡时在 `--filter` 中加入 `no-star`。
-- `ai_usage` / `cmd_usage` 的 `chat_id` 列重命名为 `target_id`（存的是原始群 / 用户 ID，与聊天层的 `g:` / `p:` 会话键区分）。升级旧库需执行：
-
-  ```sql
-  ALTER TABLE `ai_usage` RENAME COLUMN `chat_id` TO `target_id`;
-  ALTER TABLE `cmd_usage` RENAME COLUMN `chat_id` TO `target_id`;
-  ```
-
-  MySQL 8+ 与 SQLite 3.25+ 支持该语法。
-- HTTP 与文件落盘逻辑整理：`UrlDownloader` 改为纯静态工具类（`open` 与 `download` 均为静态方法），与 `JdkHttpService` 共用 URL 校验与 HTTP 客户端缓存，`UrlDownloader.download`、`PluginResources` 与插件数据上传共用 `AtomicFiles.copy`；无行为变化。
-- 校验与解析错误统一改为自定义异常：HTTP 模块（含 `UrlDownloader`）改抛 `HttpException`，`AtomicFiles.copy` 空参数改抛 `PlatformException`，指令参数与非媒体分支改抛 `CmdException`，AI 工具与 QQ 适配器不再直接抛 `IllegalArgumentException` / `IllegalStateException` / `RuntimeException`；业务行为不变。
-- 文档整理：README 重排配置、指令、AI 与插件章节；PLUGIN 增加目录、静态工具索引与文件发送示例；插件 README 统一结构并修正过期指令说明。
-- `Memory` 接口更名为 `WorkingMemory`，实现 `ChatMemory` 更名为 `MessageWindowMemory`，继续复用 `message` 表；情景与事实实现分别更名为 `RollingSummaryMemory` / `LongTermFactMemory`，三个实现统一移入 `module.ai.memory.impl`。`ChatAgent` 现在依赖 `WorkingMemory`、`EpisodicMemory`、`SemanticMemory` 三个接口，并在每轮开始前按需压缩情景记忆。
-- `MessageService` 新增 `windowSize()` / `overflow()` / `remove(ids)`；清空聊天历史不再联动清空 `memory`，情景摘要与长期事实独立保留。
-- AI 情景记忆改为单窗口三状态（未读 / 已读 / 已压缩）：AI 只读取未压缩消息并标记已读；窗口修剪从最旧开始，遇到已读消息停止，并压缩最老的一半已读消息为滚动摘要，标记已压缩但保留记录；自动修剪不再删除未压缩的已读消息。`MessageService.overflow()` 移除，`EpisodicMemory.compactIfNeeded` 更名为 `compact` 并由窗口修剪事件触发；升级需为 `message` 增加 `status` 列（上方 2N 溢出区与阈值压缩描述由本条取代）。
-- 控制台记忆页展示情景摘要与长期事实的“创建 – 更新”时间区间；`memory` 表新增 `updated_at`，情景摘要每次更新时刷新。
-- `ai_usage.source` 新增 `compact`（5）：情景压缩的模型调用现在按次数与输入 / 输出词元计入 AI 用量，触发来源排行显示为“记忆压缩”；压缩记录使用 `System` 用户，会计入用户统计，`source` 仍为 `TINYINT`，无需改表（上方“压缩调用不计入 ai_usage”描述由本条取代）。
-- 消息会话锁并入 `MessageService`：新增 `runLocked` / `callLocked` 在会话锁内执行组合操作，窗口修剪、工作记忆读取与情景压缩共用按会话分条的同一把锁；移除独立组件 `MessageLocks`；`MessageService.append` 更名为 `record`，无行为变化。
-- `group_setting` / `user_setting` 新增情景记忆与长期记忆开关列，默认关闭；旧库需在启动前执行：
-  MySQL：
-  ```sql
-  ALTER TABLE `group_setting`
-      ADD COLUMN `ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
-          COMMENT 'Episodic memory enabled' AFTER `ai_chat_frequency`,
-      ADD COLUMN `ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
-          COMMENT 'Semantic memory enabled' AFTER `ai_episodic_memory_enabled`;
-
-  ALTER TABLE `user_setting`
-      ADD COLUMN `private_ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
-          COMMENT 'Episodic memory enabled' AFTER `private_ai_injection_guard`,
-      ADD COLUMN `private_ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT FALSE
-          COMMENT 'Semantic memory enabled' AFTER `private_ai_episodic_memory_enabled`;
-  ```
-  SQLite：
-  ```sql
-  ALTER TABLE `group_setting` ADD COLUMN `ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
-  ALTER TABLE `group_setting` ADD COLUMN `ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
-  ALTER TABLE `user_setting` ADD COLUMN `private_ai_episodic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
-  ALTER TABLE `user_setting` ADD COLUMN `private_ai_semantic_memory_enabled` BOOLEAN NOT NULL DEFAULT 0;
-  ```
-- 情景记忆压缩改为后台任务：窗口修剪事件由 `EpisodicCompactionListener` 异步转交 `RollingSummaryMemory`；压缩先在会话锁内取批、锁外调用模型、再回到锁内提交，消息写入不再等待压缩；压缩输入改为旧摘要完整带入（写入时已按 2048 字符截断）、新消息单独按 `ai_compact_input_max_length` 限制并保证至少包含一条消息，压缩提示词要求摘要按重要性优先、新旧次之排序并控制在 2000 字符内；`RollingSummaryMemory` 与 `ChatPipeline` 的用量记录私有方法统一更名为 `recordUsage`；无数据结构变化。上方 `ai_compact_input_max_length` 的“单次输入字符上限”描述由本条取代。
-- AI 记忆包整理：`RollingSummaryMemory`、`MessageWindowMemory`、`LongTermFactMemory` 与 `EpisodicCompactionListener` 从 `module.ai.memory.impl` 拍平到 `module.ai.memory`，与接口同包；无行为变化。
-- 情景记忆压缩降低开销：摘要上限从 2048 字符降到 1024，压缩提示词同步要求 1000 字符内。已有库中保存的 `ai_compact_output_max_tokens` 值不受新默认值影响，需要在控制台或 `config` 表手动调整。
+- 聊天附件拆分为 `attachment` 表，新增 `memory` 表与消息状态；AI `read` / `view` / `search` 与 `#Save` 适配附件，`#GroupSet` 更名为 `#Setting`。
+- 情景压缩改为后台任务，摘要上限 1024 字符，压缩输出默认 2048。
+- 控制台导航与表格调整，`BizType` 简化，GD 默认只搜有星关卡。
+- QQ 官方适配器群聊 @ 用户改用 Markdown 提及，C2C 保持纯文本。
 
 ### Removed
 
-- 移除 `BizType.CHAT`（type=3）；聊天附件不再出现在 `file` 表、控制台文件页、AI `search` 与插件的 `FileService` 中。
-- 移除 `FileService.imageUri`：外部插件若引用过该方法，需改用 `FileService.uri`。
-- 移除 `#Ping` 与 `#Mute` 指令；AI 的 `mute` 工具不受影响。
+- `BizType.CHAT`、`FileService.imageUri`、`#Ping` / `#Mute` 与旧媒体指令。
 
 ### Fixed
 
-- 关闭群限速后，群 AI 触发仍会按令牌桶限速并回复“请求过于频繁”；限速开关现由 `GroupRateLimiter` 统一判断，指令与 AI 在关闭后均不再限速。
-- `adapter-qq` 解析 QQ 引用消息（`message_type=103`、`message_scene.ext`、`msg_elements`），为入站消息补上引用段并缓存被引用消息；`#Save`、AI `read` 等可在 QQ 上使用引用内容。
-- 机器人自身的消息回显不再作为用户消息写入会话历史。
-- AI `send` 工具发送的中间消息现在写入会话记录并带上所发文件 ID，可在 `#History` 与后续 AI 上下文中看到；附件以 `(sent image, file id=...)` 形式记录，不再使用 `[Image]` 等占位标记，避免诱导模型输出这些标记。
-- 消息窗口裁剪只删除消息自己保存的聊天附件；机器人发送的图库等文件不会被连带删除。
-- 消息入库失败时清理本次已保存的聊天附件，避免留下孤儿文件。
+- 限速、QQ 引用消息解析与头像获取、自身消息回显、`send` 记录与输出清理、聊天附件清理。
+- QQ 官方适配器引用解析失败不再丢弃整条消息，群 @ 事件会移除机器人自身的提及标记，消息事件的 `reply` 标记按引用是否存在生成。
+- QQ 群成员加入 / 退出事件模型与官方字段对齐，不再依赖事件中不存在的昵称和操作人字段。
+- QQ 网关遇到 4013 / 4014 时自动退回群聊与 C2C intents 重连。
+- QQ 卡片消息只有 `ark_data` 时不再被丢弃，并行消息 / 聊天记录（`message_type` 101/102）从 `msg_elements` 提取文本。
+- QQ 引用回复在 `Reply` 段位于消息末尾时也能正确带上引用；解除禁言按官方要求传空 `mute_expire_at`。
 
 ## [1.2.0] - 2026-11-02
 
-本版本重构 AI 触发链路与用量统计，新增指令禁用和群 / 用户功能权限，插件 API 升级至 5。从 1.1.0 升级时请先阅读“数据结构与迁移”和“AI 触发”。
+重构 AI 触发链路与用量统计，新增指令禁用和群 / 用户功能权限，插件 API 升至 5。
 
 ### Added
 
-**AI 与统计**
-
-- 新增 `ai_usage` 按日汇总表，以 `time + chat_type + chat_id + user_id + source` 为唯一键，累计 AI 回合数与输入/输出词元；来源区分群聊、群自动聊天、群戳一戳、私聊与私聊戳一戳。
-- 控制台概览新增 AI 子页：展示按天调用与词元趋势、输入/输出词元汇总、活跃用户 / 群、触发来源以及群 / 用户排行。
-- 控制台概览新增“累计”子页，分别汇总不限时间的调用数与词元数。
-
-**指令与权限**
-
-- 新增指令禁用：`#指令 -B` / `-U` 可在当前会话禁用或解除，支持整群、`@用户`、`--user=<ID>` 与私聊规则，支持 `--temp=30m|2h|7d` 限时，到期自动恢复；被禁用时提示剩余时间，永久规则显示“永久”，群聊与私聊规则相互隔离。
-- 控制台角色页的群设置与用户设置新增“指令管理”页，可查看、添加和解除禁用规则。
-- 控制台角色页的群 / 用户表新增“指令 / AI 对话”开关：群默认开启，用户私聊默认关闭，可独立授权。
-
-**插件与 API**
-
-- 插件 API 5：新增 `PluginContext.http()`，统一提供 GET、字节 POST 与单文件 multipart 上传，支持超时、代理、重试与响应大小限制。
-- 插件 API 4：新增 `PluginContext.properties()`；宿主在插件启动前把 JAR 内的 `config.properties` 复制到数据目录，已有文件不会覆盖。
-- 控制台插件数据弹窗新增“配置”页，可在线编辑并保存 `config.properties`、保存后重载插件；文件页支持逐项删除。
-- `hello-plugin` 新增 `hello.data` 配置示例，首次加载自动生成 `config.properties`。
-
-**GD 插件**
-
-- 新增本地进度：`#GD register`、`#GD update <关卡ID> <进度>`、`#GD remove`、`#GD unregister`，以及 `#GD b20 [--all]`；进度保存在插件数据目录的 SQLite `gd.db` 中，更新时通过 JDash 验证关卡并显示名称 / 作者，进度范围 1–100。
-- `#GD b20` 使用本地进度与 GDDL 评级计算本地 B20，新增 `local-b20.jte` 卡片；GDDL 评级按已评级 24 小时、未评级 1 小时缓存。
-- `#GDDL` 改为子指令模式：`GDDL bind <用户名|ID>`、`GDDL unbind`、`GDDL b20 [用户名|ID] [--all]`；B20 改用 GDDL 原始小数评分计算，tier 由 rating 派生，表格显示为 `25(25.33)`。
-- `#GD search` 结果新增关卡 ID 列，页码移到右上角；关卡详情与 B20 卡片调整评分、颜色、用户标识与文字样式。
+- 新增 `ai_usage` 按日汇总表；控制台概览新增 AI 子页（调用 / 词元趋势、来源与排行）和“累计”子页。
+- `#指令 -B` / `-U` 支持整群、用户、私聊与 `--temp` 限时禁用；角色页新增指令 / AI 权限开关和指令管理。
+- API 4 新增 `properties()` 与插件配置页；API 5 新增 `http()`，支持超时、代理、重试与响应上限。
+- GD 插件新增本地进度与本地 B20；`#GDDL` 改为子指令并改用原始小数评分；搜索结果显示关卡 ID。
 
 ### Changed
 
-**数据结构与迁移**
-
-- `usage` 表更名为 `cmd_usage`：`group_id` 改为 `chat_id`，新增 `chat_type`（0=群聊，1=私聊），唯一键改为 `time + chat_type + chat_id + user_id + cmd`；控制台接口路径保持 `/console/usage`。
-- 新增 `cmd_disable` 单表，使用 `chat_type` / `chat_id` 区分群聊与私聊规则。
-- 群记录新增 `cmd_enabled` / `ai_chat_enabled`（默认 true）；用户记录新增 `private_cmd_enabled` / `private_ai_chat_enabled`（默认 false），删除 `private_message_allowed`。升级后现有用户的两个私聊权限均为 false，需要重新授权。
-- `UserSetting` 的 `aiPrompt` / `aiEffort` / `aiInjectionGuard` 更名为 `privateAiPrompt` / `privateAiEffort` / `privateAiInjectionGuard`，数据库列同步改名。
-- SQLite 新增表会在启动时自动创建；MySQL 需重新执行 `schema-mysql.sql`。已有数据库的表名、列与索引需手动迁移；若使用过旧版开发构建的逐条 `ai_usage` 记录表，需要删除重建。
-
-**AI 触发**
-
-- AI 触发从 `Chat` / `Poked` 指令迁移到 `AiChatMiddleware`：群 @、私聊、戳一戳与自动聊天直接调用 `ChatPipeline`，移除 `#Chat` / `#Poked`；关键词规则中引用 `Chat` / `Poked` 的配置失效。
-- 群 AI 复用群功能限速（键 `AI`），私聊 AI 暂不限速；AI 用量改由 `ai_usage` 记录，不再计入 `cmd_usage`。
-- 戳一戳触发 AI 后调用指令时，宿主合成对应的消息事件；`Cmd` 移除戳一戳的 `run` 重载，外部插件需改用消息入口。
-- `RegisterHandler` 由 `BotRegistrar` 替代，通过 `BotClient` 查询群名 / 昵称并懒注册；`GroupService` / `UserService` 不再依赖 `BotClient`，适配器不支持信息查询时回退平台 ID。
-- `BANNED` 用户的所有事件在 `BotDispatcher` 入口直接丢弃。
-- `GroupCmdRateLimiter` 更名为 `GroupRateLimiter`，限速维度 `LimitScope.CMD` 改为 `FUNC`（控制台显示“按功能”）；已有数据库的 `limit_scope = 2` 无需修改。
-
-**插件与工程**
-
-- 插件配置改由宿主统一解压，并通过 `properties()` 提供只读快照；GD / Query 配置移除环境变量回退。
-- `GdHttp`、Query、SB6657、Symmetry、Say 与 `UsageCmd` 改用宿主 HTTP 服务，移除各自的 JDK `HttpClient` / `HttpUtils`；插件 HTTP 请求统一由各自的 `XxxHttp` 适配器承载。
-- 插件加载与上传的临时文件名缩短，启动时清理遗留临时文件。
-- `CmdArgs` 的长选项名至少两个字符、短选项必须是单个字母；`hasOpt` / `getOpt` 传入非法 name / alias 会抛 `IllegalArgumentException`。
-
-**控制台**
-
-- 角色、语录、文件与插件表统一为固定列宽，长 ID / 内容省略并在悬浮时显示完整值；语录内容新增复制按钮。
-- 插件列表移除 JAR 列，JAR 文件名可在插件数据窗口查看；指令列改用 `Cmd.name()` 返回的规范名称。
-- 配置页重做排版；概览“累计”拆分为“调用累计”和“词元累计”，AI 排行中的词元使用 k/M/B 缩写。
+- AI 触发改由 `AiChatMiddleware` 直接调用 `ChatPipeline`，移除 `#Chat` / `#Poked`；AI 用量改记入 `ai_usage`。
+- `usage` 更名为 `cmd_usage`，新增 `cmd_disable`；群记录新增指令 / AI 开关，用户记录新增私聊开关。
+- 插件 HTTP 请求统一走宿主服务；控制台表格、配置页与插件列表重排。
 
 ### Fixed
 
-- 修复 AI 看不到群聊 / 私聊发送者昵称的问题：历史消息与触发说明改为在正文中携带“昵称(用户 ID)”，不再依赖部分 OpenAI 兼容接口会忽略的 `name` 字段。
-- 修复控制台实时日志连接静默断开后仍显示“已连接”且不会自动重连的问题；前端检测 45 秒无数据（含 SSE 心跳）会中止连接并触发重连。
-- 宿主 HTTP 服务的请求失败消息不再拼接完整 URL，避免查询参数中的 API key 等敏感信息进入日志。
-- 文件下载与聊天附件保存失败时不再拼接完整 URL，避免带签名参数的媒体地址进入日志。
+- 修复 AI 看不到发送者昵称、控制台日志断线不重连，以及失败日志中的敏感 URL。
 
 ## [1.1.0] - 2026-10-27
 
+新增 QQ 官方机器人适配器、插件 API 2/3 与 JTE / JairoSVG 渲染管线。
+
 ### Added
 
-**适配器**
-
-- 新增 `adapter-qq`：QQ 官方机器人 WebSocket 适配器，支持 QQ 群与 C2C 私聊、主动文本与富媒体发送（不携带 `msg_id`，避免被动回复自动 @）、token 自动刷新、断线 Resume 与重连；构建产物为 `launcher-qq.jar`。
-- `adapter-qq` 使用平台消息 ID 的稳定短 ID 映射，兼容现有 `message.id` 字段长度；支持群信息/成员白名单接口、禁言与撤回，并在无权限时回退。
-
-**插件与 API**
-
-- 插件 API 2：`Plugin.tools()` 允许外部插件注册 AI 工具，插件停用或重载时同步注销；`cmds()` 改为默认空实现；兼容 API 1。
-- 插件 API 3：`PluginContext.renderer()` 统一提供原始 SVG、预编译 JTE 模板与字体注册；插件 JAR 内 `fonts/` 下的 TTF/OTF 自动注册；兼容 API 1/2。
-- 新增 `say-plugin`：`Say`/`说` 渲染随机语录卡片，作者头像渐隐、右对齐；支持 `@用户`、用户 ID 与 `--id=<语录ID>`，随插件分发 Noto Serif CJK SC 字体。
-- 新增 `gd-plugin`：`GD`/`几何冲刺` 输出关卡搜索与详情，`GDDL` 输出 GDDL B20 图片卡片；B20 按 `rt = tier^E × (进度/100)^1.5` 取最高 20 条平均，`E` 默认 1.5、可配 2，仅统计 GDDL 提交记录；支持超时、重试、HTTP 代理、缓存与 `config.properties.example`。
-- `hello-plugin` 的 `Hello` 新增 `--image` 图片卡片示例。
-- 控制台插件页展示插件注册的 AI 工具；概览新增用户调用排行。
-- `MsgContent` 新增公共 `BASE64_PREFIX`，`Builder.imageBase64` 重载封装 base64 图片 URL。
-
-**图片渲染**
-
-- 新增 JTE 预编译模板 + JairoSVG 图片渲染管线，宿主与插件共用 `JteSvgRenderer`；内置 `Usage`、`Info`、`Help` 图片卡片，`Help -p=<插件>` 支持查看指定插件。
-
-**文档**
-
-- 新增 `PLUGIN.md` 插件开发指南；README 重新整理，补充插件结构、配置示例与文档入口。
+- 新增 `adapter-qq` WebSocket 适配器，支持群 / C2C 私聊、主动消息、token 刷新与断线重连，构建产物为 `launcher-qq.jar`。
+- API 2 支持插件注册 AI 工具；API 3 提供 SVG / JTE 渲染与字体注册；新增 `say-plugin` 与 `gd-plugin`。
+- 新增 JTE + JairoSVG 渲染管线，内置 `Usage` / `Info` / `Help` 卡片；新增 `SvgText` / `SvgTable` / `ImageData` 等工具。
 
 ### Changed
 
-**适配器与指令**
-
-- `adapter-qq` 的配置项 `nullbot.qq.api-base` 更名为 `nullbot.qq.api-url`，旧键不再读取。
-- 群聊消息同时 @机器人 并携带指令时优先执行指令，未匹配指令才进入 AI 对话；开头的提及段与引用段不再阻止指令解析。
-- `adapter-qq` 拆分 HTTP/token、OpenAPI、媒体、入站路由与客户端工厂，统一会话目标 `QqTarget`；公开行为不变。
-
-**渲染与字体**
-
-- 内置插件版本统一为 `1.1.0`，插件 `version()` 与 Maven 项目版本保持一致。
-- 核心渲染字体统一为 JetBrains Maple Mono NF（OFL），移除 JetBrains Mono 与 Noto Sans Mono CJK SC；粗体通过 `font-weight` 合成；字体常量改为 `FontRegistry.JETBRAINS_MAPLE_MONO`，外部插件引用旧常量需同步调整。
-- 新增 core SVG 文本与表格排版工具 `SvgText`/`SvgLine`/`SvgPositionedLine`、`SvgTable`/`SvgColumn`/`SvgCell`，以及图片工具 `ImageData`（data URI、WebP/PNG 解码、裁剪缩放、PNG 编码）；GD、Usage、Say 与 AI `view` 复用。
-- emoji 字体分段抽取到 core `SvgText.fontSegments`，Noto Emoji 移入 core 字体注册；`Say` 模板改用 `SvgText.Segment`。
-- 渲染卡片统一深色/中性配色：移除左侧色条和蓝色 glow，提高正文/标签对比；`GD`、`Info`、`Help`、`Usage`、`Hello`、`Say` 同步，`Usage` 计数使用浅蓝数据色。
-- `Usage` 卡片显示昵称与用户 ID，计数补零改为 7 位；`Info` 统一左右字号为 14px 并调整底部留白；`Help` 在指令数量行提示 `指令名 -H`；提高渲染模板 SVG 输出尺寸。
-
-**GD 插件**
-
-- 将 GDDL B20 从 `#GD gddl` 拆分为独立指令 `#GDDL`；`#GD`/`#几何冲刺` 保留关卡搜索与详情。
-- 重做关卡详情卡片：缩略图放大到 400×225，标题旁增加关卡 ID 胶囊；下载、点赞、长度与物体数改为带 Nerd Font 图标和标签的 2×2 统计块；GDDL 使用与缩略图同宽的独立面板，Tier 0–40 从绿到蓝再到红渐变、未评级保持灰色，并缩写为 `Rt.`/`Enj.`；歌曲与描述移至右栏，描述最多四行；标题、meta、歌曲与描述按宽度截断，整体字号提高并调整页脚上下留白。
-- 搜索与 B20 列表新增表头并使用固定列对齐；加宽 B20 的 ID 列，避免长关卡 ID 被截断；B20 卡片右上角显示 GDDL 头像并新增 `gddl.avatar-base` 配置。
-- GD 搜索支持回复 `next` 翻页；`rank` 子命令更名为 `gddl`，新增 `--bind`/`--unbind` 用户绑定。
-- 关卡物体数达到 GD 接口上限 65535 时显示为 `65,535+`，避免误认为是精确值。
-- GDDL 与缩略图请求改用 HTTP/1.1，支持连接/请求超时、重试与 HTTP 代理，关卡详情并行拉取 GDDL 与缩略图；排除未使用的 Netty native QUIC 依赖并合并 shade 元数据。
-
-**插件与工程**
-
-- Maven 模块版本改为由根 `pom.xml` 的 `revision` 属性统一控制，发布时只需修改一处。
-- 插件 `version()` 默认读取 JAR manifest 的 `Implementation-Version`，内置插件版本自动跟随 Maven `revision`。
-- 统一插件代码结构：根包保留入口、文案与异常，指令移入 `cmd`，配置/服务/模型/渲染按需分层；指令通过构造器注入具体依赖，插件访问器收回包内可见，生命周期与 `stop()` 统一。
-- 统一插件双语文案：`hello`、`gallery`、`game`、`pubg`、`query`、`say`、`sb6657`、`symmetry` 新增 `XxxText`；`game` 的问答、猜图与老婆文案迁入 `GameText`；`sb6657-plugin` 使用 `SB6657Exception` 统一接口与解析错误。
-- `Say`/`说` 从 `game-plugin` 拆分到独立 `say-plugin`，模板与字体随插件分发；语录卡片改用 Noto Serif CJK SC 斜体，作者行使用双倍宽破折号并加粗，收紧换行宽度。
-- 控制台群设置与用户设置弹窗按基础、通知、限速与 AI 对话分组；`Echo` 使用唯一名称，移除 `Reply`/`回复` 别名。
-- 插件加载与注册流程统一回滚，插件状态新增工具列表；启动时清理异常退出遗留的 `.nullbot-plugin-*.jar.tmp`。
+- `adapter-qq` 配置键 `api-base` 更名为 `api-url`；内置插件版本跟随 Maven `revision`。
+- 统一核心字体与插件结构；GD / GDDL 卡片和指令重做。
+- 控制台群设置与用户设置弹窗分组，插件页展示 AI 工具。
 
 ### Fixed
 
-- `#Usage` 在缺少用户头像时改用占位头像渲染，不再直接失败；QQ 官方机器人等无法获取头像的平台也可正常使用。
-- AI 最终回复和 `send` 工具消息发送前移除代码块外的连续空行。
-- SVG 栅格化启用 fractional metrics，修复等宽字体逐字取整导致的列错位。
-- 修复日志 SSE 长连接未关闭导致优雅停机卡住，停机时主动关闭日志流。
-- 修复控制台状态标签在窄列换行，并将插件 ID 列居中。
-- 修复 `Say` 语录卡片 emoji 显示为方框，以及换行宽度过大导致文字贴近右边缘的问题。
+- 头像占位、代码块外空行、SVG 列错位、日志 SSE 停机与 `Say` emoji 显示。
 
 ## [1.0.0] - 2026-10-25
 
-首个正式版本。
+首个正式版本，搭建完整的机器人框架、Web 控制台与插件体系。
 
 ### Added
 
 - 多模块架构：`spi`、`core`、`adapters`、`launcher`、`plugins`。
-- 适配器 SPI：Shiro（OneBot 11 正/反向 WS）与 stdin 适配器。
-- 指令框架：前缀与别名、限权、限流、关键词触发、输入等待、帮助、调用统计。
+- 适配器：Shiro（OneBot 11 正 / 反向 WS）与 stdin。
+- 指令框架：前缀、别名、限权、限流、关键词触发、输入等待、帮助、调用统计。
 - 消息总线：聊天记录、入退群通知、防撤回、自动聊天。
-- AI 对话：OpenAI 兼容接口，群聊 @/私聊/戳一戳触发，按群与用户配置提示词、推理强度、注入防护；工具调用（call/read/view/send/search/web/mute/recall）。
+- AI 对话：OpenAI 兼容接口，群聊 @ / 私聊 / 戳一戳触发，支持提示词、推理强度、注入防护与工具调用。
 - 媒体与语录：图片、视频、音频、语录的保存、获取、随机发送与删除。
-- Web 控制台：概览、角色与群设置、关键词、语录、文件、配置、插件、系统信息，以及 SSE 实时日志。
-- 插件系统：JAR 热插拔，上传、启停、重载、删除、独立数据目录，ServiceLoader 加载。
+- Web 控制台：概览、角色与群设置、关键词、语录、文件、配置、插件、系统信息与 SSE 日志。
+- 插件系统：JAR 热插拔、上传 / 启停 / 重载 / 删除、独立数据目录。
 - 内置插件：hello、gallery、game、pubg、query、sb6657、symmetry。
-- 存储：SQLite 自动建表；MySQL 提供 `schema-mysql.sql`。
-- 配置：`nullbot.*` 支持文件、环境变量与启动参数，控制台令牌缺省随机生成。
+- 存储与配置：SQLite 自动建表、MySQL schema、`nullbot.*` 配置。
+
+[Unreleased]: https://github.com/Zincoid/NullBot-renewal/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Zincoid/NullBot-renewal/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/Zincoid/NullBot-renewal/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Zincoid/NullBot-renewal/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/Zincoid/NullBot-renewal/releases/tag/v1.0.0

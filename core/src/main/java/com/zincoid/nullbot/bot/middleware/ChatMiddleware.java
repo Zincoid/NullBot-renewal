@@ -69,10 +69,11 @@ public class ChatMiddleware implements Middleware {
         Language language = language(event);
         try {
             if (!isAllowed(event) || isLimited(client, event, language)) return;
+            log.info("AI chat: source={}, user={}", source.getLabel(), event.userId());
             if (!chatPipeline.chat(client, event, source))
                 send(client, event, MsgContent.of(Text.AI_GUARD_REFUSED.of(language)));
         } catch (RuntimeException e) {
-            log.error("AI handling failed: {}", e.getMessage(), e);
+            log.error("AI chat failed: {}", e.getMessage(), e);
             send(client, event, MsgContent.of(Text.CMD_ERROR.of(language, e.getMessage())));
         } finally {
             chain.consume();
