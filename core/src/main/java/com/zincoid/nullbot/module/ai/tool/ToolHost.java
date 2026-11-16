@@ -25,6 +25,15 @@ public interface ToolHost {
     boolean finalSent();
 
     /**
+     * 记录当前模型响应的推理内容，供宿主记录发出的消息使用。
+     * <p>Records the reasoning of the current model response for messages sent by the host.</p>
+     *
+     * @param reasoning the reasoning content, nullable
+     */
+    default void reasoning(String reasoning) {
+    }
+
+    /**
      * 向当前会话发送一条消息，可标记为本轮最终消息。
      * <p>Sends one message to the current chat, optionally marking it as the final message of the turn.</p>
      *

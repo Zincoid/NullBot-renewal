@@ -36,13 +36,15 @@ public class ChatActions {
      * 构建并发送消息，可附带收藏文件与引用。
      * <p>Builds and sends a message, optionally with collection files and a quote.</p>
      *
-     * @param turn    the turn data
-     * @param text    the message text, may be blank when files are present
-     * @param fileIds the collection file ids of media to attach
-     * @param replyId the platform message id to quote, nullable
+     * @param turn      the turn data
+     * @param text      the message text, may be blank when files are present
+     * @param fileIds   the collection file ids of media to attach
+     * @param replyId   the platform message id to quote, nullable
+     * @param reasoning the reasoning content stored in memory, nullable
      * @return the tool result
      */
-    ToolRes send(ChatTurn turn, String text, List<Long> fileIds, String replyId) {
+    ToolRes send(ChatTurn turn, String text, List<Long> fileIds,
+                 String replyId, String reasoning) {
         MsgContent.Builder builder = MsgContent.builder();
         String cleaned = ChatText.clean(text);
         List<String> media = new ArrayList<>();
@@ -61,7 +63,7 @@ public class ChatActions {
             builder.reply(replyId);
         MsgContent message = builder.build();
         String content = annotate(cleaned, media);
-        String messageId = deliver(turn, message, content, null);
+        String messageId = deliver(turn, message, content, reasoning);
         return ToolRes.success(messageId == null || messageId.isBlank()
                 ? "Message sent"
                 : "Message sent: id=" + messageId);
@@ -79,7 +81,8 @@ public class ChatActions {
      * @param reasoning the reasoning content stored in memory, nullable
      * @return the platform message id
      */
-    String deliver(ChatTurn turn, MsgContent message, String content, String reasoning) {
+    String deliver(ChatTurn turn, MsgContent message, String content,
+                   String reasoning) {
         String messageId = turn.chatType() == ChatType.GROUP
                 ? turn.client().sendGroupMsg(turn.targetId(), message)
                 : turn.client().sendPrivateMsg(turn.targetId(), message);

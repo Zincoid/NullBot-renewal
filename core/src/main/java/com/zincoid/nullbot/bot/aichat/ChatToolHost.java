@@ -18,6 +18,7 @@ final class ChatToolHost implements ToolHost {
     private final ChatCmds cmds;
 
     private boolean finalSent;
+    private String reasoning;
 
     // ════ ToolHost ════════════════
 
@@ -32,8 +33,13 @@ final class ChatToolHost implements ToolHost {
     }
 
     @Override
+    public void reasoning(String reasoning) {
+        this.reasoning = reasoning;
+    }
+
+    @Override
     public ToolRes send(String text, List<Long> fileIds, String replyId, boolean last) {
-        ToolRes res = actions.send(turn, text, fileIds, replyId);
+        ToolRes res = actions.send(turn, text, fileIds, replyId, reasoning);
         if (last && !res.error()) finalSent = true;
         return res;
     }

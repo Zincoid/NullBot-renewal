@@ -129,6 +129,7 @@ public class ChatAgent {
             log.info("Tool round {}: {} call(s)", i + 1, res.tcs().size());
             work.add(AiMsg.assistant(res.tcs())
                     .withReasoning(res.reasoning()));
+            host.reasoning(res.reasoning());
             List<AiMsg> images = new ArrayList<>();
             for (ToolCall tc : res.tcs()) {
                 ToolRes tr = execute(tc, host, options);
