@@ -54,8 +54,10 @@ public class Search implements Tool {
         StringBuilder text = new StringBuilder("Files: ");
         for (File file : files) {
             text.append("\n- id=").append(file.getId())
-                    .append(", name=").append(file.getOriginal())
-                    .append(", description=").append(file.getDescription());
+                    .append(", name=").append(file.getOriginal());
+            String description = file.getDescription();
+            if (description != null && !description.isBlank())
+                text.append(", description=").append(description);
         }
         return ToolRes.success(text.toString());
     }

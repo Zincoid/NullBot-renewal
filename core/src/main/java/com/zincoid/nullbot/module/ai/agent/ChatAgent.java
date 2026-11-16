@@ -143,7 +143,7 @@ public class ChatAgent {
                 ));
             }
             if (host.finalSent()) {
-                log.info("Tool loop ended early: final message sent");
+                log.info("Tool loop ended: final message sent");
                 return ChatRes.sent(usage);
             }
             work.addAll(images);
@@ -180,18 +180,19 @@ public class ChatAgent {
             return ToolRes.error("Tool not found");
         try {
             ToolRes res = tool.run(host, tc.args());
-            log.info("Tool success: {} -> {}", tc.name(), summary(res));
+            log.info("Tool {}: {}", tc.name(), summary(res));
             return res;
         } catch (Exception e) {
-            log.warn("Tool error: {}", e.getMessage());
+            log.warn("Tool {} failed: {}", tc.name(), e.getMessage());
             return ToolRes.error(e.getMessage());
         }
     }
 
     private static String summary(ToolRes res) {
-        String text = res.text() == null ? "" : res.text();
+        String text = res.text() == null ? "" : res.text().replaceAll("\\s+", " ");
         if (text.length() > 200) text = "%s...".formatted(text.substring(0, 200));
-        return res.images().isEmpty()
-                ? text : "%s (+%d image(s))".formatted(text, res.images().size());
+        if (res.images().isEmpty()) return text;
+        int count = res.images().size();
+        return "%s (+%d image%s)".formatted(text, count, count == 1 ? "" : "s");
     }
 }
