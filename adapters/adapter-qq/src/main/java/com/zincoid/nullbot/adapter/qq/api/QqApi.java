@@ -1,5 +1,8 @@
-package com.zincoid.nullbot.adapter.qq;
+package com.zincoid.nullbot.adapter.qq.api;
 
+import com.zincoid.nullbot.adapter.qq.QqException;
+import com.zincoid.nullbot.adapter.qq.QqTarget;
+import com.zincoid.nullbot.adapter.qq.QqText;
 import com.zincoid.nullbot.adapter.qq.model.QqModels;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -171,33 +174,121 @@ public class QqApi {
      * @return the platform message id
      */
     public String sendText(QqTarget target, String text) {
-        return sendMessage(targetPath(target) + "/messages",
-                new QqModels.SendRequest(0, text));
+        return sendText(target, text, null);
     }
 
-    private String sendMessage(String path, QqModels.SendRequest request) {
+    /**
+     * 发送文本消息，可引用一条消息。
+     * <p>Sends a text message, optionally quoting another message.</p>
+     *
+     * @param target    the target conversation
+     * @param text      the text
+     * @param reference the referenced message index, nullable
+     * @return the platform message id
+     */
+    public String sendText(QqTarget target, String text, String reference) {
+        return sendTextResult(target, text, reference).id();
+    }
+
+    /**
+     * 发送文本消息并返回完整响应。
+     * <p>Sends a text message and returns the full response.</p>
+     *
+     * @param target    the target conversation
+     * @param text      the text
+     * @param reference the referenced message index, nullable
+     * @return the send response
+     */
+    public QqModels.SendResponse sendTextResult(QqTarget target, String text, String reference) {
+        return sendMessage(targetPath(target) + "/messages",
+                new QqModels.SendRequest(0, text, null, reference(reference)));
+    }
+
+    /**
+     * 发送 Markdown 消息，用于群聊提及用户。
+     * <p>Sends a Markdown message, used for group mentions.</p>
+     *
+     * @param target   the target conversation
+     * @param markdown the markdown text
+     * @return the platform message id
+     */
+    public String sendMarkdown(QqTarget target, String markdown) {
+        return sendMarkdown(target, markdown, null);
+    }
+
+    /**
+     * 发送 Markdown 消息，可引用一条消息。
+     * <p>Sends a Markdown message, optionally quoting another message.</p>
+     *
+     * @param target    the target conversation
+     * @param markdown  the markdown text
+     * @param reference the referenced message index, nullable
+     * @return the platform message id
+     */
+    public String sendMarkdown(QqTarget target, String markdown, String reference) {
+        return sendMarkdownResult(target, markdown, reference).id();
+    }
+
+    /**
+     * 发送 Markdown 消息并返回完整响应。
+     * <p>Sends a Markdown message and returns the full response.</p>
+     *
+     * @param target    the target conversation
+     * @param markdown  the markdown text
+     * @param reference the referenced message index, nullable
+     * @return the send response
+     */
+    public QqModels.SendResponse sendMarkdownResult(QqTarget target, String markdown,
+                                                    String reference) {
+        return sendMessage(targetPath(target) + "/messages",
+                new QqModels.SendRequest(2, null,
+                        new QqModels.Markdown(markdown), reference(reference)));
+    }
+
+    /**
+     * 发送富媒体消息，可引用一条消息。
+     * <p>Sends a rich media message, optionally quoting another message.</p>
+     *
+     * @param target    the target conversation
+     * @param fileInfo  the uploaded file information
+     * @param reference the referenced message index, nullable
+     * @return the send response
+     */
+    public QqModels.SendResponse sendMedia(QqTarget target, String fileInfo, String reference) {
+        if (QqText.isBlank(fileInfo)) throw new QqException("Missing QQ media file_info");
+        return sendMessage(targetPath(target) + "/messages",
+                new QqModels.SendRequest(7, null, null, reference(reference),
+                        new QqModels.MediaInfo(fileInfo)));
+    }
+
+    private static QqModels.MessageReference reference(String id) {
+        return QqText.isBlank(id) ? null : new QqModels.MessageReference(id);
+    }
+
+    private QqModels.SendResponse sendMessage(String path, QqModels.SendRequest request) {
         QqModels.SendResponse response = http.post(
                 path, request, QqModels.SendResponse.class);
         if (response == null || QqText.isBlank(response.id()))
             throw new QqException("Missing QQ message id in send response");
-        return response.id();
+        return response;
     }
 
     // ════ Upload ══════════════════
 
     /**
-     * 上传并直接发送富媒体。
-     * <p>Uploads rich media and sends it directly.</p>
+     * 上传富媒体，可能直接发送或仅返回文件信息。
+     * <p>Uploads rich media, either sending it directly or returning file information.</p>
      *
      * @param target  the target conversation
      * @param request the upload request
-     * @return the upload response, containing the sent message id
+     * @return the upload response, containing the message id or file information
      */
     public QqModels.UploadResponse upload(QqTarget target, QqModels.UploadRequest request) {
         QqModels.UploadResponse response = http.post(
                 targetPath(target) + "/files", request, QqModels.UploadResponse.class);
-        if (response == null || QqText.isBlank(response.id()))
-            throw new QqException("Missing QQ upload message id");
+        if (response == null
+                || (QqText.isBlank(response.id()) && QqText.isBlank(response.fileInfo())))
+            throw new QqException("Missing QQ upload result");
         return response;
     }
 
@@ -224,7 +315,7 @@ public class QqApi {
      */
     public void mute(String groupId, String memberOpenid, int seconds) {
         String op = seconds <= 0 ? "del" : "add";
-        String expire = seconds <= 0 ? null : OffsetDateTime.now()
+        String expire = seconds <= 0 ? "" : OffsetDateTime.now()
                 .plusSeconds(Math.min(seconds, MAX_MUTE_SECONDS))
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         http.post("/v2/groups/" + encode(groupId) + "/restrict_chat_setting",

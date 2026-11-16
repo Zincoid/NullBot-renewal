@@ -1,5 +1,8 @@
-package com.zincoid.nullbot.adapter.qq;
+package com.zincoid.nullbot.adapter.qq.api;
 
+import com.zincoid.nullbot.adapter.qq.QqException;
+import com.zincoid.nullbot.adapter.qq.QqTarget;
+import com.zincoid.nullbot.adapter.qq.QqText;
 import com.zincoid.nullbot.adapter.qq.model.QqModels;
 import com.zincoid.nullbot.bot.spi.model.MsgContent;
 import com.zincoid.nullbot.bot.spi.model.MsgSegment;
@@ -48,7 +51,44 @@ public class QqMedia {
      * @return the platform message id
      */
     public String send(MsgSegment.Media media, QqTarget target) {
-        QqModels.UploadResponse response = upload(media, target);
+        return send(media, target, null);
+    }
+
+    /**
+     * 上传并发送一条媒体消息，可引用一条消息。
+     * <p>Uploads and sends one media message, optionally quoting another message.</p>
+     *
+     * @param media     the media segment
+     * @param target    the target conversation
+     * @param reference the referenced message index, nullable
+     * @return the platform message id
+     */
+    public String send(MsgSegment.Media media, QqTarget target, String reference) {
+        if (QqText.isBlank(reference)) return sendDirect(media, target);
+        QqModels.UploadResponse response;
+        try {
+            response = upload(media, target, false);
+        } catch (QqException e) {
+            log.warn("QQ media quote upload failed, falling back to direct send: {}",
+                    e.getMessage());
+            return sendDirect(media, target);
+        }
+        String fileInfo = response == null ? null : response.fileInfo();
+        if (QqText.isBlank(fileInfo)) {
+            log.warn("QQ media quote missing file_info, falling back to direct send");
+            return sendDirect(media, target);
+        }
+        try {
+            return api.sendMedia(target, fileInfo, reference).id();
+        } catch (QqException e) {
+            if (!canRetryWithoutReference(e)) throw e;
+            log.warn("QQ media quote failed, falling back to direct send: {}", e.getMessage());
+            return sendDirect(media, target);
+        }
+    }
+
+    private String sendDirect(MsgSegment.Media media, QqTarget target) {
+        QqModels.UploadResponse response = upload(media, target, true);
         String id = response == null ? null : response.id();
         if (QqText.isBlank(id)) throw new QqException("Missing QQ media message id");
         return id;
@@ -73,7 +113,8 @@ public class QqMedia {
         return id;
     }
 
-    private QqModels.UploadResponse upload(MsgSegment.Media media, QqTarget target) {
+    private QqModels.UploadResponse upload(MsgSegment.Media media, QqTarget target,
+                                           boolean send) {
         int fileType = fileType(media);
         String defaultName = switch (fileType) {
             case 1 -> "image.png";
@@ -88,12 +129,12 @@ public class QqMedia {
             fileName = fileName(url, defaultName);
         if (isHttp(url)) {
             try {
-                return uploadUrl(fileType, url, fileName, target);
+                return uploadUrl(fileType, url, fileName, target, send);
             } catch (QqException e) {
                 if (!canRetryUpload(e)) throw e;
                 log.debug("QQ url upload failed, retrying as bytes: {}", e.getMessage());
                 byte[] bytes = http.download(url, MAX_LOCAL_MEDIA_BYTES);
-                return uploadBytes(fileType, bytes, fileName, target);
+                return uploadBytes(fileType, bytes, fileName, target, send);
             }
         }
         if (url.startsWith(MsgContent.BASE64_PREFIX)) {
@@ -103,7 +144,7 @@ public class QqMedia {
             } catch (IllegalArgumentException e) {
                 throw new QqException("Malformed QQ base64 media", e);
             }
-            return uploadBytes(fileType, bytes, fileName, target);
+            return uploadBytes(fileType, bytes, fileName, target, send);
         }
         if (url.startsWith("file://")) {
             try {
@@ -112,7 +153,7 @@ public class QqMedia {
                     throw new QqException("QQ local media exceeds 5 MB");
                 if (QqText.isBlank(sourceName))
                     fileName = fileName(path.getFileName().toString(), defaultName);
-                return uploadBytes(fileType, Files.readAllBytes(path), fileName, target);
+                return uploadBytes(fileType, Files.readAllBytes(path), fileName, target, send);
             } catch (QqException e) {
                 throw e;
             } catch (IOException | RuntimeException e) {
@@ -123,17 +164,17 @@ public class QqMedia {
     }
 
     private QqModels.UploadResponse uploadUrl(int fileType, String url, String fileName,
-                                              QqTarget target) {
+                                              QqTarget target, boolean send) {
         return api.upload(target,
-                new QqModels.UploadRequest(fileType, url, null, fileName, true));
+                new QqModels.UploadRequest(fileType, url, null, fileName, send));
     }
 
     private QqModels.UploadResponse uploadBytes(int fileType, byte[] bytes, String fileName,
-                                                QqTarget target) {
+                                                QqTarget target, boolean send) {
         if (bytes.length > MAX_LOCAL_MEDIA_BYTES)
             throw new QqException("QQ local media exceeds 5 MB");
         return api.upload(target, new QqModels.UploadRequest(
-                fileType, null, Base64.getEncoder().encodeToString(bytes), fileName, true));
+                fileType, null, Base64.getEncoder().encodeToString(bytes), fileName, send));
     }
 
     private static int fileType(MsgSegment.Media media) {
@@ -167,5 +208,10 @@ public class QqMedia {
             case 400, 403, 415, 422 -> true;
             default -> false;
         };
+    }
+
+    private static boolean canRetryWithoutReference(QqException e) {
+        if (e.status() >= 400 && e.status() < 500) return true;
+        return e.code() == 40034005 || e.code() == 40034024;
     }
 }

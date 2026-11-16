@@ -1,6 +1,8 @@
 package com.zincoid.nullbot.adapter.qq;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.zincoid.nullbot.adapter.qq.api.QqApi;
+import com.zincoid.nullbot.adapter.qq.api.QqHttpClient;
 import com.zincoid.nullbot.adapter.qq.model.QqModels;
 import com.zincoid.nullbot.bot.spi.port.BotLifecycle;
 import jakarta.annotation.PostConstruct;
@@ -48,6 +50,8 @@ public class QqGateway {
     private final Object sendLock = new Object();
     private final AtomicInteger reconnectAttempt = new AtomicInteger();
 
+    private volatile int intents;
+    private volatile boolean intentsFallback;
     private volatile boolean shutdown;
     private volatile boolean fatal;
     private volatile boolean online;
@@ -73,11 +77,13 @@ public class QqGateway {
             log.warn("QQ adapter disabled: configure nullbot.qq.app-id and nullbot.qq.app-secret");
             return;
         }
+        intents = properties.getIntents();
+        intentsFallback = false;
         shutdown = false;
         fatal = false;
         thread = Thread.ofVirtual().name("qq-gateway").start(this::run);
         log.info("QQ adapter starting: api={}, intents={}",
-                properties.resolvedApiUrl(), properties.getIntents());
+                properties.resolvedApiUrl(), intents);
     }
 
     /**
@@ -208,6 +214,8 @@ public class QqGateway {
             }
             case "GROUP_AT_MESSAGE_CREATE" -> inbound.handleGroup(payload.d(), selfId, true);
             case "GROUP_MESSAGE_CREATE" -> inbound.handleGroup(payload.d(), selfId, false);
+            case "GROUP_MEMBER_ADD" -> inbound.handleMemberAdd(payload.d(), selfId);
+            case "GROUP_MEMBER_REMOVE" -> inbound.handleMemberRemove(payload.d(), selfId);
             case "C2C_MESSAGE_CREATE" -> inbound.handleC2c(payload.d(), selfId);
             default -> log.debug("QQ event ignored: {}", type);
         }
@@ -280,7 +288,7 @@ public class QqGateway {
                 sendJson(payload);
                 log.info("QQ gateway resume requested");
             } else {
-                data.put("intents", properties.getIntents());
+                data.put("intents", intents);
                 data.put("shard", List.of(properties.getShard(), properties.resolvedShardCount()));
                 data.put("properties", Map.of(
                         "$os", "linux",
@@ -366,10 +374,25 @@ public class QqGateway {
     private void handleCloseCode(int code) {
         if (code == 4004) http.invalidateToken();
         if (code == 4006 || code == 4007 || (code >= 4900 && code <= 4913)) clearSession();
+        if ((code == 4013 || code == 4014) && fallbackIntents()) {
+            clearSession();
+            return;
+        }
         if (fatalClose(code)) {
             fatal = true;
             log.error("QQ gateway fatal close: code={}", code);
         }
+    }
+
+    private boolean fallbackIntents() {
+        int current = intents;
+        int reduced = current & ~(1 << 24);
+        if (intentsFallback || reduced == current) return false;
+        intents = reduced;
+        intentsFallback = true;
+        log.warn("QQ gateway intent rejected; retrying without group member events: intents={}",
+                reduced);
+        return true;
     }
 
     private static boolean fatalClose(int code) {

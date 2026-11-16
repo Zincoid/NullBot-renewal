@@ -1,5 +1,6 @@
 package com.zincoid.nullbot.adapter.qq;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.zincoid.nullbot.adapter.qq.model.QqModels;
 import com.zincoid.nullbot.bot.spi.event.GroupMsgEvent;
 import com.zincoid.nullbot.bot.spi.event.PrivateMsgEvent;
@@ -21,6 +22,9 @@ import java.util.regex.Pattern;
 public final class QqMapper {
 
     private static final Pattern MENTION = Pattern.compile("<@!?([^>]+)>");
+    private static final int PARALLEL_MESSAGE_TYPE = 101;
+    private static final int CHAT_RECORD_MESSAGE_TYPE = 102;
+    private static final int MAX_ELEMENT_DEPTH = 4;
 
     private QqMapper() {
     }
@@ -37,7 +41,7 @@ public final class QqMapper {
      */
     public static GroupMsgEvent groupAt(QqModels.GroupMessage data, String selfId, String shortId,
                                         String replyId) {
-        return group(data, selfId, shortId, true, Set.of(), replyId);
+        return group(data, selfId, shortId, true, botMentionIds(data, selfId), replyId);
     }
 
     /**
@@ -75,10 +79,13 @@ public final class QqMapper {
         String userId = QqText.firstNonBlank(author.userOpenid(), author.id());
         if (QqText.isBlank(userId)) return null;
         String nickname = QqText.firstNonBlank(author.username(), userId);
+        String text = messageText(data.content(), data.messageType(),
+                data.msgElements(), data.arkData());
         MsgContent content = withReply(
-                content(data.content(), data.attachments(), Set.of(), selfId), replyId);
+                content(text, data.attachments(), Set.of(), selfId), replyId);
         if (content.segments().isEmpty()) return null;
-        return new PrivateMsgEvent(selfId, userId, shortId, nickname, content, false, false);
+        return new PrivateMsgEvent(selfId, userId, shortId, nickname, content, false,
+                !QqText.isBlank(replyId));
     }
 
     // ════ Helpers ═════════════════
@@ -92,11 +99,14 @@ public final class QqMapper {
         String userId = QqText.firstNonBlank(author.memberOpenid(), author.id());
         if (QqText.isBlank(userId)) return null;
         String nickname = QqText.firstNonBlank(author.username(), userId);
+        String text = messageText(data.content(), data.messageType(),
+                data.msgElements(), data.arkData());
         MsgContent content = withReply(
-                content(data.content(), data.attachments(), botIds, selfId), replyId);
+                content(text, data.attachments(), botIds, selfId), replyId);
         if (content.segments().isEmpty()) return null;
         return new GroupMsgEvent(
-                selfId, userId, data.groupOpenid(), shortId, nickname, content, at, false);
+                selfId, userId, data.groupOpenid(), shortId, nickname, content, at,
+                !QqText.isBlank(replyId));
     }
 
     /**
@@ -146,6 +156,57 @@ public final class QqMapper {
         }
         trimEdges(segments);
         return MsgContent.of(segments);
+    }
+
+    private static String messageText(String content, Integer messageType, JsonNode elements,
+                                      JsonNode arkData) {
+        if (!QqText.isBlank(content)) return content;
+        if (messageType != null
+                && (messageType == PARALLEL_MESSAGE_TYPE
+                || messageType == CHAT_RECORD_MESSAGE_TYPE)) {
+            String text = elementsText(elements);
+            if (!QqText.isBlank(text)) return text;
+        }
+        return arkText(arkData);
+    }
+
+    private static String elementsText(JsonNode elements) {
+        if (elements == null || !elements.isArray()) return null;
+        StringBuilder text = new StringBuilder();
+        collectElements(elements, text, 0);
+        return text.length() == 0 ? null : text.toString();
+    }
+
+    private static void collectElements(JsonNode elements, StringBuilder text, int depth) {
+        if (elements == null || !elements.isArray() || depth >= MAX_ELEMENT_DEPTH) return;
+        for (JsonNode element : elements) {
+            if (element == null || !element.isObject()) continue;
+            String content = element.path("content").asText("");
+            if (!content.isBlank()) {
+                if (text.length() > 0) text.append('\n');
+                text.append(content);
+            } else {
+                String ark = arkText(element.get("ark_data"));
+                if (!QqText.isBlank(ark)) {
+                    if (text.length() > 0) text.append('\n');
+                    text.append(ark);
+                }
+            }
+            collectElements(element.get("msg_elements"), text, depth + 1);
+        }
+    }
+
+    private static String arkText(JsonNode arkData) {
+        if (arkData == null || !arkData.isObject()) return null;
+        String prompt = arkData.path("prompt").asText("");
+        if (!prompt.isBlank()) return prompt;
+        JsonNode fields = arkData.get("fields");
+        if (fields == null || !fields.isObject()) return null;
+        String title = fields.path("title").asText("");
+        String desc = fields.path("desc").asText("");
+        if (!title.isBlank() && !desc.isBlank()) return title + " " + desc;
+        if (!title.isBlank()) return title;
+        return desc.isBlank() ? null : desc;
     }
 
     private static void addText(List<MsgSegment> segments, String text) {

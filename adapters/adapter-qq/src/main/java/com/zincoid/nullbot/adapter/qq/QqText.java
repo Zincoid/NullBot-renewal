@@ -4,7 +4,7 @@ package com.zincoid.nullbot.adapter.qq;
  * QQ 适配器字符串工具。
  * <p>QQ adapter string helpers.</p>
  */
-final class QqText {
+public final class QqText {
 
     private QqText() {
     }
@@ -16,7 +16,7 @@ final class QqText {
      * @param value the string
      * @return true when null or blank
      */
-    static boolean isBlank(String value) {
+    public static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 
@@ -28,7 +28,7 @@ final class QqText {
      * @param second the fallback
      * @return the first non-blank value, or the fallback
      */
-    static String firstNonBlank(String first, String second) {
+    public static String firstNonBlank(String first, String second) {
         return !isBlank(first) ? first : second;
     }
 }

@@ -1,10 +1,12 @@
-# QQ 官方机器人适配器默认配置，由选中 adapter-qq 的 launcher 构建加载
+logging:
+  level:
+    com.zincoid.nullbot.adapter.qq: WARN
 qq:
   app-id: ${nullbot.qq.app-id:}
   app-secret: ${nullbot.qq.app-secret:}
   api-url: ${nullbot.qq.api-url:https://api.bot.qq.com}
   token-url: ${nullbot.qq.token-url:https://api.bot.qq.com/app/getAppAccessToken}
-  intents: ${nullbot.qq.intents:33554432}
+  intents: ${nullbot.qq.intents:50331648}
   shard: ${nullbot.qq.shard:0}
   shard-count: ${nullbot.qq.shard-count:1}
   text-limit: ${nullbot.qq.text-limit:1800}

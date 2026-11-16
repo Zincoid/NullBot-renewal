@@ -41,10 +41,10 @@ public class QqProperties {
     private String tokenUrl;
 
     /**
-     * 订阅的事件位掩码，默认群聊与 C2C。
-     * <p>Event intent bitmask, group and C2C by default.</p>
+     * 订阅的事件位掩码，默认群聊、C2C 与群成员事件。
+     * <p>Event intent bitmask; group, C2C, and group member events by default.</p>
      */
-    private int intents = 1 << 25;
+    private int intents = (1 << 25) | (1 << 24);
 
     /**
      * 分片编号。
@@ -59,8 +59,8 @@ public class QqProperties {
     private int shardCount = 1;
 
     /**
-     * 单条文本的最大 Unicode code point 数。
-     * <p>Maximum Unicode code points per text message.</p>
+     * 单条文本或 Markdown 的最大 Unicode code point 数。
+     * <p>Maximum Unicode code points per text or Markdown message.</p>
      */
     private int textLimit = 1800;
 

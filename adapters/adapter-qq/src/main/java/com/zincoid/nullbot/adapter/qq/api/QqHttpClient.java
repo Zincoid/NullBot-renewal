@@ -1,9 +1,12 @@
-package com.zincoid.nullbot.adapter.qq;
+package com.zincoid.nullbot.adapter.qq.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zincoid.nullbot.adapter.qq.QqException;
+import com.zincoid.nullbot.adapter.qq.QqProperties;
+import com.zincoid.nullbot.adapter.qq.QqText;
 import com.zincoid.nullbot.adapter.qq.model.QqModels;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,5 +1,7 @@
 package com.zincoid.nullbot.adapter.qq;
 
+import com.zincoid.nullbot.adapter.qq.api.QqApi;
+import com.zincoid.nullbot.adapter.qq.api.QqMedia;
 import org.springframework.stereotype.Component;
 
 /**

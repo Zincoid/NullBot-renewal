@@ -8,8 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * QQ 消息索引：短 ID、平台 ID、目标会话、消息详情与昵称的有限缓存。
- * <p>QQ message index: a bounded cache of short ids, platform ids, targets, message details, and usernames.</p>
+ * QQ 消息索引：短 ID、平台 ID、场景索引、目标会话、消息详情与昵称的有限缓存。
+ * <p>QQ message index: a bounded cache of short ids, platform ids, scene indexes, targets, message details, and usernames.</p>
  * <p>同时用于重复消息去重，以及为缺少会话参数的 recall/getMsg 补齐目标。</p>
  * <p>Also used to deduplicate messages and to supply conversation context to recall/getMsg.</p>
  */
@@ -19,20 +19,10 @@ public class QqMessageIndex {
     private static final int MAX_ENTRIES = 2048;
     private static final int MAX_USERNAMES = 2048;
 
-    private final Map<String, MessageEntry> entries = Collections.synchronizedMap(
-            new LinkedHashMap<String, MessageEntry>(64, 0.75f, true) {
-                @Override
-                protected boolean removeEldestEntry(java.util.Map.Entry<String, MessageEntry> eldest) {
-                    return size() > MAX_ENTRIES;
-                }
-            });
-    private final Map<String, String> usernames = Collections.synchronizedMap(
-            new LinkedHashMap<String, String>(64, 0.75f, true) {
-                @Override
-                protected boolean removeEldestEntry(java.util.Map.Entry<String, String> eldest) {
-                    return size() > MAX_USERNAMES;
-                }
-            });
+    private final Map<String, MessageEntry> entries = lru(MAX_ENTRIES);
+    private final Map<String, String> sceneIndexes = lru(MAX_ENTRIES);
+    private final Map<String, String> sceneRefs = lru(MAX_ENTRIES);
+    private final Map<String, String> usernames = lru(MAX_USERNAMES);
 
     /**
      * 一条消息索引。
@@ -75,6 +65,37 @@ public class QqMessageIndex {
     public void rememberQuoted(String actualId, QqTarget target, MsgDetail detail) {
         String shortId = QqIds.shortId(actualId);
         entries.put(shortId, new MessageEntry(shortId, actualId, target, detail));
+        if (actualId.startsWith("REFIDX_") || actualId.startsWith("TMP_"))
+            sceneRefs.put(shortId, actualId);
+    }
+
+    /**
+     * 记录场景索引到消息短 ID 的映射，供后续引用消息回查。
+     * <p>Maps a scene message index to an internal message short id for later quote lookups.</p>
+     *
+     * @param index          the scene message index
+     * @param messageShortId the internal short id of the message
+     */
+    public void rememberIndex(String index, String messageShortId) {
+        if (index == null || index.isBlank()
+                || messageShortId == null || messageShortId.isBlank()) return;
+        sceneIndexes.put(QqIds.shortId(index), messageShortId);
+        sceneRefs.put(messageShortId, index);
+    }
+
+    /**
+     * 按消息场景索引与会话查询详情。
+     * <p>Looks up a message detail by its scene index and conversation.</p>
+     *
+     * @param index  the scene message index
+     * @param target the target conversation
+     * @return the message detail, or null when absent or from another conversation
+     */
+    public MsgDetail detailByIndex(String index, QqTarget target) {
+        if (index == null || index.isBlank() || target == null) return null;
+        MessageEntry entry = entryByScene(index);
+        if (entry == null || !target.equals(entry.target())) return null;
+        return entry.detail();
     }
 
     /**
@@ -86,23 +107,74 @@ public class QqMessageIndex {
      * @return the short message id
      */
     public String rememberSent(String actualId, QqTarget target) {
+        return rememberSent(actualId, target, null);
+    }
+
+    /**
+     * 记录一条出站消息及其引用索引，并返回短 ID。
+     * <p>Records an outbound message with its reference index and returns the short id.</p>
+     *
+     * @param actualId the platform message id
+     * @param target   the target conversation
+     * @param sceneRef the reference index for later quotes, nullable
+     * @return the short message id
+     */
+    public String rememberSent(String actualId, QqTarget target, String sceneRef) {
         String shortId = QqIds.shortId(actualId);
         entries.put(shortId, new MessageEntry(shortId, actualId, target, null));
+        if (sceneRef != null && !sceneRef.isBlank()) sceneRefs.put(shortId, sceneRef);
         return shortId;
     }
 
     /**
-     * 按短 ID 或平台 ID 查询索引。
-     * <p>Looks up an entry by short id or platform id.</p>
+     * 按短 ID、平台 ID 或场景索引查询索引。
+     * <p>Looks up an entry by short id, platform id, or scene index.</p>
      *
-     * @param id the short or platform message id
+     * @param id the short, platform, or scene message id
      * @return the entry, or null when absent
      */
     public MessageEntry resolve(String id) {
         if (id == null || id.isBlank()) return null;
+        String shortId = QqIds.shortId(id);
+        String mapped = sceneIndexes.get(id);
+        if (mapped == null) mapped = sceneIndexes.get(shortId);
+        if (mapped != null) {
+            MessageEntry aliased = entries.get(mapped);
+            if (aliased != null) return aliased;
+        }
         MessageEntry entry = entries.get(id);
-        if (entry != null) return entry;
-        return entries.get(QqIds.shortId(id));
+        return entry != null ? entry : entries.get(shortId);
+    }
+
+    /**
+     * 按消息 ID 查询可用于引用回复的场景索引。
+     * <p>Looks up the scene index used for quoting by a message id.</p>
+     *
+     * @param id the short, platform, or scene message id
+     * @return the scene index, or null when absent
+     */
+    public String sceneIndex(String id) {
+        MessageEntry entry = resolve(id);
+        return entry == null ? null : sceneRefs.get(entry.shortId());
+    }
+
+    private MessageEntry entryByScene(String index) {
+        String key = QqIds.shortId(index);
+        String mapped = sceneIndexes.get(key);
+        if (mapped != null) {
+            MessageEntry entry = entries.get(mapped);
+            if (entry != null) return entry;
+        }
+        return entries.get(key);
+    }
+
+    private static <V> Map<String, V> lru(int maxEntries) {
+        return Collections.synchronizedMap(new LinkedHashMap<String, V>(64, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, V> eldest) {
+                return size() > maxEntries;
+            }
+        });
     }
 
     /**

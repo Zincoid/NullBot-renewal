@@ -212,16 +212,111 @@ public final class QqModels {
     }
 
     /**
+     * 群成员加入或退出事件数据。
+     * <p>Group member add or remove event data.</p>
+     *
+     * @param groupOpenid  the group openid
+     * @param memberOpenid the member openid
+     * @param userOpenid   the user openid, nullable
+     * @param timestamp    the Unix timestamp in seconds
+     */
+    public record GroupMember(
+            @JsonProperty("group_openid") String groupOpenid,
+            @JsonProperty("member_openid") String memberOpenid,
+            @JsonProperty("user_openid") String userOpenid,
+            Long timestamp
+    ) {
+    }
+
+    /**
+     * Markdown 消息内容。
+     * <p>Markdown message content.</p>
+     *
+     * @param content the markdown text
+     */
+    public record Markdown(String content) {
+    }
+
+    /**
+     * 引用回复的消息引用。
+     * <p>Message reference for a quoted reply.</p>
+     *
+     * @param messageId the referenced message index
+     */
+    public record MessageReference(@JsonProperty("message_id") String messageId) {
+    }
+
+    /**
+     * 富媒体消息内容。
+     * <p>Rich media message content.</p>
+     *
+     * @param fileInfo the uploaded file information
+     */
+    public record MediaInfo(@JsonProperty("file_info") String fileInfo) {
+    }
+
+    /**
      * 发送消息请求。
      * <p>Send message request.</p>
      *
-     * @param msgType the message type
-     * @param content the text content
+     * @param msgType          the message type
+     * @param content          the text content
+     * @param markdown         the markdown content, nullable
+     * @param messageReference the referenced message, nullable
+     * @param media            the rich media content, nullable
      */
     public record SendRequest(
             @JsonProperty("msg_type") int msgType,
-            String content
+            String content,
+            Markdown markdown,
+            @JsonProperty("message_reference") MessageReference messageReference,
+            MediaInfo media
     ) {
+        /**
+         * 创建纯文本发送请求。
+         * <p>Creates a plain-text send request.</p>
+         *
+         * @param msgType the message type
+         * @param content the text content
+         */
+        public SendRequest(int msgType, String content) {
+            this(msgType, content, null, null, null);
+        }
+
+        /**
+         * 创建带 Markdown 的发送请求。
+         * <p>Creates a send request with Markdown content.</p>
+         *
+         * @param msgType  the message type
+         * @param content  the text content
+         * @param markdown the markdown content
+         */
+        public SendRequest(int msgType, String content, Markdown markdown) {
+            this(msgType, content, markdown, null, null);
+        }
+
+        /**
+         * 创建带引用的发送请求。
+         * <p>Creates a send request with a message reference.</p>
+         *
+         * @param msgType          the message type
+         * @param content          the text content
+         * @param markdown         the markdown content
+         * @param messageReference the referenced message
+         */
+        public SendRequest(int msgType, String content, Markdown markdown,
+                           MessageReference messageReference) {
+            this(msgType, content, markdown, messageReference, null);
+        }
+    }
+
+    /**
+     * 发送消息的扩展信息。
+     * <p>Extended information of a sent message.</p>
+     *
+     * @param refIdx the reference index for later quotes
+     */
+    public record ExtInfo(@JsonProperty("ref_idx") String refIdx) {
     }
 
     /**
@@ -230,8 +325,10 @@ public final class QqModels {
      *
      * @param id        the message id
      * @param timestamp the send timestamp
+     * @param extInfo   the extended information, nullable
      */
-    public record SendResponse(String id, JsonNode timestamp) {
+    public record SendResponse(String id, JsonNode timestamp,
+                               @JsonProperty("ext_info") ExtInfo extInfo) {
     }
 
     /**
